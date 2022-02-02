@@ -1,5 +1,5 @@
 require 'crafthelper41';
-require 'UI/craftHelper41Window';
+require 'UI/craftHelperUpdWindow';
 
 craftHelper41Menu = {};
 
@@ -43,7 +43,19 @@ craftHelper41Menu.onCraftHelper = function(items, player)
         end
 		
 		-- Show craft helper window
-		craftHelper41Menu.craftHelperWindow = craftHelper41Window:new(100, 100, item);
+		
+		local args = {
+			x=100,
+			y=100,
+			width=1000,
+			height=600,
+			backgroundColor = {r=0, g=0, b=0, a=1},
+			minimumWidth = 800,
+			minimumHeight = 400,
+			item=item
+
+		};
+		craftHelper41Menu.craftHelperWindow = craftHelperUpdWindow:new(args);
 		craftHelper41Menu.craftHelperWindow:initialise();
 		craftHelper41Menu.craftHelperWindow:addToUIManager();
 	end

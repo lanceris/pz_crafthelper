@@ -8,6 +8,7 @@ craftHelper41.recipesByItem = {};
 craftHelper41.allRecipes = {};
 craftHelper41.skipModules = {};
 craftHelper41.itemsManuals = {};
+craftHelper41.isDebug = false or getDebug();
 
 
 craftHelper41.loadDatas = function()
@@ -16,6 +17,7 @@ craftHelper41.loadDatas = function()
 
 	-- Get all recipes in game (vanilla recipes + any mods recipes)
 	local allRecipes = getScriptManager():getAllRecipes();
+	print(type(allRecipes));
 
 	-- Go through recipes stack
 	for i=0,allRecipes:size() -1 do
@@ -131,8 +133,17 @@ craftHelper41.loadAllItemsManuals = function()
 	end
 end
 
+function craftHelper41.reloadMod(key)
+	if key == 20 then
+		craftHelper41.loadDatas();
+	end
+end
 
 ---
 -- Load all recipes and items in array when game starts
--- 
+--
+if craftHelper41.isDebug then
+	Events.OnKeyPressed.Add(craftHelper41.reloadMod); 
+end
+
 Events.OnGameBoot.Add(craftHelper41.loadDatas);
