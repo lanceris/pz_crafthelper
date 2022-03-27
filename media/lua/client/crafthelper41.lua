@@ -17,7 +17,6 @@ craftHelper41.loadDatas = function()
 
 	-- Get all recipes in game (vanilla recipes + any mods recipes)
 	local allRecipes = getScriptManager():getAllRecipes();
-	print(type(allRecipes));
 
 	-- Go through recipes stack
 	for i=0,allRecipes:size() -1 do
@@ -31,8 +30,6 @@ craftHelper41.loadDatas = function()
 				local recipe = allRecipes:get(i):getSource():get(n);
 
 				if (recipe) then
-
-
 					for k=0, recipe:getItems():size() - 1 do
 
 					-- Create an instance of the item.

@@ -58,6 +58,10 @@ craftHelper41Menu.onCraftHelper = function(items, player)
 		craftHelper41Menu.craftHelperWindow = craftHelperUpdWindow:new(args);
 		craftHelper41Menu.craftHelperWindow:initialise();
 		craftHelper41Menu.craftHelperWindow:addToUIManager();
+
+		-- craftHelper41Menu.craftHelperWindow = craftHelper41Window:new(100, 100, item);
+		-- craftHelper41Menu.craftHelperWindow:initialise();
+		-- craftHelper41Menu.craftHelperWindow:addToUIManager();
 	end
 end
 

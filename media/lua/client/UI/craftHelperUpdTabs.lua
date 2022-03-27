@@ -16,7 +16,7 @@ function craftHelperUpdTabs.addTabs(parent)
 	nameHeader:initialise();
 	nameHeader.borderColor.a = 0.2;
 	nameHeader.minimumWidth = 100;
-	nameHeader.onresize = { ISInventoryPane.onResizeColumn, parent, nameHeader };
+	nameHeader.onresize = { craftHelperUpdTabs.onResizeColumn, parent, nameHeader };
 	parent:addChild(nameHeader);
 
     -- "RecipeDetails"
@@ -25,12 +25,21 @@ function craftHelperUpdTabs.addTabs(parent)
 	typeHeader.anchorRight = true;
 	typeHeader.minimumWidth = 100;
 	typeHeader.resizeLeft = true;
-	typeHeader.onresize = { ISInventoryPane.onResizeColumn, parent, typeHeader };
+	typeHeader.onresize = { craftHelperUpdTabs.onResizeColumn, parent, typeHeader };
 	typeHeader:initialise();
 	parent:addChild(typeHeader)
 
     return nameHeader, typeHeader
 end
+
+function craftHelperUpdTabs.onResizeColumn(parent, button)
+	ISInventoryPane.onResizeColumn(parent, button)
+	parent.recipesList:setWidth(parent.nameHeader.width)
+	parent.categorySelector:setWidth(parent.nameHeader.width)
+	parent.recipePanel:setWidth(parent.typeHeader.width)
+	parent.recipePanel:setX(parent.typeHeader.x)
+end
+
 
 function craftHelperUpdTabs.prerender(parent)
     parent.nameHeader.maximumWidth = parent.width - parent.typeHeader.minimumWidth - parent.column2
@@ -70,7 +79,7 @@ function craftHelperUpdTabs:new(args)
         o[k] = v
     end
 
-    o:noBackground();
+    --o:noBackground();
 
     return o;
 end
