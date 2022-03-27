@@ -1,20 +1,20 @@
 require "ISUI/ISPanel"
-require "UI/craftHelperUpdTabs"
-require "UI/craftHelperUpdRecipeList"
-require "UI/craftHelperUpdRecipePanel"
+require "UI/CHC_tabs"
+require "UI/CHC_uses_recipelist"
+require "UI/CHC_uses_recipepanel"
 
 
-craftHelperUpdUsesScreen = ISPanel:derive("craftHelperUpdUsesScreen");
+CHC_uses = ISPanel:derive("CHC_uses");
 
 
-function craftHelperUpdUsesScreen:initialise()
+function CHC_uses:initialise()
     ISPanel.initialise(self);
     self:create();
 end
 
-function craftHelperUpdUsesScreen:create()
+function CHC_uses:create()
 
-    self.allRecipesForItem = craftHelper41.recipesByItem[self.item:getName()];
+    self.allRecipesForItem = CHC_main.recipesByItem[self.item:getName()];
 
     -- region draggable headers
     local categoryWid = math.max(100,self.column4-self.column3-1)
@@ -23,7 +23,7 @@ function craftHelperUpdUsesScreen:create()
     end
     self.tabName1 = getText("UI_tab_uses_recipe_title")
     self.tabName2 = getText("UI_tab_uses_details_title")
-    self.nameHeader, self.typeHeader = craftHelperUpdTabs.addTabs(self);
+    self.nameHeader, self.typeHeader = CHC_tabs.addTabs(self);
     self.nameHeader:setAlwaysOnTop(true);
     self.typeHeader:setAlwaysOnTop(true);
     -- endregion
@@ -50,20 +50,23 @@ function craftHelperUpdUsesScreen:create()
     --endregion
 
     -- region recipe list
-    self.recipesList = craftHelperUpdRecipeList:new(self.nameHeader.x, 
+    self.recipesList = CHC_uses_recipelist:new(self.nameHeader.x, 
                                                     self.nameHeader.y+self.nameHeader.height+self.categorySelector.height, 
-                                                    self.nameHeader.width, self.height);
+                                                    self.nameHeader.width, 
+                                                    self.height-self.nameHeader.height-self.categorySelector.height-1);
+
+    self.recipesList.drawBorder = true;
 	self.recipesList:initialise();
 	self.recipesList:instantiate();
 	self.recipesList:setAnchorBottom(true)
-    self.recipesList:setOnMouseDownFunction(self, craftHelperUpdUsesScreen.onRecipeChange);
+    self.recipesList:setOnMouseDownFunction(self, CHC_uses.onRecipeChange);
 
     -- Add entries to recipeList
     self:refreshRecipeList(self.allRecipesForItem)
     -- endregion
     
     -- region recipe details windows
-    self.recipePanel = craftHelperUpdRecipePanel:new(self.typeHeader.x, 
+    self.recipePanel = CHC_uses_recipepanel:new(self.typeHeader.x, 
                         self.typeHeader.y+self.typeHeader.height, 
                         self.typeHeader.width, self.height);
 	self.recipePanel:initialise();
@@ -81,7 +84,7 @@ function craftHelperUpdUsesScreen:create()
 
 end
 
-function craftHelperUpdUsesScreen:onChangeUsesRecipeCategory(_option)
+function CHC_uses:onChangeUsesRecipeCategory(_option)
     local sl = _option.options[_option.selected]
     if sl == "All" then
         self:refreshRecipeList(self.allRecipesForItem)
@@ -100,34 +103,34 @@ function craftHelperUpdUsesScreen:onChangeUsesRecipeCategory(_option)
     self:refreshRecipeList(filteredRecipes)
 end
 
-function craftHelperUpdUsesScreen:refreshRecipeList(recipes)
+function CHC_uses:refreshRecipeList(recipes)
     self.recipesList:clear()
     for _,recipe in ipairs(recipes) do
         self.recipesList:addItem(string.trim(recipe:getName()), recipe);
     end
 end
 
-function craftHelperUpdUsesScreen:onRecipeChange(recipe)
+function CHC_uses:onRecipeChange(recipe)
 	self.recipePanel:setRecipe(recipe);
     self.recipesList:onMouseDown_Recipes(self.recipesList:getMouseX(), self.recipesList:getMouseY())
 end
 
-function craftHelperUpdUsesScreen:prerender()
-    craftHelperUpdTabs.prerender(self)
+function CHC_uses:prerender()
+    CHC_tabs.prerender(self)
 end
 
-function craftHelperUpdUsesScreen:render()
-    craftHelperUpdTabs.render(self)
+function CHC_uses:render()
+    CHC_tabs.render(self)
 end
 
 
-function craftHelperUpdUsesScreen:new(args)
+function CHC_uses:new(args)
     local x = args.x
     local y = args.y
     local w = args.w
     local h = args.h
+    local sep_x = args.sep_x
     local item = args.item
-    coltab = coltab or {};
 
     local o = {};
     o = ISPanel:new(x,y,w,h);
@@ -140,9 +143,9 @@ function craftHelperUpdUsesScreen:new(args)
 
     o.item = item;
 
-    o.column2 = coltab.column2 or 0;
-	o.column3 = coltab.column3 or 140;
-	o.column4 = coltab.column4 or o.width - 10;
+    o.column2 = 0;
+	o.column3 = sep_x;
+	o.column4 = o.width - 1;
 
     return o;
 end

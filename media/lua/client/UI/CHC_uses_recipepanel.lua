@@ -1,12 +1,12 @@
 require 'ISUI/ISPanel';
 require 'ISUI/ISScrollingListBox';
-require 'crafthelper41';
+require 'CHC_main';
 
-craftHelperUpdRecipePanel = ISPanel:derive("craftHelperUpdRecipePanel");
+CHC_uses_recipepanel = ISPanel:derive("CHC_uses_recipepanel");
 
-craftHelperUpdRecipePanel.largeFontHeight = getTextManager():getFontFromEnum(UIFont.Large):getLineHeight()
-craftHelperUpdRecipePanel.mediumFontHeight = getTextManager():getFontHeight(UIFont.Medium)
-craftHelperUpdRecipePanel.smallFontHeight = getTextManager():getFontFromEnum(UIFont.Small):getLineHeight()
+CHC_uses_recipepanel.largeFontHeight = getTextManager():getFontFromEnum(UIFont.Large):getLineHeight()
+CHC_uses_recipepanel.mediumFontHeight = getTextManager():getFontHeight(UIFont.Medium)
+CHC_uses_recipepanel.smallFontHeight = getTextManager():getFontFromEnum(UIFont.Small):getLineHeight()
 
 local function tableSize(table1)
     if not table1 then return 0 end
@@ -31,7 +31,7 @@ local function areTablesDifferent(table1, table2)
 end
 
 -- Return true if item2's type is in item1's getClothingExtraItem() list.
-function craftHelperUpdRecipePanel:isExtraClothingItemOf(item1, item2)
+function CHC_uses_recipepanel:isExtraClothingItemOf(item1, item2)
     local scriptItem = getScriptManager():FindItem(item1.fullType)
     if not scriptItem then
         return false
@@ -51,7 +51,7 @@ function craftHelperUpdRecipePanel:isExtraClothingItemOf(item1, item2)
     return false
 end
 
-function craftHelperUpdRecipePanel:removeExtraClothingItemsFromList(index, item, itemList)
+function CHC_uses_recipepanel:removeExtraClothingItemsFromList(index, item, itemList)
     for k=#itemList,index,-1 do
         local item2 = itemList[k]
         if self:isExtraClothingItemOf(item, item2) then
@@ -61,13 +61,13 @@ function craftHelperUpdRecipePanel:removeExtraClothingItemsFromList(index, item,
 end
 
 
-function craftHelperUpdRecipePanel:createChildren()
+function CHC_uses_recipepanel:createChildren()
     ISPanel.createChildren(self);
 
     self.ingredientPanel = ISScrollingListBox:new(1, 30, self.width, self.height - 40);
     self.ingredientPanel:initialise()
     self.ingredientPanel:instantiate()
-    self.ingredientPanel.itemheight = math.max(craftHelperUpdRecipePanel.smallFontHeight, 22)
+    self.ingredientPanel.itemheight = math.max(CHC_uses_recipepanel.smallFontHeight, 22)
     self.ingredientPanel.font = UIFont.NewSmall
     self.ingredientPanel.doDrawItem = self.drawIngredient
     self.ingredientPanel.drawBorder = true
@@ -76,7 +76,7 @@ function craftHelperUpdRecipePanel:createChildren()
 end
 
 
-function craftHelperUpdRecipePanel:getContainers()
+function CHC_uses_recipepanel:getContainers()
     if not self.player then return end
     local playerNum = self.player and self.player:getPlayerNum() or -1
     -- get all the surrounding inventory of the player, gonna check for the item in them too
@@ -92,13 +92,13 @@ function craftHelperUpdRecipePanel:getContainers()
 end
 
 
-function craftHelperUpdRecipePanel:isWaterSource(item, count)
+function CHC_uses_recipepanel:isWaterSource(item, count)
     -- Fk'n rounding differences between Java and Lua broke simple getUsedDelta()/getUseDelta() here, so I added getDrainableUsesInt()
     return instanceof(item, "DrainableComboItem") and item:isWaterSource() and item:getDrainableUsesInt() >= count
 end
 
 
-function craftHelperUpdRecipePanel:setRecipe(recipe)
+function CHC_uses_recipepanel:setRecipe(recipe)
     self:getContainers();
     local newItem = {};
 
@@ -182,7 +182,7 @@ function craftHelperUpdRecipePanel:setRecipe(recipe)
 end
 
 
-function craftHelperUpdRecipePanel:refreshIngredientPanel()
+function CHC_uses_recipepanel:refreshIngredientPanel()
     self.ingredientPanel:setVisible(false)
 
     local selectedItem = self.newItem;
@@ -261,11 +261,11 @@ function craftHelperUpdRecipePanel:refreshIngredientPanel()
 
     self.refreshTypesAvailableMS = getTimestampMs()
 
-    self.ingredientPanel.doDrawItem = craftHelperUpdRecipePanel.drawIngredient
+    self.ingredientPanel.doDrawItem = CHC_uses_recipepanel.drawIngredient
 end
 
 
-function craftHelperUpdRecipePanel:getAvailableItemsType()
+function CHC_uses_recipepanel:getAvailableItemsType()
     local result = {};
     local recipe = self.recipe;
     local items = RecipeManager.getAvailableItemsAll(recipe, self.player, self.containerList, nil, nil);
@@ -298,7 +298,7 @@ function craftHelperUpdRecipePanel:getAvailableItemsType()
 end
 
 
-function craftHelperUpdRecipePanel:render()
+function CHC_uses_recipepanel:render()
     ISPanel.render(self);
 
     if self.recipe == nil then
@@ -323,7 +323,7 @@ function craftHelperUpdRecipePanel:render()
     -- render the right part, the craft information
     local catName = getTextOrNull("IGUI_CraftCategory_"..selectedItem.category) or selectedItem.category
     self:drawText(getText("UI_category")..": "..catName, x, y, 1,1,1,1, UIFont.Large);
-    y = y + craftHelperUpdRecipePanel.largeFontHeight + 5;
+    y = y + CHC_uses_recipepanel.largeFontHeight + 5;
 
     self:drawRectBorder(x, y, 32 + 10, 32 + 10, 1.0, 1.0, 1.0, 1.0);
     if selectedItem.texture then
@@ -336,16 +336,17 @@ function craftHelperUpdRecipePanel:render()
         end
     end
     self:drawText(selectedItem.recipe:getName() , x + 32 + 15, y, 1,1,1,1, UIFont.Large);
-    self:drawText(selectedItem.itemName, x + 32 + 15, y + craftHelperUpdRecipePanel.largeFontHeight, 1,1,1,1, UIFont.Small);
-    y = y + math.max(45, craftHelperUpdRecipePanel.largeFontHeight + craftHelperUpdRecipePanel.smallFontHeight);
+    self:drawText(selectedItem.itemName, x + 32 + 15, y + CHC_uses_recipepanel.largeFontHeight, 1,1,1,1, UIFont.Small);
+    y = y + math.max(45, CHC_uses_recipepanel.largeFontHeight + CHC_uses_recipepanel.smallFontHeight);
 
     self:drawText(getText("IGUI_CraftUI_RequiredItems"), x, y, 1,1,1,1, UIFont.Medium);
 
-    y = y + craftHelperUpdRecipePanel.mediumFontHeight + 7;
+    y = y + CHC_uses_recipepanel.mediumFontHeight + 7;
 
     local manualsSize = 0;
-    if not self.player:isRecipeKnown(selectedItem.recipe) and craftHelper41.itemsManuals[selectedItem.recipe:getOriginalname()] ~= nil then
-        manualsSize = (#craftHelper41.itemsManuals[selectedItem.recipe:getOriginalname()] + 1) * craftHelperUpdRecipePanel.smallFontHeight + 4;
+    local manualsEntries = CHC_main.itemsManuals[selectedItem.recipe:getOriginalname()]
+    if not self.player:isRecipeKnown(selectedItem.recipe) and manualsEntries ~= nil then
+        manualsSize = (#manualsEntries + 1) * CHC_uses_recipepanel.smallFontHeight + 4;
     end
 
     self.ingredientPanel:setX(x + 15)
@@ -356,37 +357,52 @@ function craftHelperUpdRecipePanel:render()
 
     y = y + 4;
     -- region required skills
-    if selectedItem.recipe:getRequiredSkills() then
+    if selectedItem.recipe:getRequiredSkillCount() > 0 then
         self:drawText(getText("IGUI_CraftUI_RequiredSkills"), x, y, 1,1,1,1, UIFont.Medium);
-        y = y + craftHelperUpdRecipePanel.mediumFontHeight;
-        for i=0,selectedItem.recipe:getRequiredSkills():size()-1 do
-            self:drawText(" - " .. selectedItem.recipe:getRequiredSkills():get(i), x + 15, y, 1,1,1,1, UIFont.Small);
-            y = y + craftHelperUpdRecipePanel.smallFontHeight;
+        y = y + CHC_uses_recipepanel.mediumFontHeight;
+        for i=1,selectedItem.recipe:getRequiredSkillCount() do
+            local skill = selectedItem.recipe:getRequiredSkill(i-1);
+            local perk = PerkFactory.getPerk(skill:getPerk());
+            local playerLevel = self.player and self.player:getPerkLevel(skill:getPerk()) or 0
+            local perkName = perk and perk:getName() or skill:getPerk():name()
+            
+            local text = " - " .. perkName .. ": " .. tostring(playerLevel) .. " / " .. tostring(skill:getLevel());
+            local r,g,b = 1,1,1
+            if self.player and (playerLevel < skill:getLevel()) then
+                g = 0;
+                b = 0;
+            end
+            self:drawText(text, x + 15, y, r,g,b,1, UIFont.Small);
+            y = y + CHC_uses_recipepanel.smallFontHeight;
         end
         y = y + 4;
     end
     -- endregion
 
     -- region required books
-    if not self.player:isRecipeKnown(selectedItem.recipe) and craftHelper41.itemsManuals[selectedItem.recipe:getOriginalname()] ~= nil then
+    if manualsEntries ~= nil then
         self:drawText(getText("UI_recipe_panel_required_book")..":", x, y, 1,1,1,1, UIFont.Medium);
-        y = y + craftHelperUpdRecipePanel.mediumFontHeight;
-        for _,manual in ipairs(craftHelper41.itemsManuals[selectedItem.recipe:getOriginalname()]) do
-            self:drawText(" - " .. manual, x+15, y, 0.9,0,0,1, UIFont.Small);
-            y = y + craftHelperUpdRecipePanel.smallFontHeight;
+        y = y + CHC_uses_recipepanel.mediumFontHeight;
+        local r,g,b = 1,1,1
+        for _,manual in ipairs(manualsEntries) do
+            if not self.player:isRecipeKnown(selectedItem.recipe) then
+                g,b = 0,0
+            end
+            self:drawText(" - " .. manual, x+15, y, r,g,b,1, UIFont.Small);
+            y = y + CHC_uses_recipepanel.smallFontHeight;
         end
         y = y + 4;
     end
     -- endregion
     if selectedItem.recipe:getNearItem() then
         self:drawText(getText("IGUI_CraftUI_NearItem", ": "..selectedItem.recipe:getNearItem()), x, y, 1,1,1,1, UIFont.Medium);
-        y = y + craftHelperUpdRecipePanel.mediumFontHeight;
+        y = y + CHC_uses_recipepanel.mediumFontHeight;
     end
     self:drawText(getText("IGUI_CraftUI_RequiredTime", selectedItem.recipe:getTimeToMake()), x, y, 1,1,1,1, UIFont.Medium);
 end
 
 
-function craftHelperUpdRecipePanel:drawIngredient(y, item, alt)
+function CHC_uses_recipepanel:drawIngredient(y, item, alt)
 
     if y + self:getYScroll() >= self.height then return y + self.itemheight end
     if y + self.itemheight + self:getYScroll() <= 0 then return y + self.itemheight end
@@ -431,7 +447,7 @@ function craftHelperUpdRecipePanel:drawIngredient(y, item, alt)
 end
 
 
-function craftHelperUpdRecipePanel:update()
+function CHC_uses_recipepanel:update()
     if self.needRefreshIngredientPanel then
         self.needRefreshIngredientPanel = false
         self:refreshIngredientPanel()
@@ -439,7 +455,7 @@ function craftHelperUpdRecipePanel:update()
 end
 
 
-function craftHelperUpdRecipePanel:new(x, y, width, height)
+function CHC_uses_recipepanel:new(x, y, width, height)
     local o = {};
     o = ISPanel:new(x, y, width, height);
     setmetatable(o, self);

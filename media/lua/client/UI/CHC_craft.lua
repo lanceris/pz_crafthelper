@@ -1,16 +1,16 @@
 require "ISUI/ISPanel";
-require "UI/craftHelperUpdTabs";
+require "UI/CHC_tabs";
 
 
-craftHelperUpdCraftScreen = ISPanel:derive("craftHelperUpdCraftScreen");
+CHC_craft = ISPanel:derive("CHC_craft");
 
 
-function craftHelperUpdCraftScreen:initialise()
+function CHC_craft:initialise()
     ISPanel.initialise(self);
     self:create();
 end
 
-function craftHelperUpdCraftScreen:create()
+function CHC_craft:create()
 
     local categoryWid = math.max(100,self.column4-self.column3-1)
     if self.column3 - 1 + categoryWid > self.width then
@@ -19,19 +19,19 @@ function craftHelperUpdCraftScreen:create()
 
     self.tabName1 = "Recipe"
     self.tabName2 = "RecipeDetails"
-    self.nameHeader, self.typeHeader = craftHelperUpdTabs.addTabs(self);
+    self.nameHeader, self.typeHeader = CHC_tabs.addTabs(self);
 end
 
-function craftHelperUpdCraftScreen:prerender()
-    craftHelperUpdTabs.prerender(self)
+function CHC_craft:prerender()
+    CHC_tabs.prerender(self)
 end
 
-function craftHelperUpdCraftScreen:render()
-    craftHelperUpdTabs.render(self)
+function CHC_craft:render()
+    CHC_tabs.render(self)
 end
 
 
-function craftHelperUpdCraftScreen:new(x, y, width, height, coltab)
+function CHC_craft:new(x, y, width, height, coltab)
     coltab = coltab or {};
 
     local o = {};
@@ -45,7 +45,7 @@ function craftHelperUpdCraftScreen:new(x, y, width, height, coltab)
     o.backgroundColor = {r=0, g=0, b=0, a=0.8};
 
     o.column2 = coltab.column2 or 0;
-	o.column3 = coltab.column3 or 140;
+	o.column3 = coltab.column3 or 400;
 	o.column4 = coltab.column4 or o.width - 10;
 
     return o;

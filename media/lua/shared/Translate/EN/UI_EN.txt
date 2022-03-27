@@ -6,6 +6,6 @@ UI_EN = {
     UI_tab_uses_recipe_title = "Recipe"
     UI_tab_uses_details_title = "Details"
     UI_category = "Category"
-    UI_recipe_panel_required_book = "Required books"
+    UI_recipe_panel_required_book = "Required books (one of)"
     UI_category_default = "General"
 }

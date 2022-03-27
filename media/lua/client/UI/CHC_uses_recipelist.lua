@@ -1,13 +1,13 @@
 require "ISUI/ISScrollingListBox";
 
-craftHelperUpdRecipeList = ISScrollingListBox:derive("craftHelperUpdRecipeList");
+CHC_uses_recipelist = ISScrollingListBox:derive("CHC_uses_recipelist");
 
-function craftHelperUpdRecipeList:initialise()
+function CHC_uses_recipelist:initialise()
 	ISScrollingListBox.initialise(self)
 end
 
 
-function craftHelperUpdRecipeList:getContainers()
+function CHC_uses_recipelist:getContainers()
 	if not self.player then return end
 	local playerNum = self.player and self.player:getPlayerNum() or -1
 	-- get all the surrounding inventory of the player, gonna check for the item in them too
@@ -23,13 +23,13 @@ function craftHelperUpdRecipeList:getContainers()
 end
 
 
-function craftHelperUpdRecipeList:prerender()
+function CHC_uses_recipelist:prerender()
 	ISScrollingListBox.prerender(self)
 	self:getContainers();
 end
 
 
-function craftHelperUpdRecipeList:onMouseDown_Recipes(x, y)
+function CHC_uses_recipelist:onMouseDown_Recipes(x, y)
 	local row = self:rowAt(x,y)
 	print(x .. " | " .. self:getFavoriteX());
     if row == -1 then return end
@@ -41,20 +41,19 @@ function craftHelperUpdRecipeList:onMouseDown_Recipes(x, y)
 end
 
 
-function craftHelperUpdRecipeList:getFavoriteX()
+function CHC_uses_recipelist:getFavoriteX()
     -- scrollbar width=17 but only 13 pixels wide visually
     -- local scrollBarWid = self.parent:isVScrollBarVisible() and 13 or 0
 	return self.width - 20
     -- return self.parent:getWidth() - scrollBarWid - self.favPadX - self.favWidth - self.favPadX
 end
 
-function craftHelperUpdRecipeList:isMouseOverFavorite(x)
+function CHC_uses_recipelist:isMouseOverFavorite(x)
     return (x >= self:getFavoriteX()) and not self:isMouseOverScrollBar()
 end
 
 
-function craftHelperUpdRecipeList:addToFavorite()
-	local recipe = self
+function CHC_uses_recipelist:addToFavorite()
     -- if recipes:size() == 0 then return end
     local selectedIndex = self:rowAt(self:getMouseX(), self:getMouseY());
 	print(selectedIndex)
@@ -75,7 +74,7 @@ function craftHelperUpdRecipeList:addToFavorite()
     -- self.parent:render();
 end
 
-function craftHelperUpdRecipeList:getFavoriteModDataString(recipe)
+function CHC_uses_recipelist:getFavoriteModDataString(recipe)
     local text = "craftingFavorite:" .. recipe:getOriginalname();
     if nil then--instanceof(recipe, "EvolvedRecipe") then
         text = text .. ':' .. recipe:getBaseItem()
@@ -91,13 +90,16 @@ function craftHelperUpdRecipeList:getFavoriteModDataString(recipe)
     return text;
 end
 
-function craftHelperUpdRecipeList:doDrawItem(y, item, alt)
+function CHC_uses_recipelist:doDrawItem(y, item, alt)
 
 	local recipeList = self.parent
 	local a = 0.9
 	local favoriteStar = nil
 	local favoriteAlpha = a
 	local itemPadY = self.itemPadY or (item.height - self.fontHgt) / 2
+
+	if y < -self:getYScroll()-1 then return y+item.height; end
+	if y > self:getHeight()-self:getYScroll()+1 then return y+item.height; end
 
 	--region text
 	local clr = {txt=item.text, x=15, y=(y)+itemPadY,
@@ -149,14 +151,14 @@ function craftHelperUpdRecipeList:doDrawItem(y, item, alt)
 end
 
 
--- function craftHelperUpdRecipeList:getFavoriteX()
+-- function CHC_uses_recipelist:getFavoriteX()
 --     -- scrollbar width=17 but only 13 pixels wide visually
 --     local scrollBarWid = self.recipesList:isVScrollBarVisible() and 13 or 0
 --     return self.recipes:getWidth() - scrollBarWid - self.favPadX - self.favWidth - self.favPadX
 -- end
 
 
-function craftHelperUpdRecipeList:new(x, y, width, height)
+function CHC_uses_recipelist:new(x, y, width, height)
 	local o = {};
 
 	o = ISScrollingListBox:new(x, y, width, height);

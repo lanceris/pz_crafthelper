@@ -1,17 +1,18 @@
 require 'luautils';
 
-craftHelper41 = {};
-craftHelper41.version = "1.1";
-craftHelper41.author = "b1n0m";
-craftHelper41.modName = "CraftHelper41";
-craftHelper41.recipesByItem = {};
-craftHelper41.allRecipes = {};
-craftHelper41.skipModules = {};
-craftHelper41.itemsManuals = {};
-craftHelper41.isDebug = false or getDebug();
+CHC_main = {};
+CHC_main.version = "1.0";
+CHC_main.author = "lanceris";
+CHC_main.previousAuthors = {"Peanut", "ddraigcymraeg", "b1n0m"}
+CHC_main.modName = "CraftHelperContinued";
+CHC_main.recipesByItem = {};
+CHC_main.allRecipes = {};
+CHC_main.skipModules = {};
+CHC_main.itemsManuals = {};
+CHC_main.isDebug = false or getDebug();
 
 
-craftHelper41.loadDatas = function()
+CHC_main.loadDatas = function()
 	print('Loading recipes...');
 	local nbRecipes = 0;
 
@@ -20,8 +21,9 @@ craftHelper41.loadDatas = function()
 
 	-- Go through recipes stack
 	for i=0,allRecipes:size() -1 do
-		if craftHelper41.skipModules[allRecipes:get(i):getModule():getName()] == nil or craftHelper41.skipModules[allRecipes:get(i):getModule():getName()] == false then
-			table.insert(craftHelper41.allRecipes, allRecipes:get(i));
+		local skip_modules = CHC_main.skipModules[allRecipes:get(i):getModule():getName()]
+		if skip_modules == nil or skip_modules == false then
+			table.insert(CHC_main.allRecipes, allRecipes:get(i));
 
 			-- Go through items needed by the recipe
 			 for n=0, allRecipes:get(i):getSource():size() - 1 do
@@ -48,7 +50,7 @@ craftHelper41.loadDatas = function()
 
 						if item then
 							-- Insert the recipe in recipesByItem array
-							craftHelper41.setRecipeForItem(item:getName(), allRecipes:get(i));
+							CHC_main.setRecipeForItem(item:getName(), allRecipes:get(i));
 						end
 					end
 				end
@@ -58,9 +60,9 @@ craftHelper41.loadDatas = function()
 		end
 	end
 
-	table.sort(craftHelper41.allRecipes, craftHelper41.recipeSortByName);
+	table.sort(CHC_main.allRecipes, CHC_main.recipeSortByName);
 
-	craftHelper41.loadAllItemsManuals();
+	CHC_main.loadAllItemsManuals();
 
 	print(nbRecipes .. ' recipes loaded.');
 
@@ -70,7 +72,7 @@ end
 ---
 -- Test if a recipe is already set for an item in the "recipes by item" array
 --
-craftHelper41.recipeAlreadySet = function(tabRecipes, recipe)
+CHC_main.recipeAlreadySet = function(tabRecipes, recipe)
 	-- Go through the recipes already set for the item
 	-- If the recipe is found, return true to report that the recipe already exists
 	for i=1, #tabRecipes do
@@ -86,28 +88,25 @@ end
 ---
 -- Insert recipe in the "recipes by item" array
 --
-craftHelper41.setRecipeForItem = function(itemName, recipe)
+CHC_main.setRecipeForItem = function(itemName, recipe)
 	-- If no recipes has already been set for this item, we initialize the array (empty) of recipes
-	if type(craftHelper41.recipesByItem[itemName]) ~= 'table' then
-		craftHelper41.recipesByItem[itemName] = {};
+	if type(CHC_main.recipesByItem[itemName]) ~= 'table' then
+		CHC_main.recipesByItem[itemName] = {};
 	end
 
 	-- If the recipe has not been already set for the item, we insert it
-	--if not craftHelper41.recipeAlreadySet(craftHelper41.recipesByItem[itemName], recipe) then
-	--	print("recipe set for:"..itemName);
-		table.insert(craftHelper41.recipesByItem[itemName], recipe);
-	--end
+	table.insert(CHC_main.recipesByItem[itemName], recipe);
 end
 
 
 ---
 -- Used to sort by name our recipes list
 --
-craftHelper41.recipeSortByName = function(a,b)
+CHC_main.recipeSortByName = function(a,b)
     return not string.sort(a:getName(), b:getName());
 end
 
-craftHelper41.loadAllItemsManuals = function()
+CHC_main.loadAllItemsManuals = function()
 	local allItems = getAllItems();
 
 	for i=0, allItems:size() - 1 do
@@ -120,27 +119,27 @@ craftHelper41.loadAllItemsManuals = function()
 			if teachedRecipes ~= nil and teachedRecipes:size() > 0 then
 				for j=0, teachedRecipes:size() - 1 do
 					local recipeString = teachedRecipes:get(j);
-					if craftHelper41.itemsManuals[recipeString] == nil then
-						craftHelper41.itemsManuals[recipeString] = {};
+					if CHC_main.itemsManuals[recipeString] == nil then
+						CHC_main.itemsManuals[recipeString] = {};
 					end
-					table.insert(craftHelper41.itemsManuals[recipeString], item:getName())
+					table.insert(CHC_main.itemsManuals[recipeString], item:getName())
 				end
 			end
 		end
 	end
 end
 
-function craftHelper41.reloadMod(key)
+function CHC_main.reloadMod(key)
 	if key == 20 then
-		craftHelper41.loadDatas();
+		CHC_main.loadDatas();
 	end
 end
 
 ---
 -- Load all recipes and items in array when game starts
 --
-if craftHelper41.isDebug then
-	Events.OnKeyPressed.Add(craftHelper41.reloadMod); 
+if CHC_main.isDebug then
+	Events.OnKeyPressed.Add(CHC_main.reloadMod);
 end
 
-Events.OnGameBoot.Add(craftHelper41.loadDatas);
+Events.OnGameBoot.Add(CHC_main.loadDatas);
