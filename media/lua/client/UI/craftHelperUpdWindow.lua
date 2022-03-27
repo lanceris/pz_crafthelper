@@ -4,7 +4,7 @@ require 'ISUI/ISTabPanel';
 
 require 'UI/craftHelperUpdUsesScreen';
 require 'UI/craftHelperUpdCraftScreen';
-require 'UI/craftHelperUpdSearchScreen';
+-- require 'UI/craftHelperUpdSearchScreen';
 
 craftHelperUpdWindow = ISCollapsableWindow:derive("craftHelperUpdWindow");
 
