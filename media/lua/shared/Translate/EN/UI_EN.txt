@@ -8,4 +8,7 @@ UI_EN = {
     UI_category = "Category"
     UI_recipe_panel_required_book = "Required books (one of)"
     UI_category_default = "General"
+    UI_tab_uses_details_near_item = "Required Crafting Equipment"
+    UI_tab_uses_categorySelector_All = "All"
+    UI_tab_uses_categorySelector_Favorite = "Favorites"
 }

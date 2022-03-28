@@ -7,6 +7,41 @@ require "UI/CHC_uses_recipepanel"
 CHC_uses = ISPanel:derive("CHC_uses");
 
 
+local function has_value (tab, val)
+    for index, value in ipairs(tab) do
+        if value == val then
+            return true
+        end
+    end
+
+    return false
+end
+
+local function spairs(t, order)
+    -- collect the keys
+    local keys = {}
+    for k in pairs(t) do keys[#keys+1] = k end
+
+    -- if order function given, sort by it by passing the table and keys a, b,
+    -- otherwise just sort the keys 
+    if order then
+        table.sort(keys, function(a,b) return order(t, a, b) end)
+    else
+        table.sort(keys)
+    end
+
+    -- return the iterator function
+    local i = 0
+    return function()
+        i = i + 1
+        if keys[i] then
+            return keys[i], t[keys[i]]
+        end
+    end
+end
+
+
+
 function CHC_uses:initialise()
     ISPanel.initialise(self);
     self:create();
@@ -35,25 +70,36 @@ function CHC_uses:create()
                                            self.nameHeader.width, 20)
     self.categorySelector:initialise();
     self.categorySelector.selected = 1;
-    self.categorySelector:addOption("All")
+    self.categorySelector:addOption(getText("UI_tab_uses_categorySelector_All"))
     self.categorySelector.onChange = self.onChangeUsesRecipeCategory
 
     -- Add categories to selector
     local uniqueCategories = {};
+    local is_fav_recipes = false
     for _,recipe in ipairs(self.allRecipesForItem) do
+        if not is_fav_recipes and recipe.favorite then
+            is_fav_recipes = true
+        end
         local rc = recipe.recipe:getCategory() or getText("UI_category_default")
-        if uniqueCategories[rc] == nil then
-            uniqueCategories[rc] = true
-            self.categorySelector:addOption(getTextOrNull("IGUI_CraftCategory_"..rc) or rc)
+        rc = getTextOrNull("IGUI_CraftCategory_"..rc) or rc
+        if not has_value(uniqueCategories, rc) then
+            table.insert(uniqueCategories, rc)
         end
 	end
+
+    if is_fav_recipes then self.categorySelector:addOption("* "..getText("UI_tab_uses_categorySelector_Favorite")) end;
+
+    table.sort(uniqueCategories)
+    for _, rc in pairs(uniqueCategories) do
+        self.categorySelector:addOption(rc)
+    end
     --endregion
 
     -- region recipe list
     self.recipesList = CHC_uses_recipelist:new(self.nameHeader.x, 
-                                                    self.nameHeader.y+self.nameHeader.height+self.categorySelector.height, 
-                                                    self.nameHeader.width, 
-                                                    self.height-self.nameHeader.height-self.categorySelector.height-1);
+                        self.nameHeader.y+self.nameHeader.height+self.categorySelector.height, 
+                        self.nameHeader.width, 
+                        self.height-self.nameHeader.height-self.categorySelector.height-1);
 
     self.recipesList.drawBorder = true;
 	self.recipesList:initialise();
@@ -86,7 +132,7 @@ end
 
 function CHC_uses:onChangeUsesRecipeCategory(_option)
     local sl = _option.options[_option.selected]
-    if sl == "All" then
+    if sl == getText("UI_tab_uses_categorySelector_All") then
         self:refreshRecipeList(self.allRecipesForItem)
         return
     end
@@ -96,6 +142,9 @@ function CHC_uses:onChangeUsesRecipeCategory(_option)
     for _, recipe in ipairs(self.allRecipesForItem) do
         local rc = recipe.category
         local rc_tr = getTextOrNull("IGUI_CraftCategory_"..rc) or rc
+        if sl == "* "..getText("UI_tab_uses_categorySelector_Favorite") and recipe.favorite then
+            table.insert(filteredRecipes, recipe)
+        end
         if rc_tr == sl then
             table.insert(filteredRecipes, recipe)
         end
@@ -105,12 +154,17 @@ end
 
 function CHC_uses:refreshRecipeList(recipes)
     self.recipesList:clear()
+
+    -- sort recipes
+    local rec = {}
+    for _, k in ipairs(recipes) do
+        rec[string.trim(k.recipe:getName())] = k
+    end
     
     local modData = getPlayer():getModData()
-    for _,recipe in ipairs(recipes) do
-        -- collect favorites
+    for name,recipe in spairs(rec) do
         recipe.favorite = modData[CHC_main.getFavoriteModDataString(recipe.recipe)] or false
-        self.recipesList:addItem(string.trim(recipe.recipe:getName()), recipe);
+        self.recipesList:addItem(name, recipe);
     end
 end
 

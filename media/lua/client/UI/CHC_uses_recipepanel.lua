@@ -322,8 +322,8 @@ function CHC_uses_recipepanel:render()
 
     -- render the right part, the craft information
     local catName = getTextOrNull("IGUI_CraftCategory_"..selectedItem.category) or selectedItem.category
-    self:drawText(getText("UI_category")..": "..catName, x, y, 1,1,1,1, UIFont.Large);
-    y = y + CHC_uses_recipepanel.largeFontHeight + 5;
+    self:drawText(getText("UI_category")..": "..catName, x, y, 1,1,1,1, UIFont.Medium);
+    y = y + CHC_uses_recipepanel.mediumFontHeight + 3;
 
     self:drawRectBorder(x, y, 32 + 10, 32 + 10, 1.0, 1.0, 1.0, 1.0);
     if selectedItem.texture then
@@ -335,13 +335,13 @@ function CHC_uses_recipepanel:render()
             self:drawTextureScaledAspect(selectedItem.texture,x+5,y+5,32,32,1,1,1,1);
         end
     end
-    self:drawText(selectedItem.recipe:getName() , x + 32 + 15, y, 1,1,1,1, UIFont.Large);
-    self:drawText(selectedItem.itemName, x + 32 + 15, y + CHC_uses_recipepanel.largeFontHeight, 1,1,1,1, UIFont.Small);
+    self:drawText(selectedItem.recipe:getName() , x + 32 + 15, y, 1,1,1,1, UIFont.Medium);
+    self:drawText(selectedItem.itemName, x + 32 + 15, y + CHC_uses_recipepanel.mediumFontHeight, 1,1,1,1, UIFont.Small);
     y = y + math.max(45, CHC_uses_recipepanel.largeFontHeight + CHC_uses_recipepanel.smallFontHeight);
 
-    self:drawText(getText("IGUI_CraftUI_RequiredItems"), x, y, 1,1,1,1, UIFont.Medium);
+    self:drawText(getText("IGUI_CraftUI_RequiredItems"), x, y, 1,1,1,1, UIFont.Small);
 
-    y = y + CHC_uses_recipepanel.mediumFontHeight + 7;
+    y = y + CHC_uses_recipepanel.smallFontHeight + 5;
 
     local manualsSize = 0;
     local manualsEntries = CHC_main.itemsManuals[selectedItem.recipe:getOriginalname()]
@@ -349,7 +349,7 @@ function CHC_uses_recipepanel:render()
         manualsSize = (#manualsEntries + 1) * CHC_uses_recipepanel.smallFontHeight + 4;
     end
 
-    self.ingredientPanel:setX(x + 15)
+    self.ingredientPanel:setX(x + 10)
     self.ingredientPanel:setY(y)
     self.ingredientPanel:setWidth(self.width - 30)
     self.ingredientPanel:setHeight(self.height - 150 - manualsSize - y)
@@ -395,8 +395,10 @@ function CHC_uses_recipepanel:render()
     end
     -- endregion
     if selectedItem.recipe:getNearItem() then
-        self:drawText(getText("IGUI_CraftUI_NearItem", ": "..selectedItem.recipe:getNearItem()), x, y, 1,1,1,1, UIFont.Medium);
+        self:drawText(getText("UI_tab_uses_details_near_item")..": ", x, y, 1,1,1,1, UIFont.Medium);
         y = y + CHC_uses_recipepanel.mediumFontHeight;
+        self:drawText(" - "..selectedItem.recipe:getNearItem(), x+15, y, 1,1,1,1, UIFont.Small);
+        y = y + CHC_uses_recipepanel.smallFontHeight;
     end
     self:drawText(getText("IGUI_CraftUI_RequiredTime", selectedItem.recipe:getTimeToMake()), x, y, 1,1,1,1, UIFont.Medium);
 end
