@@ -22,7 +22,6 @@ CHC_config.fn.encodeSettings = function(t)
 end
 
 CHC_config.fn.loadSettings = function()
-    print('reading...')
     local fileReaderObj = getFileReader(cfg_name, true)
     is_open = true
     local line = fileReaderObj:readLine()
@@ -36,7 +35,6 @@ CHC_config.fn.loadSettings = function()
 end
 
 CHC_config.fn.saveSettings = function(t)
-    print('saving...')
     if is_open then return 
     end;
 

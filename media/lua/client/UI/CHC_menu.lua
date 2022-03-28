@@ -25,6 +25,10 @@ CHC_menu.doCraftHelperMenu = function(player,context, items)
 	-- we effectively add an option in the contextual menu
 	if isUsedInRecipe then
 		CHC_config.fn.loadSettings() -- load config
+		if CHC_config.options.main_window_x == nil then
+			CHC_config.fn.resetSettings()
+			CHC_config.fn.loadSettings()
+		end
 		CHC_menu.cfg = CHC_config.options
 		context:addOption("Craft Helper 41", items, CHC_menu.onCraftHelper, player);
 	end
@@ -54,7 +58,6 @@ CHC_menu.onCraftHelper = function(items, player)
 			item=item
 
 		};
-		print(args.x.."|"..args.y)
 		CHC_menu.CHC_Window = CHC_window:new(args);
 		CHC_menu.CHC_Window:initialise();
 		CHC_menu.CHC_Window:addToUIManager();

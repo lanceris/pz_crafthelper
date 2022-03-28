@@ -41,7 +41,7 @@ function CHC_uses:create()
     -- Add categories to selector
     local uniqueCategories = {};
     for _,recipe in ipairs(self.allRecipesForItem) do
-        local rc = recipe:getCategory() or getText("UI_category_default")
+        local rc = recipe.recipe:getCategory() or getText("UI_category_default")
         if uniqueCategories[rc] == nil then
             uniqueCategories[rc] = true
             self.categorySelector:addOption(getTextOrNull("IGUI_CraftCategory_"..rc) or rc)
@@ -94,7 +94,7 @@ function CHC_uses:onChangeUsesRecipeCategory(_option)
     -- filter recipes by category
     local filteredRecipes = {}
     for _, recipe in ipairs(self.allRecipesForItem) do
-        local rc = recipe:getCategory() or getText("UI_category_default")
+        local rc = recipe.category
         local rc_tr = getTextOrNull("IGUI_CraftCategory_"..rc) or rc
         if rc_tr == sl then
             table.insert(filteredRecipes, recipe)
@@ -105,8 +105,12 @@ end
 
 function CHC_uses:refreshRecipeList(recipes)
     self.recipesList:clear()
+    
+    local modData = getPlayer():getModData()
     for _,recipe in ipairs(recipes) do
-        self.recipesList:addItem(string.trim(recipe:getName()), recipe);
+        -- collect favorites
+        recipe.favorite = modData[CHC_main.getFavoriteModDataString(recipe.recipe)] or false
+        self.recipesList:addItem(string.trim(recipe.recipe:getName()), recipe);
     end
 end
 

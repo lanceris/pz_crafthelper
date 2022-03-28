@@ -12,15 +12,33 @@ CHC_main.itemsManuals = {};
 CHC_main.isDebug = false or getDebug();
 
 
+CHC_main.getFavoriteModDataString = function(recipe)
+    local text = "craftingFavorite:" .. recipe:getOriginalname();
+    if nil then--instanceof(recipe, "EvolvedRecipe") then
+        text = text .. ':' .. recipe:getBaseItem()
+        text = text .. ':' .. recipe:getResultItem()
+    else
+        for i=0,recipe:getSource():size()-1 do
+            local source = recipe:getSource():get(i)
+            for j=1,source:getItems():size() do
+                text = text .. ':' .. source:getItems():get(j-1);
+            end
+        end
+    end
+    return text;
+end
+
+
 CHC_main.loadDatas = function()
 	print('Loading recipes...');
 	local nbRecipes = 0;
 
 	-- Get all recipes in game (vanilla recipes + any mods recipes)
-	local allRecipes = getScriptManager():getAllRecipes();
+	local allRecipes = getAllRecipes();
 
 	-- Go through recipes stack
 	for i=0,allRecipes:size() -1 do
+		local newItem = {}
 		local skip_modules = CHC_main.skipModules[allRecipes:get(i):getModule():getName()]
 		if skip_modules == nil or skip_modules == false then
 			table.insert(CHC_main.allRecipes, allRecipes:get(i));
@@ -28,8 +46,17 @@ CHC_main.loadDatas = function()
 			-- Go through items needed by the recipe
 			 for n=0, allRecipes:get(i):getSource():size() - 1 do
 				-- Get the item name (not the display name)
+				local rec = allRecipes:get(i)
+				local recipe = rec:getSource():get(n);
 
-				local recipe = allRecipes:get(i):getSource():get(n);
+				if rec:getCategory() then
+					newItem.category = rec:getCategory();
+				else
+					newItem.category = getText("IGUI_CraftCategory_General");
+				end
+				newItem.recipe = rec
+				local modData = getPlayer():getModData()
+				newItem.favorite = modData[CHC_main.getFavoriteModDataString(rec)] or false
 
 				if (recipe) then
 					for k=0, recipe:getItems():size() - 1 do
@@ -50,7 +77,7 @@ CHC_main.loadDatas = function()
 
 						if item then
 							-- Insert the recipe in recipesByItem array
-							CHC_main.setRecipeForItem(item:getName(), allRecipes:get(i));
+							CHC_main.setRecipeForItem(item:getName(), newItem);
 						end
 					end
 				end
@@ -69,9 +96,7 @@ CHC_main.loadDatas = function()
 end
 
 
----
 -- Test if a recipe is already set for an item in the "recipes by item" array
---
 CHC_main.recipeAlreadySet = function(tabRecipes, recipe)
 	-- Go through the recipes already set for the item
 	-- If the recipe is found, return true to report that the recipe already exists
@@ -142,4 +167,4 @@ if CHC_main.isDebug then
 	Events.OnKeyPressed.Add(CHC_main.reloadMod);
 end
 
-Events.OnGameBoot.Add(CHC_main.loadDatas);
+Events.OnGameStart.Add(CHC_main.loadDatas);

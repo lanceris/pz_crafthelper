@@ -31,12 +31,9 @@ end
 
 function CHC_uses_recipelist:onMouseDown_Recipes(x, y)
 	local row = self:rowAt(x,y)
-	print(x .. " | " .. self:getFavoriteX());
     if row == -1 then return end
     if self:isMouseOverFavorite(x) then
         self:addToFavorite()
-    -- elseif not self:isMouseOverScrollBar() then
-    --     self.selected = row;
     end
 end
 
@@ -44,7 +41,7 @@ end
 function CHC_uses_recipelist:getFavoriteX()
     -- scrollbar width=17 but only 13 pixels wide visually
     -- local scrollBarWid = self.parent:isVScrollBarVisible() and 13 or 0
-	return self.width - 20
+	return self.width - 40
     -- return self.parent:getWidth() - scrollBarWid - self.favPadX - self.favWidth - self.favPadX
 end
 
@@ -54,44 +51,32 @@ end
 
 
 function CHC_uses_recipelist:addToFavorite()
-    -- if recipes:size() == 0 then return end
     local selectedIndex = self:rowAt(self:getMouseX(), self:getMouseY());
-	print(selectedIndex)
 
-    local selectedItem = self.items[selectedIndex].item;
+    local selectedItem = self.items[selectedIndex]
 	local modData = self.player:getModData();
-	local recipe_source = selectedItem:getSource();
-	local r1 = recipe_source:get(1)
-	print(fkekkeo:efkoeko())
-	-- selectedItem.favorite = not selectedItem.favorite;
-	local fv = self:getFavoriteModDataString(selectedItem)
-	print(fv)
-	local mdfv = modData[fv]
-	print(mdfv)
-	-- -- print(selectedItem)
-	-- print(selectedItem.fwegoerjgoe(fefe))
-    
-    -- self.parent:render();
-end
-
-function CHC_uses_recipelist:getFavoriteModDataString(recipe)
-    local text = "craftingFavorite:" .. recipe:getOriginalname();
-    if nil then--instanceof(recipe, "EvolvedRecipe") then
-        text = text .. ':' .. recipe:getBaseItem()
-        text = text .. ':' .. recipe:getResultItem()
-    else
-        for i=0,recipe:getSource():size()-1 do
-            local source = recipe:getSource():get(i)
-            for j=1,source:getItems():size() do
-                text = text .. ':' .. source:getItems():get(j-1);
-            end
-        end
-    end
-    return text;
+	local allr = getPlayerCraftingUI(0).categories
+	local fav_idx;
+	
+	--find "Favorite" category
+	for i, v in ipairs(allr) do
+		if v.category == getText("IGUI_CraftCategory_Favorite") then
+			fav_idx = i
+			break
+		end
+	end
+	if fav_idx == nil then return end;
+	local fav_recipes = allr[fav_idx].recipes.items
+	selectedItem.item.favorite = not selectedItem.item.favorite;
+	modData[CHC_main.getFavoriteModDataString(selectedItem.item.recipe)] = selectedItem.item.favorite
+	if selectedItem.favorite then
+		table.insert(fav_recipes, selectedItem)
+	end
 end
 
 function CHC_uses_recipelist:doDrawItem(y, item, alt)
 
+	local recipe = item.item.recipe
 	local recipeList = self.parent
 	local a = 0.9
 	local favoriteStar = nil
@@ -104,10 +89,10 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 	--region text
 	local clr = {txt=item.text, x=15, y=(y)+itemPadY,
 				 a=0.9, font=self.font}
-	if not self.player:isRecipeKnown(item.item) then
+	if not self.player:isRecipeKnown(recipe) then
 		-- unknown recipe, red text
 		clr['r'], clr['g'], clr['b'] = 0.7, 0, 0
-	elseif RecipeManager.IsRecipeValid(item.item, self.player, nil, self.containerList) then
+	elseif RecipeManager.IsRecipeValid(recipe, self.player, nil, self.containerList) then
 		-- can craft, green text
 		clr['r'], clr['g'], clr['b'] = 0, 0.7, 0
 	else
@@ -149,13 +134,6 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 	y = y + item.height;
 	return y;
 end
-
-
--- function CHC_uses_recipelist:getFavoriteX()
---     -- scrollbar width=17 but only 13 pixels wide visually
---     local scrollBarWid = self.recipesList:isVScrollBarVisible() and 13 or 0
---     return self.recipes:getWidth() - scrollBarWid - self.favPadX - self.favWidth - self.favPadX
--- end
 
 
 function CHC_uses_recipelist:new(x, y, width, height)

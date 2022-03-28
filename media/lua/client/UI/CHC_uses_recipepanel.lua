@@ -102,26 +102,26 @@ function CHC_uses_recipepanel:setRecipe(recipe)
     self:getContainers();
     local newItem = {};
 
-    if recipe:getCategory() then
-        newItem.category = recipe:getCategory();
+    if recipe.recipe:getCategory() then
+        newItem.category = recipe.recipe:getCategory();
     else
         newItem.category = getText("IGUI_CraftCategory_General");
     end
 
-    newItem.recipe = recipe;
-    newItem.available = RecipeManager.IsRecipeValid(recipe, self.player, nil, self.containerList);
+    newItem.recipe = recipe.recipe;
+    newItem.available = RecipeManager.IsRecipeValid(recipe.recipe, self.player, nil, self.containerList);
 
-    local resultItem = InventoryItemFactory.CreateItem(recipe:getResult():getFullType());
+    local resultItem = InventoryItemFactory.CreateItem(recipe.recipe:getResult():getFullType());
     if resultItem then
         newItem.texture = resultItem:getTex();
         newItem.itemName = resultItem:getDisplayName();
-        if recipe:getResult():getCount() > 1 then
-            newItem.itemName = (recipe:getResult():getCount() * resultItem:getCount()) .. " " .. newItem.itemName;
+        if recipe.recipe:getResult():getCount() > 1 then
+            newItem.itemName = (recipe.recipe:getResult():getCount() * resultItem:getCount()) .. " " .. newItem.itemName;
         end
     end
     newItem.sources = {};
-    for x=0,recipe:getSource():size()-1 do
-        local source = recipe:getSource():get(x);
+    for x=0,recipe.recipe:getSource():size()-1 do
+        local source = recipe.recipe:getSource():get(x);
         local sourceInList = {};
         sourceInList.items = {}
         for k=1,source:getItems():size() do
@@ -176,7 +176,7 @@ function CHC_uses_recipepanel:setRecipe(recipe)
         table.insert(newItem.sources, sourceInList)
     end
 
-    self.recipe = recipe;
+    self.recipe = recipe.recipe;
     self.newItem = newItem;
     self:refreshIngredientPanel();
 end
