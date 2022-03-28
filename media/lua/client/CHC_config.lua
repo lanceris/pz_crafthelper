@@ -52,8 +52,8 @@ CHC_config.fn.resetSettings = function()
     data.main_window_y = 100
     data.main_window_w = 1000
     data.main_window_h = 600
-    data.main_window_min_w = 800
-    data.main_window_min_h = 400
+    data.main_window_min_w = 400
+    data.main_window_min_h = 350
     data.uses_tab_sep_x = 500
     CHC_config.fn.saveSettings(data)
 end
