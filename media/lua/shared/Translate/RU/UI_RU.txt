@@ -8,4 +8,7 @@ UI_RU = {
     UI_category = "Категория"
     UI_recipe_panel_required_book = "Требуемые книги (одно из)"
     UI_category_default = "Основное"
+    UI_tab_uses_details_near_item = "Необходимое оборудование для создания"
+    UI_tab_uses_categorySelector_All = "Все"
+    UI_tab_uses_categorySelector_Favorite = "Избранное"
 }
