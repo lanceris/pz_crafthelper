@@ -1,4 +1,5 @@
 require "ISUI/ISPanel"
+require 'ISUI/ISButton'
 require "UI/CHC_tabs"
 require "UI/CHC_uses_recipelist"
 require "UI/CHC_uses_recipepanel"
@@ -16,30 +17,6 @@ local function has_value (tab, val)
 
     return false
 end
-
-local function spairs(t, order)
-    -- collect the keys
-    local keys = {}
-    for k in pairs(t) do keys[#keys+1] = k end
-
-    -- if order function given, sort by it by passing the table and keys a, b,
-    -- otherwise just sort the keys 
-    if order then
-        table.sort(keys, function(a,b) return order(t, a, b) end)
-    else
-        table.sort(keys)
-    end
-
-    -- return the iterator function
-    local i = 0
-    return function()
-        i = i + 1
-        if keys[i] then
-            return keys[i], t[keys[i]]
-        end
-    end
-end
-
 
 
 function CHC_uses:initialise()
@@ -63,15 +40,24 @@ function CHC_uses:create()
     self.typeHeader:setAlwaysOnTop(true);
     -- endregion
 
+    -- region filter btn
+    self.filterBtn = ISButton:new(self.nameHeader.x, self.nameHeader.y+self.nameHeader.height,
+                                  15, 20, "", self, self.onFilterMenu)
+    self.filterBtn:initialise();
+    self.filterBtn.borderColor.a = 0;
+    self.filterBtn:setImage(self.filtericon)
+    -- endregion
+
     -- region category selector
     -- We add combobox to select recipe category
-    self.categorySelector = ISComboBox:new(self.nameHeader.x, 
+    self.categorySelector = ISComboBox:new(self.nameHeader.x+self.filterBtn.width,
                                            self.nameHeader.y+self.nameHeader.height,
-                                           self.nameHeader.width, 20)
+                                           self.nameHeader.width-self.filterBtn.width, 20)
     self.categorySelector:initialise();
     self.categorySelector.selected = 1;
     self.categorySelector:addOption(getText("UI_tab_uses_categorySelector_All"))
     self.categorySelector.onChange = self.onChangeUsesRecipeCategory
+    self.categorySelector.target = self
 
     -- Add categories to selector
     local uniqueCategories = {};
@@ -121,9 +107,8 @@ function CHC_uses:create()
 	self.recipePanel:setAnchorBottom(true)
     -- endregion
 
-    self.categorySelector.target = self
-
     -- Attach all to the craft helper window
+    self:addChild(self.filterBtn)
     self:addChild(self.categorySelector)
 	self:addChild(self.recipesList)
 	self:addChild(self.recipePanel)
@@ -132,6 +117,11 @@ end
 
 function CHC_uses:onChangeUsesRecipeCategory(_option)
     local sl = _option.options[_option.selected]
+    self:updateRecipes(sl)
+end
+
+
+function CHC_uses:updateRecipes(sl)
     if sl == getText("UI_tab_uses_categorySelector_All") then
         self:refreshRecipeList(self.allRecipesForItem)
         return
@@ -160,18 +150,57 @@ function CHC_uses:refreshRecipeList(recipes)
     for _, k in ipairs(recipes) do
         rec[string.trim(k.recipe:getName())] = k
     end
-    
     local modData = getPlayer():getModData()
-    for name,recipe in spairs(rec) do
+    for name,recipe in pairs(rec) do
         recipe.favorite = modData[CHC_main.getFavoriteModDataString(recipe.recipe)] or false
         self.recipesList:addItem(name, recipe);
     end
+    table.sort(self.recipesList.items, self.itemSortFunc)
 end
 
 function CHC_uses:onRecipeChange(recipe)
 	self.recipePanel:setRecipe(recipe);
     self.recipesList:onMouseDown_Recipes(self.recipesList:getMouseX(), self.recipesList:getMouseY())
 end
+
+
+-- region filter button
+
+CHC_uses.sortByNameAsc = function (a,b)
+    return a.text<b.text
+end
+
+CHC_uses.sortByNameDesc = function (a,b)
+    return a.text>b.text
+end
+
+function CHC_uses:sortByName(_isAscending)
+    local option = self.categorySelector
+    local sl = option.options[option.selected]
+    if _isAscending and self.itemSortFunc ~= CHC_uses.sortByNameAsc then
+        self.itemSortFunc = CHC_uses.sortByNameAsc
+        self:updateRecipes(sl)
+    end
+    if not _isAscending and self.itemSortFunc ~= CHC_uses.sortByNameDesc then
+        self.itemSortFunc = CHC_uses.sortByNameDesc
+        self:updateRecipes(sl)
+    end
+end
+
+function CHC_uses:onFilterMenu(button)
+    local x = button:getAbsoluteX();
+    local y = button:getAbsoluteY();
+    local context = ISContextMenu.get(0, x, y);
+
+    local name = context:addOption(getText("IGUI_Name"), nil, nil);
+    local subMenuName = ISContextMenu:getNew(context);
+    context:addSubMenu(name, subMenuName);
+
+    subMenuName:addOption(getText("IGUI_invpanel_ascending"), self, CHC_uses.sortByName, true);
+    subMenuName:addOption(getText("IGUI_invpanel_descending"), self, CHC_uses.sortByName, false);
+end
+-- endregion
+
 
 function CHC_uses:prerender()
     CHC_tabs.prerender(self)
@@ -204,6 +233,10 @@ function CHC_uses:new(args)
     o.column2 = 0;
 	o.column3 = sep_x;
 	o.column4 = o.width - 1;
+
+    o.filtericon = getTexture("media/ui/TreeFilter.png");
+    o.ui_name = "CHC_uses"
+    o.itemSortFunc = CHC_uses.sortByNameDesc
 
     return o;
 end

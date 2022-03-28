@@ -4,13 +4,17 @@
 
 ### New features
 
-- Added ability to favorite recipes from craft helper window
+- Ability to favorite recipes from craft helper window
   - semi-synchronized with crafting window (need to re-open crafthelper or change category)
+- Favorite category (shown only if there are favorited recipes for item)
+- Sorting button (like in player inventory, sorts recipes by name)
 
 ### Changes
 
 - Changed event used to load all recipes (OnGameBoot -> OnGameStart)
 - Handle config creation
+- UI adjustments
+- Reduced minimum window resolution (800,400 -> 400,350)
 
 # 1.1 (27.03.2022)
 
