@@ -298,6 +298,18 @@ function CHC_uses_recipepanel:getAvailableItemsType()
 end
 
 
+function CHC_uses_recipepanel:shouldDrawSkillText(requiredSkillCount, selectedItem)
+    for i=1, requiredSkillCount do
+        local skill = selectedItem.recipe:getRequiredSkill(i-1);
+        local playerLevel = self.player and self.player:getPerkLevel(skill:getPerk()) or 0
+        if (playerLevel < skill:getLevel()) then
+            return true
+        end
+    end
+    return false
+end
+
+
 function CHC_uses_recipepanel:render()
     ISPanel.render(self);
 
@@ -357,10 +369,11 @@ function CHC_uses_recipepanel:render()
 
     y = y + 4;
     -- region required skills
-    if selectedItem.recipe:getRequiredSkillCount() > 0 then
+    local requiredSkillCount = selectedItem.recipe:getRequiredSkillCount()
+    if requiredSkillCount > 0 and self:shouldDrawSkillText(requiredSkillCount, selectedItem) then
         self:drawText(getText("IGUI_CraftUI_RequiredSkills"), x, y, 1,1,1,1, UIFont.Medium);
         y = y + CHC_uses_recipepanel.mediumFontHeight;
-        for i=1,selectedItem.recipe:getRequiredSkillCount() do
+        for i=1,requiredSkillCount do
             local skill = selectedItem.recipe:getRequiredSkill(i-1);
             local perk = PerkFactory.getPerk(skill:getPerk());
             local playerLevel = self.player and self.player:getPerkLevel(skill:getPerk()) or 0
@@ -368,28 +381,32 @@ function CHC_uses_recipepanel:render()
             
             local text = " - " .. perkName .. ": " .. tostring(playerLevel) .. " / " .. tostring(skill:getLevel());
             local r,g,b = 1,1,1
+
             if self.player and (playerLevel < skill:getLevel()) then
                 g = 0;
                 b = 0;
+                self:drawText(text, x + 15, y, r,g,b,1, UIFont.Small);
+                y = y + CHC_uses_recipepanel.smallFontHeight;
             end
-            self:drawText(text, x + 15, y, r,g,b,1, UIFont.Small);
-            y = y + CHC_uses_recipepanel.smallFontHeight;
+            
         end
         y = y + 4;
     end
     -- endregion
 
     -- region required books
-    if manualsEntries ~= nil then
+    local isKnown = self.player:isRecipeKnown(selectedItem.recipe)
+    if manualsEntries ~= nil and not isKnown then
         self:drawText(getText("UI_recipe_panel_required_book")..":", x, y, 1,1,1,1, UIFont.Medium);
         y = y + CHC_uses_recipepanel.mediumFontHeight;
         local r,g,b = 1,1,1
         for _,manual in ipairs(manualsEntries) do
-            if not self.player:isRecipeKnown(selectedItem.recipe) then
+            if not isKnown then
                 g,b = 0,0
+                self:drawText(" - " .. manual, x+15, y, r,g,b,1, UIFont.Small);
+                y = y + CHC_uses_recipepanel.smallFontHeight;
             end
-            self:drawText(" - " .. manual, x+15, y, r,g,b,1, UIFont.Small);
-            y = y + CHC_uses_recipepanel.smallFontHeight;
+            
         end
         y = y + 4;
     end

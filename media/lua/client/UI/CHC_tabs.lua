@@ -52,10 +52,13 @@ end
 
 function CHC_tabs.onResizeColumn(parent, button)
 	ISInventoryPane.onResizeColumn(parent, button)
-	parent.recipesList:setWidth(parent.nameHeader.width)
-	parent.categorySelector:setWidth(parent.nameHeader.width)
-	parent.recipePanel:setWidth(parent.typeHeader.width)
-	parent.recipePanel:setX(parent.typeHeader.x)
+	if parent.ui_name and "CHC_uses" then
+		parent.recipesList:setWidth(parent.nameHeader.width)
+		parent.categorySelector:setWidth(parent.nameHeader.width-parent.filterBtn.width)
+		parent.recipePanel:setWidth(parent.typeHeader.width)
+		parent.recipePanel:setX(parent.typeHeader.x)
+	end
+	
 end
 
 
