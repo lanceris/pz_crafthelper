@@ -1,5 +1,18 @@
 # CraftHelper updates
 
+# 1.3 (29.03.2022)
+
+### New features
+
+- Filter recipes by availability
+- Search bar
+
+### Changes
+
+- Refactored config to allow bool and string values
+- New config variables for sorting order and availability filter
+- Some refactoring in CHC_uses:create to simplify elements creation
+
 # 1.2 (28.03.2022)
 
 ### New features

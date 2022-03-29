@@ -27,7 +27,9 @@ CHC_config.fn.loadSettings = function()
     local line = fileReaderObj:readLine()
     while line ~= nil do
         local l = strsplit(line, '=')
-        CHC_config.options[l[1]] = tonumber(l[2])
+        if l[2] == 'true' then l[2] = true end
+        if l[2] == 'false' then l[2] = false end
+        CHC_config.options[l[1]] = tonumber(l[2]) or l[2]
         line = fileReaderObj:readLine()
     end
     fileReaderObj:close()
@@ -35,8 +37,7 @@ CHC_config.fn.loadSettings = function()
 end
 
 CHC_config.fn.saveSettings = function(t)
-    if is_open then return 
-    end;
+    if is_open then return end;
 
     local fileWriterObj = getFileWriter(cfg_name, true, false)
     is_open = true
@@ -55,6 +56,8 @@ CHC_config.fn.resetSettings = function()
     data.main_window_min_w = 400
     data.main_window_min_h = 350
     data.uses_tab_sep_x = 500
+    data.uses_filter_name_asc = true
+    data.uses_filter_type = "all"
     CHC_config.fn.saveSettings(data)
 end
 
@@ -70,6 +73,8 @@ CHC_config.fn.updateSettings = function(menu)
     data.main_window_min_w = menu.minimumWidth
     data.main_window_min_h = menu.minimumHeight
     data.uses_tab_sep_x = menu.usesScreen.column3
+    data.uses_filter_name_asc = menu.usesScreen.itemSortAsc == true
+    data.uses_filter_type = menu.usesScreen.typeFilter
     CHC_config.fn.saveSettings(data)
     
 end
