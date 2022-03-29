@@ -11,4 +11,9 @@ UI_RU = {
     UI_tab_uses_details_near_item = "Необходимое оборудование для создания"
     UI_tab_uses_categorySelector_All = "Все"
     UI_tab_uses_categorySelector_Favorite = "Избранное"
+    UI_settings_av_title = "Доступность"
+    UI_settings_av_all = "Все"
+    UI_settings_av_valid = "Доступные"
+    UI_settings_av_known = "Известные"
+    UI_settings_av_invalid = "Недоступные"
 }
