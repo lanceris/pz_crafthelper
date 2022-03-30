@@ -14,6 +14,7 @@ CHC_uses.typeFiltIconAll = getTexture("media/textures/type_filt_all.png")
 CHC_uses.typeFiltIconValid = getTexture("media/textures/type_filt_valid.png")
 CHC_uses.typeFiltIconKnown = getTexture("media/textures/type_filt_known.png")
 CHC_uses.typeFiltIconInvalid = getTexture("media/textures/type_filt_invalid.png")
+CHC_uses.searchIcon = getTexture("media/textures/search_icon.png")
 
 
 local function has_value (tab, val)
@@ -60,6 +61,30 @@ function CHC_uses:createFilterRow(x, y, w, h, defaultCategory)
     return filterRowContainer
 end
 
+function CHC_uses:createSearchRow(x,y,w,h)
+    local searchRowContainer = ISPanel:new(x, y, w, h)
+    self.searchBtn = ISButton:new(x, 0, h, h, "", nil, nil)
+    self.searchBtn:initialise()
+    self.searchBtn.borderColor.a = 0
+    self.searchBtn:setImage(self.searchIcon)
+
+    x = x + self.searchBtn.width
+
+    local dw = self.searchBtn.width
+    self.searchBar = ISTextEntryBox:new("", x, 0, w-dw, h)
+    self.searchBar:setTooltip(string.sub(getText("IGUI_CraftUI_Name_Filter"), 1, -2))
+    self.searchBar:initialise()
+    self.searchBar:instantiate()
+    self.searchBar:setText("")
+    self.searchBar:setClearButton(true)
+    self.searchBarLastText = self.searchBar:getInternalText()
+    self.searchBarText = self.searchBarLastText
+    self.searchBar.onTextChange = self.onTextChange
+
+    searchRowContainer.deltaW = dw
+    return searchRowContainer
+end
+
 function CHC_uses:create()
 
     self.allRecipesForItem = CHC_main.recipesByItem[self.item:getName()];
@@ -76,11 +101,12 @@ function CHC_uses:create()
     self.typeHeader:setAlwaysOnTop(true);
     -- endregion
 
+    local x = self.nameHeader.x
     local y = self.nameHeader.y+self.nameHeader.height
+
     -- region filters UI
-    local filterRowX = self.nameHeader.x
     local defaultCategory = getText("UI_tab_uses_categorySelector_All")
-    self.filterRowContainer = self:createFilterRow(filterRowX, y, self.nameHeader.width, 24, defaultCategory)
+    self.filterRowContainer = self:createFilterRow(x, y, self.nameHeader.width, 24, defaultCategory)
     y = y + 24
     
     -- endregion
@@ -110,25 +136,13 @@ function CHC_uses:create()
     --endregion
 
     -- region search bar
-
-    self.searchBar = ISTextEntryBox:new("", self.nameHeader.x, y,
-                            self.nameHeader.width, 24)
-    self.searchBar:setTooltip(string.sub(getText("IGUI_CraftUI_Name_Filter"), 1, -2))
-    self.searchBar:initialise()
-    self.searchBar:instantiate()
-    self.searchBar:setText("")
-    self.searchBar:setClearButton(true)
-    self.searchBarLastText = self.searchBar:getInternalText()
-    self.searchBarText = self.searchBarLastText
-    self.searchBar.onTextChange = self.onTextChange
-
-    y = y + self.searchBar.height
+    self.searchRowContainer = self:createSearchRow(self.nameHeader.x, y, self.nameHeader.width, 24)
+    y = y + 24
     -- endregion
 
     -- region recipe list
-    self.recipesList = CHC_uses_recipelist:new(self.nameHeader.x, y,
-                        self.nameHeader.width,
-                        self.height-self.nameHeader.height-self.categorySelector.height-self.searchBar.height-1);
+    local rlh = self.height-self.nameHeader.height-self.filterRowContainer.height-self.searchRowContainer.height-1
+    self.recipesList = CHC_uses_recipelist:new(self.nameHeader.x, y, self.nameHeader.width, rlh);
 
     self.recipesList.drawBorder = true;
 	self.recipesList:initialise();
@@ -178,7 +192,9 @@ function CHC_uses:create()
     self.filterRowContainer:addChild(self.filterTypeBtn)
     self.filterRowContainer:addChild(self.categorySelector)
     self:addChild(self.filterRowContainer)
-    self:addChild(self.searchBar)
+    self.searchRowContainer:addChild(self.searchBtn)
+    self.searchRowContainer:addChild(self.searchBar)
+    self:addChild(self.searchRowContainer)
 	self:addChild(self.recipesList)
 	self:addChild(self.recipePanel)
 
@@ -189,7 +205,7 @@ end
 -- region update
 
 function CHC_uses:onTextChange()
-    local s = self.parent;
+    local s = self.parent.parent;
     local stateText = s.searchBar:getInternalText()
     if stateText ~= s.searchBarLastText or stateText == "" then
         s.searchBarLastText = stateText
