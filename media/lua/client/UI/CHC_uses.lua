@@ -8,6 +8,12 @@ require "UI/CHC_uses_recipepanel"
 
 
 CHC_uses = ISPanel:derive("CHC_uses");
+CHC_uses.sortOrderIconAsc = getTexture("media/textures/sort_order_asc.png")
+CHC_uses.sortOrderIconDesc = getTexture("media/textures/sort_order_desc.png")
+CHC_uses.typeFiltIconAll = getTexture("media/textures/type_filt_all.png")
+CHC_uses.typeFiltIconValid = getTexture("media/textures/type_filt_valid.png")
+CHC_uses.typeFiltIconKnown = getTexture("media/textures/type_filt_known.png")
+CHC_uses.typeFiltIconInvalid = getTexture("media/textures/type_filt_invalid.png")
 
 
 local function has_value (tab, val)
@@ -24,6 +30,34 @@ end
 function CHC_uses:initialise()
     ISPanel.initialise(self);
     self:create();
+end
+
+function CHC_uses:createFilterRow(x, y, w, h, defaultCategory)
+    local filterRowContainer = ISPanel:new(x, y, w, h)
+
+    self.filterOrderBtn = ISButton:new(x, 0, h, h, "", self, self.onFilterSortMenu)
+    self.filterOrderBtn:initialise()
+    self.filterOrderBtn.borderColor.a = 0
+
+    x = x + self.filterOrderBtn.width
+
+    self.filterTypeBtn = ISButton:new(x, 0, h, h, "", self, self.onFilterTypeMenu)
+    self.filterTypeBtn:initialise()
+    self.filterTypeBtn.borderColor.a = 0
+
+    x = x + self.filterTypeBtn.width
+
+    local dw = self.filterOrderBtn.width+self.filterTypeBtn.width
+    self.categorySelector = ISComboBox:new(x, 0, w-dw, h)
+    self.categorySelector:initialise();
+    self.categorySelector.selected = 1;
+    self.categorySelector:addOption(defaultCategory)
+    self.categorySelector.onChange = self.onChangeUsesRecipeCategory
+    self.categorySelector.target = self
+
+    filterRowContainer.deltaW = dw
+
+    return filterRowContainer
 end
 
 function CHC_uses:create()
@@ -43,26 +77,16 @@ function CHC_uses:create()
     -- endregion
 
     local y = self.nameHeader.y+self.nameHeader.height
-    -- region filter btn
-    self.filterBtn = ISButton:new(self.nameHeader.x, y,
-                                  15, 20, "", self, self.onFilterMenu)
-    self.filterBtn:initialise();
-    self.filterBtn.borderColor.a = 0;
-    self.filterBtn:setImage(self.filtericon)
+    -- region filters UI
+    local filterRowX = self.nameHeader.x
+    local defaultCategory = getText("UI_tab_uses_categorySelector_All")
+    self.filterRowContainer = self:createFilterRow(filterRowX, y, self.nameHeader.width, 24, defaultCategory)
+    y = y + 24
+    
     -- endregion
 
-    -- region category selector
+    -- region category selector data
     -- We add combobox to select recipe category
-    local defaultCategory = getText("UI_tab_uses_categorySelector_All")
-    self.categorySelector = ISComboBox:new(self.nameHeader.x+self.filterBtn.width, y,
-                                           self.nameHeader.width-self.filterBtn.width, 20)
-    y = y + self.categorySelector.height
-    self.categorySelector:initialise();
-    self.categorySelector.selected = 1;
-    self.categorySelector:addOption(defaultCategory)
-    self.categorySelector.onChange = self.onChangeUsesRecipeCategory
-    self.categorySelector.target = self
-
     -- Add categories to selector
     local uniqueCategories = {};
     local is_fav_recipes = false
@@ -88,7 +112,8 @@ function CHC_uses:create()
     -- region search bar
 
     self.searchBar = ISTextEntryBox:new("", self.nameHeader.x, y,
-                            self.nameHeader.width, self.categorySelector.height)
+                            self.nameHeader.width, 24)
+    self.searchBar:setTooltip(string.sub(getText("IGUI_CraftUI_Name_Filter"), 1, -2))
     self.searchBar:initialise()
     self.searchBar:instantiate()
     self.searchBar:setText("")
@@ -100,7 +125,6 @@ function CHC_uses:create()
     y = y + self.searchBar.height
     -- endregion
 
-    
     -- region recipe list
     self.recipesList = CHC_uses_recipelist:new(self.nameHeader.x, y,
                         self.nameHeader.width,
@@ -126,9 +150,34 @@ function CHC_uses:create()
 	self.recipePanel:setAnchorBottom(true)
     -- endregion
 
+    -- region set initial icons
+    local foi, fti = nil, nil
+    if self.itemSortAsc then
+        foi = self.sortOrderIconAsc
+    elseif not self.itemSortAsc then
+        foi = self.sortOrderIconDesc
+    end
+    
+
+    if self.typeFilter == 'all' then
+        fti = self.typeFiltIconAll
+    elseif self.typeFilter == 'valid' then
+        fti = self.typeFiltIconValid
+    elseif self.typeFilter == 'known' then
+        fti = self.typeFiltIconKnown
+    elseif self.typeFilter == 'invalid' then
+        fti = self.typeFiltIconInvalid
+    end
+
+    self.filterOrderBtn:setImage(foi)
+    self.filterTypeBtn:setImage(fti)
+    -- endregion
+
     -- Attach all to the craft helper window
-    self:addChild(self.filterBtn)
-    self:addChild(self.categorySelector)
+    self.filterRowContainer:addChild(self.filterOrderBtn)
+    self.filterRowContainer:addChild(self.filterTypeBtn)
+    self.filterRowContainer:addChild(self.categorySelector)
+    self:addChild(self.filterRowContainer)
     self:addChild(self.searchBar)
 	self:addChild(self.recipesList)
 	self:addChild(self.recipePanel)
@@ -240,9 +289,9 @@ function CHC_uses:searchTypeFilter(recipe)
 end
 -- endregion
 
--- region filter button
+-- region filters
 
--- region sort by name
+-- region filter logic handlers
 CHC_uses.sortByNameAsc = function (a,b)
     return a.text<b.text
 end
@@ -251,24 +300,24 @@ CHC_uses.sortByNameDesc = function (a,b)
     return a.text>b.text
 end
 
+
 function CHC_uses:sortByName(_isAscending)
     local option = self.categorySelector
     local sl = option.options[option.selected]
     if _isAscending and self.itemSortFunc ~= CHC_uses.sortByNameAsc then
         self.itemSortFunc = CHC_uses.sortByNameAsc
         self.itemSortAsc = true
+        self.filterOrderBtn:setImage(self.sortOrderIconAsc)
         self:updateRecipes(sl)
     end
     if not _isAscending and self.itemSortFunc ~= CHC_uses.sortByNameDesc then
         self.itemSortFunc = CHC_uses.sortByNameDesc
         self.itemSortAsc = false
+        self.filterOrderBtn:setImage(self.sortOrderIconDesc)
         self:updateRecipes(sl)
     end
 end
 
--- endregion
-
--- region sort by type
 
 function CHC_uses:sortByType(_type)
     local option = self.categorySelector
@@ -277,18 +326,22 @@ function CHC_uses:sortByType(_type)
     local stateChanged = false
     if _type == "all" and self.typeFilter ~= 'all' then
         self.typeFilter = 'all'
+        self.filterTypeBtn:setImage(self.typeFiltIconAll)
         stateChanged = true
     end
     if _type == "valid" and self.typeFilter ~= 'valid' then
         self.typeFilter = 'valid'
+        self.filterTypeBtn:setImage(self.typeFiltIconValid)
         stateChanged = true
     end
     if _type == "known" and self.typeFilter ~= 'known' then
         self.typeFilter = 'known'
+        self.filterTypeBtn:setImage(self.typeFiltIconKnown)
         stateChanged = true
     end
     if _type == "invalid" and self.typeFilter ~= 'invalid' then
         self.typeFilter = 'invalid'
+        self.filterTypeBtn:setImage(self.typeFiltIconInvalid)
         stateChanged = true
     end
 
@@ -296,31 +349,26 @@ function CHC_uses:sortByType(_type)
 end
 -- endregion
 
-
-function CHC_uses:onFilterMenu(button)
+-- region filter onClick handlers
+function CHC_uses:onFilterSortMenu(button)
     local x = button:getAbsoluteX()
     local y = button:getAbsoluteY()
     local context = ISContextMenu.get(0, x+10, y)
 
-    local name = context:addOption(getText("IGUI_Name"), nil, nil)
-    local subMenuName = ISContextMenu:getNew(context)
-    context:addSubMenu(name, subMenuName)
-    subMenuName:addOption(getText("IGUI_invpanel_ascending"), self, CHC_uses.sortByName, true)
-    subMenuName:addOption(getText("IGUI_invpanel_descending"), self, CHC_uses.sortByName, false)
+    context:addOption(getText("IGUI_invpanel_ascending"), self, CHC_uses.sortByName, true)
+    context:addOption(getText("IGUI_invpanel_descending"), self, CHC_uses.sortByName, false)
+end
 
-    local av = context:addOption(getText("UI_settings_av_title"), nil, nil)
-    local subMenuAv = ISContextMenu:getNew(context)
-    context:addSubMenu(av, subMenuAv)
-    subMenuAv:addOption(getText("UI_settings_av_all"), self, CHC_uses.sortByType, 'all')
-    subMenuAv:addOption(getText("UI_settings_av_valid"), self, CHC_uses.sortByType, 'valid')
-    subMenuAv:addOption(getText("UI_settings_av_known"), self, CHC_uses.sortByType, 'known')
-    subMenuAv:addOption(getText("UI_settings_av_invalid"), self, CHC_uses.sortByType, 'invalid')
 
-    -- local kb = context:addOption(getText("UI_settings_kb_title"), nil, nil)
-    -- local subMenuKb = ISContextMenu:getNew(context)
-    -- context:addSubMenu(kb, subMenuKb)
-    -- subMenuKb:addOption(getText("UI_Yes"), self, 1)
-    -- subMenuKb:addOption(getText("UI_No"), self, 1)
+function CHC_uses:onFilterTypeMenu(button)
+    local x = button:getAbsoluteX()
+    local y = button:getAbsoluteY()
+    local context = ISContextMenu.get(0, x+10, y)
+
+    context:addOption(getText("UI_settings_av_all"), self, CHC_uses.sortByType, 'all')
+    context:addOption(getText("UI_settings_av_valid"), self, CHC_uses.sortByType, 'valid')
+    context:addOption(getText("UI_settings_av_known"), self, CHC_uses.sortByType, 'known')
+    context:addOption(getText("UI_settings_av_invalid"), self, CHC_uses.sortByType, 'invalid')
 end
 -- endregion
 

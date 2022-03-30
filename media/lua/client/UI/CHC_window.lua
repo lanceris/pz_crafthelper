@@ -84,7 +84,9 @@ function CHC_window:onResize()
     self.usesScreen:setHeight(self.panel.height - self.panel.tabHeight)
     local nhw = self.usesScreen.nameHeader.width;
     self.usesScreen.recipesList:setWidth(nhw)
-    self.usesScreen.categorySelector:setWidth(nhw-self.usesScreen.filterBtn.width)
+    self.usesScreen.filterRowContainer:setWidth(nhw)
+    self.usesScreen.categorySelector:setWidth(nhw-self.usesScreen.filterRowContainer.deltaW)
+    self.usesScreen.searchBar:setWidth(nhw)
 
     -- self.craftScreen:setWidth(self.width)
     -- self.craftScreen:setHeight(self.panel.height - self.panel.tabHeight)
