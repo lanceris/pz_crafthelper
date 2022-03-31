@@ -1,4 +1,4 @@
-# Craft Helper for build 41.68+
+# Craft Helper for build 41.65+
 
 This is an updated version of "[Craft Helper (41.x) by b1n0m](https://steamcommunity.com/sharedfiles/filedetails/?id=2186592938)" with improved UI.
 
