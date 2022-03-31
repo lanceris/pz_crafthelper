@@ -111,8 +111,10 @@ function CHC_uses_recipepanel:setRecipe(recipe)
     newItem.recipe = recipe.recipe;
     newItem.available = RecipeManager.IsRecipeValid(recipe.recipe, self.player, nil, self.containerList);
 
-    local resultItem = InventoryItemFactory.CreateItem(recipe.recipe:getResult():getFullType());
+    local recipeResult = recipe.recipe:getResult()
+    local resultItem = InventoryItemFactory.CreateItem(recipeResult:getFullType());
     if resultItem then
+        newItem.module = resultItem:getModName()
         newItem.texture = resultItem:getTex();
         newItem.itemName = resultItem:getDisplayName();
         if recipe.recipe:getResult():getCount() > 1 then
@@ -316,7 +318,7 @@ function CHC_uses_recipepanel:render()
     if self.recipe == nil then
         return
     end;
-
+    -- self:updateTooltip()
     -- draw recipes infos
     local x = 10;
     local y = 10;
@@ -349,7 +351,8 @@ function CHC_uses_recipepanel:render()
     end
     self:drawText(selectedItem.recipe:getName() , x + 32 + 15, y, 1,1,1,1, UIFont.Medium);
     self:drawText(selectedItem.itemName, x + 32 + 15, y + CHC_uses_recipepanel.mediumFontHeight, 1,1,1,1, UIFont.Small);
-    y = y + math.max(45, CHC_uses_recipepanel.largeFontHeight + CHC_uses_recipepanel.smallFontHeight);
+    self:drawText(selectedItem.module, x+32+15, y+CHC_uses_recipepanel.mediumFontHeight+CHC_uses_recipepanel.smallFontHeight, 0.3, 0.3, 0.7, 1, UIFont.Small)
+    y = y + math.max(45, CHC_uses_recipepanel.largeFontHeight + CHC_uses_recipepanel.mediumFontHeight+10);
 
     self:drawText(getText("IGUI_CraftUI_RequiredItems"), x, y, 1,1,1,1, UIFont.Small);
 
@@ -466,10 +469,59 @@ function CHC_uses_recipepanel:drawIngredient(y, item, alt)
 end
 
 
-function CHC_uses_recipepanel:update()
-    if self.needRefreshIngredientPanel then
-        self.needRefreshIngredientPanel = false
-        self:refreshIngredientPanel()
+function CHC_uses_recipepanel:updateTooltip()
+    local x = self:getMouseX();
+    local y = self:getMouseY();
+    local item = nil;
+    if (x >= self.hisOfferDatas:getX() and
+        x <= self.hisOfferDatas:getX() + self.hisOfferDatas:getWidth() and
+        y >= self.hisOfferDatas:getY() and
+        y <= self.hisOfferDatas:getY() + self.hisOfferDatas:getHeight()
+    ) then
+        y = self.hisOfferDatas:rowAt(self.hisOfferDatas:getMouseX(),
+                                     self.hisOfferDatas:getMouseY())
+        if self.hisOfferDatas.items[y] then
+            item = self.hisOfferDatas.items[y];
+        end
+    end
+    if (x >= self.yourOfferDatas:getX() and
+        x <= self.yourOfferDatas:getX() + self.yourOfferDatas:getWidth() and
+        y >= self.yourOfferDatas:getY() and
+        y <= self.yourOfferDatas:getY() + self.yourOfferDatas:getHeight()
+    ) then
+        y = self.yourOfferDatas:rowAt(self.yourOfferDatas:getMouseX(),
+                                      self.yourOfferDatas:getMouseY())
+        if self.yourOfferDatas.items[y] then
+            item = self.yourOfferDatas.items[y];
+        end
+    end
+    if item then
+        if self.toolRender then
+            self.toolRender:setItem(item.item);
+            if not self:getIsVisible() then
+                self.toolRender:setVisible(false);
+            else
+                self.toolRender:setVisible(true);
+                self.toolRender:addToUIManager();
+                self.toolRender:bringToTop();
+            end
+        else
+            self.toolRender = ISToolTipInv:new(item.item);
+            self.toolRender:initialise();
+            self.toolRender:addToUIManager();
+            if not self:getIsVisible() then
+                self.toolRender:setVisible(true);
+            end
+            self.toolRender:setOwner(self);
+            self.toolRender:setCharacter(self.player);
+            self.toolRender:setX(self:getMouseX());
+            self.toolRender:setY(self:getMouseY());
+            self.toolRender.followMouse = true;
+        end
+    else
+        if self.toolRender then
+            self.toolRender:setVisible(false)
+        end
     end
 end
 
