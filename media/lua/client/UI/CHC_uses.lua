@@ -256,13 +256,9 @@ function CHC_uses:refreshRecipeList(recipes)
     self.recipesList:clear()
     self.recipesList:setScrollHeight(0)
 
-    -- sort recipes
-    local rec = {}
-    for _, k in ipairs(recipes) do
-        rec[string.trim(k.recipe:getName())] = k
-    end
     local modData = getPlayer():getModData()
-    for name,recipe in pairs(rec) do
+    for _, recipe in ipairs(recipes) do
+        local name = recipe.recipe:getName()
         recipe.favorite = modData[CHC_main.getFavoriteModDataString(recipe.recipe)] or false
         self.recipesList:addItem(name, recipe);
     end
@@ -309,11 +305,11 @@ end
 
 -- region filter logic handlers
 CHC_uses.sortByNameAsc = function (a,b)
-    return a.text<b.text
+    return a.item.recipe:getName()<b.item.recipe:getName()
 end
 
 CHC_uses.sortByNameDesc = function (a,b)
-    return a.text>b.text
+    return a.item.recipe:getName()>b.item.recipe:getName()
 end
 
 
