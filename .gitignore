@@ -1,3 +1,5 @@
 .vscode/
 media/lua/client/UI/old
 .ignore/
+workshop/
+*.code-workspace
