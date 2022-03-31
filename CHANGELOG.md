@@ -1,5 +1,22 @@
 # CraftHelper updates
 
+# 1.4 (31.03.2022)
+
+### New features
+
+- New icons for buttons
+- Search bar icon
+- Added mod name to result item description
+
+### Improvements
+
+- Wrapped search icon + search bar to container
+- Refactored recipeList UI
+
+### Bugfixes
+
+- Fixed bug with diplicate recipe names not showing
+
 # 1.3 (29.03.2022)
 
 ### New features
@@ -10,8 +27,8 @@
 ### Changes
 
 - Refactored config to allow bool and string values
-- New config variables for sorting order and availability filter
-- Some refactoring in CHC_uses:create to simplify elements creation
+- New config variables for sorting order and type filter
+- Wrapped filter row (sort order and type filter buttons + category selector) to container
 
 # 1.2 (28.03.2022)
 
