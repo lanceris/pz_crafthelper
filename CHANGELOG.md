@@ -1,5 +1,18 @@
 # CraftHelper updates
 
+# 1.4.1 (02.04.2022)
+
+### New features
+
+- Craft buttons (like in crafting UI)
+- ES translation (thanks to Dante271)
+- Added number of recipes to type filter (WIP)
+
+### Improvements
+
+- Refactored recipepanel
+- Added missing (but unused yet) translation to UI_RU
+
 # 1.4 (31.03.2022)
 
 ### New features
