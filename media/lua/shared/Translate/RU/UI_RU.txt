@@ -15,4 +15,5 @@ UI_RU = {
     UI_settings_av_valid = "Доступные"
     UI_settings_av_known = "Известные"
     UI_settings_av_invalid = "Недоступные"
+    UI_settings_kb_title = "Закрыть по ESC"
 }

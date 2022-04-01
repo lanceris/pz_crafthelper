@@ -16,6 +16,10 @@ CHC_uses.typeFiltIconKnown = getTexture("media/textures/type_filt_known.png")
 CHC_uses.typeFiltIconInvalid = getTexture("media/textures/type_filt_invalid.png")
 CHC_uses.searchIcon = getTexture("media/textures/search_icon.png")
 
+CHC_uses.localData = {
+    typeFilterToNumOfRecipes = {}
+}
+
 
 local function has_value (tab, val)
     for index, value in ipairs(tab) do
@@ -30,6 +34,10 @@ end
 -- region create
 function CHC_uses:initialise()
     ISPanel.initialise(self);
+    -- self.localData.typeFilterToNumOfRecipes['all'] = self.numRecipesAll
+    -- self.localData.typeFilterToNumOfRecipes['valid'] = self.numRecipesValid
+    -- self.localData.typeFilterToNumOfRecipes['known'] = self.numRecipesKnown
+    -- self.localData.typeFilterToNumOfRecipes['invalid'] = self.numRecipesInvalid
     self:create();
 end
 
@@ -272,6 +280,7 @@ end
 
 -- endregion
 
+-- region filters
 
 -- region filter handlers
 function CHC_uses:recipeTypeFilter(recipe)
@@ -300,8 +309,6 @@ function CHC_uses:searchTypeFilter(recipe)
     return state
 end
 -- endregion
-
--- region filters
 
 -- region filter logic handlers
 CHC_uses.sortByNameAsc = function (a,b)
@@ -371,17 +378,33 @@ function CHC_uses:onFilterSortMenu(button)
     context:addOption(getText("IGUI_invpanel_descending"), self, CHC_uses.sortByName, false)
 end
 
+function CHC_uses:filterSortMenuGetText(textStr, value)
+    local txt = getText(textStr)
+    -- if value then
+    --     txt = txt.." ("..tostring(value)..")"
+    -- end
+    return txt
+end
 
 function CHC_uses:onFilterTypeMenu(button)
     local x = button:getAbsoluteX()
     local y = button:getAbsoluteY()
     local context = ISContextMenu.get(0, x+10, y)
 
-    context:addOption(getText("UI_settings_av_all"), self, CHC_uses.sortByType, 'all')
-    context:addOption(getText("UI_settings_av_valid"), self, CHC_uses.sortByType, 'valid')
-    context:addOption(getText("UI_settings_av_known"), self, CHC_uses.sortByType, 'known')
-    context:addOption(getText("UI_settings_av_invalid"), self, CHC_uses.sortByType, 'invalid')
+    local data = {
+        {txt="UI_settings_av_all", num=self.numRecipesAll, arg='all'},
+        {txt="UI_settings_av_valid", num=self.numRecipesValid, arg='valid'},
+        {txt="UI_settings_av_known", num=self.numRecipesKnown, arg='known'},
+        {txt="UI_settings_av_invalid", num=self.numRecipesInvalid, arg='invalid'}
+    }
+
+    local txt = nil
+    for _, k in ipairs(data) do
+        txt = self:filterSortMenuGetText(k.txt, k.num)
+        context:addOption(txt, self, CHC_uses.sortByType, k.arg)
+    end
 end
+-- endregion
 -- endregion
 
 -- region render
@@ -424,5 +447,10 @@ function CHC_uses:new(args)
     o.typeFilter = CHC_menu.cfg.uses_filter_type
     o.itemSortFunc = o.itemSortAsc == true and CHC_uses.sortByNameAsc or CHC_uses.sortByNameDesc
 
+
+    o.numRecipesAll = nil
+    o.numRecipesValid = nil
+    o.numRecipesKnown = nil
+    o.numRecipesInvalid = nil
     return o;
 end

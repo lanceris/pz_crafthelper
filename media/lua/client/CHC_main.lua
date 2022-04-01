@@ -1,7 +1,7 @@
 require 'luautils';
 
 CHC_main = {};
-CHC_main.version = "1.0";
+CHC_main.version = "1.4.1";
 CHC_main.author = "lanceris";
 CHC_main.previousAuthors = {"Peanut", "ddraigcymraeg", "b1n0m"}
 CHC_main.modName = "CraftHelperContinued";

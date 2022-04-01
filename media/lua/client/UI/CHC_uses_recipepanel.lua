@@ -1,5 +1,6 @@
 require 'ISUI/ISPanel';
 require 'ISUI/ISScrollingListBox';
+require 'ISUI/ISCraftingUI'
 require 'CHC_main';
 
 CHC_uses_recipepanel = ISPanel:derive("CHC_uses_recipepanel");
@@ -8,6 +9,7 @@ CHC_uses_recipepanel.largeFontHeight = getTextManager():getFontFromEnum(UIFont.L
 CHC_uses_recipepanel.mediumFontHeight = getTextManager():getFontHeight(UIFont.Medium)
 CHC_uses_recipepanel.smallFontHeight = getTextManager():getFontFromEnum(UIFont.Small):getLineHeight()
 
+-- region utils (move to CHC_utils)
 local function tableSize(table1)
     if not table1 then return 0 end
     local count = 0;
@@ -29,38 +31,9 @@ local function areTablesDifferent(table1, table2)
     end
     return false
 end
+-- endregion
 
--- Return true if item2's type is in item1's getClothingExtraItem() list.
-function CHC_uses_recipepanel:isExtraClothingItemOf(item1, item2)
-    local scriptItem = getScriptManager():FindItem(item1.fullType)
-    if not scriptItem then
-        return false
-    end
-    local extras = scriptItem:getClothingItemExtra()
-    if not extras then
-        return false
-    end
-    local moduleName = scriptItem:getModule():getName()
-    for i=1,extras:size() do
-        local extra = extras:get(i-1)
-        local fullType = moduleDotType(moduleName, extra)
-        if item2.fullType == fullType then
-            return true
-        end
-    end
-    return false
-end
-
-function CHC_uses_recipepanel:removeExtraClothingItemsFromList(index, item, itemList)
-    for k=#itemList,index,-1 do
-        local item2 = itemList[k]
-        if self:isExtraClothingItemOf(item, item2) then
-            table.remove(itemList, k)
-        end
-    end
-end
-
-
+-- region create
 function CHC_uses_recipepanel:createChildren()
     ISPanel.createChildren(self);
 
@@ -73,33 +46,338 @@ function CHC_uses_recipepanel:createChildren()
     self.ingredientPanel.drawBorder = true
     self.ingredientPanel:setVisible(false)
     self:addChild(self.ingredientPanel)
+
+    local btnInfo = {
+        x=0,
+        y=self.height/2,
+        w=50,
+        h=25,
+        clicktgt=self
+    }
+    self.craftOneButton = ISButton:new(btnInfo.x, btnInfo.y, btnInfo.w,btnInfo.h, nil, btnInfo.clicktgt, self.craft);
+    self.craftOneButton:initialise()
+
+    -- TODO: change to icon
+    self.craftOneButton.title = getText("IGUI_CraftUI_ButtonCraftOne")
+    self.craftOneButton:setWidth(5+getTextManager():MeasureStringX(UIFont.Small, self.craftOneButton.title))
+    self.craftOneButton:setVisible(false)
+
+    self:addChild(self.craftOneButton);
+
+    self.craftAllButton = ISButton:new(btnInfo.x, btnInfo.y, btnInfo.w,btnInfo.h, nil, btnInfo.clicktgt, self.craftAll);
+    self.craftAllButton:initialise()
+    self.craftAllButton.title = getText("IGUI_CraftUI_ButtonCraftOne")
+    self.craftAllButton:setWidth(5+getTextManager():MeasureStringX(UIFont.Small, self.craftAllButton.title))
+    self.craftAllButton:setVisible(false)
+
+    self:addChild(self.craftAllButton);
+
+    -- self.debugGiveIngredientsButton = ISButton:new(0, 0, 50, 25, "DBG: Give Ingredients", self, ISCraftingUI.debugGiveIngredients);
+    -- self.debugGiveIngredientsButton:initialise();
+    -- self:addChild(self.debugGiveIngredientsButton);
 end
 
 
-function CHC_uses_recipepanel:getContainers()
-    if not self.player then return end
-    local playerNum = self.player and self.player:getPlayerNum() or -1
-    -- get all the surrounding inventory of the player, gonna check for the item in them too
-    self.containerList = ArrayList.new();
-    for i,v in ipairs(getPlayerInventory(playerNum).inventoryPane.inventoryPage.backpacks) do
-        --        if v.inventory ~= self.character:getInventory() then -- owner inventory already check in RecipeManager
-        self.containerList:add(v.inventory);
-        --        end
+-- endregion
+
+-- region update
+
+
+function CHC_uses_recipepanel:updateTooltip()
+    local x = self:getMouseX();
+    local y = self:getMouseY();
+    local item = nil;
+    if (x >= self.hisOfferDatas:getX() and
+        x <= self.hisOfferDatas:getX() + self.hisOfferDatas:getWidth() and
+        y >= self.hisOfferDatas:getY() and
+        y <= self.hisOfferDatas:getY() + self.hisOfferDatas:getHeight()
+    ) then
+        y = self.hisOfferDatas:rowAt(self.hisOfferDatas:getMouseX(),
+                                     self.hisOfferDatas:getMouseY())
+        if self.hisOfferDatas.items[y] then
+            item = self.hisOfferDatas.items[y];
+        end
     end
-    for i,v in ipairs(getPlayerLoot(playerNum).inventoryPane.inventoryPage.backpacks) do
-        self.containerList:add(v.inventory);
+    if (x >= self.yourOfferDatas:getX() and
+        x <= self.yourOfferDatas:getX() + self.yourOfferDatas:getWidth() and
+        y >= self.yourOfferDatas:getY() and
+        y <= self.yourOfferDatas:getY() + self.yourOfferDatas:getHeight()
+    ) then
+        y = self.yourOfferDatas:rowAt(self.yourOfferDatas:getMouseX(),
+                                      self.yourOfferDatas:getMouseY())
+        if self.yourOfferDatas.items[y] then
+            item = self.yourOfferDatas.items[y];
+        end
+    end
+    if item then
+        if self.toolRender then
+            self.toolRender:setItem(item.item);
+            if not self:getIsVisible() then
+                self.toolRender:setVisible(false);
+            else
+                self.toolRender:setVisible(true);
+                self.toolRender:addToUIManager();
+                self.toolRender:bringToTop();
+            end
+        else
+            self.toolRender = ISToolTipInv:new(item.item);
+            self.toolRender:initialise();
+            self.toolRender:addToUIManager();
+            if not self:getIsVisible() then
+                self.toolRender:setVisible(true);
+            end
+            self.toolRender:setOwner(self);
+            self.toolRender:setCharacter(self.player);
+            self.toolRender:setX(self:getMouseX());
+            self.toolRender:setY(self:getMouseY());
+            self.toolRender.followMouse = true;
+        end
+    else
+        if self.toolRender then
+            self.toolRender:setVisible(false)
+        end
     end
 end
+-- endregion
 
 
-function CHC_uses_recipepanel:isWaterSource(item, count)
-    -- Fk'n rounding differences between Java and Lua broke simple getUsedDelta()/getUseDelta() here, so I added getDrainableUsesInt()
-    return instanceof(item, "DrainableComboItem") and item:isWaterSource() and item:getDrainableUsesInt() >= count
+-- region render
+function CHC_uses_recipepanel:render()
+    ISPanel.render(self);
+
+    if self.recipe == nil then return end;
+    -- self:updateTooltip()
+    -- draw recipes infos
+    local x = 10;
+    local y = 10;
+    local selectedItem = self.newItem;
+
+    -- region check if available
+    local now = getTimestampMs()
+    if not self.refreshTypesAvailableMS or (self.refreshTypesAvailableMS + 500 < now) then
+        self.refreshTypesAvailableMS = now
+        local typesAvailable = self:getAvailableItemsType();
+        self.needRefreshIngredientPanel = self.needRefreshIngredientPanel or areTablesDifferent(selectedItem.typesAvailable, typesAvailable);
+        selectedItem.typesAvailable = typesAvailable;
+    end
+    ISCraftingUI.getContainers(self);
+    selectedItem.available = RecipeManager.IsRecipeValid(selectedItem.recipe, self.player, nil, self.containerList);
+    -- endregion
+
+    -- region main recipe info + output
+    local catName = getTextOrNull("IGUI_CraftCategory_"..selectedItem.category) or selectedItem.category
+    self:drawText(getText("UI_category")..": "..catName, x, y, 1,1,1,1, UIFont.Medium);
+    y = y + CHC_uses_recipepanel.mediumFontHeight + 3;
+
+    self:drawRectBorder(x, y, 32 + 10, 32 + 10, 1.0, 1.0, 1.0, 1.0);
+    if selectedItem.texture then
+        if selectedItem.texture:getWidth() <= 32 and selectedItem.texture:getHeight() <= 32 then
+            local newX = (32 - selectedItem.texture:getWidthOrig()) / 2;
+            local newY = (32 - selectedItem.texture:getHeightOrig()) / 2;
+            self:drawTexture(selectedItem.texture,x+5 + newX,y+5 + newY,1,1,1,1);
+        else
+            self:drawTextureScaledAspect(selectedItem.texture,x+5,y+5,32,32,1,1,1,1);
+        end
+    end
+    self:drawText(selectedItem.recipe:getName() , x + 32 + 15, y, 1,1,1,1, UIFont.Medium);
+    self:drawText(selectedItem.itemName, x + 32 + 15, y + CHC_uses_recipepanel.mediumFontHeight, 1,1,1,1, UIFont.Small);
+    self:drawText(selectedItem.module, x+32+15, y+CHC_uses_recipepanel.mediumFontHeight+CHC_uses_recipepanel.smallFontHeight, 0.3, 0.3, 0.7, 1, UIFont.Small)
+    y = y + math.max(45, CHC_uses_recipepanel.largeFontHeight + CHC_uses_recipepanel.mediumFontHeight+10);
+    -- endregion
+
+    -- region required items
+    self:drawText(getText("IGUI_CraftUI_RequiredItems"), x, y, 1,1,1,1, UIFont.Small);
+    y = y + CHC_uses_recipepanel.smallFontHeight + 5;
+
+    local manualsSize = (self.manualsSize + 1) * CHC_uses_recipepanel.smallFontHeight + 4
+    self.ingredientPanel:setX(x + 10)
+    self.ingredientPanel:setY(y)
+    self.ingredientPanel:setWidth(self.width - 30)
+    self.ingredientPanel:setHeight(self.height - 150 - manualsSize - y)
+    y = self.ingredientPanel:getBottom()
+    y = y + 4;
+    -- endregion
+    
+    -- region craft button(s)
+    if selectedItem.available then
+        self.craftOneButton:setX(x)
+        self.craftOneButton:setY(y)
+        self.craftOneButton:setVisible(true)
+        self.craftAllButton:setX(self.craftOneButton:getX()+5+self.craftOneButton:getWidth())
+        self.craftAllButton:setY(y)
+        self.craftAllButton:setVisible(true)
+        local title = getText("IGUI_CraftUI_ButtonCraftAll")
+        local count = RecipeManager.getNumberOfTimesRecipeCanBeDone(selectedItem.recipe, self.player, self.containerList, nil)
+        if count > 1 then
+            title = getText("IGUI_CraftUI_ButtonCraftAllCount", count)
+        elseif count == 1 then
+            self.craftAllButton:setVisible(false)
+        end
+        if title ~= self.craftAllButton:getTitle() then
+            self.craftAllButton:setTitle(title)
+            self.craftAllButton:setWidthToTitle()
+        end
+        y = y + self.craftOneButton.height + 3
+    else
+        self.craftOneButton:setVisible(false)
+        self.craftAllButton:setVisible(false)
+    end
+
+
+    self.craftOneButton.tooltip = nil
+    self.craftAllButton.tooltip = nil
+    if self.player:isDriving() then
+        self.craftOneButton.enable=false
+        self.craftOneButton.tooltip = getText("Tooltip_CantCraftDriving")
+        self.craftAllButton.enable=false
+        self.craftAllButton.tooltip = getText("Tooltip_CantCraftDriving")
+    end
+    -- endregion
+
+    -- region required skills
+    local requiredSkillCount = selectedItem.recipe:getRequiredSkillCount()
+    if requiredSkillCount > 0 and self:shouldDrawSkillText(requiredSkillCount, selectedItem) then
+        self:drawText(getText("IGUI_CraftUI_RequiredSkills"), x, y, 1,1,1,1, UIFont.Medium);
+        y = y + CHC_uses_recipepanel.mediumFontHeight;
+        for i=1,requiredSkillCount do
+            local skill = selectedItem.recipe:getRequiredSkill(i-1);
+            local perk = PerkFactory.getPerk(skill:getPerk());
+            local playerLevel = self.player and self.player:getPerkLevel(skill:getPerk()) or 0
+            local perkName = perk and perk:getName() or skill:getPerk():name()
+            
+            local text = " - " .. perkName .. ": " .. tostring(playerLevel) .. " / " .. tostring(skill:getLevel());
+            local r,g,b = 1,1,1
+
+            if self.player and (playerLevel < skill:getLevel()) then
+                g = 0;
+                b = 0;
+                self:drawText(text, x + 15, y, r,g,b,1, UIFont.Small);
+                y = y + CHC_uses_recipepanel.smallFontHeight;
+            end
+            
+        end
+        y = y + 4;
+    end
+    -- endregion
+
+    -- region required books
+    local isKnown = self.player:isRecipeKnown(selectedItem.recipe)
+    if self.manualsEntries and not isKnown then
+        self:drawText(getText("UI_recipe_panel_required_book")..":", x, y, 1,1,1,1, UIFont.Medium);
+        y = y + CHC_uses_recipepanel.mediumFontHeight;
+        local r,g,b = 1,1,1
+        for _,manual in ipairs(self.manualsEntries) do
+            if not isKnown then
+                g,b = 0,0
+                self:drawText(" - " .. manual, x+15, y, r,g,b,1, UIFont.Small);
+                y = y + CHC_uses_recipepanel.smallFontHeight;
+            end
+            
+        end
+        y = y + 4;
+    end
+    -- endregion
+    
+    -- region nearItem
+    if selectedItem.recipe:getNearItem() then
+        self:drawText(getText("UI_tab_uses_details_near_item")..": ", x, y, 1,1,1,1, UIFont.Medium);
+        y = y + CHC_uses_recipepanel.mediumFontHeight;
+        self:drawText(" - "..selectedItem.recipe:getNearItem(), x+15, y, 1,1,1,1, UIFont.Small);
+        y = y + CHC_uses_recipepanel.smallFontHeight;
+    end
+    -- endregion
+
+    self:drawText(getText("IGUI_CraftUI_RequiredTime", selectedItem.recipe:getTimeToMake()), x, y, 1,1,1,1, UIFont.Medium);
 end
 
+-- endregion
+
+
+-- region logic
+function CHC_uses_recipepanel:transferItems()
+    local result = {}
+    local selectedItem = self.newItem;
+    local items = RecipeManager.getAvailableItemsNeeded(selectedItem.recipe, self.player, self.containerList, nil, nil);
+    if items:isEmpty() then return result end;
+    for i=1,items:size() do
+        local item = items:get(i-1)
+        table.insert(result, item)
+        if not selectedItem.recipe:isCanBeDoneFromFloor() then
+            if item:getContainer() ~= self.player:getInventory() then
+                ISTimedActionQueue.add(ISInventoryTransferAction:new(self.player, item, item:getContainer(), self.player:getInventory(), nil));
+            end
+        end
+    end
+    return result
+end
+
+
+function CHC_uses_recipepanel:onCraftComplete(completedAction, recipe, container, containers)
+    if not RecipeManager.IsRecipeValid(recipe, self.player, nil, containers) then return end
+    local items = RecipeManager.getAvailableItemsNeeded(recipe, self.player, containers, nil, nil)
+    if items:isEmpty() then return end
+    local previousAction = completedAction
+    local returnToContainer = {};
+    if not recipe:isCanBeDoneFromFloor() then
+        for i=1,items:size() do
+            local item = items:get(i-1)
+            if item:getContainer() ~= self.player:getInventory() then
+                local action = ISInventoryTransferAction:new(self.player, item, item:getContainer(), self.player:getInventory(), nil)
+                ISTimedActionQueue.addAfter(previousAction, action)
+                previousAction = action
+                table.insert(returnToContainer, item)
+            end
+        end
+    end
+    local action = ISCraftAction:new(self.player, items:get(0), recipe:getTimeToMake(), recipe, container, containers)
+    action:setOnComplete(ISCraftingUI.onCraftComplete, self, action, recipe, container, containers)
+    ISTimedActionQueue.addAfter(previousAction, action)
+    ISCraftingUI.ReturnItemsToOriginalContainer(self.player, returnToContainer)
+end
+
+
+function CHC_uses_recipepanel:craft(button, all)
+    self.craftInProgress = false
+    local selectedItem = self.newItem;
+    -- if selectedItem.evolved then return end -- add in #2
+    if not RecipeManager.IsRecipeValid(selectedItem.recipe, self.player, nil, self.containerList) then return end
+    if not getPlayer() then return end
+    local itemsUsed = self:transferItems()
+    if #itemsUsed == 0 then
+        -- self:refresh()
+        return
+    end
+
+    local returnToContainer = {}
+    local container = itemsUsed[1]:getContainer()
+    if not selectedItem.recipe:isCanBeDoneFromFloor() then
+        container = self.player:getInventory()
+        for _,item in ipairs(itemsUsed) do
+            if item:getContainer() ~= self.player:getInventory() then
+                table.insert(returnToContainer, item)
+            end
+        end
+    end
+
+    local action = ISCraftAction:new(self.player, itemsUsed[1],
+                                     selectedItem.recipe:getTimeToMake(),
+                                     selectedItem.recipe, container, self.containerList)
+    if all then
+        action:setOnComplete(self.onCraftComplete, self, action, selectedItem.recipe, container, self.containerList)
+    end
+    ISTimedActionQueue.add(action)
+    self.craftInProgress = true
+
+    ISCraftingUI.ReturnItemsToOriginalContainer(self.player, returnToContainer)
+end
+
+function CHC_uses_recipepanel:craftAll()
+    self:craft(nil, true);
+end
+-- endregion
 
 function CHC_uses_recipepanel:setRecipe(recipe)
-    self:getContainers();
+    ISCraftingUI.getContainers(self);
     local newItem = {};
 
     if recipe.recipe:getCategory() then
@@ -180,6 +458,11 @@ function CHC_uses_recipepanel:setRecipe(recipe)
 
     self.recipe = recipe.recipe;
     self.newItem = newItem;
+
+    self.manualsEntries = CHC_main.itemsManuals[newItem.recipe:getOriginalname()]
+    if not self.player:isRecipeKnown(newItem.recipe) and self.manualsEntries ~= nil then
+       self.manualsSize = #self.manualsEntries
+    end
     self:refreshIngredientPanel();
 end
 
@@ -239,17 +522,17 @@ function CHC_uses_recipepanel:refreshIngredientPanel()
         ---[[
         for j=1,#available do
             local item = available[j]
-            self:removeExtraClothingItemsFromList(j+1, item, available)
+            ISCraftingUI:removeExtraClothingItemsFromList(j+1, item, available)
         end
 
         for j=1,#available do
             local item = available[j]
-            self:removeExtraClothingItemsFromList(1, item, unavailable)
+            ISCraftingUI:removeExtraClothingItemsFromList(1, item, unavailable)
         end
 
         for j=1,#unavailable do
             local item = unavailable[j]
-            self:removeExtraClothingItemsFromList(j+1, item, unavailable)
+            ISCraftingUI:removeExtraClothingItemsFromList(j+1, item, unavailable)
         end
         --]]
 
@@ -280,7 +563,7 @@ function CHC_uses_recipepanel:getAvailableItemsType()
         end
         for x=0,items:size()-1 do
             local item = items:get(x)
-            if sourceItemTypes["Water"] and self:isWaterSource(item, source:getCount()) then
+            if sourceItemTypes["Water"] and ISCraftingUI:isWaterSource(item, source:getCount()) then
                 result["Water"] = (result["Water"] or 0) + item:getDrainableUsesInt()
             elseif sourceItemTypes[item:getFullType()] then
                 local count = 1
@@ -309,118 +592,6 @@ function CHC_uses_recipepanel:shouldDrawSkillText(requiredSkillCount, selectedIt
         end
     end
     return false
-end
-
-
-function CHC_uses_recipepanel:render()
-    ISPanel.render(self);
-
-    if self.recipe == nil then
-        return
-    end;
-    -- self:updateTooltip()
-    -- draw recipes infos
-    local x = 10;
-    local y = 10;
-    local selectedItem = self.newItem;
-
-    local now = getTimestampMs()
-    if not self.refreshTypesAvailableMS or (self.refreshTypesAvailableMS + 500 < now) then
-        self.refreshTypesAvailableMS = now
-        local typesAvailable = self:getAvailableItemsType();
-        self.needRefreshIngredientPanel = self.needRefreshIngredientPanel or areTablesDifferent(selectedItem.typesAvailable, typesAvailable);
-        selectedItem.typesAvailable = typesAvailable;
-    end
-    self:getContainers();
-    selectedItem.available = RecipeManager.IsRecipeValid(selectedItem.recipe, self.player, nil, self.containerList);
-
-    -- render the right part, the craft information
-    local catName = getTextOrNull("IGUI_CraftCategory_"..selectedItem.category) or selectedItem.category
-    self:drawText(getText("UI_category")..": "..catName, x, y, 1,1,1,1, UIFont.Medium);
-    y = y + CHC_uses_recipepanel.mediumFontHeight + 3;
-
-    self:drawRectBorder(x, y, 32 + 10, 32 + 10, 1.0, 1.0, 1.0, 1.0);
-    if selectedItem.texture then
-        if selectedItem.texture:getWidth() <= 32 and selectedItem.texture:getHeight() <= 32 then
-            local newX = (32 - selectedItem.texture:getWidthOrig()) / 2;
-            local newY = (32 - selectedItem.texture:getHeightOrig()) / 2;
-            self:drawTexture(selectedItem.texture,x+5 + newX,y+5 + newY,1,1,1,1);
-        else
-            self:drawTextureScaledAspect(selectedItem.texture,x+5,y+5,32,32,1,1,1,1);
-        end
-    end
-    self:drawText(selectedItem.recipe:getName() , x + 32 + 15, y, 1,1,1,1, UIFont.Medium);
-    self:drawText(selectedItem.itemName, x + 32 + 15, y + CHC_uses_recipepanel.mediumFontHeight, 1,1,1,1, UIFont.Small);
-    self:drawText(selectedItem.module, x+32+15, y+CHC_uses_recipepanel.mediumFontHeight+CHC_uses_recipepanel.smallFontHeight, 0.3, 0.3, 0.7, 1, UIFont.Small)
-    y = y + math.max(45, CHC_uses_recipepanel.largeFontHeight + CHC_uses_recipepanel.mediumFontHeight+10);
-
-    self:drawText(getText("IGUI_CraftUI_RequiredItems"), x, y, 1,1,1,1, UIFont.Small);
-
-    y = y + CHC_uses_recipepanel.smallFontHeight + 5;
-
-    local manualsSize = 0;
-    local manualsEntries = CHC_main.itemsManuals[selectedItem.recipe:getOriginalname()]
-    if not self.player:isRecipeKnown(selectedItem.recipe) and manualsEntries ~= nil then
-        manualsSize = (#manualsEntries + 1) * CHC_uses_recipepanel.smallFontHeight + 4;
-    end
-
-    self.ingredientPanel:setX(x + 10)
-    self.ingredientPanel:setY(y)
-    self.ingredientPanel:setWidth(self.width - 30)
-    self.ingredientPanel:setHeight(self.height - 150 - manualsSize - y)
-    y = self.ingredientPanel:getBottom()
-
-    y = y + 4;
-    -- region required skills
-    local requiredSkillCount = selectedItem.recipe:getRequiredSkillCount()
-    if requiredSkillCount > 0 and self:shouldDrawSkillText(requiredSkillCount, selectedItem) then
-        self:drawText(getText("IGUI_CraftUI_RequiredSkills"), x, y, 1,1,1,1, UIFont.Medium);
-        y = y + CHC_uses_recipepanel.mediumFontHeight;
-        for i=1,requiredSkillCount do
-            local skill = selectedItem.recipe:getRequiredSkill(i-1);
-            local perk = PerkFactory.getPerk(skill:getPerk());
-            local playerLevel = self.player and self.player:getPerkLevel(skill:getPerk()) or 0
-            local perkName = perk and perk:getName() or skill:getPerk():name()
-            
-            local text = " - " .. perkName .. ": " .. tostring(playerLevel) .. " / " .. tostring(skill:getLevel());
-            local r,g,b = 1,1,1
-
-            if self.player and (playerLevel < skill:getLevel()) then
-                g = 0;
-                b = 0;
-                self:drawText(text, x + 15, y, r,g,b,1, UIFont.Small);
-                y = y + CHC_uses_recipepanel.smallFontHeight;
-            end
-            
-        end
-        y = y + 4;
-    end
-    -- endregion
-
-    -- region required books
-    local isKnown = self.player:isRecipeKnown(selectedItem.recipe)
-    if manualsEntries ~= nil and not isKnown then
-        self:drawText(getText("UI_recipe_panel_required_book")..":", x, y, 1,1,1,1, UIFont.Medium);
-        y = y + CHC_uses_recipepanel.mediumFontHeight;
-        local r,g,b = 1,1,1
-        for _,manual in ipairs(manualsEntries) do
-            if not isKnown then
-                g,b = 0,0
-                self:drawText(" - " .. manual, x+15, y, r,g,b,1, UIFont.Small);
-                y = y + CHC_uses_recipepanel.smallFontHeight;
-            end
-            
-        end
-        y = y + 4;
-    end
-    -- endregion
-    if selectedItem.recipe:getNearItem() then
-        self:drawText(getText("UI_tab_uses_details_near_item")..": ", x, y, 1,1,1,1, UIFont.Medium);
-        y = y + CHC_uses_recipepanel.mediumFontHeight;
-        self:drawText(" - "..selectedItem.recipe:getNearItem(), x+15, y, 1,1,1,1, UIFont.Small);
-        y = y + CHC_uses_recipepanel.smallFontHeight;
-    end
-    self:drawText(getText("IGUI_CraftUI_RequiredTime", selectedItem.recipe:getTimeToMake()), x, y, 1,1,1,1, UIFont.Medium);
 end
 
 
@@ -469,62 +640,6 @@ function CHC_uses_recipepanel:drawIngredient(y, item, alt)
 end
 
 
-function CHC_uses_recipepanel:updateTooltip()
-    local x = self:getMouseX();
-    local y = self:getMouseY();
-    local item = nil;
-    if (x >= self.hisOfferDatas:getX() and
-        x <= self.hisOfferDatas:getX() + self.hisOfferDatas:getWidth() and
-        y >= self.hisOfferDatas:getY() and
-        y <= self.hisOfferDatas:getY() + self.hisOfferDatas:getHeight()
-    ) then
-        y = self.hisOfferDatas:rowAt(self.hisOfferDatas:getMouseX(),
-                                     self.hisOfferDatas:getMouseY())
-        if self.hisOfferDatas.items[y] then
-            item = self.hisOfferDatas.items[y];
-        end
-    end
-    if (x >= self.yourOfferDatas:getX() and
-        x <= self.yourOfferDatas:getX() + self.yourOfferDatas:getWidth() and
-        y >= self.yourOfferDatas:getY() and
-        y <= self.yourOfferDatas:getY() + self.yourOfferDatas:getHeight()
-    ) then
-        y = self.yourOfferDatas:rowAt(self.yourOfferDatas:getMouseX(),
-                                      self.yourOfferDatas:getMouseY())
-        if self.yourOfferDatas.items[y] then
-            item = self.yourOfferDatas.items[y];
-        end
-    end
-    if item then
-        if self.toolRender then
-            self.toolRender:setItem(item.item);
-            if not self:getIsVisible() then
-                self.toolRender:setVisible(false);
-            else
-                self.toolRender:setVisible(true);
-                self.toolRender:addToUIManager();
-                self.toolRender:bringToTop();
-            end
-        else
-            self.toolRender = ISToolTipInv:new(item.item);
-            self.toolRender:initialise();
-            self.toolRender:addToUIManager();
-            if not self:getIsVisible() then
-                self.toolRender:setVisible(true);
-            end
-            self.toolRender:setOwner(self);
-            self.toolRender:setCharacter(self.player);
-            self.toolRender:setX(self:getMouseX());
-            self.toolRender:setY(self:getMouseY());
-            self.toolRender.followMouse = true;
-        end
-    else
-        if self.toolRender then
-            self.toolRender:setVisible(false)
-        end
-    end
-end
-
 
 function CHC_uses_recipepanel:new(x, y, width, height)
     local o = {};
@@ -536,9 +651,14 @@ function CHC_uses_recipepanel:new(x, y, width, height)
     o:noBackground();
     o.anchorTop = true;
     o.anchorBottom = true;
-    o.player = getPlayer();
+    local player = getPlayer()
+    o.player = player
+    o.character = player
+    o.playerNum = player and player:getPlayerNum() or -1
     o.needRefreshIngredientPanel = true;
     o.recipe = nil;
+    o.manualsSize = 0
+    o.manualsEntries = nil
     return o;
 end
 
