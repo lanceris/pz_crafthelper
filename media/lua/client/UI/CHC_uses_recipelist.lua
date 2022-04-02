@@ -33,7 +33,7 @@ function CHC_uses_recipelist:onMouseDown_Recipes(x, y)
 	local row = self:rowAt(x,y)
     if row == -1 then return end
     if self:isMouseOverFavorite(x) then
-        self:addToFavorite()
+        self:addToFavorite(row)
     end
 end
 
@@ -50,8 +50,7 @@ function CHC_uses_recipelist:isMouseOverFavorite(x)
 end
 
 
-function CHC_uses_recipelist:addToFavorite()
-    local selectedIndex = self:rowAt(self:getMouseX(), self:getMouseY());
+function CHC_uses_recipelist:addToFavorite(selectedIndex)
 
     local selectedItem = self.items[selectedIndex]
 	local modData = self.player:getModData();
@@ -146,7 +145,10 @@ function CHC_uses_recipelist:new(x, y, width, height)
 	o.borderColor = {r=0.4, g=0.4, b=0.4, a=0.9};
 	o.anchorTop = true;
 	o.anchorBottom = true;
-	o.player = getPlayer();
+	local player = getPlayer()
+	o.player = player
+	o.character = player
+	o.playerNum = player and player:getPlayerNum() or -1
 
 	o.favoriteStar = getTexture("media/ui/FavoriteStar.png");
     o.favCheckedTex = getTexture("media/ui/FavoriteStarChecked.png");

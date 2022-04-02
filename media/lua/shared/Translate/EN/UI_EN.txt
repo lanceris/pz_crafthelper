@@ -16,4 +16,13 @@ UI_EN = {
     UI_settings_av_known = "Known"
     UI_settings_av_invalid = "Invalid"
     UI_settings_kb_title = "Close on ESC"
+    UI_optionscreen_binding_chc_category_title = "Craft Helper"
+    UI_optionscreen_binding_chc_move_up = "Select previous recipe"
+    UI_optionscreen_binding_chc_move_down = "Select next recipe"
+    UI_optionscreen_binding_chc_move_left = "Select previous category"
+    UI_optionscreen_binding_chc_move_right = "Select next category"
+    UI_optionscreen_binding_chc_craft_one = "Craft one"
+    UI_optionscreen_binding_chc_craft_all = "Craft all"
+    UI_optionscreen_binding_chc_favorite_recipe = "Favorite selected recipe"
+    UI_optionscreen_binding_chc_close_window = "Close Craft Helper window"
 }

@@ -2,6 +2,29 @@ require 'CHC_main'
 require 'luautils'
 require 'UI/CHC_menu'
 
+CHC_settings = {
+    settings = {},
+    keybinds = {
+        move_up = {key = Keyboard.KEY_NONE, name="chc_move_up"},
+        move_left = {key = Keyboard.KEY_NONE, name="chc_move_left"},
+        move_down = {key = Keyboard.KEY_NONE, name="chc_move_down"},
+        move_right = {key = Keyboard.KEY_NONE, name="chc_move_right"},
+        craft_one = {key = Keyboard.KEY_NONE, name="chc_craft_one"},
+        favorite_recipe = {key = Keyboard.KEY_NONE, name="chc_favorite_recipe"},
+        craft_all = {key = Keyboard.KEY_NONE, name="chc_craft_all"},
+        close_window = {key = Keyboard.KEY_NONE, name="chc_close_window"}
+    }
+}
+
+if ModOptions and ModOptions.getInstance then
+    local settings = ModOptions:getInstance(CHC_settings.settings)
+    local category = "[chc_category_title]"
+    for key, value in pairs(CHC_settings.keybinds) do
+        ModOptions:AddKeyBinding(category, value)
+    end
+    ModOptions:loadFile()
+end
+
 
 CHC_config = {}
 CHC_config.fn = {}

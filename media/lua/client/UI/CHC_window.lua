@@ -63,16 +63,80 @@ end
 function CHC_window:onKeyRelease(key)
     local ui = self
     if not ui.panel or not ui.panel.activeView then return; end
-    if key == Keyboard.KEY_ESCAPE then
+    local view = ui.panel.activeView.view
+    local rl = view.recipesList
+
+    -- region close
+    if key == CHC_settings.keybinds.close_window.key then
         self:close()
-        return;
-    -- elseif key == Keyboard.KEY_F then
-    --     CHC_config.fn.updateSettings()
+        return
     end
+    -- endregion
+
+    -- region select recipe/category
+
+    -- region recipes
+    if key == CHC_settings.keybinds.move_up.key then
+        rl.selected = rl.selected - 1
+        if rl.selected <= 0 then
+            rl.selected = #rl.items
+        end
+    elseif key == CHC_settings.keybinds.move_down.key then
+        rl.selected = rl.selected + 1
+        if rl.selected > #rl.items then
+            rl.selected = 1
+        end
+    end
+
+    local selectedItem = rl.items[rl.selected]
+    view.recipesList:ensureVisible(rl.selected)
+    view.recipePanel:setRecipe(selectedItem.item)
+    -- endregion
+
+    -- region categories
+    local cs = view.categorySelector
+    local oldcsSel = cs.selected
+    if key == CHC_settings.keybinds.move_left.key then
+        cs.selected = cs.selected - 1
+        if cs.selected <= 0 then cs.selected = #cs.options end
+    elseif key == CHC_settings.keybinds.move_right.key then
+        cs.selected = cs.selected + 1
+        if cs.selected > #cs.options then cs.selected = 1 end
+    end
+    if oldcsSel ~= cs.selected then
+        view:onChangeUsesRecipeCategory(nil, cs.options[cs.selected])
+    end
+    -- endregion
+    -- endregion
+
+    -- region favorite
+    if key == CHC_settings.keybinds.favorite_recipe.key then
+        rl:addToFavorite(rl.selected)
+    end
+    -- endregion
+    
+    -- region crafting
+    if key == CHC_settings.keybinds.craft_one.key then
+        if not view.recipePanel.newItem then return end
+        view.recipePanel:craft(nil, false)
+    elseif key == CHC_settings.keybinds.craft_all.key then
+        if not view.recipePanel.newItem then return end
+        view.recipePanel:craft(nil, true)
+    end
+    -- endregion
 end
 
 function CHC_window:isKeyConsumed(key)
-    return key == Keyboard.KEY_ESCAPE -- or key == Keyboard.KEY_F
+    local isKeyValid = false
+    for _, k in pairs(CHC_settings.keybinds) do
+        k = k.key
+        if key == k then
+            isKeyValid = true
+            break
+        end
+    end
+
+    return isKeyValid
 end
 -- endregion
 
@@ -118,6 +182,7 @@ end
 function CHC_window:close()
     CHC_config.fn.updateSettings()
     ISCollapsableWindow.close(self)
+    self:removeFromUIManager()
 end
 
 
@@ -146,6 +211,4 @@ function CHC_window:new(args)
     o:setWantKeyEvents(true);
 
     return o;
-
-
 end
