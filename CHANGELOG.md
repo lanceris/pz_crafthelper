@@ -1,5 +1,11 @@
 # CraftHelper updates
 
+# 1.4.3 (03.04.2022)
+
+### New features
+
+- Added Hydrocraft integration (show Hydrocraft furniture in "Required Crafting Equipment")
+
 # 1.4.2 (02.04.2022)
 
 ### New features
