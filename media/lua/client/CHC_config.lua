@@ -13,6 +13,18 @@ CHC_settings = {
         favorite_recipe = {key = Keyboard.KEY_NONE, name="chc_favorite_recipe"},
         craft_all = {key = Keyboard.KEY_NONE, name="chc_craft_all"},
         close_window = {key = Keyboard.KEY_ESCAPE, name="chc_close_window"}
+    },
+    integrations={
+        Hydrocraft = {
+            url="https://steamcommunity.com/sharedfiles/filedetails/?id=2778991696",
+            modId="Hydrocraft",
+            luaOnTestReference = {
+                ['HCNearCarpybench'] = 'Hydrocraft.HCCarpenterbench',
+                ['HCNearHerbatable'] = 'Hydrocraft.HCHerbtable',
+                ['HCNearTarkiln'] = 'Hydrocraft.HCTarkiln',
+                ['HCNearKiln'] = 'Hydrocraft.HCKiln',
+                ['HCNearGrindstone'] = 'Hydrocraft.HCGrindstone'}
+        }
     }
 }
 
