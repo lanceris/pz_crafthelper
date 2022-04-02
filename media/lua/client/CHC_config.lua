@@ -5,14 +5,14 @@ require 'UI/CHC_menu'
 CHC_settings = {
     settings = {},
     keybinds = {
-        move_up = {key = Keyboard.KEY_UP, name="chc_move_up"},
-        move_left = {key = Keyboard.KEY_LEFT, name="chc_move_left"},
-        move_down = {key = Keyboard.KEY_DOWN, name="chc_move_down"},
-        move_right = {key = Keyboard.KEY_RIGHT, name="chc_move_right"},
-        craft_one = {key = Keyboard.KEY_C, name="chc_craft_one"},
-        favorite_recipe = {key = Keyboard.KEY_F, name="chc_favorite_recipe"},
-        craft_all = {key = Keyboard.KEY_R, name="chc_craft_all"},
-        close_window = {key = Keyboard.KEY_ESCAPE, name="chc_close_window"}
+        move_up = {key = Keyboard.KEY_NONE, name="chc_move_up"},
+        move_left = {key = Keyboard.KEY_NONE, name="chc_move_left"},
+        move_down = {key = Keyboard.KEY_NONE, name="chc_move_down"},
+        move_right = {key = Keyboard.KEY_NONE, name="chc_move_right"},
+        craft_one = {key = Keyboard.KEY_NONE, name="chc_craft_one"},
+        favorite_recipe = {key = Keyboard.KEY_NONE, name="chc_favorite_recipe"},
+        craft_all = {key = Keyboard.KEY_NONE, name="chc_craft_all"},
+        close_window = {key = Keyboard.KEY_NONE, name="chc_close_window"}
     }
 }
 
@@ -23,8 +23,6 @@ if ModOptions and ModOptions.getInstance then
         ModOptions:AddKeyBinding(category, value)
     end
     ModOptions:loadFile()
-    
-
 end
 
 
