@@ -1,3 +1,4 @@
+require 'luautils'
 require 'ISUI/ISPanel';
 require 'ISUI/ISScrollingListBox';
 require 'ISUI/ISCraftingUI'
