@@ -223,8 +223,10 @@ function CHC_uses:onTextChange()
     end
 end
 
-function CHC_uses:onChangeUsesRecipeCategory(_option)
-    local sl = _option.options[_option.selected]
+function CHC_uses:onChangeUsesRecipeCategory(_option, sl)
+    if not sl then
+        sl = _option.options[_option.selected]
+    end
     self:updateRecipes(sl)
 end
 
@@ -234,6 +236,9 @@ function CHC_uses:updateRecipes(sl)
         self:refreshRecipeList(self.allRecipesForItem)
         return
     end
+
+    -- get all containers nearby
+    ISCraftingUI.getContainers(self.recipesList)
 
     -- filter recipes
     local filteredRecipes = {}
@@ -253,7 +258,7 @@ function CHC_uses:updateRecipes(sl)
         end
         search_state = self:searchTypeFilter(recipe)
         
-        if (type_filter_state and search_state) or (fav_cat_state and search_state) then
+        if (type_filter_state or fav_cat_state) and search_state then
             table.insert(filteredRecipes, recipe)
         end
     end
@@ -287,7 +292,6 @@ function CHC_uses:recipeTypeFilter(recipe)
     local rl = self.recipesList
 
     local is_valid = RecipeManager.IsRecipeValid(recipe.recipe, rl.player, nil, rl.containerList)
-    -- print(#rl.containerList) -- TODO: figure out why items from floor aren't registered here
     local is_known = rl.player:isRecipeKnown(recipe.recipe)
 
     local state = true
