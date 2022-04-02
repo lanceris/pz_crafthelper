@@ -13,27 +13,7 @@ This is an updated version of "[Craft Helper (41.x) by b1n0m](https://steamcommu
 > >
 > > If you play with Hydrocraft, you definitely need this mod😉
 
-## New features:
-
-- Close window on ESC
-- Category selector. Select desired category and filter that huge list of recipes.
-- Craft helper window position is now saved to config. No more hassle with resizing/moving!
-- Ability to favorite recipes. Even unknown ones!
-- New buttons to order list of recipes alphabetically or by availability (craftable/known/unknown)
-- Search bar. If category selector/filter buttons are not enough. (works in parallel with them though)
-
-### MP compatability:
-
-- unknown
-
-### Supported translations
-
-- English
-- Russian
-
-### Incompatible mods
-
-- None, but there might be, let me know in the comments
+Mod link: [Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=2787291513)
 
 ### Future plans
 

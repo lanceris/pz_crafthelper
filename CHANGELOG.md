@@ -1,5 +1,21 @@
 # CraftHelper updates
 
+# 1.4.2 (02.04.2022)
+
+### New features
+
+- Added keybinds for moving through recipes/categories, crafting and favoriting.
+  All keys are not assigned by default, one need to install ModOptions to assign them.
+
+### Improvements
+
+- Changed signature of onChangeUsesRecipeCategory to allow string category option
+- Changed signature of addToFavorite to allow selected (row) as argument
+
+### Bugfixes
+
+- Fixed [trello#48](https://trello.com/c/cYpaRrpq/48-type-filter-not-fully-applied-when-creating-recipelist)
+
 # 1.4.1 (02.04.2022)
 
 ### New features
