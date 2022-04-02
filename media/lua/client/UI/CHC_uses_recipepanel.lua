@@ -4,6 +4,10 @@ require 'ISUI/ISScrollingListBox';
 require 'ISUI/ISCraftingUI'
 require 'CHC_main';
 
+
+--ISUIElement:drawText(str, x, y, r, g, b, a, font)
+-- drawTextureScaledAspect(texture, x, y, w, h, a, r, g, b)
+
 CHC_uses_recipepanel = ISPanel:derive("CHC_uses_recipepanel");
 
 CHC_uses_recipepanel.largeFontHeight = getTextManager():getFontFromEnum(UIFont.Large):getLineHeight()
@@ -280,11 +284,31 @@ function CHC_uses_recipepanel:render()
     -- endregion
     
     -- region nearItem
-    if selectedItem.recipe:getNearItem() then
+    local hydroFurniture = self.newItem.nearFurniture
+    local nearItem = selectedItem.recipe:getNearItem()
+    if nearItem or hydroFurniture then
+        
         self:drawText(getText("UI_tab_uses_details_near_item")..": ", x, y, 1,1,1,1, UIFont.Medium);
         y = y + CHC_uses_recipepanel.mediumFontHeight;
-        self:drawText(" - "..selectedItem.recipe:getNearItem(), x+15, y, 1,1,1,1, UIFont.Small);
-        y = y + CHC_uses_recipepanel.smallFontHeight;
+
+        if hydroFurniture then
+            local r,g,b = 1,1,1
+            if not hydroFurniture.luaTest(self.player) then
+                r, g, b = 1,0,0
+            end
+            self:drawText(" - ", x+15, y, r,g,b,1, UIFont.Small)
+            --ISUIElement:drawText(str, x, y, r, g, b, a, font)
+            if hydroFurniture.texture then
+                self:drawTextureScaledAspect(hydroFurniture.texture, x+15+15, y, 20, 20, 1,1,1,1)
+            end
+            self:drawText(hydroFurniture.name, x+15+15+20+5, y, r,g,b,1, UIFont.Small)
+            y = y + 25
+        end
+
+        if nearItem then
+            self:drawText(" - "..selectedItem.recipe:getNearItem(), x+15, y, 1,1,1,1, UIFont.Small);
+            y = y + CHC_uses_recipepanel.smallFontHeight;
+        end
     end
     -- endregion
 
@@ -377,6 +401,25 @@ function CHC_uses_recipepanel:craftAll()
 end
 -- endregion
 
+
+function CHC_uses_recipepanel:processHydrocraft(newItem)
+    if not getActivatedMods():contains("Hydrocraft") then return end
+
+    -- require "AdvancedBuild/HCItemsNearby" -- actually dont need this one
+    local luaTest = newItem.recipe:getLuaTest()
+    if not luaTest then return end
+    local integration = CHC_settings.integrations.Hydrocraft.luaOnTestReference
+    local itemName = integration[luaTest]
+    if not itemName then return end
+    local furniItem = {}
+    local furniItemObj = InventoryItemFactory.CreateItem(itemName)
+    furniItem.obj = furniItemObj
+    furniItem.luaTest = _G[luaTest] -- calling global registry to get function obj
+    furniItem.texture = furniItemObj:getTex()
+    furniItem.name = furniItemObj:getName()
+    return furniItem
+end
+
 function CHC_uses_recipepanel:setRecipe(recipe)
     ISCraftingUI.getContainers(self);
     local newItem = {};
@@ -400,6 +443,14 @@ function CHC_uses_recipepanel:setRecipe(recipe)
             newItem.itemName = (recipe.recipe:getResult():getCount() * resultItem:getCount()) .. " " .. newItem.itemName;
         end
     end
+
+    -- region Hydrocraft integration
+    local hydrocraftFurniture = self:processHydrocraft(newItem)
+    if hydrocraftFurniture then
+        newItem.nearFurniture = hydrocraftFurniture
+    end
+    -- endregion
+
     newItem.sources = {};
     for x=0,recipe.recipe:getSource():size()-1 do
         local source = recipe.recipe:getSource():get(x);
