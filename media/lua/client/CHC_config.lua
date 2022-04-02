@@ -12,7 +12,7 @@ CHC_settings = {
         craft_one = {key = Keyboard.KEY_NONE, name="chc_craft_one"},
         favorite_recipe = {key = Keyboard.KEY_NONE, name="chc_favorite_recipe"},
         craft_all = {key = Keyboard.KEY_NONE, name="chc_craft_all"},
-        close_window = {key = Keyboard.KEY_NONE, name="chc_close_window"}
+        close_window = {key = Keyboard.KEY_ESCAPE, name="chc_close_window"}
     }
 }
 
