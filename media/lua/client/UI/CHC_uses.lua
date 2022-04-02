@@ -31,6 +31,11 @@ local function has_value (tab, val)
     return false
 end
 
+local function startswith(txt, start)
+    return string.sub(txt, 1, string.len(start)) == start
+end
+
+
 -- region create
 function CHC_uses:initialise()
     ISPanel.initialise(self);
@@ -302,11 +307,63 @@ function CHC_uses:recipeTypeFilter(recipe)
     return state
 end
 
+
+function CHC_uses:searchIsSpecialCommand(txt)
+    local validSpecialChars = {"!", "@", "#", "$", "%"}
+    for _, char in ipairs(validSpecialChars) do
+        if startswith(txt, char) then return true end
+    end
+    return false
+end
+
+local function compare(what, to)
+    if not string.contains(string.lower(what), string.lower(to)) then return false end
+    return true
+end
+
+
 function CHC_uses:searchTypeFilter(recipe)
     local state = true
     local stateText = string.trim(self.searchBar:getInternalText())
-    if stateText ~= "" then
-        if not string.contains(string.lower(recipe.recipe:getName()), string.lower(stateText)) then
+    local isSpecialSearch = false
+    local char
+    if stateText == "" then return state end
+    -- special commands
+    if self:searchIsSpecialCommand(stateText) then
+        isSpecialSearch = true
+        char = stateText:sub(1, 1)
+        if string.len(stateText) == 1 then return state end
+        stateText = string.sub(stateText, 2)
+    end
+
+    if isSpecialSearch then
+        if char == "!" then
+            -- search by recipe category
+            local whatCompare = recipe.recipe:getCategory() or getText("UI_category_default")
+            state = compare(whatCompare, stateText)
+        elseif char == "@" then
+            --search by mod name of resulting item
+            local resultItem = InventoryItemFactory.CreateItem(recipe.recipe:getResult():getFullType())
+            local whatCompare = resultItem:getModName()
+            state = compare(whatCompare, stateText)
+        elseif char == "#" then
+            local resultItem = InventoryItemFactory.CreateItem(recipe.recipe:getResult():getFullType())
+            local whatCompare = resultItem:getCategory()
+            state = compare(whatCompare, stateText)
+            --search by category of resulting item (not recipe!)
+        elseif char == "$" then
+            -- search by ?
+            isSpecialSearch = false
+        elseif char == "%" then
+            -- search by ?
+            isSpecialSearch = false
+        end
+        -- fallback to default search if nothing is found?
+    end
+
+    if not isSpecialSearch then
+        local whatCompare = string.lower(recipe.recipe:getName())
+        if not string.contains(whatCompare, stateText) then
             state = false
         end
     end
