@@ -89,8 +89,10 @@ function CHC_window:onKeyRelease(key)
     end
 
     local selectedItem = rl.items[rl.selected]
-    view.recipesList:ensureVisible(rl.selected)
-    view.recipePanel:setRecipe(selectedItem.item)
+    if selectedItem then
+        view.recipesList:ensureVisible(rl.selected)
+        view.recipePanel:setRecipe(selectedItem.item)
+    end
     -- endregion
 
     -- region categories

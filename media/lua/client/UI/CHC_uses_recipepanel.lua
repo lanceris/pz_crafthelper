@@ -293,15 +293,17 @@ function CHC_uses_recipepanel:render()
 
         if hydroFurniture then
             local r,g,b = 1,1,1
+            local a = 1
             if not hydroFurniture.luaTest(self.player) then
                 r, g, b = 1,0,0
+                a = 0.75
             end
-            self:drawText(" - ", x+15, y, r,g,b,1, UIFont.Small)
+            self:drawText(" - ", x+15, y, r,g,b,a, UIFont.Small)
             --ISUIElement:drawText(str, x, y, r, g, b, a, font)
             if hydroFurniture.texture then
-                self:drawTextureScaledAspect(hydroFurniture.texture, x+15+15, y, 20, 20, 1,1,1,1)
+                self:drawTextureScaledAspect(hydroFurniture.texture, x+15+15, y, 20, 20, a,1,1,1)
             end
-            self:drawText(hydroFurniture.name, x+15+15+20+5, y, r,g,b,1, UIFont.Small)
+            self:drawText(hydroFurniture.name, x+15+15+20+5, y, r,g,b,a, UIFont.Small)
             y = y + 25
         end
 
@@ -412,7 +414,7 @@ function CHC_uses_recipepanel:processHydrocraft(newItem)
     local itemName = integration[luaTest]
     if not itemName then return end
     local furniItem = {}
-    local furniItemObj = InventoryItemFactory.CreateItem(itemName)
+    local furniItemObj = CHC_main.items[itemName]
     furniItem.obj = furniItemObj
     furniItem.luaTest = _G[luaTest] -- calling global registry to get function obj
     furniItem.texture = furniItemObj:getTex()
@@ -434,11 +436,13 @@ function CHC_uses_recipepanel:setRecipe(recipe)
     newItem.available = RecipeManager.IsRecipeValid(recipe.recipe, self.player, nil, self.containerList);
 
     local recipeResult = recipe.recipe:getResult()
-    local resultItem = InventoryItemFactory.CreateItem(recipeResult:getFullType());
+    local resultItem = CHC_main.items[recipeResult:getFullType()]
     if resultItem then
         newItem.module = resultItem:getModName()
+        -- newItem.modname = resultItem:getModID()
         newItem.texture = resultItem:getTex();
         newItem.itemName = resultItem:getDisplayName();
+        newItem.itemDisplayCategory = resultItem:getDisplayCategory()
         if recipe.recipe:getResult():getCount() > 1 then
             newItem.itemName = (recipe.recipe:getResult():getCount() * resultItem:getCount()) .. " " .. newItem.itemName;
         end
@@ -461,12 +465,12 @@ function CHC_uses_recipepanel:setRecipe(recipe)
             local item = nil
             local itemName = nil
             if sourceFullType == "Water" then
-                item = InventoryItemFactory.CreateItem("Base.WaterDrop");
+                item = CHC_main.items["Base.WaterDrop"]
             elseif luautils.stringStarts(sourceFullType, "[") then
                 -- a Lua test function
-                item = InventoryItemFactory.CreateItem("Base.WristWatch_Right_DigitalBlack");
+                item = CHC_main.items["Base.WristWatch_Right_DigitalBlack"]
             else
-                item = InventoryItemFactory.CreateItem(sourceFullType);
+                item = CHC_main.items[sourceFullType]
             end
             if item then
                 local itemInList = {};
