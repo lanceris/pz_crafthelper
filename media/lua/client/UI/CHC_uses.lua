@@ -20,6 +20,26 @@ CHC_uses.localData = {
     typeFilterToNumOfRecipes = {}
 }
 
+local function all(t, val, start, stop, step)
+    start = start or 1
+    stop = stop or #t
+    step = step or 1
+    for i=start, stop, step do
+        if t[i] ~= val then return false end
+    end
+    return true
+end
+
+local function any(t, val, start, stop, step)
+    start = start or 1
+    stop = stop or #t
+    step = step or 1
+    for i=start, stop, step do
+        if t[i] == val then return true end
+    end
+    return false
+end
+
 
 local function has_value (tab, val)
     for index, value in ipairs(tab) do
@@ -309,63 +329,169 @@ end
 
 
 function CHC_uses:searchIsSpecialCommand(txt)
-    local validSpecialChars = {"!", "@", "#", "$", "%"}
+    -- !: search by recipe category
+    -- @: search by mod name of resulting item
+    -- #: search by recipe ingredients
+    -- $: search by DisplayCategory of resulting item
+    -- %: search by name of resulting item
+    -- ^: show favorited recipes only
+    local validSpecialChars = {"!", "@", "#", "$", "%", "^"} -- @@@
     for _, char in ipairs(validSpecialChars) do
         if startswith(txt, char) then return true end
     end
     return false
 end
 
-local function compare(what, to)
-    if not string.contains(string.lower(what), string.lower(to)) then return false end
-    return true
+local function compare(what, to, isList, passAll)
+    if passAll then return true end
+    isList = type(what) == "table"
+    to = string.lower(tostring(to))
+    local state = false
+    if not isList then
+        what = string.lower(tostring(what))
+        if string.contains(what, to) then
+            state = true
+        end
+    else
+        for i=1, #what do
+            local wh = string.lower(tostring(what[i]))
+            if string.contains(wh, to) then
+                state = true
+                break
+            end
+        end
+    end
+    return state
+end
+
+function CHC_uses:searchParseTokens(txt)
+
+    local delim = {",", "|"}
+    local regex = "[^"..table.concat(delim).."]+"
+    local queryType
+
+    txt = string.trim(txt)
+    if not string.contains(txt, ',') and not string.contains(txt, "|") then
+        return {txt}, false, nil
+    end
+    if string.contains(txt,",") then queryType = 'AND'
+    elseif string.contains(txt,'|') then queryType = "OR" end
+
+    local tokens = {}
+    for token in txt:gmatch(regex) do
+        table.insert(tokens, token)
+    end
+    if #tokens == 1 then
+        return tokens, false, nil
+    elseif not tokens then -- just sep (e.g txt=",")
+        return nil, false, nil
+    end
+    -- tokens = table.unpack(tokens, 1, #tokens-1)
+    return tokens, true, queryType
+end
+
+
+function CHC_uses:searchProcessToken(token, recipe)
+    -- check if token is special search
+    -- if so
+        -- remove special char from token
+        -- process special chars
+    -- if not, compare token with recipe name
+    --return state
+    local state = false
+    local isAllowSpecialSearch = true -- @@@ to settings
+    local isSpecialSearch = false
+    local char
+    local items = {}
+
+    if self:searchIsSpecialCommand(token) then
+        isSpecialSearch = true
+        char = token:sub(1, 1)
+        token = string.sub(token, 2)
+        if token == "" then token = nil end
+    end
+
+    local whatCompare
+    if char == "^" then
+        -- show favorited reciped and search by them
+        if not recipe.favorite then return false end
+        whatCompare = string.lower(recipe.recipe:getName())
+    end
+    if token and isSpecialSearch then
+        if char == "!" then
+            -- search by recipe category
+            whatCompare = recipe.recipe:getCategory() or getText("UI_category_default")
+        end
+        local resultItem = CHC_main.items[recipe.recipe:getResult():getFullType()]
+        if resultItem then
+            if char == "@" then
+                -- search by mod name of resulting item
+                whatCompare = resultItem:getModName()
+            elseif char == "$" then
+                -- search by DisplayCategory of resulting item
+                local displayCat = resultItem:getDisplayCategory() or ""
+                whatCompare = getText("IGUI_ItemCat_" .. displayCat) or "None"
+            elseif char == "%" then
+                -- search by name of resulting item
+                whatCompare = resultItem:getDisplayName()
+            end
+        end
+        if char == "#" then
+            -- search by ingredients
+            local rSources = recipe.recipe:getSource()
+            
+            -- Go through items needed by the recipe
+            for n=0, rSources:size() - 1 do
+                -- Get the item name (not the display name)
+                local rSource = rSources:get(n)
+                local sItems = rSource:getItems()
+                for k=0, sItems:size() - 1 do
+                    local itemString = sItems:get(k)
+                    local item = CHC_main.items[itemString]:getDisplayName()
+                    if item then table.insert(items, item) end
+                end
+            end
+            whatCompare = items
+        end
+    end
+    if token and not isSpecialSearch then
+        whatCompare = string.lower(recipe.recipe:getName())
+    end
+    state = compare(whatCompare, token, items)
+    if not token then state = true end
+    return state
 end
 
 
 function CHC_uses:searchTypeFilter(recipe)
-    local state = true
     local stateText = string.trim(self.searchBar:getInternalText())
-    local isSpecialSearch = false
-    local char
-    if stateText == "" then return state end
-    -- special commands
-    if self:searchIsSpecialCommand(stateText) then
-        isSpecialSearch = true
-        char = stateText:sub(1, 1)
-        if string.len(stateText) == 1 then return state end
-        stateText = string.sub(stateText, 2)
-    end
+    local tokens, isMultiSearch, queryType = self:searchParseTokens(stateText)
+    local tokenStates = {}
+    local state = false
 
-    if isSpecialSearch then
-        if char == "!" then
-            -- search by recipe category
-            local whatCompare = recipe.recipe:getCategory() or getText("UI_category_default")
-            state = compare(whatCompare, stateText)
-        elseif char == "@" then
-            --search by mod name of resulting item
-            local resultItem = InventoryItemFactory.CreateItem(recipe.recipe:getResult():getFullType())
-            local whatCompare = resultItem:getModName()
-            state = compare(whatCompare, stateText)
-        elseif char == "#" then
-            local resultItem = InventoryItemFactory.CreateItem(recipe.recipe:getResult():getFullType())
-            local whatCompare = resultItem:getCategory()
-            state = compare(whatCompare, stateText)
-            --search by category of resulting item (not recipe!)
-        elseif char == "$" then
-            -- search by ?
-            isSpecialSearch = false
-        elseif char == "%" then
-            -- search by ?
-            isSpecialSearch = false
+    if not tokens then return true end
+    
+    if isMultiSearch then
+        for i=1, #tokens do
+            table.insert(tokenStates, self:searchProcessToken(tokens[i], recipe))
         end
-        -- fallback to default search if nothing is found?
-    end
-
-    if not isSpecialSearch then
-        local whatCompare = string.lower(recipe.recipe:getName())
-        if not string.contains(whatCompare, stateText) then
-            state = false
+        for i=1, #tokenStates do
+            if queryType == 'OR' then
+                if tokenStates[i] then
+                    state = true
+                    break
+                end
+            end
+            if queryType == 'AND' and i>#tokenStates-1 then
+                local allPrev = all(tokenStates, true, nil,#tokenStates,nil)
+                if allPrev and tokenStates[i] then
+                    state = true
+                    break
+                end
+            end
         end
+    else -- one token
+        state = self:searchProcessToken(tokens[1], recipe)
     end
     return state
 end
