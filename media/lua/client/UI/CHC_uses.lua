@@ -5,9 +5,10 @@ require 'ISUI/ISTextEntryBox'
 require "UI/CHC_tabs"
 require "UI/CHC_uses_recipelist"
 require "UI/CHC_uses_recipepanel"
+require "ISUI/ISModalRichText"
 
-
-CHC_uses = ISPanel:derive("CHC_uses");
+local derivative = ISPanel
+CHC_uses = derivative:derive("CHC_uses");
 CHC_uses.sortOrderIconAsc = getTexture("media/textures/sort_order_asc.png")
 CHC_uses.sortOrderIconDesc = getTexture("media/textures/sort_order_desc.png")
 CHC_uses.typeFiltIconAll = getTexture("media/textures/type_filt_all.png")
@@ -16,24 +17,17 @@ CHC_uses.typeFiltIconKnown = getTexture("media/textures/type_filt_known.png")
 CHC_uses.typeFiltIconInvalid = getTexture("media/textures/type_filt_invalid.png")
 CHC_uses.searchIcon = getTexture("media/textures/search_icon.png")
 
+local utils = require('CHC_utils')
+
 CHC_uses.localData = {
     typeFilterToNumOfRecipes = {}
 }
 
 
-local function has_value (tab, val)
-    for index, value in ipairs(tab) do
-        if value == val then
-            return true
-        end
-    end
-
-    return false
-end
 
 -- region create
 function CHC_uses:initialise()
-    ISPanel.initialise(self);
+    derivative.initialise(self);
     -- self.localData.typeFilterToNumOfRecipes['all'] = self.numRecipesAll
     -- self.localData.typeFilterToNumOfRecipes['valid'] = self.numRecipesValid
     -- self.localData.typeFilterToNumOfRecipes['known'] = self.numRecipesKnown
@@ -69,28 +63,22 @@ function CHC_uses:createFilterRow(x, y, w, h, defaultCategory)
     return filterRowContainer
 end
 
-function CHC_uses:createSearchRow(x,y,w,h)
-    local searchRowContainer = ISPanel:new(x, y, w, h)
-    self.searchBtn = ISButton:new(x, 0, h, h, "", nil, nil)
-    self.searchBtn:initialise()
-    self.searchBtn.borderColor.a = 0
-    self.searchBtn:setImage(self.searchIcon)
+function CHC_uses:searchBtnOnClick()
+    local w,h = 600, 350
+    local x, y = getCore():getScreenWidth() / 2 - w/2,getCore():getScreenHeight() / 2 - h/2
+    local modal = ISModalRichText:new(x,y,w,h,getText("UI_search_info"),false, self)
+    modal:initialise()
+    modal:addToUIManager()
+end
 
-    x = x + self.searchBtn.width
 
-    local dw = self.searchBtn.width
-    self.searchBar = ISTextEntryBox:new("", x, 0, w-dw, h)
-    self.searchBar:setTooltip(string.sub(getText("IGUI_CraftUI_Name_Filter"), 1, -2))
-    self.searchBar:initialise()
-    self.searchBar:instantiate()
-    self.searchBar:setText("")
-    self.searchBar:setClearButton(true)
-    self.searchBarLastText = self.searchBar:getInternalText()
-    self.searchBarText = self.searchBarLastText
-    self.searchBar.onTextChange = self.onTextChange
-
-    searchRowContainer.deltaW = dw
-    return searchRowContainer
+function CHC_uses:onResizeHeaders()
+    self.filterRowContainer:setWidth(self.headers.nameHeader.width)
+    self.categorySelector:setWidth(self.headers.nameHeader.width-self.filterOrderBtn.width-self.filterTypeBtn.width) --@@@ refactor
+    self.searchRow:setWidth(self.headers.nameHeader.width)
+    self.recipesList:setWidth(self.headers.nameHeader.width)
+    self.recipePanel:setWidth(self.headers.typeHeader.width)
+    self.recipePanel:setX(self.headers.typeHeader.x)
 end
 
 function CHC_uses:create()
@@ -98,30 +86,27 @@ function CHC_uses:create()
     self.allRecipesForItem = CHC_main.recipesByItem[self.item:getName()];
 
     -- region draggable headers
-    local categoryWid = math.max(100,self.column4-self.column3-1)
-    if self.column3 - 1 + categoryWid > self.width then
-        self.column3 = self.width - categoryWid + 1
-    end
-    self.tabName1 = getText("UI_tab_uses_recipe_title")
-    self.tabName2 = getText("UI_tab_uses_details_title")
-    self.nameHeader, self.typeHeader = CHC_tabs.addTabs(self);
-    self.nameHeader:setAlwaysOnTop(true);
-    self.typeHeader:setAlwaysOnTop(true);
+    self.headers = CHC_tabs:new(0, 0, self.width, 20, {self.onResizeHeaders, self})
+    self.headers:initialise()
     -- endregion
 
-    local x = self.nameHeader.x
-    local y = self.nameHeader.y+self.nameHeader.height
+    local x = self.headers.x
+    local y = self.headers.y+self.headers.height
+    local leftW = self.headers.nameHeader.width
+    local rightX = self.headers.typeHeader.x
+    local rightW = self.headers.typeHeader.width
 
     -- region filters UI
     local defaultCategory = getText("UI_tab_uses_categorySelector_All")
-    self.filterRowContainer = self:createFilterRow(x, y, self.nameHeader.width, 24, defaultCategory)
-    y = y + 24
+    self.filterRowContainer = self:createFilterRow(x, y, leftW, 24, defaultCategory)
+    local leftY = y + 24
     
     -- endregion
 
     -- region category selector data
     -- We add combobox to select recipe category
     -- Add categories to selector
+
     local uniqueCategories = {};
     local is_fav_recipes = false
     for _,recipe in ipairs(self.allRecipesForItem) do
@@ -130,12 +115,14 @@ function CHC_uses:create()
         end
         local rc = recipe.recipe:getCategory() or getText("UI_category_default")
         rc = getTextOrNull("IGUI_CraftCategory_"..rc) or rc
-        if not has_value(uniqueCategories, rc) then
+        if not utils.any(uniqueCategories, rc) then
             table.insert(uniqueCategories, rc)
         end
 	end
 
-    if is_fav_recipes then self.categorySelector:addOption("* "..getText("UI_tab_uses_categorySelector_Favorite")) end;
+    if is_fav_recipes then
+        self.categorySelector:addOption("* "..getText("UI_tab_uses_categorySelector_Favorite")) 
+    end
 
     table.sort(uniqueCategories)
     for _, rc in pairs(uniqueCategories) do
@@ -144,13 +131,14 @@ function CHC_uses:create()
     --endregion
 
     -- region search bar
-    self.searchRowContainer = self:createSearchRow(self.nameHeader.x, y, self.nameHeader.width, 24)
-    y = y + 24
+    self.searchRow = CHC_search_bar:new(x, leftY, leftW, 24, self.searchBtnOnClick, nil, self.onTextChange)
+    self.searchRow:initialise()
+    leftY = leftY + 24
     -- endregion
 
     -- region recipe list
-    local rlh = self.height-self.nameHeader.height-self.filterRowContainer.height-self.searchRowContainer.height-1
-    self.recipesList = CHC_uses_recipelist:new(self.nameHeader.x, y, self.nameHeader.width, rlh);
+    local rlh = self.height-self.headers.height-self.filterRowContainer.height-self.searchRow.height-1
+    self.recipesList = CHC_uses_recipelist:new(x, leftY, leftW, rlh);
 
     self.recipesList.drawBorder = true;
 	self.recipesList:initialise();
@@ -163,9 +151,7 @@ function CHC_uses:create()
     -- endregion
 
     -- region recipe details windows
-    self.recipePanel = CHC_uses_recipepanel:new(self.typeHeader.x, 
-                        self.typeHeader.y+self.typeHeader.height, 
-                        self.typeHeader.width, self.height);
+    self.recipePanel = CHC_uses_recipepanel:new(rightX, y, rightW, self.height);
 	self.recipePanel:initialise();
 	self.recipePanel:instantiate();
 	self.recipePanel:setAnchorRight(true)
@@ -196,16 +182,14 @@ function CHC_uses:create()
     -- endregion
 
     -- Attach all to the craft helper window
+    self:addChild(self.headers)
     self.filterRowContainer:addChild(self.filterOrderBtn)
     self.filterRowContainer:addChild(self.filterTypeBtn)
     self.filterRowContainer:addChild(self.categorySelector)
     self:addChild(self.filterRowContainer)
-    self.searchRowContainer:addChild(self.searchBtn)
-    self.searchRowContainer:addChild(self.searchBar)
-    self:addChild(self.searchRowContainer)
+    self:addChild(self.searchRow)
 	self:addChild(self.recipesList)
 	self:addChild(self.recipePanel)
-
 end
 
 -- endregion
@@ -213,10 +197,10 @@ end
 -- region update
 
 function CHC_uses:onTextChange()
-    local s = self.parent.parent;
-    local stateText = s.searchBar:getInternalText()
-    if stateText ~= s.searchBarLastText or stateText == "" then
-        s.searchBarLastText = stateText
+    local s = self.parent.parent
+    local stateText = s.searchRow.searchBar:getInternalText()
+    if stateText ~= s.searchRow.searchBarLastText or stateText == "" then
+        s.searchRow.searchBarLastText = stateText
         local option = s.categorySelector
         local sl = option.options[option.selected]
         s:updateRecipes(sl)
@@ -232,7 +216,8 @@ end
 
 function CHC_uses:updateRecipes(sl)
     local categoryAll = getText("UI_tab_uses_categorySelector_All")
-    if sl == categoryAll and self.typeFilter == "all" and self.searchBar:getInternalText() == "" then
+    local searchBar = self.searchRow.searchBar
+    if sl == categoryAll and self.typeFilter == "all" and searchBar:getInternalText() == "" then
         self:refreshRecipeList(self.allRecipesForItem)
         return
     end
@@ -302,13 +287,151 @@ function CHC_uses:recipeTypeFilter(recipe)
     return state
 end
 
-function CHC_uses:searchTypeFilter(recipe)
-    local state = true
-    local stateText = string.trim(self.searchBar:getInternalText())
-    if stateText ~= "" then
-        if not string.contains(string.lower(recipe.recipe:getName()), string.lower(stateText)) then
-            state = false
+
+-- function CHC_uses:searchIsSpecialCommand(txt)
+--     -- !: search by recipe category
+--     -- @: search by mod name of resulting item
+--     -- #: search by recipe ingredients
+--     -- $: search by DisplayCategory of resulting item
+--     -- %: search by name of resulting item
+--     -- ^: show favorited recipes only
+--     local validSpecialChars = {"!", "@", "#", "$", "%", "^"} -- @@@
+--     for _, char in ipairs(validSpecialChars) do
+--         if utils.startswith(txt, char) then return true end
+--     end
+--     return false
+-- end
+
+
+function CHC_uses:searchParseTokens(txt)
+
+    local delim = {",", "|"}
+    local regex = "[^"..table.concat(delim).."]+"
+    local queryType
+
+    txt = string.trim(txt)
+    if not string.contains(txt, ',') and not string.contains(txt, "|") then
+        return {txt}, false, nil
+    end
+    if string.contains(txt,",") then queryType = 'AND'
+    elseif string.contains(txt,'|') then queryType = "OR" end
+
+    local tokens = {}
+    for token in txt:gmatch(regex) do
+        table.insert(tokens, token)
+    end
+    if #tokens == 1 then
+        return tokens, false, nil
+    elseif not tokens then -- just sep (e.g txt=",")
+        return nil, false, nil
+    end
+    -- tokens = table.unpack(tokens, 1, #tokens-1)
+    return tokens, true, queryType
+end
+
+
+function CHC_uses:searchProcessToken(token, recipe)
+    -- check if token is special search
+    -- if so
+        -- remove special char from token
+        -- process special chars
+    -- if not, compare token with recipe name
+    --return state
+    local state = false
+    local isAllowSpecialSearch = true -- @@@ to settings
+    local isSpecialSearch = false
+    local char
+    local items = {}
+
+    if CHC_search_bar:isSpecialCommand(token) then
+        isSpecialSearch = true
+        char = token:sub(1, 1)
+        token = string.sub(token, 2)
+        if token == "" then token = nil end
+    end
+
+    local whatCompare
+    if char == "^" then
+        -- show favorited reciped and search by them
+        if not recipe.favorite then return false end
+        whatCompare = string.lower(recipe.recipe:getName())
+    end
+    if token and isSpecialSearch then
+        if char == "!" then
+            -- search by recipe category
+            local catName = getTextOrNull("IGUI_CraftCategory_"..recipe.category) or recipe.category
+            whatCompare = catName
         end
+        local resultItem = CHC_main.items[recipe.recipe:getResult():getFullType()]
+        if resultItem then
+            if char == "@" then
+                -- search by mod name of resulting item
+                whatCompare = resultItem:getModName()
+            elseif char == "$" then
+                -- search by DisplayCategory of resulting item
+                local displayCat = resultItem:getDisplayCategory() or ""
+                whatCompare = getText("IGUI_ItemCat_" .. displayCat) or "None"
+            elseif char == "%" then
+                -- search by name of resulting item
+                whatCompare = resultItem:getDisplayName()
+            end
+        end
+        if char == "#" then
+            -- search by ingredients
+            local rSources = recipe.recipe:getSource()
+            
+            -- Go through items needed by the recipe
+            for n=0, rSources:size() - 1 do
+                -- Get the item name (not the display name)
+                local rSource = rSources:get(n)
+                local sItems = rSource:getItems()
+                for k=0, sItems:size() - 1 do
+                    local itemString = sItems:get(k)
+                    local item = CHC_main.items[itemString]
+                    if item then table.insert(items, item:getDisplayName()) end
+                end
+            end
+            whatCompare = items
+        end
+    end
+    if token and not isSpecialSearch then
+        whatCompare = string.lower(recipe.recipe:getName())
+    end
+    state = utils.compare(whatCompare, token)
+    if not token then state = true end
+    return state
+end
+
+
+function CHC_uses:searchTypeFilter(recipe)
+    local stateText = string.trim(self.searchRow.searchBar:getInternalText())
+    local tokens, isMultiSearch, queryType = CHC_search_bar:parseTokens(stateText)
+    local tokenStates = {}
+    local state = false
+
+    if not tokens then return true end
+    
+    if isMultiSearch then
+        for i=1, #tokens do
+            table.insert(tokenStates, self:searchProcessToken(tokens[i], recipe))
+        end
+        for i=1, #tokenStates do
+            if queryType == 'OR' then
+                if tokenStates[i] then
+                    state = true
+                    break
+                end
+            end
+            if queryType == 'AND' and i>#tokenStates-1 then
+                local allPrev = utils.all(tokenStates, true, 1,#tokenStates)
+                if allPrev and tokenStates[i] then
+                    state = true
+                    break
+                end
+            end
+        end
+    else -- one token
+        state = self:searchProcessToken(tokens[1], recipe)
     end
     return state
 end
@@ -413,11 +536,10 @@ end
 
 -- region render
 function CHC_uses:prerender()
-    CHC_tabs.prerender(self)
 end
 
 function CHC_uses:render()
-    CHC_tabs.render(self)
+    -- CHC_tabs.render(self)
 end
 -- endregion
 
@@ -427,11 +549,10 @@ function CHC_uses:new(args)
     local y = args.y
     local w = args.w
     local h = args.h
-    local sep_x = args.sep_x
     local item = args.item
 
     local o = {};
-    o = ISPanel:new(x,y,w,h);
+    o = derivative:new(x,y,w,h);
     
 	setmetatable(o, self);
     self.__index = self;
@@ -441,11 +562,6 @@ function CHC_uses:new(args)
 
     o.item = item;
 
-    o.column2 = 0;
-	o.column3 = sep_x;
-	o.column4 = o.width - 1;
-
-    o.filtericon = getTexture("media/ui/TreeFilter.png");
     o.ui_name = "CHC_uses"
     o.itemSortAsc = CHC_menu.cfg.uses_filter_name_asc
     o.typeFilter = CHC_menu.cfg.uses_filter_type

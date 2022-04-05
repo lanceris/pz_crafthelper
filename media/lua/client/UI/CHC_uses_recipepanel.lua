@@ -1,10 +1,11 @@
 require 'luautils'
-require 'ISUI/ISPanel';
-require 'ISUI/ISScrollingListBox';
+require 'ISUI/ISPanel'
+require 'ISUI/ISScrollingListBox'
 require 'ISUI/ISCraftingUI'
-require 'CHC_main';
+require 'CHC_main'
 
 
+local utils = require('CHC_utils')
 --ISUIElement:drawText(str, x, y, r, g, b, a, font)
 -- drawTextureScaledAspect(texture, x, y, w, h, a, r, g, b)
 
@@ -13,30 +14,6 @@ CHC_uses_recipepanel = ISPanel:derive("CHC_uses_recipepanel");
 CHC_uses_recipepanel.largeFontHeight = getTextManager():getFontFromEnum(UIFont.Large):getLineHeight()
 CHC_uses_recipepanel.mediumFontHeight = getTextManager():getFontHeight(UIFont.Medium)
 CHC_uses_recipepanel.smallFontHeight = getTextManager():getFontFromEnum(UIFont.Small):getLineHeight()
-
--- region utils (move to CHC_utils)
-local function tableSize(table1)
-    if not table1 then return 0 end
-    local count = 0;
-    for _,v in pairs(table1) do
-        count = count + 1;
-    end
-    return count;
-end
-
-local function areTablesDifferent(table1, table2)
-    local size1 = tableSize(table1)
-    local size2 = tableSize(table2)
-    if size1 ~= size2 then return true end
-    if size1 == 0 then return false end
-    for k1,v1 in pairs(table1) do
-        if table2[k1] ~= v1 then
-            return true
-        end
-    end
-    return false
-end
--- endregion
 
 -- region create
 function CHC_uses_recipepanel:createChildren()
@@ -162,11 +139,11 @@ function CHC_uses_recipepanel:render()
     if not self.refreshTypesAvailableMS or (self.refreshTypesAvailableMS + 500 < now) then
         self.refreshTypesAvailableMS = now
         local typesAvailable = self:getAvailableItemsType();
-        self.needRefreshIngredientPanel = self.needRefreshIngredientPanel or areTablesDifferent(selectedItem.typesAvailable, typesAvailable);
-        selectedItem.typesAvailable = typesAvailable;
+        self.needRefreshIngredientPanel = self.needRefreshIngredientPanel or utils.areTablesDifferent(selectedItem.typesAvailable, typesAvailable);
+        selectedItem.typesAvailable = typesAvailable
     end
-    ISCraftingUI.getContainers(self);
-    selectedItem.available = RecipeManager.IsRecipeValid(selectedItem.recipe, self.player, nil, self.containerList);
+    CHC_uses_recipelist.getContainers(self)
+    selectedItem.available = RecipeManager.IsRecipeValid(selectedItem.recipe, self.player, nil, self.containerList)
     -- endregion
 
     -- region main recipe info + output
@@ -184,10 +161,19 @@ function CHC_uses_recipepanel:render()
             self:drawTextureScaledAspect(selectedItem.texture,x+5,y+5,32,32,1,1,1,1);
         end
     end
-    self:drawText(selectedItem.recipe:getName() , x + 32 + 15, y, 1,1,1,1, UIFont.Medium);
-    self:drawText(selectedItem.itemName, x + 32 + 15, y + CHC_uses_recipepanel.mediumFontHeight, 1,1,1,1, UIFont.Small);
-    self:drawText(selectedItem.module, x+32+15, y+CHC_uses_recipepanel.mediumFontHeight+CHC_uses_recipepanel.smallFontHeight, 0.3, 0.3, 0.7, 1, UIFont.Small)
-    y = y + math.max(45, CHC_uses_recipepanel.largeFontHeight + CHC_uses_recipepanel.mediumFontHeight+10);
+    local lx = x + 32 + 15
+    local ly = y
+    self:drawText(selectedItem.recipe:getName() , lx, ly, 1,1,1,1, UIFont.Small)
+    ly = ly + CHC_uses_recipepanel.smallFontHeight
+    self:drawText(selectedItem.itemName, lx, ly, 1,1,1,1, UIFont.Small)
+    ly = ly + CHC_uses_recipepanel.smallFontHeight
+    if selectedItem.itemDisplayCategory then
+        self:drawText(getText("UI_category")..": "..selectedItem.itemDisplayCategory, lx, ly, 0.8,0.8,0.8,0.8, UIFont.Small)
+        ly = ly + CHC_uses_recipepanel.smallFontHeight
+    end
+    local clr = {r=0.392,g=0.584,b=0.929} -- CornFlowerBlue
+    self:drawText("Mod: "..selectedItem.module, lx, ly, clr.r,clr.g,clr.b, 1, UIFont.Small)
+    y = y + ly - 20
     -- endregion
 
     -- region required items
@@ -293,15 +279,17 @@ function CHC_uses_recipepanel:render()
 
         if hydroFurniture then
             local r,g,b = 1,1,1
+            local a = 1
             if not hydroFurniture.luaTest(self.player) then
                 r, g, b = 1,0,0
+                a = 0.75
             end
-            self:drawText(" - ", x+15, y, r,g,b,1, UIFont.Small)
+            self:drawText(" - ", x+15, y, r,g,b,a, UIFont.Small)
             --ISUIElement:drawText(str, x, y, r, g, b, a, font)
             if hydroFurniture.texture then
-                self:drawTextureScaledAspect(hydroFurniture.texture, x+15+15, y, 20, 20, 1,1,1,1)
+                self:drawTextureScaledAspect(hydroFurniture.texture, x+15+15, y, 20, 20, a,1,1,1)
             end
-            self:drawText(hydroFurniture.name, x+15+15+20+5, y, r,g,b,1, UIFont.Small)
+            self:drawText(hydroFurniture.name, x+15+15+20+5, y, r,g,b,a, UIFont.Small)
             y = y + 25
         end
 
@@ -412,7 +400,7 @@ function CHC_uses_recipepanel:processHydrocraft(newItem)
     local itemName = integration[luaTest]
     if not itemName then return end
     local furniItem = {}
-    local furniItemObj = InventoryItemFactory.CreateItem(itemName)
+    local furniItemObj = CHC_main.items[itemName]
     furniItem.obj = furniItemObj
     furniItem.luaTest = _G[luaTest] -- calling global registry to get function obj
     furniItem.texture = furniItemObj:getTex()
@@ -421,7 +409,7 @@ function CHC_uses_recipepanel:processHydrocraft(newItem)
 end
 
 function CHC_uses_recipepanel:setRecipe(recipe)
-    ISCraftingUI.getContainers(self);
+    CHC_uses_recipelist.getContainers(self)
     local newItem = {};
 
     if recipe.recipe:getCategory() then
@@ -434,11 +422,19 @@ function CHC_uses_recipepanel:setRecipe(recipe)
     newItem.available = RecipeManager.IsRecipeValid(recipe.recipe, self.player, nil, self.containerList);
 
     local recipeResult = recipe.recipe:getResult()
-    local resultItem = InventoryItemFactory.CreateItem(recipeResult:getFullType());
+    local resultItem = CHC_main.items[recipeResult:getFullType()]
     if resultItem then
         newItem.module = resultItem:getModName()
+        -- newItem.modname = resultItem:getModID()
         newItem.texture = resultItem:getTex();
         newItem.itemName = resultItem:getDisplayName();
+        local displayCategory = resultItem:getDisplayCategory()
+        if displayCategory then
+            newItem.itemDisplayCategory = getTextOrNull("IGUI_ItemCat_"..displayCategory)
+            -- print(newItem.itemDisplayCategory)
+        end
+        
+        
         if recipe.recipe:getResult():getCount() > 1 then
             newItem.itemName = (recipe.recipe:getResult():getCount() * resultItem:getCount()) .. " " .. newItem.itemName;
         end
@@ -461,12 +457,12 @@ function CHC_uses_recipepanel:setRecipe(recipe)
             local item = nil
             local itemName = nil
             if sourceFullType == "Water" then
-                item = InventoryItemFactory.CreateItem("Base.WaterDrop");
+                item = CHC_main.items["Base.WaterDrop"]
             elseif luautils.stringStarts(sourceFullType, "[") then
                 -- a Lua test function
-                item = InventoryItemFactory.CreateItem("Base.WristWatch_Right_DigitalBlack");
+                item = CHC_main.items["Base.WristWatch_Right_DigitalBlack"]
             else
-                item = InventoryItemFactory.CreateItem(sourceFullType);
+                item = CHC_main.items[sourceFullType]
             end
             if item then
                 local itemInList = {};

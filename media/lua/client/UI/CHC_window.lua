@@ -32,8 +32,7 @@ function CHC_window:createChildren()
     -- endregion
 
 
-    local common_screen_data = {x=0, y=8, w=self.width, h=self.panel.height, 
-                                sep_x=CHC_menu.cfg.uses_tab_sep_x}
+    local common_screen_data = {x=0, y=8, w=self.width, h=self.panel.height}
 
     --region uses screen
     local uses_screen_init = common_screen_data
@@ -89,8 +88,10 @@ function CHC_window:onKeyRelease(key)
     end
 
     local selectedItem = rl.items[rl.selected]
-    view.recipesList:ensureVisible(rl.selected)
-    view.recipePanel:setRecipe(selectedItem.item)
+    if selectedItem then
+        view.recipesList:ensureVisible(rl.selected)
+        view.recipePanel:setRecipe(selectedItem.item)
+    end
     -- endregion
 
     -- region categories
@@ -124,6 +125,16 @@ function CHC_window:onKeyRelease(key)
         view.recipePanel:craft(nil, true)
     end
     -- endregion
+
+    -- search bar focus
+    -- if key == Keyboard.KEY_TAB then
+    --     -- if getCore():getGameMode() == "Multiplayer" then return end
+    --     if not view.searchRow then return end
+    --     local bar = view.searchRow.searchBar
+    --     if not bar:isFocused() then
+    --         bar:focus()
+    --     end
+    -- end
 end
 
 function CHC_window:isKeyConsumed(key)
@@ -135,6 +146,7 @@ function CHC_window:isKeyConsumed(key)
             break
         end
     end
+    -- if key == Keyboard.KEY_TAB then isKeyValid = true end
 
     return isKeyValid
 end
@@ -143,33 +155,23 @@ end
 
 function CHC_window:onResize()
     ISPanel.onResize(self)
-
-    self.usesScreen:setWidth(self.width);
+    self.usesScreen:setWidth(self.width)
     self.usesScreen:setHeight(self.panel.height - self.panel.tabHeight)
-    local nhw = self.usesScreen.nameHeader.width;
-    self.usesScreen.recipesList:setWidth(nhw)
-    self.usesScreen.filterRowContainer:setWidth(nhw)
-    self.usesScreen.categorySelector:setWidth(nhw-self.usesScreen.filterRowContainer.deltaW)
-    self.usesScreen.searchRowContainer:setWidth(nhw)
-    self.usesScreen.searchBar:setWidth(nhw-self.usesScreen.searchRowContainer.deltaW)
-
-    -- self.craftScreen:setWidth(self.width)
-    -- self.craftScreen:setHeight(self.panel.height - self.panel.tabHeight)
     
+    local headers = self.usesScreen.headers
 
-    if self.usesScreen.typeHeader:getWidth() == self.usesScreen.typeHeader.minimumWidth then
-		self.usesScreen.column3 = self.usesScreen.width - self.usesScreen.typeHeader:getWidth() + 1
-		self.usesScreen.nameHeader:setWidth(self.usesScreen.column3 - self.usesScreen.column2)
-		self.usesScreen.typeHeader:setX(self.usesScreen.column3 - 1)
-	end
-	self.usesScreen.column4 = self.usesScreen.width
+    if headers.nameHeader:getWidth() == headers.nameHeader.minimumWidth then
+        headers.nameHeader:setWidth(headers.nameHeader.minimumWidth+1)
+        headers.typeHeader:setX(headers.nameHeader.width)
+        headers.typeHeader:setWidth(self.width-headers.nameHeader.width)
+        return
+    end
 
-    -- if self.craftScreen.typeHeader:getWidth() == self.craftScreen.typeHeader.minimumWidth then
-	-- 	self.craftScreen.column3 = self.craftScreen.width - self.craftScreen.typeHeader:getWidth() + 1
-	-- 	self.craftScreen.nameHeader:setWidth(self.craftScreen.column3 - self.craftScreen.column2)
-	-- 	self.craftScreen.typeHeader:setX(self.craftScreen.column3 - 1)
-	-- end
-	-- self.craftScreen.column4 = self.craftScreen.width
+    headers.typeHeader:setX(headers.proportion*self.width)
+    headers.nameHeader:setWidth(headers.proportion*self.width)
+    self.usesScreen:onResizeHeaders()
+    headers.typeHeader:setWidth((1-headers.proportion)*self.width)
+    self.usesScreen.headers:setWidth(self.width)
     
 end
 
@@ -207,6 +209,7 @@ function CHC_window:new(args)
     o.rh = o:resizeWidgetHeight()
     local fontHgtSmall = getTextManager():getFontHeight(UIFont.Small);
     o.headerHgt = fontHgtSmall + 1
+    o.player = args.player or nil
 
     o:setWantKeyEvents(true);
 
