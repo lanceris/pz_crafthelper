@@ -56,8 +56,7 @@ CHC_menu.onCraftHelper = function(items, player)
 			minimumWidth = CHC_menu.cfg.main_window_min_w,
 			minimumHeight = CHC_menu.cfg.main_window_min_h,
 			item=item
-
-		};
+		}
 		CHC_menu.CHC_Window = CHC_window:new(args);
 		CHC_menu.CHC_Window:initialise();
 		CHC_menu.CHC_Window:addToUIManager();

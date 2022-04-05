@@ -111,6 +111,7 @@ CHC_main.loadAllRecipes = function()
 		-- table.insert(CHC_main.allRecipes, recipe);
 
 		newItem.category = recipe:getCategory() or getText("IGUI_CraftCategory_General")
+		newItem.displayCategory = getTextOrNull("IGUI_CraftCategory_"..newItem.category) or newItem.category
 		newItem.recipe = recipe
 		newItem.favorite = modData[CHC_main.getFavoriteModDataString(recipe)] or false
 		local rSources = recipe:getSource()

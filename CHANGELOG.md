@@ -1,12 +1,19 @@
 # CraftHelper updates
 
-# 1.4.4 (04.04.2022)
+# 1.4.4 (05.04.2022)
 
 ### New features
 
 - Added special search modes for search bar
 - Added documentation for uses screen
 - Added documentation for search (click on magnifier left of search bar)
+
+### Improvements
+
+- Refactored search bar into separate component
+- Refactored draggable tabs into proper UI class
+- Improved overall performance
+- Moved common functions to CHC_utils
 
 # 1.4.3 (03.04.2022)
 
@@ -19,7 +26,7 @@
 ### New features
 
 - Added keybinds for moving through recipes/categories, crafting and favoriting.
-  All keys are not assigned by default, one need to install ModOptions to assign them.
+  All keys (except window closing one, which is ESC) are not assigned by default, one need to install ModOptions to assign them.
 
 ### Improvements
 

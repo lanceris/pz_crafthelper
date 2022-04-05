@@ -11,23 +11,24 @@ function CHC_uses_recipelist:getContainers()
 	if not self.player then return end
 	local playerNum = self.player and self.player:getPlayerNum() or -1
 	-- get all the surrounding inventory of the player, gonna check for the item in them too
-	self.containerList = ArrayList.new();
-	for i,v in ipairs(getPlayerInventory(playerNum).inventoryPane.inventoryPage.backpacks) do
-		--        if v.inventory ~= self.character:getInventory() then -- owner inventory already check in RecipeManager
-		self.containerList:add(v.inventory);
-		--        end
+	local playerInv = getPlayerInventory(playerNum)
+	local playerLoot = getPlayerLoot(playerNum)
+	if not playerInv and not playerLoot then return end
+	self.containerList = ArrayList.new()
+	playerInv = playerInv.inventoryPane.inventoryPage.backpacks
+	playerLoot = playerLoot.inventoryPane.inventoryPage.backpacks
+	for i = 1, #playerInv do
+		self.containerList:add(playerInv[i].inventory)
 	end
-	for i,v in ipairs(getPlayerLoot(playerNum).inventoryPane.inventoryPage.backpacks) do
-		self.containerList:add(v.inventory);
+	for i = 1, #playerLoot do
+		self.containerList:add(playerLoot[i].inventory)
 	end
 end
-
 
 function CHC_uses_recipelist:prerender()
 	ISScrollingListBox.prerender(self)
 	self:getContainers();
 end
-
 
 function CHC_uses_recipelist:onMouseDown_Recipes(x, y)
 	local row = self:rowAt(x,y)
