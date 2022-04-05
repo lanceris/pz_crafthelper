@@ -1,5 +1,13 @@
 # CraftHelper updates
 
+# 1.4.4 (04.04.2022)
+
+### New features
+
+- Added special search modes for search bar
+- Added documentation for uses screen
+- Added documentation for search (click on magnifier left of search bar)
+
 # 1.4.3 (03.04.2022)
 
 ### New features

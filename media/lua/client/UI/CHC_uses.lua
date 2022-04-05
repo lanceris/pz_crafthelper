@@ -5,6 +5,7 @@ require 'ISUI/ISTextEntryBox'
 require "UI/CHC_tabs"
 require "UI/CHC_uses_recipelist"
 require "UI/CHC_uses_recipepanel"
+require "ISUI/ISModalRichText"
 
 
 CHC_uses = ISPanel:derive("CHC_uses");
@@ -94,9 +95,17 @@ function CHC_uses:createFilterRow(x, y, w, h, defaultCategory)
     return filterRowContainer
 end
 
+function CHC_uses:searchBtnOnClick()
+    local x, y = getCore():getScreenWidth() / 2 - 175,getCore():getScreenHeight() / 2 - 75
+    local w,h = 600, 350
+    local modal = ISModalRichText:new(x,y,w,h,getText("UI_search_info"),false, self, function () self:removeFromUIManager() end)
+    modal:initialise()
+    modal:addToUIManager()
+end
+
 function CHC_uses:createSearchRow(x,y,w,h)
     local searchRowContainer = ISPanel:new(x, y, w, h)
-    self.searchBtn = ISButton:new(x, 0, h, h, "", nil, nil)
+    self.searchBtn = ISButton:new(x, 0, h, h, "", self, self.searchBtnOnClick)
     self.searchBtn:initialise()
     self.searchBtn.borderColor.a = 0
     self.searchBtn:setImage(self.searchIcon)
@@ -420,7 +429,8 @@ function CHC_uses:searchProcessToken(token, recipe)
     if token and isSpecialSearch then
         if char == "!" then
             -- search by recipe category
-            whatCompare = recipe.recipe:getCategory() or getText("UI_category_default")
+            local catName = getTextOrNull("IGUI_CraftCategory_"..recipe.category) or recipe.category
+            whatCompare = catName
         end
         local resultItem = CHC_main.items[recipe.recipe:getResult():getFullType()]
         if resultItem then

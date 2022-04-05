@@ -107,7 +107,7 @@ CHC_config.fn.updateSettings = function(menu)
     data.main_window_h = menu.height
     data.main_window_min_w = menu.minimumWidth
     data.main_window_min_h = menu.minimumHeight
-    data.uses_tab_sep_x = menu.usesScreen.column3
+    data.uses_tab_sep_x = menu.usesScreen.headers.nameHeader.width
     data.uses_filter_name_asc = menu.usesScreen.itemSortAsc == true
     data.uses_filter_type = menu.usesScreen.typeFilter
     CHC_config.fn.saveSettings(data)
