@@ -2,8 +2,29 @@ require 'CHC_main'
 require 'luautils'
 require 'UI/CHC_menu'
 
+CHC_config = {}
+CHC_config.fn = {}
+CHC_config.options = {}
+
+
 CHC_settings = {
-    settings = {},
+    settings = {
+        options_data={
+            special_search = {
+                name="IGUI_SpecialSearch",
+                tooltip="IGUI_SpecialSearchTooltip",
+                default=true
+            },
+            uses_list_icons = {
+                name="IGUI_UsesListIcons",
+                tooltip="IGUI_UsesListIconsTooltip",
+                default=false
+            }
+        },
+        mod_id="CraftHelperContinued",
+        mod_shortname="CHC",
+        mod_fullname="Craft Helper Continued"
+    },
     keybinds = {
         move_up = {key = Keyboard.KEY_NONE, name="chc_move_up"},
         move_left = {key = Keyboard.KEY_NONE, name="chc_move_left"},
@@ -31,16 +52,27 @@ CHC_settings = {
 if ModOptions and ModOptions.getInstance then
     local settings = ModOptions:getInstance(CHC_settings.settings)
     local category = "[chc_category_title]"
-    for key, value in pairs(CHC_settings.keybinds) do
+    for _, value in pairs(CHC_settings.keybinds) do
         ModOptions:AddKeyBinding(category, value)
     end
     ModOptions:loadFile()
+
+    local search = settings:getData("special_search")
+    CHC_config.options.special_search = search.value
+    function search:OnApplyInGame(val)
+        CHC_config.options.special_search = val
+    end
+
+    local uses_list_icons = settings:getData("uses_list_icons")
+    CHC_config.options.uses_list_icons = uses_list_icons
+    function uses_list_icons:OnApplyInGame(val)
+        CHC_config.options.uses_list_icons = val
+    end
+else
+    CHC_config.options.special_search = true
+    CHC_config.options.uses_list_icons = false
 end
 
-
-CHC_config = {}
-CHC_config.fn = {}
-CHC_config.options = {}
 
 -- region config
 local is_open = false

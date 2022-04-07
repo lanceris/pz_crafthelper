@@ -1,4 +1,7 @@
 require 'ISUI/ISPanel'
+require 'ISUI/ISButton'
+require 'ISUI/ISModalRichText'
+require 'ISUI/ISTextEntryBox'
 
 local utils = require("CHC_utils")
 
@@ -14,13 +17,32 @@ function CHC_search_bar:initialise()
     self:create()
 end
 
+
+function CHC_search_bar:searchBtnOnClick()
+    if self.searchBtn.modal:isVisible() then
+        self.searchBtn.modal:setVisible(false)
+        self.searchBtn.modal:removeFromUIManager()
+    else
+        self.searchBtn.modal:setVisible(true)
+        self.searchBtn.modal:addToUIManager()
+    end
+end
+
 function CHC_search_bar:create()
     local x,y,w,h = self.x, self.y, self.width, self.height
 
-    self.searchBtn = ISButton:new(x, 0, h, h, "", self, self.onclick)
+    self.searchBtn = ISButton:new(x, 0, h, h, "", self, self.searchBtnOnClick)
     self.searchBtn:initialise()
     self.searchBtn.borderColor.a = 0
     self.searchBtn:setImage(self.searchIcon)
+    self.searchBtn:setTooltip(getText("UI_ServerOptionDesc_Help"))
+    local mw,mh = 600, 350
+    local mx, my = getCore():getScreenWidth() / 2 - mw/2,getCore():getScreenHeight() / 2 - mh/2
+    self.searchBtn.modal = ISModalRichText:new(mx,my,mw,mh,self.searchBtnOnClickText, false, nil)
+    -- self.searchBtn.modal = ISRichTextBox:new(x,y,w,h,getText("UI_search_info"), "abc", self)
+    self.searchBtn.modal:initialise()
+    self.searchBtn.modal:setVisible(false)
+    -- self.searchBtn:addChild(self.searchBtn.modal)
 
     x = x + self.searchBtn.width
 
@@ -111,7 +133,7 @@ end
 -- end
 
 
-function CHC_search_bar:new(x,y,width,height, onclickSearchBtn, searchBarTooltip, onTextChange)
+function CHC_search_bar:new(x,y,width,height, searchBarTooltip, onTextChange, searchBtnOnClickText)
     local o = {};
     o = derivative:new(x,y,width,height)
 
@@ -122,7 +144,7 @@ function CHC_search_bar:new(x,y,width,height, onclickSearchBtn, searchBarTooltip
     o.y=y
     o.w=width
     o.h=height
-    o.onclick = onclickSearchBtn
+    o.searchBtnOnClickText = searchBtnOnClickText
     o.onTextChange = onTextChange
     o.searchBarTooltip = searchBarTooltip or string.sub(getText("IGUI_CraftUI_Name_Filter"), 1, -2)
     return o

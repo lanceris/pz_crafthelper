@@ -1,0 +1,6 @@
+IGUI_EN = {
+    IGUI_SpecialSearch = "Enable special commands"
+    IGUI_SpecialSearchTooltip = "Commands are used in searches (click on magnifier left of the search bar to learn more)"
+    IGUI_UsesListIcons = "Show image of result (Uses)"
+    IGUI_UsesListIconsTooltip = "Show image of recipe result in the list of recipes (on 'Uses' tab)"
+}
