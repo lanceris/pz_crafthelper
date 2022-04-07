@@ -27,10 +27,6 @@ CHC_uses.localData = {
 -- region create
 function CHC_uses:initialise()
     derivative.initialise(self);
-    -- self.localData.typeFilterToNumOfRecipes['all'] = self.numRecipesAll
-    -- self.localData.typeFilterToNumOfRecipes['valid'] = self.numRecipesValid
-    -- self.localData.typeFilterToNumOfRecipes['known'] = self.numRecipesKnown
-    -- self.localData.typeFilterToNumOfRecipes['invalid'] = self.numRecipesInvalid
     self:create();
 end
 
@@ -173,6 +169,7 @@ function CHC_uses:create()
     self.recipesList:setOnMouseDownFunction(self, CHC_uses.onRecipeChange);
 
     -- Add entries to recipeList
+    self:cacheFullRecipeCount(self.allRecipesForItem)
     self:updateRecipes(filterRowData.filterSelectorData.defaultCategory)
     -- endregion
 
@@ -213,6 +210,24 @@ function CHC_uses:onChangeUsesRecipeCategory(_option, sl)
     self.parent:updateRecipes(sl)
 end
 
+function CHC_uses:cacheFullRecipeCount(recipes)
+    local is_valid
+    local is_known
+    for i = 1, #recipes do
+        is_valid = RecipeManager.IsRecipeValid(recipes[i].recipe, self.player, nil, self.containerList)
+        is_known = self.player:isRecipeKnown(recipes[i].recipe)
+        self.numRecipesAll = self.numRecipesAll + 1
+        if is_known and not is_valid then
+            self.numRecipesKnown = self.numRecipesKnown + 1
+        elseif is_valid then
+            self.numRecipesValid = self.numRecipesValid + 1
+        else
+            self.numRecipesInvalid  = self.numRecipesInvalid + 1
+        end
+    end
+    
+end
+
 function CHC_uses:updateRecipes(sl)
     local categoryAll = getText("UI_tab_uses_categorySelector_All")
     local searchBar = self.searchRow.searchBar
@@ -226,24 +241,25 @@ function CHC_uses:updateRecipes(sl)
 
     -- filter recipes
     local filteredRecipes = {}
-    for _, recipe in ipairs(self.allRecipesForItem) do
-        local rc = recipe.category
+    local recipes = self.allRecipesForItem
+    for i=1, #recipes do
+        local rc = recipes[i].category
         local rc_tr = getTextOrNull("IGUI_CraftCategory_"..rc) or rc
 
         local fav_cat_state = false
         local type_filter_state = false
         local search_state = false
-        if sl == "* "..getText("UI_tab_uses_categorySelector_Favorite") and recipe.favorite then
+        if sl == "* "..getText("UI_tab_uses_categorySelector_Favorite") and recipes[i].favorite then
             fav_cat_state = true
         end
 
         if (rc_tr == sl or sl == categoryAll) then
-            type_filter_state = self:recipeTypeFilter(recipe)
+            type_filter_state = self:recipeTypeFilter(recipes[i])
         end
-        search_state = self:searchTypeFilter(recipe)
+        search_state = self:searchTypeFilter(recipes[i])
         
         if (type_filter_state or fav_cat_state) and search_state then
-            table.insert(filteredRecipes, recipe)
+            table.insert(filteredRecipes, recipes[i])
         end
     end
     self:refreshRecipeList(filteredRecipes)
@@ -254,10 +270,11 @@ function CHC_uses:refreshRecipeList(recipes)
     self.recipesList:setScrollHeight(0)
 
     local modData = getPlayer():getModData()
-    for _, recipe in ipairs(recipes) do
-        local name = recipe.recipe:getName()
-        recipe.favorite = modData[CHC_main.getFavoriteModDataString(recipe.recipe)] or false
-        self.recipesList:addItem(name, recipe);
+    
+    for i = 1, #recipes do
+        local name = recipes[i].recipe:getName()
+        recipes[i].favorite = modData[CHC_main.getFavoriteModDataString(recipes[i].recipe)] or false
+        self.recipesList:addItem(name, recipes[i])
     end
     table.sort(self.recipesList.items, self.itemSortFunc)
 end
@@ -479,9 +496,9 @@ end
 
 function CHC_uses:filterSortMenuGetText(textStr, value)
     local txt = getText(textStr)
-    -- if value then
-    --     txt = txt.." ("..tostring(value)..")"
-    -- end
+    if value then
+        txt = txt.." ("..tostring(value)..")"
+    end
     return txt
 end
 
@@ -539,11 +556,12 @@ function CHC_uses:new(args)
     o.itemSortAsc = CHC_menu.cfg.uses_filter_name_asc
     o.typeFilter = CHC_menu.cfg.uses_filter_type
     o.itemSortFunc = o.itemSortAsc == true and CHC_uses.sortByNameAsc or CHC_uses.sortByNameDesc
+    o.player = getPlayer()
 
 
-    o.numRecipesAll = nil
-    o.numRecipesValid = nil
-    o.numRecipesKnown = nil
-    o.numRecipesInvalid = nil
+    o.numRecipesAll = 0
+    o.numRecipesValid = 0
+    o.numRecipesKnown = 0
+    o.numRecipesInvalid = 0
     return o;
 end

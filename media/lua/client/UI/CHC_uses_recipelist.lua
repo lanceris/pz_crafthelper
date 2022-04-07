@@ -120,7 +120,7 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 			favoriteAlpha = item.item.favorite and a or 0.3
 		end
 	elseif item.item.favorite then
-        favoriteStar = recipeList.favoriteStar
+        favoriteStar = self.favCheckedTex
 	end
 	if favoriteStar then
         self:drawTexture(favoriteStar, favYPos, y + (item.height / 2 - favoriteStar:getHeight() / 2), favoriteAlpha,1,1,1);
