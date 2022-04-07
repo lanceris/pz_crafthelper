@@ -1,6 +1,6 @@
-require "ISUI/ISScrollingListBox";
+require "ISUI/ISScrollingListBox"
 
-CHC_uses_recipelist = ISScrollingListBox:derive("CHC_uses_recipelist");
+CHC_uses_recipelist = ISScrollingListBox:derive("CHC_uses_recipelist")
 
 function CHC_uses_recipelist:initialise()
 	ISScrollingListBox.initialise(self)
@@ -82,12 +82,19 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 	local favoriteStar = nil
 	local favoriteAlpha = a
 	local itemPadY = self.itemPadY or (item.height - self.fontHgt) / 2
+	local iconsEnabled = CHC_config.options.uses_list_icons
 
 	if y < -self:getYScroll()-1 then return y+item.height; end
 	if y > self:getHeight()-self:getYScroll()+1 then return y+item.height; end
 
+	if iconsEnabled then
+		local recipeResult = recipe:getResult()
+		local resultItem = CHC_main.items[recipeResult:getFullType()]
+		self:drawTextureScaled(resultItem:getTex(), 6,y+6, item.height-12,item.height-12, 1)
+	end
+
 	--region text
-	local clr = {txt=item.text, x=15, y=(y)+itemPadY,
+	local clr = {txt=item.text, x=iconsEnabled and item.height or 15, y=(y)+itemPadY,
 				 a=0.9, font=self.font}
 	if not self.player:isRecipeKnown(recipe) then
 		-- unknown recipe, red text
@@ -99,7 +106,7 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 		-- known but cant craft, white text
 		clr['r'], clr['g'], clr['b'] = 0.9, 0.9, 0.9
 	end
-	self:drawText(clr.txt, clr.x, clr.y, clr.r, clr.g, clr.b, clr.a, clr.font);
+	self:drawText(clr.txt, clr.x, clr.y, clr.r, clr.g, clr.b, clr.a, clr.font)
 	--endregion
 
 	--region favorite handler
@@ -137,24 +144,24 @@ end
 
 
 function CHC_uses_recipelist:new(x, y, width, height)
-	local o = {};
+	local o = {}
 
-	o = ISScrollingListBox:new(x, y, width, height);
-	setmetatable(o, self);
-	self.__index = self;
-	o.backgroundColor = {r=0, g=0, b=0, a=0};
-	o.borderColor = {r=0.4, g=0.4, b=0.4, a=0.9};
-	o.anchorTop = true;
-	o.anchorBottom = true;
+	o = ISScrollingListBox:new(x, y, width, height)
+	setmetatable(o, self)
+	self.__index = self
+	o.backgroundColor = {r=0, g=0, b=0, a=0}
+	o.borderColor = {r=0.4, g=0.4, b=0.4, a=0.9}
+	o.anchorTop = true
+	o.anchorBottom = true
 	local player = getPlayer()
 	o.player = player
 	o.character = player
 	o.playerNum = player and player:getPlayerNum() or -1
 
-	o.favoriteStar = getTexture("media/ui/FavoriteStar.png");
-    o.favCheckedTex = getTexture("media/ui/FavoriteStarChecked.png");
-    o.favNotCheckedTex = getTexture("media/ui/FavoriteStarUnchecked.png");
+	o.favoriteStar = getTexture("media/ui/FavoriteStar.png")
+    o.favCheckedTex = getTexture("media/ui/FavoriteStarChecked.png")
+    o.favNotCheckedTex = getTexture("media/ui/FavoriteStarUnchecked.png")
 	o.favPadX = 20;
     o.favWidth = o.favoriteStar and o.favoriteStar:getWidth() or 13
-	return o;
+	return o
 end

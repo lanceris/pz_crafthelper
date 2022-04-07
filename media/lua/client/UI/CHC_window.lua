@@ -23,7 +23,7 @@ end
 function CHC_window:createChildren()
     ISCollapsableWindow.createChildren(self);
     --region main container
-    self.panel = ISTabPanel:new(1, self:titleBarHeight(), self.width, self.height-50)
+    self.panel = ISTabPanel:new(1, self:titleBarHeight(), self.width, self.height-60)
     self.panel:initialise()
     self.panel:setAnchorRight(true)
     self.panel:setAnchorBottom(true)
@@ -95,7 +95,7 @@ function CHC_window:onKeyRelease(key)
     -- endregion
 
     -- region categories
-    local cs = view.categorySelector
+    local cs = view.filterRow.categorySelector
     local oldcsSel = cs.selected
     if key == CHC_settings.keybinds.move_left.key then
         cs.selected = cs.selected - 1

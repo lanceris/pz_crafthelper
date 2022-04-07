@@ -150,11 +150,7 @@ end
 CHC_main.setRecipeForItem = function(itemName, recipe)
 	-- If no recipes has already been set for this item, we initialize the array (empty) of recipes
 	local tbl = CHC_main.recipesByItem
-	if not tbl[itemName] then
-		tbl[itemName] = {}
-	end
-
-	-- If the recipe has not been already set for the item, we insert it
+	tbl[itemName] = tbl[itemName] or {}
 	table.insert(tbl[itemName], recipe);
 end
 
@@ -175,16 +171,10 @@ CHC_main.getFavoriteModDataString = function(recipe)
 end
 
 function CHC_main.reloadMod(key)
-	if key == 20 then
-		local now = getTimestampMs()
-		CHC_main.loadDatas();
-		print(string.format("LOADED ALL IN %s seconds", tostring((getTimestampMs()-now)/1000)))
-		print(string.format("Found %s recipes without source", #CHC_main.recipesWithoutSource))
-		print(string.format("Found %s missing items", #CHC_main.missingItems))
-		local temp = CHC_main.temp
-		local missingUnique = CHC_main.missingItems
-		local dupl = CHC_main.duplicateRecipeNames
-		print(fweofew:kfoekfoe())
+	if key == Keyboard.KEY_O then
+		CHC_main.loadDatas()
+		local all = CHC_main
+		error('abc')
 	end
 end
 

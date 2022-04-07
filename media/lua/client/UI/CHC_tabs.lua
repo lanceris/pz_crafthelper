@@ -14,13 +14,13 @@ function CHC_tabs:addTabs()
 
 	local sep_x=CHC_menu.cfg.uses_tab_sep_x
 
-    local fontHgtSmall = getTextManager():getFontHeight(UIFont.Medium);
+    local fontHgtSmall = getTextManager():getFontHeight(UIFont.Medium)
     local headerHgt = fontHgtSmall + 1
     -- region list
 	local nha = {
 		x=0,
 		y=1,
-		w=sep_x, -- @@@
+		w=sep_x,
 		h=headerHgt,
 		title=self.tabName1,
 		clicktgt=self,
@@ -72,18 +72,6 @@ function CHC_tabs:onResizeColumn(button)
 	end
 	self.proportion = self.nameHeader.width/self.width
 end
-
--- function CHC_tabs.onResizeColumn(parent, button)
--- 	ISInventoryPane.onResizeColumn(parent, button)
--- 	if parent.ui_name and "CHC_uses" then
--- 		parent.recipesList:setWidth(parent.nameHeader.width)
--- 		parent.filterRowContainer:setWidth(parent.nameHeader.width)
--- 		parent.categorySelector:setWidth(parent.nameHeader.width-parent.filterRowContainer.deltaW)
--- 		parent.recipePanel:setWidth(parent.typeHeader.width)
--- 		parent.recipePanel:setX(parent.typeHeader.x)
--- 	end
-	
--- end
 
 
 function CHC_tabs:prerender()

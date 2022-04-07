@@ -122,14 +122,129 @@ function CHC_uses_recipepanel:updateTooltip()
 end
 -- endregion
 
+function CHC_uses_recipepanel:drawCraftButtons(x,y)
+    if not self.newItem then return 0 end
+    if not self.newItem.available then
+        self.craftOneButton:setVisible(false)
+        self.craftAllButton:setVisible(false)
+        return 0
+    end
+    self.craftOneButton:setX(x)
+    self.craftOneButton:setY(y)
+    self.craftOneButton:setVisible(true)
+    self.craftAllButton:setX(self.craftOneButton:getX()+5+self.craftOneButton:getWidth())
+    self.craftAllButton:setY(y)
+    self.craftAllButton:setVisible(true)
+    local title = getText("IGUI_CraftUI_ButtonCraftAll")
+    local count = RecipeManager.getNumberOfTimesRecipeCanBeDone(self.newItem.recipe, self.player, self.containerList, nil)
+    if count > 1 then
+        title = getText("IGUI_CraftUI_ButtonCraftAllCount", count)
+    elseif count == 1 then
+        self.craftAllButton:setVisible(false)
+    end
+    if title ~= self.craftAllButton:getTitle() then
+        self.craftAllButton:setTitle(title)
+        self.craftAllButton:setWidthToTitle()
+    end
+    y = y + self.craftOneButton.height + 3
+
+
+    -- self.craftOneButton.tooltip = nil
+    -- self.craftAllButton.tooltip = nil
+    if self.player:isDriving() then
+        self.craftOneButton.enable=false
+        self.craftOneButton.tooltip = getText("Tooltip_CantCraftDriving")
+        self.craftAllButton.enable=false
+        self.craftAllButton.tooltip = getText("Tooltip_CantCraftDriving")
+    end
+    return y-(self.craftOneButton.height + 3)
+end
+
+function CHC_uses_recipepanel:drawRequiredSkills(x,y)
+    local sy = y
+    local requiredSkillCount = self.newItem.recipe:getRequiredSkillCount()
+    if requiredSkillCount <= 0 then return 0 end
+    -- if not self:shouldDrawSkillText(requiredSkillCount, self.newItem) then return end
+    self:drawText(getText("IGUI_CraftUI_RequiredSkills"), x, y, 1,1,1,1, UIFont.Medium)
+    y = y + CHC_uses_recipepanel.mediumFontHeight
+    for i=1,requiredSkillCount do
+        local skill = self.newItem.recipe:getRequiredSkill(i-1);
+        local perk = PerkFactory.getPerk(skill:getPerk());
+        local playerLevel = self.player and self.player:getPerkLevel(skill:getPerk()) or 0
+        local perkName = perk and perk:getName() or skill:getPerk():name()
+        
+        local text = " - " .. perkName .. ": " .. tostring(playerLevel) .. " / " .. tostring(skill:getLevel());
+        local r,g,b = 1,1,1
+
+        if playerLevel < skill:getLevel() then
+            g,b = 0,0
+        end
+        self:drawText(text, x + 15, y, r,g,b,1, UIFont.Small)
+        y = y + CHC_uses_recipepanel.smallFontHeight
+    end
+    y = y + 4
+    return y-sy
+end
+
+function CHC_uses_recipepanel:drawRequiredBooks(x,y)
+    if not self.manualsEntries then return 0 end
+    local isKnown = self.player:isRecipeKnown(self.newItem.recipe)
+    -- if self.manualsEntries and not isKnown then
+    local sy = y
+    self:drawText(getText("UI_recipe_panel_required_book")..":", x, y, 1,1,1,1, UIFont.Medium)
+    y = y + CHC_uses_recipepanel.mediumFontHeight
+    local r,g,b = 1,1,1
+    for i=1, #self.manualsEntries do
+        if not isKnown then
+            g,b = 0,0
+        end
+        self:drawText(" - " .. self.manualsEntries[i], x+15, y, r,g,b,1, UIFont.Small);
+        y = y + CHC_uses_recipepanel.smallFontHeight
+    end
+    y = y + 4
+    return y-sy
+end
+
+function CHC_uses_recipepanel:drawNearItem(x, y)
+    local hydroFurniture = self.newItem.nearFurniture
+    local nearItem = self.newItem.recipe:getNearItem()
+    if not nearItem and not hydroFurniture then return 0 end
+    local sy = y
+
+    self:drawText(getText("UI_tab_uses_details_near_item")..": ", x, y, 1,1,1,1, UIFont.Medium);
+    y = y + CHC_uses_recipepanel.mediumFontHeight;
+
+    if hydroFurniture then
+        local hydroX = x+15
+        local r,g,b = 1,1,1
+        local a = 1
+        if not hydroFurniture.luaTest(self.player) then
+            g, b = 0,0
+            a = 0.75
+        end
+        self:drawText(" - ", hydroX, y, r,g,b,a, UIFont.Small)
+        if hydroFurniture.texture then
+            hydroX = hydroX + 15
+            self:drawTextureScaledAspect(hydroFurniture.texture, hydroX, y, 20, 20, a,1,1,1)
+            hydroX = hydroX + 25
+        end
+        self:drawText(hydroFurniture.name, hydroX, y, r,g,b,a, UIFont.Small)
+        y = y + 25
+    end
+
+    if nearItem then
+        self:drawText(" - "..self.newItem.recipe:getNearItem(), x+15, y, 1,1,1,1, UIFont.Small);
+        y = y + CHC_uses_recipepanel.smallFontHeight;
+    end
+    return y-sy
+end
+
 
 -- region render
 function CHC_uses_recipepanel:render()
     ISPanel.render(self);
 
     if self.recipe == nil then return end;
-    -- self:updateTooltip()
-    -- draw recipes infos
     local x = 10;
     local y = 10;
     local selectedItem = self.newItem;
@@ -148,7 +263,7 @@ function CHC_uses_recipepanel:render()
 
     -- region main recipe info + output
     local catName = getTextOrNull("IGUI_CraftCategory_"..selectedItem.category) or selectedItem.category
-    self:drawText(getText("UI_category")..": "..catName, x, y, 1,1,1,1, UIFont.Medium);
+    self:drawText(getText("IGUI_invpanel_Category")..": "..catName, x, y, 1,1,1,1, UIFont.Medium);
     y = y + CHC_uses_recipepanel.mediumFontHeight + 3;
 
     self:drawRectBorder(x, y, 32 + 10, 32 + 10, 1.0, 1.0, 1.0, 1.0);
@@ -168,140 +283,76 @@ function CHC_uses_recipepanel:render()
     self:drawText(selectedItem.itemName, lx, ly, 1,1,1,1, UIFont.Small)
     ly = ly + CHC_uses_recipepanel.smallFontHeight
     if selectedItem.itemDisplayCategory then
-        self:drawText(getText("UI_category")..": "..selectedItem.itemDisplayCategory, lx, ly, 0.8,0.8,0.8,0.8, UIFont.Small)
+        self:drawText(getText("IGUI_invpanel_Category")..": "..selectedItem.itemDisplayCategory, lx, ly, 0.8,0.8,0.8,0.8, UIFont.Small)
         ly = ly + CHC_uses_recipepanel.smallFontHeight
     end
-    local clr = {r=0.392,g=0.584,b=0.929} -- CornFlowerBlue
-    self:drawText("Mod: "..selectedItem.module, lx, ly, clr.r,clr.g,clr.b, 1, UIFont.Small)
+    if not selectedItem.isVanilla then
+        local clr = {r=0.392,g=0.584,b=0.929} -- CornFlowerBlue
+        self:drawText("Mod: "..selectedItem.module, lx, ly, clr.r,clr.g,clr.b, 1, UIFont.Small)
+    end
     y = y + ly - 20
     -- endregion
 
     -- region required items
     self:drawText(getText("IGUI_CraftUI_RequiredItems"), x, y, 1,1,1,1, UIFont.Small);
     y = y + CHC_uses_recipepanel.smallFontHeight + 5;
+    
 
-    local manualsSize = (self.manualsSize + 1) * CHC_uses_recipepanel.smallFontHeight + 4
+    local bh = self:getBottomHeight() + 8
     self.ingredientPanel:setX(x + 10)
     self.ingredientPanel:setY(y)
     self.ingredientPanel:setWidth(self.width - 30)
-    self.ingredientPanel:setHeight(self.height - 150 - manualsSize - y)
+    self.ingredientPanel:setHeight(self.height - y - bh)
     y = self.ingredientPanel:getBottom()
-    y = y + 4;
-    -- endregion
-    
-    -- region craft button(s)
-    if selectedItem.available then
-        self.craftOneButton:setX(x)
-        self.craftOneButton:setY(y)
-        self.craftOneButton:setVisible(true)
-        self.craftAllButton:setX(self.craftOneButton:getX()+5+self.craftOneButton:getWidth())
-        self.craftAllButton:setY(y)
-        self.craftAllButton:setVisible(true)
-        local title = getText("IGUI_CraftUI_ButtonCraftAll")
-        local count = RecipeManager.getNumberOfTimesRecipeCanBeDone(selectedItem.recipe, self.player, self.containerList, nil)
-        if count > 1 then
-            title = getText("IGUI_CraftUI_ButtonCraftAllCount", count)
-        elseif count == 1 then
-            self.craftAllButton:setVisible(false)
-        end
-        if title ~= self.craftAllButton:getTitle() then
-            self.craftAllButton:setTitle(title)
-            self.craftAllButton:setWidthToTitle()
-        end
-        y = y + self.craftOneButton.height + 3
-    else
-        self.craftOneButton:setVisible(false)
-        self.craftAllButton:setVisible(false)
-    end
-
-
-    self.craftOneButton.tooltip = nil
-    self.craftAllButton.tooltip = nil
-    if self.player:isDriving() then
-        self.craftOneButton.enable=false
-        self.craftOneButton.tooltip = getText("Tooltip_CantCraftDriving")
-        self.craftAllButton.enable=false
-        self.craftAllButton.tooltip = getText("Tooltip_CantCraftDriving")
-    end
+    y = y + 4
     -- endregion
 
-    -- region required skills
-    local requiredSkillCount = selectedItem.recipe:getRequiredSkillCount()
-    if requiredSkillCount > 0 and self:shouldDrawSkillText(requiredSkillCount, selectedItem) then
-        self:drawText(getText("IGUI_CraftUI_RequiredSkills"), x, y, 1,1,1,1, UIFont.Medium);
-        y = y + CHC_uses_recipepanel.mediumFontHeight;
-        for i=1,requiredSkillCount do
-            local skill = selectedItem.recipe:getRequiredSkill(i-1);
-            local perk = PerkFactory.getPerk(skill:getPerk());
-            local playerLevel = self.player and self.player:getPerkLevel(skill:getPerk()) or 0
-            local perkName = perk and perk:getName() or skill:getPerk():name()
-            
-            local text = " - " .. perkName .. ": " .. tostring(playerLevel) .. " / " .. tostring(skill:getLevel());
-            local r,g,b = 1,1,1
+    y = y + self:drawCraftButtons(x,y)
+    y = y + self:drawRequiredSkills(x,y)
+    y = y + self:drawRequiredBooks(x,y)
+    y = y + self:drawNearItem(x,y)
 
-            if self.player and (playerLevel < skill:getLevel()) then
-                g = 0;
-                b = 0;
-                self:drawText(text, x + 15, y, r,g,b,1, UIFont.Small);
-                y = y + CHC_uses_recipepanel.smallFontHeight;
-            end
-            
-        end
-        y = y + 4;
-    end
-    -- endregion
-
-    -- region required books
-    local isKnown = self.player:isRecipeKnown(selectedItem.recipe)
-    if self.manualsEntries and not isKnown then
-        self:drawText(getText("UI_recipe_panel_required_book")..":", x, y, 1,1,1,1, UIFont.Medium);
-        y = y + CHC_uses_recipepanel.mediumFontHeight;
-        local r,g,b = 1,1,1
-        for _,manual in ipairs(self.manualsEntries) do
-            if not isKnown then
-                g,b = 0,0
-                self:drawText(" - " .. manual, x+15, y, r,g,b,1, UIFont.Small);
-                y = y + CHC_uses_recipepanel.smallFontHeight;
-            end
-            
-        end
-        y = y + 4;
-    end
-    -- endregion
-    
-    -- region nearItem
-    local hydroFurniture = self.newItem.nearFurniture
-    local nearItem = selectedItem.recipe:getNearItem()
-    if nearItem or hydroFurniture then
-        
-        self:drawText(getText("UI_tab_uses_details_near_item")..": ", x, y, 1,1,1,1, UIFont.Medium);
-        y = y + CHC_uses_recipepanel.mediumFontHeight;
-
-        if hydroFurniture then
-            local r,g,b = 1,1,1
-            local a = 1
-            if not hydroFurniture.luaTest(self.player) then
-                r, g, b = 1,0,0
-                a = 0.75
-            end
-            self:drawText(" - ", x+15, y, r,g,b,a, UIFont.Small)
-            --ISUIElement:drawText(str, x, y, r, g, b, a, font)
-            if hydroFurniture.texture then
-                self:drawTextureScaledAspect(hydroFurniture.texture, x+15+15, y, 20, 20, a,1,1,1)
-            end
-            self:drawText(hydroFurniture.name, x+15+15+20+5, y, r,g,b,a, UIFont.Small)
-            y = y + 25
-        end
-
-        if nearItem then
-            self:drawText(" - "..selectedItem.recipe:getNearItem(), x+15, y, 1,1,1,1, UIFont.Small);
-            y = y + CHC_uses_recipepanel.smallFontHeight;
-        end
-    end
-    -- endregion
-
-    self:drawText(getText("IGUI_CraftUI_RequiredTime", selectedItem.recipe:getTimeToMake()), x, y, 1,1,1,1, UIFont.Medium);
+    local reqTime = getText("IGUI_CraftUI_RequiredTime", self.newItem.recipe:getTimeToMake())
+    self:drawText(reqTime, x, y, 1,1,1,1, UIFont.Medium)
 end
+
+function CHC_uses_recipepanel:getBottomHeight()
+    local bh = 0
+
+    -- craft buttons
+    if self.newItem.available then
+        bh = bh + self.craftOneButton.height + 3
+    end
+
+    --skills
+    local requiredSkillCount = self.newItem.recipe:getRequiredSkillCount()
+    if requiredSkillCount > 0 then
+        bh = bh + CHC_uses_recipepanel.mediumFontHeight
+        bh = bh + (requiredSkillCount) * CHC_uses_recipepanel.smallFontHeight + 4
+    end
+
+    -- books
+    if self.manualsSize > 0 then
+        bh = bh + (self.manualsSize + 1) * CHC_uses_recipepanel.smallFontHeight + 4
+    end
+
+    -- near item
+    local hydroFurniture = self.newItem.nearFurniture
+    local nearItem = self.newItem.recipe:getNearItem()
+    if hydroFurniture or nearItem then
+        bh = bh + CHC_uses_recipepanel.mediumFontHeight
+        if hydroFurniture then
+            bh = bh + 25
+        end
+        if nearItem then
+            bh = bh + CHC_uses_recipepanel.smallFontHeight
+        end
+    end
+
+    bh = bh + CHC_uses_recipepanel.mediumFontHeight
+    return bh
+end
+
 
 -- endregion
 
@@ -425,6 +476,7 @@ function CHC_uses_recipepanel:setRecipe(recipe)
     local resultItem = CHC_main.items[recipeResult:getFullType()]
     if resultItem then
         newItem.module = resultItem:getModName()
+        newItem.isVanilla = resultItem:isVanilla()
         -- newItem.modname = resultItem:getModID()
         newItem.texture = resultItem:getTex();
         newItem.itemName = resultItem:getDisplayName();
@@ -686,7 +738,6 @@ function CHC_uses_recipepanel:drawIngredient(y, item, alt)
 
     return y + self.itemheight;
 end
-
 
 
 function CHC_uses_recipepanel:new(x, y, width, height)
