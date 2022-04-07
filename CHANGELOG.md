@@ -1,5 +1,25 @@
 # CraftHelper updates
 
+# 1.4.5 (07.04.2022)
+
+### New features
+
+- Added icons to recipes in recipe list
+- Added option to control special search (by default ON, need Mod Options to change)
+- Added option to control rendering of icons in recipe list (by default OFF, need Mod Options to change)
+- Added number of recipes of each type to type filter menu
+
+### Improvements
+
+- Refactored rendering of recipe panel (increased free space for ingredients)
+- Refactored filter row (Order, type buttons and category selector) into reusable component
+- Optimized recipe panel render a bit
+
+### Bugfixes
+
+- Fixed duplication of search button help window
+- Favorite icon now always shows if recipe is favorited
+
 # 1.4.4 (05.04.2022)
 
 ### New features
