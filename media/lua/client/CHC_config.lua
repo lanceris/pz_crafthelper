@@ -19,6 +19,11 @@ CHC_settings = {
                 name="IGUI_UsesListIcons",
                 tooltip="IGUI_UsesListIconsTooltip",
                 default=false
+            },
+            uses_show_hidden_recipes = {
+                name="IGUI_UsesShowHiddenRecipes",
+                tooltip="IGUI_UsesShowHiddenRecipesTooltip",
+                default=true
             }
         },
         mod_id="CraftHelperContinued",
@@ -68,9 +73,17 @@ if ModOptions and ModOptions.getInstance then
     function uses_list_icons:OnApplyInGame(val)
         CHC_config.options.uses_list_icons = val
     end
+
+    local uses_show_hidden_recipes = settings:getData("uses_show_hidden_recipes")
+    CHC_config.options.uses_show_hidden_recipes = uses_show_hidden_recipes
+    function uses_show_hidden_recipes:OnApplyInGame(val)
+        CHC_config.options.uses_show_hidden_recipes = val
+    end
+
 else
     CHC_config.options.special_search = true
     CHC_config.options.uses_list_icons = false
+    CHC_config.options.uses_show_hidden_recipes = true
 end
 
 

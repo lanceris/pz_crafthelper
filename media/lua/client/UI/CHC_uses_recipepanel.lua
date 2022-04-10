@@ -73,16 +73,31 @@ function CHC_uses_recipepanel:render()
 
     -- region check if available
     local now = getTimestampMs()
-    if not self.refreshTypesAvailableMS or (self.refreshTypesAvailableMS + 500 < now) then
+    
+    if not self.refreshTypesAvailableMS then
         self.refreshTypesAvailableMS = now
-        -- check availability once every 0.5 seconds to reduce render lag
-        local typesAvailable = self:getAvailableItemsType();
-        -- self.needRefreshIngredientPanel = self.needRefreshIngredientPanel or utils.areTablesDifferent(selectedItem.typesAvailable, typesAvailable);
+    end
+
+    if now > self.refreshTypesAvailableMS + 500 and self.needRefreshIngredientPanel == false then
+        self.needRefreshIngredientPanel = true
+    end
+
+    if self.needRefreshIngredientPanel then
+        local typesAvailable = self:getAvailableItemsType()
+        self.needRefreshRecipeCounts = utils.areTablesDifferent(selectedItem.typesAvailable, typesAvailable)
         selectedItem.typesAvailable = typesAvailable
         CHC_uses_recipelist.getContainers(self)
         selectedItem.available = RecipeManager.IsRecipeValid(selectedItem.recipe, self.player, nil, self.containerList)
         selectedItem.howManyCanCraft = RecipeManager.getNumberOfTimesRecipeCanBeDone(selectedItem.recipe, self.player, self.containerList, nil)
+        self.refreshTypesAvailableMS = now
+        self.needRefreshIngredientPanel = false
     end
+
+    if self.needRefreshRecipeCounts then
+        self.parent:cacheFullRecipeCount()
+        self.needRefreshRecipeCounts = false
+    end
+
     -- endregion
 
     -- region main recipe info + output
@@ -707,7 +722,8 @@ function CHC_uses_recipepanel:new(x, y, width, height)
     o.player = player
     o.character = player
     o.playerNum = player and player:getPlayerNum() or -1
-    o.needRefreshIngredientPanel = true;
+    o.needRefreshIngredientPanel = true
+    o.needRefreshRecipeCounts = true
     o.recipe = nil;
     o.manualsSize = 0
     o.manualsEntries = nil

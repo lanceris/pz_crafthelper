@@ -35,7 +35,7 @@ CHC_main.processOneItem = function (item)
 	local invItem = instanceItem(fullType)
 	if not CHC_main.items[fullType] then
 		CHC_main.items[invItem:getFullType()] = invItem
-		CHC_main.items[fullType] = invItem
+		-- CHC_main.items[fullType] = invItem
 	else
 		error(string.format('Duplicate invItem fullType! (%s)', tostring(invItem.getFullType())))
 	end
