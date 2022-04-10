@@ -30,14 +30,6 @@ function CHC_uses:initialise()
     self:create();
 end
 
-function CHC_uses:searchBtnOnClick()
-    local w,h = 600, 350
-    local x, y = getCore():getScreenWidth() / 2 - w/2,getCore():getScreenHeight() / 2 - h/2
-    local modal = ISModalRichText:new(x,y,w,h,getText("UI_search_info"),false, self)
-    modal:initialise()
-    modal:addToUIManager()
-end
-
 
 function CHC_uses:categorySelectorFillOptions()
 
@@ -249,7 +241,9 @@ function CHC_uses:updateRecipes(sl)
         local fav_cat_state = false
         local type_filter_state = false
         local search_state = false
-        if sl == "* "..getText("UI_tab_uses_categorySelector_Favorite") and recipes[i].favorite then
+        local condFav1 = sl == "* "..getText("IGUI_CraftCategory_Favorite")
+        local condFav2 = recipes[i].favorite
+        if condFav1 and condFav2 then
             fav_cat_state = true
         end
 
@@ -257,7 +251,7 @@ function CHC_uses:updateRecipes(sl)
             type_filter_state = self:recipeTypeFilter(recipes[i])
         end
         search_state = self:searchTypeFilter(recipes[i])
-        
+
         if (type_filter_state or fav_cat_state) and search_state then
             table.insert(filteredRecipes, recipes[i])
         end

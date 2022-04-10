@@ -77,7 +77,6 @@ end
 function CHC_uses_recipelist:doDrawItem(y, item, alt)
 
 	local recipe = item.item.recipe
-	local recipeList = self.parent
 	local a = 0.9
 	local favoriteStar = nil
 	local favoriteAlpha = a
@@ -87,11 +86,18 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 	if y < -self:getYScroll()-1 then return y+item.height; end
 	if y > self:getHeight()-self:getYScroll()+1 then return y+item.height; end
 
+	-- region icons
 	if iconsEnabled then
 		local recipeResult = recipe:getResult()
 		local resultItem = CHC_main.items[recipeResult:getFullType()]
-		self:drawTextureScaled(resultItem:getTex(), 6,y+6, item.height-12,item.height-12, 1)
+		if resultItem then
+			local tex = resultItem:getTex()
+			if tex then
+				self:drawTextureScaled(tex, 6,y+6, item.height-12,item.height-12, 1)
+			end
+		end
 	end
+	--endregion
 
 	--region text
 	local clr = {txt=item.text, x=iconsEnabled and item.height or 15, y=(y)+itemPadY,
