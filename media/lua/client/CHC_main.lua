@@ -4,11 +4,13 @@ CHC_main = {}
 CHC_main.author = "lanceris"
 CHC_main.previousAuthors = {"Peanut", "ddraigcymraeg", "b1n0m"}
 CHC_main.modName = "CraftHelperContinued"
-CHC_main.version = "1.5"
+CHC_main.version = "1.5.1"
 CHC_main.recipesByItem = {}
+CHC_main.recipesForItem = {}
 CHC_main.itemsManuals = {}
 CHC_main.items = {}
 CHC_main.isDebug = false or getDebug()
+CHC_main.recipesWithoutItem = {}
 
 local showTime = function (start, st)
 	print(string.format("Loaded %s in %s seconds", st, tostring((getTimestampMs()-start)/1000)))
@@ -92,7 +94,14 @@ CHC_main.loadAllRecipes = function()
 		newItem.recipe = recipe
 		newItem.module = recipe:getModule()
 		newItem.favorite = modData[CHC_main.getFavoriteModDataString(recipe)] or false
-		-- newItem.result = instanceItem(recipe:getResult():getFullType())
+		
+		local resultItem = recipe:getResult()
+		local itemres = CHC_main.handleItems(resultItem:getFullType(), recipe)
+		if itemres then
+			CHC_main.setRecipeForItem(itemres:getName(), newItem)
+		else
+			table.insert(CHC_main.recipesWithoutItem, resultItem:getFullType())
+		end
 		local rSources = recipe:getSource()
 		
 		-- Go through items needed by the recipe
@@ -105,7 +114,7 @@ CHC_main.loadAllRecipes = function()
 				local item = CHC_main.handleItems(itemString, recipe)
 
 				if item then
-					CHC_main.setRecipeForItem(item:getName(), newItem)
+					CHC_main.setRecipeByItem(item:getName(), newItem)
 				end
 			end
 		end
@@ -116,6 +125,12 @@ CHC_main.loadAllRecipes = function()
 end
 
 CHC_main.setRecipeForItem = function(itemName, recipe)
+	local tbl = CHC_main.recipesForItem
+	tbl[itemName] = tbl[itemName] or {}
+	table.insert(tbl[itemName], recipe)
+end
+
+CHC_main.setRecipeByItem = function(itemName, recipe)
 	-- If no recipes has already been set for this item, we initialize the array (empty) of recipes
 	local tbl = CHC_main.recipesByItem
 	tbl[itemName] = tbl[itemName] or {}
@@ -142,7 +157,7 @@ function CHC_main.reloadMod(key)
 	if key == Keyboard.KEY_O then
 		CHC_main.loadDatas()
 		local all = CHC_main
-		error('abc')
+		error('debug')
 	end
 end
 

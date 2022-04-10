@@ -40,10 +40,7 @@ end
 
 
 function CHC_uses_recipelist:getFavoriteX()
-    -- scrollbar width=17 but only 13 pixels wide visually
-    -- local scrollBarWid = self.parent:isVScrollBarVisible() and 13 or 0
 	return self.width - 40
-    -- return self.parent:getWidth() - scrollBarWid - self.favPadX - self.favWidth - self.favPadX
 end
 
 function CHC_uses_recipelist:isMouseOverFavorite(x)

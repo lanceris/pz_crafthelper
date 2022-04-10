@@ -4,5 +4,5 @@ IGUI_RU = {
     IGUI_UsesListIcons = "Показывать изображение результата (Применение)"
     IGUI_UsesListIconsTooltip = "Показывать изображение результата рецепта в списке рецептов (на вкладке 'Применение')"
     IGUI_UsesShowHiddenRecipes = "Показывать скрытые рецепты"
-    IGUI_UsesShowHiddenRecipesTooltip = 'Свойство "IsHidden: true" в определении рецепта, не отображается в обычном меню крафта'
+    IGUI_UsesShowHiddenRecipesTooltip = "Свойство 'IsHidden: true' в определении рецепта, не отображается в обычном меню крафта"
 }
