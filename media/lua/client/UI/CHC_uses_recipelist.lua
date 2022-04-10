@@ -1,6 +1,6 @@
-require "ISUI/ISScrollingListBox";
+require "ISUI/ISScrollingListBox"
 
-CHC_uses_recipelist = ISScrollingListBox:derive("CHC_uses_recipelist");
+CHC_uses_recipelist = ISScrollingListBox:derive("CHC_uses_recipelist")
 
 function CHC_uses_recipelist:initialise()
 	ISScrollingListBox.initialise(self)
@@ -11,29 +11,30 @@ function CHC_uses_recipelist:getContainers()
 	if not self.player then return end
 	local playerNum = self.player and self.player:getPlayerNum() or -1
 	-- get all the surrounding inventory of the player, gonna check for the item in them too
-	self.containerList = ArrayList.new();
-	for i,v in ipairs(getPlayerInventory(playerNum).inventoryPane.inventoryPage.backpacks) do
-		--        if v.inventory ~= self.character:getInventory() then -- owner inventory already check in RecipeManager
-		self.containerList:add(v.inventory);
-		--        end
+	local playerInv = getPlayerInventory(playerNum)
+	local playerLoot = getPlayerLoot(playerNum)
+	if not playerInv and not playerLoot then return end
+	self.containerList = ArrayList.new()
+	playerInv = playerInv.inventoryPane.inventoryPage.backpacks
+	playerLoot = playerLoot.inventoryPane.inventoryPage.backpacks
+	for i = 1, #playerInv do
+		self.containerList:add(playerInv[i].inventory)
 	end
-	for i,v in ipairs(getPlayerLoot(playerNum).inventoryPane.inventoryPage.backpacks) do
-		self.containerList:add(v.inventory);
+	for i = 1, #playerLoot do
+		self.containerList:add(playerLoot[i].inventory)
 	end
 end
-
 
 function CHC_uses_recipelist:prerender()
 	ISScrollingListBox.prerender(self)
 	self:getContainers();
 end
 
-
 function CHC_uses_recipelist:onMouseDown_Recipes(x, y)
 	local row = self:rowAt(x,y)
     if row == -1 then return end
     if self:isMouseOverFavorite(x) then
-        self:addToFavorite()
+        self:addToFavorite(row)
     end
 end
 
@@ -50,8 +51,7 @@ function CHC_uses_recipelist:isMouseOverFavorite(x)
 end
 
 
-function CHC_uses_recipelist:addToFavorite()
-    local selectedIndex = self:rowAt(self:getMouseX(), self:getMouseY());
+function CHC_uses_recipelist:addToFavorite(selectedIndex)
 
     local selectedItem = self.items[selectedIndex]
 	local modData = self.player:getModData();
@@ -77,17 +77,30 @@ end
 function CHC_uses_recipelist:doDrawItem(y, item, alt)
 
 	local recipe = item.item.recipe
-	local recipeList = self.parent
 	local a = 0.9
 	local favoriteStar = nil
 	local favoriteAlpha = a
 	local itemPadY = self.itemPadY or (item.height - self.fontHgt) / 2
+	local iconsEnabled = CHC_config.options.uses_list_icons
 
 	if y < -self:getYScroll()-1 then return y+item.height; end
 	if y > self:getHeight()-self:getYScroll()+1 then return y+item.height; end
 
+	-- region icons
+	if iconsEnabled then
+		local recipeResult = recipe:getResult()
+		local resultItem = CHC_main.items[recipeResult:getFullType()]
+		if resultItem then
+			local tex = resultItem:getTex()
+			if tex then
+				self:drawTextureScaled(tex, 6,y+6, item.height-12,item.height-12, 1)
+			end
+		end
+	end
+	--endregion
+
 	--region text
-	local clr = {txt=item.text, x=15, y=(y)+itemPadY,
+	local clr = {txt=item.text, x=iconsEnabled and item.height or 15, y=(y)+itemPadY,
 				 a=0.9, font=self.font}
 	if not self.player:isRecipeKnown(recipe) then
 		-- unknown recipe, red text
@@ -99,7 +112,7 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 		-- known but cant craft, white text
 		clr['r'], clr['g'], clr['b'] = 0.9, 0.9, 0.9
 	end
-	self:drawText(clr.txt, clr.x, clr.y, clr.r, clr.g, clr.b, clr.a, clr.font);
+	self:drawText(clr.txt, clr.x, clr.y, clr.r, clr.g, clr.b, clr.a, clr.font)
 	--endregion
 
 	--region favorite handler
@@ -113,7 +126,7 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 			favoriteAlpha = item.item.favorite and a or 0.3
 		end
 	elseif item.item.favorite then
-        favoriteStar = recipeList.favoriteStar
+        favoriteStar = self.favCheckedTex
 	end
 	if favoriteStar then
         self:drawTexture(favoriteStar, favYPos, y + (item.height / 2 - favoriteStar:getHeight() / 2), favoriteAlpha,1,1,1);
@@ -137,21 +150,24 @@ end
 
 
 function CHC_uses_recipelist:new(x, y, width, height)
-	local o = {};
+	local o = {}
 
-	o = ISScrollingListBox:new(x, y, width, height);
-	setmetatable(o, self);
-	self.__index = self;
-	o.backgroundColor = {r=0, g=0, b=0, a=0};
-	o.borderColor = {r=0.4, g=0.4, b=0.4, a=0.9};
-	o.anchorTop = true;
-	o.anchorBottom = true;
-	o.player = getPlayer();
+	o = ISScrollingListBox:new(x, y, width, height)
+	setmetatable(o, self)
+	self.__index = self
+	o.backgroundColor = {r=0, g=0, b=0, a=0}
+	o.borderColor = {r=0.4, g=0.4, b=0.4, a=0.9}
+	o.anchorTop = true
+	o.anchorBottom = true
+	local player = getPlayer()
+	o.player = player
+	o.character = player
+	o.playerNum = player and player:getPlayerNum() or -1
 
-	o.favoriteStar = getTexture("media/ui/FavoriteStar.png");
-    o.favCheckedTex = getTexture("media/ui/FavoriteStarChecked.png");
-    o.favNotCheckedTex = getTexture("media/ui/FavoriteStarUnchecked.png");
+	o.favoriteStar = getTexture("media/ui/FavoriteStar.png")
+    o.favCheckedTex = getTexture("media/ui/FavoriteStarChecked.png")
+    o.favNotCheckedTex = getTexture("media/ui/FavoriteStarUnchecked.png")
 	o.favPadX = 20;
     o.favWidth = o.favoriteStar and o.favoriteStar:getWidth() or 13
-	return o;
+	return o
 end

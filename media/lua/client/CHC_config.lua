@@ -1,11 +1,90 @@
-require 'CHC_main'
 require 'luautils'
 require 'UI/CHC_menu'
-
 
 CHC_config = {}
 CHC_config.fn = {}
 CHC_config.options = {}
+
+
+CHC_settings = {
+    settings = {
+        options_data={
+            special_search = {
+                name="IGUI_SpecialSearch",
+                tooltip="IGUI_SpecialSearchTooltip",
+                default=true
+            },
+            uses_list_icons = {
+                name="IGUI_UsesListIcons",
+                tooltip="IGUI_UsesListIconsTooltip",
+                default=false
+            },
+            uses_show_hidden_recipes = {
+                name="IGUI_UsesShowHiddenRecipes",
+                tooltip="IGUI_UsesShowHiddenRecipesTooltip",
+                default=true
+            }
+        },
+        mod_id="CraftHelperContinued",
+        mod_shortname="CHC",
+        mod_fullname="Craft Helper Continued"
+    },
+    keybinds = {
+        move_up = {key = Keyboard.KEY_NONE, name="chc_move_up"},
+        move_left = {key = Keyboard.KEY_NONE, name="chc_move_left"},
+        move_down = {key = Keyboard.KEY_NONE, name="chc_move_down"},
+        move_right = {key = Keyboard.KEY_NONE, name="chc_move_right"},
+        craft_one = {key = Keyboard.KEY_NONE, name="chc_craft_one"},
+        favorite_recipe = {key = Keyboard.KEY_NONE, name="chc_favorite_recipe"},
+        craft_all = {key = Keyboard.KEY_NONE, name="chc_craft_all"},
+        close_window = {key = Keyboard.KEY_ESCAPE, name="chc_close_window"}
+    },
+    integrations={
+        Hydrocraft = {
+            url="https://steamcommunity.com/sharedfiles/filedetails/?id=2778991696",
+            modId="Hydrocraft",
+            luaOnTestReference = {
+                ['HCNearCarpybench'] = 'Hydrocraft.HCCarpenterbench',
+                ['HCNearHerbatable'] = 'Hydrocraft.HCHerbtable',
+                ['HCNearTarkiln'] = 'Hydrocraft.HCTarkiln',
+                ['HCNearKiln'] = 'Hydrocraft.HCKiln',
+                ['HCNearGrindstone'] = 'Hydrocraft.HCGrindstone'}
+        }
+    }
+}
+
+if ModOptions and ModOptions.getInstance then
+    local settings = ModOptions:getInstance(CHC_settings.settings)
+    local category = "[chc_category_title]"
+    for _, value in pairs(CHC_settings.keybinds) do
+        ModOptions:AddKeyBinding(category, value)
+    end
+    ModOptions:loadFile()
+
+    local search = settings:getData("special_search")
+    CHC_config.options.special_search = search.value
+    function search:OnApplyInGame(val)
+        CHC_config.options.special_search = val
+    end
+
+    local uses_list_icons = settings:getData("uses_list_icons")
+    CHC_config.options.uses_list_icons = uses_list_icons
+    function uses_list_icons:OnApplyInGame(val)
+        CHC_config.options.uses_list_icons = val
+    end
+
+    local uses_show_hidden_recipes = settings:getData("uses_show_hidden_recipes")
+    CHC_config.options.uses_show_hidden_recipes = uses_show_hidden_recipes
+    function uses_show_hidden_recipes:OnApplyInGame(val)
+        CHC_config.options.uses_show_hidden_recipes = val
+    end
+
+else
+    CHC_config.options.special_search = true
+    CHC_config.options.uses_list_icons = false
+    CHC_config.options.uses_show_hidden_recipes = true
+end
+
 
 -- region config
 local is_open = false
@@ -72,7 +151,7 @@ CHC_config.fn.updateSettings = function(menu)
     data.main_window_h = menu.height
     data.main_window_min_w = menu.minimumWidth
     data.main_window_min_h = menu.minimumHeight
-    data.uses_tab_sep_x = menu.usesScreen.column3
+    data.uses_tab_sep_x = menu.usesScreen.headers.nameHeader.width
     data.uses_filter_name_asc = menu.usesScreen.itemSortAsc == true
     data.uses_filter_type = menu.usesScreen.typeFilter
     CHC_config.fn.saveSettings(data)

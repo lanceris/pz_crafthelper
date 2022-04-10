@@ -1,23 +1,24 @@
-require 'CHC_main';
-require 'CHC_config'
-require 'UI/CHC_window';
+require 'CHC_main'
 
 CHC_menu = {};
 
 CHC_menu.doCraftHelperMenu = function(player,context, items)
 	local isUsedInRecipe = false;
 	
+	local item
 	-- Go through the items selected (because multiple selections in inventory is possible)
 	-- todo: remove/refactor multiple windows when multiple items
-	for _,item in ipairs(items) do
-		
-		if not instanceof(item, "InventoryItem") then
-            item = item.items[1];
+	for i=1, #items do
+
+		if not instanceof(items[i], "InventoryItem") then
+            item = items[i].items[1]
+		else
+			item = items[i]
         end
 		
 		-- We test here if the item is used in any recipes
 		if type(CHC_main.recipesByItem[item:getName()]) == 'table' then
-			isUsedInRecipe = true;
+			isUsedInRecipe = true
 		end
 	end
 	
@@ -56,8 +57,7 @@ CHC_menu.onCraftHelper = function(items, player)
 			minimumWidth = CHC_menu.cfg.main_window_min_w,
 			minimumHeight = CHC_menu.cfg.main_window_min_h,
 			item=item
-
-		};
+		}
 		CHC_menu.CHC_Window = CHC_window:new(args);
 		CHC_menu.CHC_Window:initialise();
 		CHC_menu.CHC_Window:addToUIManager();
