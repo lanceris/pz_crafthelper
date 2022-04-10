@@ -137,6 +137,9 @@ CHC_config.fn.resetSettings = function()
     data.uses_tab_sep_x = 500
     data.uses_filter_name_asc = true
     data.uses_filter_type = "all"
+    data.craft_tab_sep_x = 500
+    data.craft_filter_name_asc = true
+    data.craft_filter_type = "all"
     CHC_config.fn.saveSettings(data)
 end
 
@@ -151,9 +154,16 @@ CHC_config.fn.updateSettings = function(menu)
     data.main_window_h = menu.height
     data.main_window_min_w = menu.minimumWidth
     data.main_window_min_h = menu.minimumHeight
-    data.uses_tab_sep_x = menu.usesScreen.headers.nameHeader.width
-    data.uses_filter_name_asc = menu.usesScreen.itemSortAsc == true
-    data.uses_filter_type = menu.usesScreen.typeFilter
+    if menu.usesScreen and menu.usesScreen.headers then
+        data.uses_tab_sep_x = menu.usesScreen.headers.nameHeader.width or 250
+        data.uses_filter_name_asc = menu.usesScreen.itemSortAsc == true
+        data.uses_filter_type = menu.usesScreen.typeFilter or "all"
+    end
+    if menu.craftScreen and menu.craftScreen.headers then
+        data.craft_tab_sep_x = menu.craftScreen.headers.nameHeader.width or 250
+        data.craft_filter_name_asc = menu.craftScreen.itemSortAsc == true
+        data.craft_filter_type = menu.craftScreen.typeFilter or "all"
+    end
     CHC_config.fn.saveSettings(data)
     
 end

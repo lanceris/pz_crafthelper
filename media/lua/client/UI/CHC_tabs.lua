@@ -11,15 +11,13 @@ end
 
 function CHC_tabs:addTabs()
 
-	local sep_x=CHC_menu.cfg.uses_tab_sep_x
-
     local fontHgtSmall = getTextManager():getFontHeight(UIFont.Medium)
     local headerHgt = fontHgtSmall + 1
     -- region list
 	local nha = {
 		x=0,
 		y=1,
-		w=sep_x,
+		w=self.sep_x,
 		h=headerHgt,
 		title=self.tabName1,
 		clicktgt=self,
@@ -98,7 +96,7 @@ end
 
 ---@param onresize table<number,function|any|any> `table` with 3 values, first is `function`, second and third are arguments
 ---@return table self
-function CHC_tabs:new(x,y,width,height, onresize)
+function CHC_tabs:new(x,y,width,height, onresize, sep_x)
     local o = {};
     o = derivative:new(x,y,width,height)
 
@@ -115,6 +113,7 @@ function CHC_tabs:new(x,y,width,height, onresize)
 	o.tabName1 = getText("UI_tab_uses_recipe_title")
 	o.tabName2 = getText("UI_tab_uses_details_title")
 	o.proportion = nil
+	o.sep_x = sep_x
 
     return o
 end

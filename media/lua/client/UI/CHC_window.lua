@@ -3,7 +3,7 @@ require 'ISUI/ISCollapsableWindow'
 require 'ISUI/ISTabPanel'
 require 'CHC_config'
 require 'UI/CHC_uses'
-require 'UI/CHC_craft'
+-- require 'UI/CHC_craft'
 -- require 'UI/craftHelperUpdSearchScreen';
 
 CHC_window = ISCollapsableWindow:derive("CHC_window");
@@ -27,30 +27,50 @@ function CHC_window:createChildren()
     self.panel:setEqualTabWidth(true)
     
     -- endregion
-
+    local usesData = CHC_main.recipesByItem[self.item:getName()]
+    local craftData = CHC_main.recipesForItem[self.item:getName()]
 
     local common_screen_data = {x=0, y=8, w=self.width, h=self.panel.height}
 
-    --region uses screen
     local uses_screen_init = common_screen_data
     uses_screen_init['item'] = self.item
+    uses_screen_init['recipeSource'] = usesData
+    uses_screen_init['ui_name'] = "CHC_uses"
+    uses_screen_init['itemSortAsc'] = CHC_menu.cfg.uses_filter_name_asc
+    uses_screen_init['typeFilter'] = CHC_menu.cfg.uses_filter_type
+    uses_screen_init['showHidden'] = CHC_menu.cfg.uses_show_hidden_recipes
+    uses_screen_init['sep_x'] = CHC_menu.cfg.uses_tab_sep_x
+    self.usesScreen = CHC_uses:new(uses_screen_init)
 
-    self.usesScreen = CHC_uses:new(uses_screen_init);
-    self.usesScreen:initialise();
-    self.usesScreen.infoText = getText("UI_infotext_uses")
+    local craft_screen_init = common_screen_data
+    craft_screen_init['item'] = self.item
+    craft_screen_init['recipeSource'] = craftData
+    craft_screen_init['ui_name'] = "CHC_craft"
+    craft_screen_init['itemSortAsc'] = CHC_menu.cfg.craft_filter_name_asc
+    craft_screen_init['typeFilter'] = CHC_menu.cfg.craft_filter_type
+    craft_screen_init['showHidden'] = CHC_menu.cfg.uses_show_hidden_recipes
+    craft_screen_init['sep_x'] = CHC_menu.cfg.craft_tab_sep_x
+    self.craftScreen = CHC_uses:new(craft_screen_init)
+    
+    --region uses screen
+    if usesData then
+        self.usesScreen:initialise()
+        self.usesScreen.infoText = getText("UI_infotext_uses")..getText("UI_infotext_common")
+        self.panel:addView(getText("UI_tab_uses"), self.usesScreen)
+    end
     --endregion
     
     -- region crafting screen
-    -- self.craftScreen = CHC_craft:new(0, 8, self.width, self.panel.height - self.panel.tabHeight)
-    -- self.craftScreen:initialise();
-    -- self.craftScreen.infoText = getText("UI_infotext_craft")
+    if craftData then
+        self.craftScreen:initialise()
+        self.craftScreen.infoText = getText("UI_infotext_craft")..getText("UI_infotext_common")
+        self.panel:addView(getText("UI_tab_craft"), self.craftScreen)
+    end
     -- endregion
 
     -- self.searchScreen = craftHelperUpdSearchScreen:new()
 
     self:addChild(self.panel)
-    self.panel:addView(getText("UI_tab_uses"), self.usesScreen)
-    -- self.panel:addView(getText("UI_tab_craft"), self.craftScreen)
 
     self:refresh()
 end
@@ -58,7 +78,7 @@ end
 -- region keyboard controls
 function CHC_window:onKeyRelease(key)
     local ui = self
-    if not ui.panel or not ui.panel.activeView then return; end
+    if not ui.panel or not ui.panel.activeView then return end
     local view = ui.panel.activeView.view
     local rl = view.recipesList
 
@@ -152,10 +172,17 @@ end
 
 function CHC_window:onResize()
     ISPanel.onResize(self)
+
+    local ui = self
+    if not ui.panel or not ui.panel.activeView then return end
+    local view = ui.panel.activeView.view
     self.usesScreen:setWidth(self.width)
     self.usesScreen:setHeight(self.panel.height - self.panel.tabHeight)
-    
-    local headers = self.usesScreen.headers
+    self.craftScreen:setWidth(self.width)
+    self.craftScreen:setHeight(self.panel.height - self.panel.tabHeight)
+
+    local headers = view.headers
+    if not headers then return end
 
     if headers.nameHeader:getWidth() == headers.nameHeader.minimumWidth then
         headers.nameHeader:setWidth(headers.nameHeader.minimumWidth+1)
@@ -166,10 +193,9 @@ function CHC_window:onResize()
 
     headers.typeHeader:setX(headers.proportion*self.width)
     headers.nameHeader:setWidth(headers.proportion*self.width)
-    self.usesScreen:onResizeHeaders()
+    view:onResizeHeaders()
     headers.typeHeader:setWidth((1-headers.proportion)*self.width)
-    self.usesScreen.headers:setWidth(self.width)
-    
+    headers:setWidth(self.width)
 end
 
 function CHC_window:render()

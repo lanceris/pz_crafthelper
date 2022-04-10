@@ -17,7 +17,9 @@ CHC_menu.doCraftHelperMenu = function(player,context, items)
         end
 		
 		-- We test here if the item is used in any recipes
-		if type(CHC_main.recipesByItem[item:getName()]) == 'table' then
+		local cond1 = type(CHC_main.recipesByItem[item:getName()]) == 'table'
+		local cond2 = type(CHC_main.recipesForItem[item:getName()]) == 'table'
+		if cond1 or cond2 then
 			isUsedInRecipe = true
 		end
 	end

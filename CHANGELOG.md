@@ -1,5 +1,11 @@
 # CraftHelper updates
 
+## 1.5.1 (11.04.2022)
+
+### New features
+
+- Craft screen, shows how to craft selected item
+
 # 1.5 (10.04.2022, workshop release)
 
 ## 1.4.6 (10.04.2022)

@@ -33,7 +33,7 @@ function CHC_uses:categorySelectorFillOptions()
 
     local uniqueCategories = {}
     local is_fav_recipes = false
-    local allrec = self.allRecipesForItem
+    local allrec = self.recipeSource
     local c=1
     for i=1, #allrec do
         if not is_fav_recipes and allrec[i].favorite then
@@ -99,10 +99,8 @@ end
 
 function CHC_uses:create()
 
-    self.allRecipesForItem = CHC_main.recipesByItem[self.item:getName()]
-
     -- region draggable headers
-    self.headers = CHC_tabs:new(0, 0, self.width, 20, {self.onResizeHeaders, self})
+    self.headers = CHC_tabs:new(0, 0, self.width, 20, {self.onResizeHeaders, self}, self.sep_x)
     self.headers:initialise()
     -- endregion
 
@@ -159,7 +157,7 @@ function CHC_uses:create()
     self.recipesList:setOnMouseDownFunction(self, CHC_uses.onRecipeChange);
 
     -- Add entries to recipeList
-    self:cacheFullRecipeCount(self.allRecipesForItem)
+    self:cacheFullRecipeCount(self.recipeSource)
     self:updateRecipes(filterRowData.filterSelectorData.defaultCategory)
     -- endregion
 
@@ -201,7 +199,7 @@ function CHC_uses:onChangeUsesRecipeCategory(_option, sl)
 end
 
 function CHC_uses:cacheFullRecipeCount(recipes)
-    recipes = recipes or self.allRecipesForItem
+    recipes = recipes or self.recipeSource
     local is_valid
     local is_known
     self.numRecipesAll, self.numRecipesValid, self.numRecipesKnown, self.numRecipesInvalid = 0,0,0,0
@@ -223,7 +221,7 @@ end
 function CHC_uses:updateRecipes(sl)
     local categoryAll = getText("UI_tab_uses_categorySelector_All")
     local searchBar = self.searchRow.searchBar
-    local recipes = self.allRecipesForItem
+    local recipes = self.recipeSource
 
     if sl == categoryAll and self.typeFilter == "all" and searchBar:getInternalText() == "" then
         self:refreshRecipeList(recipes)
@@ -260,8 +258,8 @@ function CHC_uses:updateRecipes(sl)
     self:refreshRecipeList(filteredRecipes)
 end
 
-function CHC_uses:processAddRecipeToRecipeList(recipe, modData, showHidden)
-    if not showHidden and recipe.recipe:isHidden() then return end
+function CHC_uses:processAddRecipeToRecipeList(recipe, modData)
+    if not self.showHidden and recipe.recipe:isHidden() then return end
     local name = recipe.recipe:getName()
     recipe.favorite = modData[CHC_main.getFavoriteModDataString(recipe.recipe)] or false
 
@@ -273,10 +271,9 @@ function CHC_uses:refreshRecipeList(recipes)
     self.recipesList:setScrollHeight(0)
 
     local modData = getPlayer():getModData()
-    local showHidden = CHC_config.options.uses_show_hidden_recipes
     
     for i = 1, #recipes do
-        self:processAddRecipeToRecipeList(recipes[i], modData, showHidden)
+        self:processAddRecipeToRecipeList(recipes[i], modData)
     end
     table.sort(self.recipesList.items, self.itemSortFunc)
 end
@@ -554,9 +551,12 @@ function CHC_uses:new(args)
 
     o.item = item;
 
-    o.ui_name = "CHC_uses"
-    o.itemSortAsc = CHC_menu.cfg.uses_filter_name_asc
-    o.typeFilter = CHC_menu.cfg.uses_filter_type
+    o.recipeSource = args.recipeSource
+    o.ui_name = args.ui_name
+    o.itemSortAsc = args.itemSortAsc
+    o.typeFilter = args.typeFilter
+    o.showHidden = args.showHidden
+    o.sep_x = args.sep_x
     o.itemSortFunc = o.itemSortAsc == true and CHC_uses.sortByNameAsc or CHC_uses.sortByNameDesc
     o.player = getPlayer()
 

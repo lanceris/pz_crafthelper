@@ -1,9 +1,7 @@
 UI_EN = {
     UI_tab_uses = "Uses"
     UI_tab_craft = "Craft"
-    UI_infotext_uses =  "<CENTRE><SIZE:medium> This is the Uses Screen <LINE> <LINE> "..
-                        "<SIZE:small> <LEFT> Here you can find what selected item is used for. <LINE> <LINE> "..
-                        "Left tab (Recipe) shows list of recipes with some additional controls. <LINE> "..
+    UI_infotext_common = "Left tab (Recipe) shows list of recipes with some additional controls. <LINE> "..
                         "First button (with four lines) shows current sorting order (Ascending or Descending). You can change the order by clicking it. <LINE> "..
                         "Second button allows you to filter the list of recipes. <LINE> "..
                         "- <IMAGE:media/textures/type_filt_all.png> : All recipes <LINE> "..
@@ -34,7 +32,10 @@ UI_EN = {
                     "<SIZE:medium> %plank|!food <SIZE:small> : show recipes where 'plank' is the result, OR recipes in 'food' category <LINE> <LINE> "..
                     "<SIZE:medium> Limitations: <LINE> <SIZE:small> "..
                     "- Can't use both separators (',' and '|') in one query <LINE> "
-    UI_infotext_craft = "TBD"
+    UI_infotext_uses =  "<CENTRE><SIZE:medium> This is the Uses Screen <LINE> <LINE> "..
+                    "<SIZE:small> <LEFT> Here you can find what selected item is used for. <LINE> <LINE> "
+    UI_infotext_craft = "<CENTRE><SIZE:medium> This is the Craft Screen <LINE> <LINE> "..
+                    "<SIZE:small> <LEFT> Here you can find how to craft selected item. <LINE> <LINE> "
     UI_tab_uses_recipe_title = "Recipe"
     UI_tab_uses_details_title = "Details"
     UI_category = "Category"
