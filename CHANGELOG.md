@@ -1,5 +1,15 @@
 # CraftHelper updates
 
+# 1.4.6 (10.04.2022)
+
+### New features
+
+- Added option to show/hide hidden recipes
+
+### Bugfixes
+
+- Recipe counts now update correctly (when ingredients panel updates, and when there is new items)
+
 # 1.4.5 (07.04.2022)
 
 ### New features

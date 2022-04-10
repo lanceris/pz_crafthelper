@@ -176,8 +176,8 @@ function CHC_window:onResize()
 end
 
 function CHC_window:render()
-    if self.isCollapsed then return end;
-    ISCollapsableWindow.render(self);
+    ISCollapsableWindow.render(self)
+    if self.isCollapsed then return end
 end
 
 

@@ -30,14 +30,6 @@ function CHC_uses:initialise()
     self:create();
 end
 
-function CHC_uses:searchBtnOnClick()
-    local w,h = 600, 350
-    local x, y = getCore():getScreenWidth() / 2 - w/2,getCore():getScreenHeight() / 2 - h/2
-    local modal = ISModalRichText:new(x,y,w,h,getText("UI_search_info"),false, self)
-    modal:initialise()
-    modal:addToUIManager()
-end
-
 
 function CHC_uses:categorySelectorFillOptions()
 
@@ -109,7 +101,7 @@ end
 
 function CHC_uses:create()
 
-    self.allRecipesForItem = CHC_main.recipesByItem[self.item:getName()];
+    self.allRecipesForItem = CHC_main.recipesByItem[self.item:getName()]
 
     -- region draggable headers
     self.headers = CHC_tabs:new(0, 0, self.width, 20, {self.onResizeHeaders, self})
@@ -211,8 +203,10 @@ function CHC_uses:onChangeUsesRecipeCategory(_option, sl)
 end
 
 function CHC_uses:cacheFullRecipeCount(recipes)
+    recipes = recipes or self.allRecipesForItem
     local is_valid
     local is_known
+    self.numRecipesAll, self.numRecipesValid, self.numRecipesKnown, self.numRecipesInvalid = 0,0,0,0
     for i = 1, #recipes do
         is_valid = RecipeManager.IsRecipeValid(recipes[i].recipe, self.player, nil, self.containerList)
         is_known = self.player:isRecipeKnown(recipes[i].recipe)
@@ -231,8 +225,10 @@ end
 function CHC_uses:updateRecipes(sl)
     local categoryAll = getText("UI_tab_uses_categorySelector_All")
     local searchBar = self.searchRow.searchBar
+    local recipes = self.allRecipesForItem
+
     if sl == categoryAll and self.typeFilter == "all" and searchBar:getInternalText() == "" then
-        self:refreshRecipeList(self.allRecipesForItem)
+        self:refreshRecipeList(recipes)
         return
     end
 
@@ -241,7 +237,6 @@ function CHC_uses:updateRecipes(sl)
 
     -- filter recipes
     local filteredRecipes = {}
-    local recipes = self.allRecipesForItem
     for i=1, #recipes do
         local rc = recipes[i].category
         local rc_tr = getTextOrNull("IGUI_CraftCategory_"..rc) or rc
@@ -249,7 +244,9 @@ function CHC_uses:updateRecipes(sl)
         local fav_cat_state = false
         local type_filter_state = false
         local search_state = false
-        if sl == "* "..getText("UI_tab_uses_categorySelector_Favorite") and recipes[i].favorite then
+        local condFav1 = sl == "* "..getText("IGUI_CraftCategory_Favorite")
+        local condFav2 = recipes[i].favorite
+        if condFav1 and condFav2 then
             fav_cat_state = true
         end
 
@@ -257,7 +254,7 @@ function CHC_uses:updateRecipes(sl)
             type_filter_state = self:recipeTypeFilter(recipes[i])
         end
         search_state = self:searchTypeFilter(recipes[i])
-        
+
         if (type_filter_state or fav_cat_state) and search_state then
             table.insert(filteredRecipes, recipes[i])
         end
@@ -265,16 +262,23 @@ function CHC_uses:updateRecipes(sl)
     self:refreshRecipeList(filteredRecipes)
 end
 
+function CHC_uses:processAddRecipeToRecipeList(recipe, modData, showHidden)
+    if not showHidden and recipe.recipe:isHidden() then return end
+    local name = recipe.recipe:getName()
+    recipe.favorite = modData[CHC_main.getFavoriteModDataString(recipe.recipe)] or false
+
+    self.recipesList:addItem(name, recipe)
+end
+
 function CHC_uses:refreshRecipeList(recipes)
     self.recipesList:clear()
     self.recipesList:setScrollHeight(0)
 
     local modData = getPlayer():getModData()
+    local showHidden = CHC_config.options.uses_show_hidden_recipes
     
     for i = 1, #recipes do
-        local name = recipes[i].recipe:getName()
-        recipes[i].favorite = modData[CHC_main.getFavoriteModDataString(recipes[i].recipe)] or false
-        self.recipesList:addItem(name, recipes[i])
+        self:processAddRecipeToRecipeList(recipes[i], modData, showHidden)
     end
     table.sort(self.recipesList.items, self.itemSortFunc)
 end
