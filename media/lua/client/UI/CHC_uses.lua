@@ -1,11 +1,9 @@
 require "ISUI/ISPanel"
-require 'ISUI/ISButton'
 require 'ISUI/ISContextMenu'
 require 'ISUI/ISTextEntryBox'
 require "UI/CHC_tabs"
 require "UI/CHC_uses_recipelist"
 require "UI/CHC_uses_recipepanel"
-require "ISUI/ISModalRichText"
 
 local derivative = ISPanel
 CHC_uses = derivative:derive("CHC_uses");

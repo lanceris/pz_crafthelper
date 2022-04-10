@@ -1,6 +1,4 @@
-require 'CHC_main';
-require 'CHC_config'
-require 'UI/CHC_window';
+require 'CHC_main'
 
 CHC_menu = {};
 

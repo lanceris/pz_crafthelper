@@ -1,6 +1,8 @@
 # CraftHelper updates
 
-# 1.4.6 (10.04.2022)
+# 1.5 (10.04.2022, workshop release)
+
+## 1.4.6 (10.04.2022)
 
 ### New features
 
@@ -10,7 +12,7 @@
 
 - Recipe counts now update correctly (when ingredients panel updates, and when there is new items)
 
-# 1.4.5 (07.04.2022)
+## 1.4.5 (07.04.2022)
 
 ### New features
 
@@ -30,7 +32,7 @@
 - Fixed duplication of search button help window
 - Favorite icon now always shows if recipe is favorited
 
-# 1.4.4 (05.04.2022)
+## 1.4.4 (05.04.2022)
 
 ### New features
 
@@ -45,13 +47,13 @@
 - Improved overall performance
 - Moved common functions to CHC_utils
 
-# 1.4.3 (03.04.2022)
+## 1.4.3 (03.04.2022)
 
 ### New features
 
 - Added Hydrocraft integration (show Hydrocraft furniture in "Required Crafting Equipment")
 
-# 1.4.2 (02.04.2022)
+## 1.4.2 (02.04.2022)
 
 ### New features
 
@@ -67,7 +69,7 @@
 
 - Fixed [trello#48](https://trello.com/c/cYpaRrpq/48-type-filter-not-fully-applied-when-creating-recipelist)
 
-# 1.4.1 (02.04.2022)
+# 1.4.1 (02.04.2022, workshop release)
 
 ### New features
 
@@ -80,7 +82,7 @@
 - Refactored recipepanel
 - Added missing (but unused yet) translation to UI_RU
 
-# 1.4 (31.03.2022)
+## 1.4 (31.03.2022)
 
 ### New features
 
@@ -97,7 +99,7 @@
 
 - Fixed bug with diplicate recipe names not showing
 
-# 1.3 (29.03.2022)
+## 1.3 (29.03.2022)
 
 ### New features
 
@@ -110,7 +112,7 @@
 - New config variables for sorting order and type filter
 - Wrapped filter row (sort order and type filter buttons + category selector) to container
 
-# 1.2 (28.03.2022)
+## 1.2 (28.03.2022)
 
 ### New features
 
@@ -126,7 +128,7 @@
 - UI adjustments
 - Reduced minimum window resolution (800,400 -> 400,350)
 
-# 1.1 (27.03.2022)
+## 1.1 (27.03.2022)
 
 ### New features
 
@@ -137,7 +139,7 @@
 
 - Refactored codebase
 
-# 1.0 (27.03.2022)
+## 1.0 (27.03.2022)
 
 ### New features
 

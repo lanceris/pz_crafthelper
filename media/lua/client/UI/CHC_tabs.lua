@@ -1,5 +1,4 @@
-require "ISUI/ISPanel";
-require "ISUI/ISInventoryPane";
+require "ISUI/ISPanel"
 
 local derivative = ISPanel
 CHC_tabs = derivative:derive("CHC_tabs");

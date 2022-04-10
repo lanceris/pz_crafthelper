@@ -1,12 +1,9 @@
 -- Main window, opened when RMB -> Craft Helper 41 on item
-require 'ISUI/ISCollapsableWindow';
-require 'ISUI/ISTabPanel';
-
-require 'CHC_main'
+require 'ISUI/ISCollapsableWindow'
+require 'ISUI/ISTabPanel'
 require 'CHC_config'
-require 'UI/CHC_menu'
-require 'UI/CHC_uses';
-require 'UI/CHC_craft';
+require 'UI/CHC_uses'
+require 'UI/CHC_craft'
 -- require 'UI/craftHelperUpdSearchScreen';
 
 CHC_window = ISCollapsableWindow:derive("CHC_window");

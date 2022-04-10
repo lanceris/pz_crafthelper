@@ -139,7 +139,7 @@ function CHC_uses_recipepanel:render()
     y = y + CHC_uses_recipepanel.smallFontHeight + 5;
     
 
-    local bh = self:getBottomHeight(selectedItem) + 8
+    local bh = self:getBottomHeight(selectedItem) + 15
     self.ingredientPanel:setX(x + 10)
     self.ingredientPanel:setY(y)
     self.ingredientPanel:setWidth(self.width - 30)

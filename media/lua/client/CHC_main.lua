@@ -4,6 +4,7 @@ CHC_main = {}
 CHC_main.author = "lanceris"
 CHC_main.previousAuthors = {"Peanut", "ddraigcymraeg", "b1n0m"}
 CHC_main.modName = "CraftHelperContinued"
+CHC_main.version = "1.5"
 CHC_main.recipesByItem = {}
 CHC_main.itemsManuals = {}
 CHC_main.items = {}

@@ -1,4 +1,3 @@
-require 'CHC_main'
 require 'luautils'
 require 'UI/CHC_menu'
 
