@@ -28,27 +28,26 @@ function CHC_uses:initialise()
     self:create();
 end
 
-
 function CHC_uses:categorySelectorFillOptions()
 
     local uniqueCategories = {}
     local is_fav_recipes = false
     local allrec = self.recipeSource
-    local c=1
-    for i=1, #allrec do
+    local c = 1
+    for i = 1, #allrec do
         if not is_fav_recipes and allrec[i].favorite then
             is_fav_recipes = true
         end
         local rc = allrec[i].recipe:getCategory() or getText("IGUI_CraftCategory_General")
-        rc = getTextOrNull("IGUI_CraftCategory_"..rc) or rc
+        rc = getTextOrNull("IGUI_CraftCategory_" .. rc) or rc
         if not utils.any(uniqueCategories, rc) then
             uniqueCategories[c] = rc
-            c = c+1
+            c = c + 1
         end
-	end
+    end
 
     if is_fav_recipes then
-        self.filterRow.categorySelector:addOption("* "..getText("IGUI_CraftCategory_Favorite"))
+        self.filterRow.categorySelector:addOption("* " .. getText("IGUI_CraftCategory_Favorite"))
     end
 
     table.sort(uniqueCategories)
@@ -68,7 +67,7 @@ end
 -- region filterRow setters
 function CHC_uses:filterRowOrderSetTooltip()
     local cursort = self.itemSortAsc and getText("IGUI_invpanel_ascending") or getText("IGUI_invpanel_descending")
-    return getText("UI_settings_st_title").." ("..cursort..")"
+    return getText("UI_settings_st_title") .. " (" .. cursort .. ")"
 end
 
 function CHC_uses:filterRowOrderSetIcon()
@@ -77,64 +76,64 @@ end
 
 function CHC_uses:filterRowTypeSetTooltip()
     local typeFilterToTxt = {
-        all=getText("UI_settings_av_all"),
-        valid=getText("UI_settings_av_valid"),
-        known=getText("UI_settings_av_known"),
-        invalid=getText("UI_settings_av_invalid")
+        all = getText("UI_settings_av_all"),
+        valid = getText("UI_settings_av_valid"),
+        known = getText("UI_settings_av_known"),
+        invalid = getText("UI_settings_av_invalid")
     }
     local curtype = typeFilterToTxt[self.typeFilter]
-    return getText("UI_settings_av_title").." ("..curtype..")"
+    return getText("UI_settings_av_title") .. " (" .. curtype .. ")"
 end
 
 function CHC_uses:filterRowTypeSetIcon()
     local typeFilterToIcon = {
-        all=self.typeFiltIconAll,
-        valid=self.typeFiltIconValid,
-        known=self.typeFiltIconKnown,
-        invalid=self.typeFiltIconInvalid
+        all = self.typeFiltIconAll,
+        valid = self.typeFiltIconValid,
+        known = self.typeFiltIconKnown,
+        invalid = self.typeFiltIconInvalid
     }
     return typeFilterToIcon[self.typeFilter]
 end
+
 -- endregion
 
 function CHC_uses:create()
 
     -- region draggable headers
-    self.headers = CHC_tabs:new(0, 0, self.width, 20, {self.onResizeHeaders, self}, self.sep_x)
+    self.headers = CHC_tabs:new(0, 0, self.width, 20, { self.onResizeHeaders, self }, self.sep_x)
     self.headers:initialise()
     -- endregion
 
     local x = self.headers.x
-    local y = self.headers.y+self.headers.height
+    local y = self.headers.y + self.headers.height
     local leftW = self.headers.nameHeader.width
     local rightX = self.headers.typeHeader.x
     local rightW = self.headers.typeHeader.width
-
     -- region filters UI
 
     local filterRowData = {
-        filterOrderData={
-            width=24,
-            title="",
-            onclick=self.sortByName,
-            defaultTooltip=self:filterRowOrderSetTooltip(),
-            defaultIcon=self:filterRowOrderSetIcon()
+        filterOrderData = {
+            width = 24,
+            title = "",
+            onclick = self.sortByName,
+            defaultTooltip = self:filterRowOrderSetTooltip(),
+            defaultIcon = self:filterRowOrderSetIcon()
         },
-        filterTypeData={
-            width=24,
-            title="",
-            onclick=self.onFilterTypeMenu,
-            defaultTooltip=self:filterRowTypeSetTooltip(),
-            defaultIcon=self:filterRowTypeSetIcon()
+        filterTypeData = {
+            width = 24,
+            title = "",
+            onclick = self.onFilterTypeMenu,
+            defaultTooltip = self:filterRowTypeSetTooltip(),
+            defaultIcon = self:filterRowTypeSetIcon()
         },
-        filterSelectorData={
-            defaultCategory=getText("UI_tab_uses_categorySelector_All"),
-            defaultTooltip=getText("IGUI_invpanel_Category"),
-            onChange=self.onChangeUsesRecipeCategory
+        filterSelectorData = {
+            defaultCategory = getText("UI_tab_uses_categorySelector_All"),
+            defaultTooltip = getText("IGUI_invpanel_Category"),
+            onChange = self.onChangeUsesRecipeCategory
         }
     }
 
-    self.filterRow = CHC_filter_row:new(x,y,leftW,24, filterRowData)
+    self.filterRow = CHC_filter_row:new(x, y, leftW, 24, filterRowData)
     self.filterRow:initialise()
     local leftY = y + 24
     self:categorySelectorFillOptions()
@@ -147,13 +146,13 @@ function CHC_uses:create()
     -- endregion
 
     -- region recipe list
-    local rlh = self.height-self.headers.height-self.filterRow.height-self.searchRow.height
+    local rlh = self.height - self.headers.height - self.filterRow.height - self.searchRow.height
     self.recipesList = CHC_uses_recipelist:new(x, leftY, leftW, rlh);
 
     self.recipesList.drawBorder = true;
-	self.recipesList:initialise();
-	self.recipesList:instantiate();
-	self.recipesList:setAnchorBottom(true)
+    self.recipesList:initialise();
+    self.recipesList:instantiate();
+    self.recipesList:setAnchorBottom(true)
     self.recipesList:setOnMouseDownFunction(self, CHC_uses.onRecipeChange);
 
     -- Add entries to recipeList
@@ -162,20 +161,20 @@ function CHC_uses:create()
     -- endregion
 
     -- region recipe details windows
-    local rph = self.height-self.headers.height
+    local rph = self.height - self.headers.height
     self.recipePanel = CHC_uses_recipepanel:new(rightX, y, rightW, rph);
-	self.recipePanel:initialise();
-	self.recipePanel:instantiate();
-	self.recipePanel:setAnchorRight(true)
-	self.recipePanel:setAnchorBottom(true)
+    self.recipePanel:initialise();
+    self.recipePanel:instantiate();
+    self.recipePanel:setAnchorRight(true)
+    self.recipePanel:setAnchorBottom(true)
     -- endregion
 
     -- Attach all to the craft helper window
     self:addChild(self.headers)
     self:addChild(self.filterRow)
     self:addChild(self.searchRow)
-	self:addChild(self.recipesList)
-	self:addChild(self.recipePanel)
+    self:addChild(self.recipesList)
+    self:addChild(self.recipePanel)
 end
 
 -- endregion
@@ -202,7 +201,7 @@ function CHC_uses:cacheFullRecipeCount(recipes)
     recipes = recipes or self.recipeSource
     local is_valid
     local is_known
-    self.numRecipesAll, self.numRecipesValid, self.numRecipesKnown, self.numRecipesInvalid = 0,0,0,0
+    self.numRecipesAll, self.numRecipesValid, self.numRecipesKnown, self.numRecipesInvalid = 0, 0, 0, 0
     for i = 1, #recipes do
         is_valid = RecipeManager.IsRecipeValid(recipes[i].recipe, self.player, nil, self.containerList)
         is_known = self.player:isRecipeKnown(recipes[i].recipe)
@@ -212,10 +211,10 @@ function CHC_uses:cacheFullRecipeCount(recipes)
         elseif is_valid then
             self.numRecipesValid = self.numRecipesValid + 1
         else
-            self.numRecipesInvalid  = self.numRecipesInvalid + 1
+            self.numRecipesInvalid = self.numRecipesInvalid + 1
         end
     end
-    
+
 end
 
 function CHC_uses:updateRecipes(sl)
@@ -233,14 +232,14 @@ function CHC_uses:updateRecipes(sl)
 
     -- filter recipes
     local filteredRecipes = {}
-    for i=1, #recipes do
+    for i = 1, #recipes do
         local rc = recipes[i].category
-        local rc_tr = getTextOrNull("IGUI_CraftCategory_"..rc) or rc
+        local rc_tr = getTextOrNull("IGUI_CraftCategory_" .. rc) or rc
 
         local fav_cat_state = false
         local type_filter_state = false
         local search_state = false
-        local condFav1 = sl == "* "..getText("IGUI_CraftCategory_Favorite")
+        local condFav1 = sl == "* " .. getText("IGUI_CraftCategory_Favorite")
         local condFav2 = recipes[i].favorite
         if condFav1 and condFav2 then
             fav_cat_state = true
@@ -271,7 +270,7 @@ function CHC_uses:refreshRecipeList(recipes)
     self.recipesList:setScrollHeight(0)
 
     local modData = getPlayer():getModData()
-    
+
     for i = 1, #recipes do
         self:processAddRecipeToRecipeList(recipes[i], modData)
     end
@@ -279,7 +278,7 @@ function CHC_uses:refreshRecipeList(recipes)
 end
 
 function CHC_uses:onRecipeChange(recipe)
-	self.recipePanel:setRecipe(recipe);
+    self.recipePanel:setRecipe(recipe);
     self.recipesList:onMouseDown_Recipes(self.recipesList:getMouseX(), self.recipesList:getMouseY())
 end
 
@@ -295,26 +294,25 @@ function CHC_uses:recipeTypeFilter(recipe)
     local is_known = rl.player:isRecipeKnown(recipe.recipe)
 
     local state = true
-    if self.typeFilter == 'all' then state = true end;
-    if self.typeFilter == 'valid' then state = is_valid end
+    if self.typeFilter == 'all' then state = true end
+    ;if self.typeFilter == 'valid' then state = is_valid end
     if self.typeFilter == 'known' then state = is_known and not is_valid end
     if self.typeFilter == 'invalid' then state = not is_known end
     return state
 end
 
-
 function CHC_uses:searchParseTokens(txt)
 
-    local delim = {",", "|"}
-    local regex = "[^"..table.concat(delim).."]+"
+    local delim = { ",", "|" }
+    local regex = "[^" .. table.concat(delim) .. "]+"
     local queryType
 
     txt = string.trim(txt)
     if not string.contains(txt, ',') and not string.contains(txt, "|") then
-        return {txt}, false, nil
+        return { txt }, false, nil
     end
-    if string.contains(txt,",") then queryType = 'AND'
-    elseif string.contains(txt,'|') then queryType = "OR" end
+    if string.contains(txt, ",") then queryType = 'AND'
+    elseif string.contains(txt, '|') then queryType = "OR" end
 
     local tokens = {}
     for token in txt:gmatch(regex) do
@@ -329,12 +327,11 @@ function CHC_uses:searchParseTokens(txt)
     return tokens, true, queryType
 end
 
-
 function CHC_uses:searchProcessToken(token, recipe)
     -- check if token is special search
     -- if so
-        -- remove special char from token
-        -- process special chars
+    -- remove special char from token
+    -- process special chars
     -- if not, compare token with recipe name
     --return state
     local state = false
@@ -359,7 +356,7 @@ function CHC_uses:searchProcessToken(token, recipe)
     if token and isSpecialSearch then
         if char == "!" then
             -- search by recipe category
-            local catName = getTextOrNull("IGUI_CraftCategory_"..recipe.category) or recipe.category
+            local catName = getTextOrNull("IGUI_CraftCategory_" .. recipe.category) or recipe.category
             whatCompare = catName
         end
         local resultItem = CHC_main.items[recipe.recipe:getResult():getFullType()]
@@ -379,13 +376,13 @@ function CHC_uses:searchProcessToken(token, recipe)
         if char == "#" then
             -- search by ingredients
             local rSources = recipe.recipe:getSource()
-            
+
             -- Go through items needed by the recipe
-            for n=0, rSources:size() - 1 do
+            for n = 0, rSources:size() - 1 do
                 -- Get the item name (not the display name)
                 local rSource = rSources:get(n)
                 local sItems = rSource:getItems()
-                for k=0, sItems:size() - 1 do
+                for k = 0, sItems:size() - 1 do
                     local itemString = sItems:get(k)
                     local item = CHC_main.items[itemString]
                     if item then table.insert(items, item:getDisplayName()) end
@@ -402,7 +399,6 @@ function CHC_uses:searchProcessToken(token, recipe)
     return state
 end
 
-
 function CHC_uses:searchTypeFilter(recipe)
     local stateText = string.trim(self.searchRow.searchBar:getInternalText())
     local tokens, isMultiSearch, queryType = CHC_search_bar:parseTokens(stateText)
@@ -410,20 +406,20 @@ function CHC_uses:searchTypeFilter(recipe)
     local state = false
 
     if not tokens then return true end
-    
+
     if isMultiSearch then
-        for i=1, #tokens do
+        for i = 1, #tokens do
             table.insert(tokenStates, self:searchProcessToken(tokens[i], recipe))
         end
-        for i=1, #tokenStates do
+        for i = 1, #tokenStates do
             if queryType == 'OR' then
                 if tokenStates[i] then
                     state = true
                     break
                 end
             end
-            if queryType == 'AND' and i>#tokenStates-1 then
-                local allPrev = utils.all(tokenStates, true, 1,#tokenStates)
+            if queryType == 'AND' and i > #tokenStates - 1 then
+                local allPrev = utils.all(tokenStates, true, 1, #tokenStates)
                 if allPrev and tokenStates[i] then
                     state = true
                     break
@@ -435,15 +431,16 @@ function CHC_uses:searchTypeFilter(recipe)
     end
     return state
 end
+
 -- endregion
 
 -- region filter logic handlers
-CHC_uses.sortByNameAsc = function (a,b)
-    return a.item.recipe:getName()<b.item.recipe:getName()
+CHC_uses.sortByNameAsc = function(a, b)
+    return a.item.recipe:getName() < b.item.recipe:getName()
 end
 
-CHC_uses.sortByNameDesc = function (a,b)
-    return a.item.recipe:getName()>b.item.recipe:getName()
+CHC_uses.sortByNameDesc = function(a, b)
+    return a.item.recipe:getName() > b.item.recipe:getName()
 end
 
 
@@ -459,7 +456,6 @@ function CHC_uses:sortByName()
     self.filterRow.filterOrderBtn:setTooltip(newTooltip)
     self.updateRecipes(self, sl)
 end
-
 
 function CHC_uses:sortByType(_type)
     local option = self.filterRow.categorySelector
@@ -489,6 +485,7 @@ function CHC_uses:sortByType(_type)
         self:updateRecipes(sl)
     end
 end
+
 -- endregion
 
 -- region filter onClick handlers
@@ -496,7 +493,7 @@ end
 function CHC_uses:filterSortMenuGetText(textStr, value)
     local txt = getText(textStr)
     if value then
-        txt = txt.." ("..tostring(value)..")"
+        txt = txt .. " (" .. tostring(value) .. ")"
     end
     return txt
 end
@@ -505,21 +502,22 @@ function CHC_uses:onFilterTypeMenu(button)
     local self = self.parent
     local x = button:getAbsoluteX()
     local y = button:getAbsoluteY()
-    local context = ISContextMenu.get(0, x+10, y)
+    local context = ISContextMenu.get(0, x + 10, y)
 
     local data = {
-        {txt="UI_settings_av_all", num=self.numRecipesAll, arg='all'},
-        {txt="UI_settings_av_valid", num=self.numRecipesValid, arg='valid'},
-        {txt="UI_settings_av_known", num=self.numRecipesKnown, arg='known'},
-        {txt="UI_settings_av_invalid", num=self.numRecipesInvalid, arg='invalid'}
+        { txt = "UI_settings_av_all", num = self.numRecipesAll, arg = 'all' },
+        { txt = "UI_settings_av_valid", num = self.numRecipesValid, arg = 'valid' },
+        { txt = "UI_settings_av_known", num = self.numRecipesKnown, arg = 'known' },
+        { txt = "UI_settings_av_invalid", num = self.numRecipesInvalid, arg = 'invalid' }
     }
 
     local txt = nil
-    for i=1, #data do
+    for i = 1, #data do
         txt = self:filterSortMenuGetText(data[i].txt, data[i].num)
         context:addOption(txt, self, CHC_uses.sortByType, data[i].arg)
     end
 end
+
 -- endregion
 -- endregion
 
@@ -530,6 +528,7 @@ end
 function CHC_uses:render()
     -- CHC_tabs.render(self)
 end
+
 -- endregion
 
 
@@ -538,21 +537,18 @@ function CHC_uses:new(args)
     local y = args.y
     local w = args.w
     local h = args.h
-    local item = args.item
+    -- local item = args.item
 
     local o = {};
-    o = derivative:new(x,y,w,h);
-    
-	setmetatable(o, self);
+    o = derivative:new(x, y, w, h);
+
+    setmetatable(o, self);
     self.__index = self;
 
-    o.borderColor = {r=0.4, g=0.4, b=0.4, a=1};
-    o.backgroundColor = {r=0, g=0, b=0, a=0.8};
-
-    o.item = item;
+    o.borderColor = { r = 0.4, g = 0.4, b = 0.4, a = 1 };
+    o.backgroundColor = { r = 0, g = 0, b = 0, a = 0.8 };
 
     o.recipeSource = args.recipeSource
-    o.ui_name = args.ui_name
     o.itemSortAsc = args.itemSortAsc
     o.typeFilter = args.typeFilter
     o.showHidden = args.showHidden
