@@ -1,5 +1,13 @@
 # CraftHelper updates
 
+## 1.5.2 (11.04.2022)
+
+### New features
+
+- Added new layer of tabs above Uses and Craft, this tab will display all selected items (previously multiple windows were opened)
+- Added Favorites tab, showing all favorited recipes
+- Added Search tab, showing all recipes and items(WIP)
+
 ## 1.5.1 (11.04.2022)
 
 ### New features
