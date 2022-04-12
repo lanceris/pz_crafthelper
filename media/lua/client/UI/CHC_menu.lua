@@ -2,6 +2,8 @@ require 'CHC_main'
 
 CHC_menu = {};
 
+CHC_menu.cachedItemsView = nil
+
 CHC_menu.doCraftHelperMenu = function(player, context, items)
 	local isUsedInRecipe = false;
 	local itemsUsedInRecipes = {}

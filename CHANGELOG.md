@@ -1,5 +1,16 @@
 # CraftHelper updates
 
+## 1.5.3 (12.04.2022)
+
+### New features
+
+- Added functionality to search tab (search and category selection for all items/recipes). Lags a lot with large amount of mods.
+- Added caching for search tab (first opening of craft helper will take a while, but subsequent ones will be instant)
+
+### Improvements
+
+- Moved java calls (getCategory, getFullType etc) to item/recipe properties, gathered on start (in CHC_main)
+
 ## 1.5.2 (11.04.2022)
 
 ### New features

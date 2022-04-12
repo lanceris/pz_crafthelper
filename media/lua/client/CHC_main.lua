@@ -4,12 +4,13 @@ CHC_main = {}
 CHC_main.author = "lanceris"
 CHC_main.previousAuthors = { "Peanut", "ddraigcymraeg", "b1n0m" }
 CHC_main.modName = "CraftHelperContinued"
-CHC_main.version = "1.5.2"
+CHC_main.version = "1.5.3"
 CHC_main.allRecipes = {}
 CHC_main.recipesByItem = {}
 CHC_main.recipesForItem = {}
 CHC_main.itemsManuals = {}
 CHC_main.items = {}
+CHC_main.itemsForSearch = {}
 CHC_main.isDebug = false or getDebug()
 CHC_main.recipesWithoutItem = {}
 
@@ -41,6 +42,13 @@ CHC_main.processOneItem = function(item)
 	local invItem = instanceItem(fullType)
 	if not CHC_main.items[fullType] then
 		CHC_main.items[invItem:getFullType()] = invItem
+		local toinsert = {
+			item = invItem,
+			displayName = invItem:getDisplayName(),
+			displayCategory = invItem:getDisplayCategory() or "Item",
+			texture = invItem:getTex()
+		}
+		insert(CHC_main.itemsForSearch, toinsert)
 		-- CHC_main.items[fullType] = invItem
 	else
 		error(string.format('Duplicate invItem fullType! (%s)', tostring(invItem.getFullType())))
@@ -97,12 +105,20 @@ CHC_main.loadAllRecipes = function()
 		newItem.recipe = recipe
 		newItem.module = recipe:getModule()
 		newItem.favorite = modData[CHC_main.getFavoriteModDataString(recipe)] or false
-		insert(CHC_main.allRecipes, newItem)
+		newItem.recipeData = {}
+		newItem.recipeData.category = recipe:getCategory() or getText("IGUI_CraftCategory_General")
+		newItem.recipeData.name = recipe:getName()
+
 
 		local resultItem = recipe:getResult()
-		local itemres = CHC_main.handleItems(resultItem:getFullType(), recipe)
+		local resultFullType = resultItem:getFullType()
+		local itemres = CHC_main.handleItems(resultFullType, recipe)
+
+		newItem.recipeData.result = {}
+		newItem.recipeData.result.fullType = resultFullType
+		insert(CHC_main.allRecipes, newItem)
 		if itemres then
-			CHC_main.setRecipeForItem(itemres:getName(), newItem)
+			CHC_main.setRecipeForItem(CHC_main.recipesForItem, itemres:getName(), newItem)
 		else
 			insert(CHC_main.recipesWithoutItem, resultItem:getFullType())
 		end
@@ -118,7 +134,7 @@ CHC_main.loadAllRecipes = function()
 				local item = CHC_main.handleItems(itemString, recipe)
 
 				if item then
-					CHC_main.setRecipeByItem(item:getName(), newItem)
+					CHC_main.setRecipeForItem(CHC_main.recipesByItem, item:getName(), newItem)
 				end
 			end
 		end
@@ -128,15 +144,7 @@ CHC_main.loadAllRecipes = function()
 	print(nbRecipes .. ' recipes loaded.')
 end
 
-CHC_main.setRecipeForItem = function(itemName, recipe)
-	local tbl = CHC_main.recipesForItem
-	tbl[itemName] = tbl[itemName] or {}
-	insert(tbl[itemName], recipe)
-end
-
-CHC_main.setRecipeByItem = function(itemName, recipe)
-	-- If no recipes has already been set for this item, we initialize the array (empty) of recipes
-	local tbl = CHC_main.recipesByItem
+CHC_main.setRecipeForItem = function(tbl, itemName, recipe)
 	tbl[itemName] = tbl[itemName] or {}
 	insert(tbl[itemName], recipe)
 end

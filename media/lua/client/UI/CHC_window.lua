@@ -40,51 +40,56 @@ end
 function CHC_window:addSearchPanel()
 
     -- region search panel
-    self.searchPanel = ISTabPanel:new(1, self:titleBarHeight() + self.panel.tabHeight, self.width, self.height - self.panel.tabHeight - 60)
-    self.searchPanel.tabPadX = self.width / 2 - self.width / 4
-    self.searchPanel:initialise()
-    self.searchPanel:setAnchorRight(true)
-    self.searchPanel:setAnchorBottom(true)
+    if CHC_menu.cachedItemsView then
+        self.searchPanel = CHC_menu.cachedItemsView
+    else
+        self.searchPanel = ISTabPanel:new(1, self:titleBarHeight() + self.panel.tabHeight, self.width, self.height - self.panel.tabHeight - 60)
+        self.searchPanel.tabPadX = self.width / 2 - self.width / 4
+        self.searchPanel:initialise()
+        self.searchPanel:setAnchorRight(true)
+        self.searchPanel:setAnchorBottom(true)
+
+        -- region search items screen
+        local itemsData = CHC_main.itemsForSearch
+        local items_screen_init = self.common_screen_data
+        local items_extra = {
+            recipeSource = itemsData,
+            itemSortAsc = CHC_menu.cfg.uses_filter_name_asc or true,
+            typeFilter = CHC_menu.cfg.uses_filter_type or "all",
+            showHidden = CHC_menu.cfg.uses_show_hidden_recipes,
+            sep_x = CHC_menu.cfg.uses_tab_sep_x or 250
+        }
+        for k, v in pairs(items_extra) do items_screen_init[k] = v end
+        self.searchItemsScreen = CHC_search:new(items_screen_init)
+        if itemsData then
+            self.searchItemsScreen:initialise()
+            self.searchItemsScreen.infoText = getText("UI_infotext_uses") .. getText("UI_infotext_common")
+            self.searchPanel:addView("Items", self.searchItemsScreen)
+        end
+        -- endregion
+
+        -- region search recipes screen
+        local recipesData = self:getRecipes(false)
+        local recipes_screen_init = self.common_screen_data
+        local recipes_extra = {
+            recipeSource = recipesData,
+            itemSortAsc = CHC_menu.cfg.uses_filter_name_asc or true,
+            typeFilter = CHC_menu.cfg.uses_filter_type or "all",
+            showHidden = CHC_menu.cfg.uses_show_hidden_recipes,
+            sep_x = CHC_menu.cfg.uses_tab_sep_x or 250
+        }
+        for k, v in pairs(recipes_extra) do recipes_screen_init[k] = v end
+        self.searchRecipesScreen = CHC_uses:new(recipes_screen_init)
+
+        if recipesData then
+            self.searchRecipesScreen:initialise()
+            self.searchRecipesScreen.infoText = getText("UI_infotext_uses") .. getText("UI_infotext_common")
+            self.searchPanel:addView("Recipes", self.searchRecipesScreen)
+        end
+        -- endregion
+        CHC_menu.cachedItemsView = self.searchPanel
+    end
     self.panel:addView("[WIP] Search", self.searchPanel)
-
-    -- region search items screen
-    local itemsData = CHC_main.items
-    local items_screen_init = self.common_screen_data
-    local items_extra = {
-        source = itemsData,
-        itemSortAsc = CHC_menu.cfg.uses_filter_name_asc or true,
-        typeFilter = CHC_menu.cfg.uses_filter_type or "all",
-        showHidden = CHC_menu.cfg.uses_show_hidden_recipes,
-        sep_x = CHC_menu.cfg.uses_tab_sep_x or 250
-    }
-    for k, v in pairs(items_extra) do items_screen_init[k] = v end
-    self.searchItemsScreen = CHC_search:new(items_screen_init)
-    if itemsData then
-        self.searchItemsScreen:initialise()
-        self.searchItemsScreen.infoText = getText("UI_infotext_uses") .. getText("UI_infotext_common")
-        self.searchPanel:addView("Items", self.searchItemsScreen)
-    end
-    -- endregion
-
-    -- region search recipes screen
-    local recipesData = self:getRecipes(false)
-    local recipes_screen_init = self.common_screen_data
-    local recipes_extra = {
-        recipeSource = recipesData,
-        itemSortAsc = CHC_menu.cfg.uses_filter_name_asc or true,
-        typeFilter = CHC_menu.cfg.uses_filter_type or "all",
-        showHidden = CHC_menu.cfg.uses_show_hidden_recipes,
-        sep_x = CHC_menu.cfg.uses_tab_sep_x or 250
-    }
-    for k, v in pairs(recipes_extra) do recipes_screen_init[k] = v end
-    self.searchRecipesScreen = CHC_uses:new(recipes_screen_init)
-
-    if recipesData then
-        self.searchRecipesScreen:initialise()
-        self.searchRecipesScreen.infoText = getText("UI_infotext_uses") .. getText("UI_infotext_common")
-        self.searchPanel:addView("Recipes", self.searchRecipesScreen)
-    end
-    -- endregion
 
     --endregion
 
