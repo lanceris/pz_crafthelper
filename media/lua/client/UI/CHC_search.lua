@@ -106,7 +106,7 @@ function CHC_search:updateItems(sl)
     -- filter items
     local filteredItems = {}
     for i = 1, #items do
-        local rc = items[i]:getDisplayCategory()
+        local rc = items[i].displayCategory
         -- local rc_tr = getTextOrNull("IGUI_CraftCategory_" .. rc) or rc
 
         local fav_cat_state = false
@@ -165,7 +165,7 @@ function CHC_search:searchProcessToken(token, item)
 
     local whatCompare
     if isAllowSpecialSearch and char == "^" then
-        print('fav items(?) here')
+        -- print('fav items(?) here')
         --     -- show favorited reciped and search by them
         --     if not recipe.favorite then return false end
         --     whatCompare = string.lower(recipe.recipe:getName())
@@ -209,7 +209,7 @@ function CHC_search:searchProcessToken(token, item)
     --     end
     -- end
     if token and not isSpecialSearch then
-        whatCompare = string.lower(item:getDisplayName())
+        whatCompare = string.lower(item.displayName)
     end
     state = utils.compare(whatCompare, token)
     return state
@@ -220,7 +220,6 @@ function CHC_search:refreshItemsList(items)
     self.itemsList:setScrollHeight(0)
 
     local modData = getPlayer():getModData()
-
     for i = 1, #items do
         self:processAddItemToItemList(items[i], modData)
     end
@@ -231,7 +230,7 @@ function CHC_search:processAddItemToItemList(item, modData)
     -- if item:isHidden() then return end
     -- if not self.showHidden and item.recipe:isHidden() then return end
     -- item.favorite = modData[CHC_main.getFavoriteModDataString(item.recipe)] or false
-    local name = item:getDisplayName()
+    local name = item.displayName
     if name then
         self.itemsList:addItem(name, item)
     end
@@ -245,7 +244,7 @@ function CHC_search:categorySelectorFillOptions()
     local c = 1
     local pairs = pairs
     for _, item in pairs(allItems) do
-        local ic = item:getDisplayCategory()
+        local ic = item.displayCategory
         if ic then
             if not utils.any(uniqueCategories, ic) then
                 uniqueCategories[c] = ic
@@ -337,7 +336,7 @@ function CHC_items_list:doDrawItem(y, item, alt)
 
     -- region icons
     if iconsEnabled then
-        local itemIcon = itemObj:getTex()
+        local itemIcon = itemObj.texture
         self:drawTextureScaled(itemIcon, 6, y + 6, item.height - 12, item.height - 12, 1)
     end
     --endregion

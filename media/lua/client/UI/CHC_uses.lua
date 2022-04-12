@@ -17,6 +17,11 @@ CHC_uses.searchIcon = getTexture("media/textures/search_icon.png")
 
 local utils = require('CHC_utils')
 
+local insert = table.insert
+local sort = table.sort
+local pairs = pairs
+local concat = table.concat
+
 CHC_uses.localData = {
     typeFilterToNumOfRecipes = {}
 }
@@ -38,7 +43,7 @@ function CHC_uses:categorySelectorFillOptions()
         if not is_fav_recipes and allrec[i].favorite then
             is_fav_recipes = true
         end
-        local rc = allrec[i].recipe:getCategory() or getText("IGUI_CraftCategory_General")
+        local rc = allrec[i].recipeData.category
         rc = getTextOrNull("IGUI_CraftCategory_" .. rc) or rc
         if not utils.any(uniqueCategories, rc) then
             uniqueCategories[c] = rc
@@ -50,7 +55,7 @@ function CHC_uses:categorySelectorFillOptions()
         self.filterRow.categorySelector:addOption("* " .. getText("IGUI_CraftCategory_Favorite"))
     end
 
-    table.sort(uniqueCategories)
+    sort(uniqueCategories)
     for _, rc in pairs(uniqueCategories) do
         self.filterRow.categorySelector:addOption(rc)
     end
@@ -251,7 +256,7 @@ function CHC_uses:updateRecipes(sl)
         search_state = self:searchTypeFilter(recipes[i])
 
         if (type_filter_state or fav_cat_state) and search_state then
-            table.insert(filteredRecipes, recipes[i])
+            insert(filteredRecipes, recipes[i])
         end
     end
     self:refreshRecipeList(filteredRecipes)
@@ -259,7 +264,7 @@ end
 
 function CHC_uses:processAddRecipeToRecipeList(recipe, modData)
     if not self.showHidden and recipe.recipe:isHidden() then return end
-    local name = recipe.recipe:getName()
+    local name = recipe.recipeData.name
     recipe.favorite = modData[CHC_main.getFavoriteModDataString(recipe.recipe)] or false
 
     self.recipesList:addItem(name, recipe)
@@ -274,7 +279,7 @@ function CHC_uses:refreshRecipeList(recipes)
     for i = 1, #recipes do
         self:processAddRecipeToRecipeList(recipes[i], modData)
     end
-    table.sort(self.recipesList.items, self.itemSortFunc)
+    sort(self.recipesList.items, self.itemSortFunc)
 end
 
 function CHC_uses:onRecipeChange(recipe)
@@ -304,7 +309,7 @@ end
 function CHC_uses:searchParseTokens(txt)
 
     local delim = { ",", "|" }
-    local regex = "[^" .. table.concat(delim) .. "]+"
+    local regex = "[^" .. concat(delim) .. "]+"
     local queryType
 
     txt = string.trim(txt)
@@ -316,7 +321,7 @@ function CHC_uses:searchParseTokens(txt)
 
     local tokens = {}
     for token in txt:gmatch(regex) do
-        table.insert(tokens, token)
+        insert(tokens, token)
     end
     if #tokens == 1 then
         return tokens, false, nil
@@ -351,7 +356,7 @@ function CHC_uses:searchProcessToken(token, recipe)
     if isAllowSpecialSearch and char == "^" then
         -- show favorited reciped and search by them
         if not recipe.favorite then return false end
-        whatCompare = string.lower(recipe.recipe:getName())
+        whatCompare = string.lower(recipe.recipeData.name)
     end
     if token and isSpecialSearch then
         if char == "!" then
@@ -359,7 +364,7 @@ function CHC_uses:searchProcessToken(token, recipe)
             local catName = getTextOrNull("IGUI_CraftCategory_" .. recipe.category) or recipe.category
             whatCompare = catName
         end
-        local resultItem = CHC_main.items[recipe.recipe:getResult():getFullType()]
+        local resultItem = CHC_main.items[recipe.recipeData.result.fullType]
         if resultItem then
             if char == "@" then
                 -- search by mod name of resulting item
@@ -385,14 +390,14 @@ function CHC_uses:searchProcessToken(token, recipe)
                 for k = 0, sItems:size() - 1 do
                     local itemString = sItems:get(k)
                     local item = CHC_main.items[itemString]
-                    if item then table.insert(items, item:getDisplayName()) end
+                    if item then insert(items, item:getDisplayName()) end
                 end
             end
             whatCompare = items
         end
     end
     if token and not isSpecialSearch then
-        whatCompare = string.lower(recipe.recipe:getName())
+        whatCompare = string.lower(recipe.recipeData.name)
     end
     state = utils.compare(whatCompare, token)
     if not token then state = true end
@@ -409,7 +414,7 @@ function CHC_uses:searchTypeFilter(recipe)
 
     if isMultiSearch then
         for i = 1, #tokens do
-            table.insert(tokenStates, self:searchProcessToken(tokens[i], recipe))
+            insert(tokenStates, self:searchProcessToken(tokens[i], recipe))
         end
         for i = 1, #tokenStates do
             if queryType == 'OR' then
@@ -436,11 +441,11 @@ end
 
 -- region filter logic handlers
 CHC_uses.sortByNameAsc = function(a, b)
-    return a.item.recipe:getName() < b.item.recipe:getName()
+    return a.item.recipeData.name < b.item.recipeData.name
 end
 
 CHC_uses.sortByNameDesc = function(a, b)
-    return a.item.recipe:getName() > b.item.recipe:getName()
+    return a.item.recipeData.name > b.item.recipeData.name
 end
 
 
@@ -450,6 +455,7 @@ function CHC_uses:sortByName()
     local sl = option.options[option.selected]
     self.itemSortAsc = not self.itemSortAsc
     self.itemSortFunc = self.itemSortAsc and CHC_uses.sortByNameAsc or CHC_uses.sortByNameDesc
+
     local newIcon = self:filterRowOrderSetIcon()
     self.filterRow.filterOrderBtn:setImage(newIcon)
     local newTooltip = self:filterRowOrderSetTooltip()
