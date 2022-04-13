@@ -64,9 +64,9 @@ end
 function CHC_uses:onResizeHeaders()
     self.filterRow:setWidth(self.headers.nameHeader.width)
     self.searchRow:setWidth(self.headers.nameHeader.width)
-    self.recipesList:setWidth(self.headers.nameHeader.width)
-    self.recipePanel:setWidth(self.headers.typeHeader.width)
-    self.recipePanel:setX(self.headers.typeHeader.x)
+    self.objList:setWidth(self.headers.nameHeader.width)
+    self.objPanel:setWidth(self.headers.typeHeader.width)
+    self.objPanel:setX(self.headers.typeHeader.x)
 end
 
 -- region filterRow setters
@@ -134,7 +134,7 @@ function CHC_uses:create()
         filterSelectorData = {
             defaultCategory = getText("UI_tab_uses_categorySelector_All"),
             defaultTooltip = getText("IGUI_invpanel_Category"),
-            onChange = self.onChangeUsesRecipeCategory
+            onChange = self.onChangeCategory
         }
     }
 
@@ -152,13 +152,13 @@ function CHC_uses:create()
 
     -- region recipe list
     local rlh = self.height - self.headers.height - self.filterRow.height - self.searchRow.height
-    self.recipesList = CHC_uses_recipelist:new(x, leftY, leftW, rlh);
+    self.objList = CHC_uses_recipelist:new(x, leftY, leftW, rlh);
 
-    self.recipesList.drawBorder = true;
-    self.recipesList:initialise();
-    self.recipesList:instantiate();
-    self.recipesList:setAnchorBottom(true)
-    self.recipesList:setOnMouseDownFunction(self, CHC_uses.onRecipeChange);
+    self.objList.drawBorder = true;
+    self.objList:initialise();
+    self.objList:instantiate();
+    self.objList:setAnchorBottom(true)
+    self.objList:setOnMouseDownFunction(self, CHC_uses.onRecipeChange);
 
     -- Add entries to recipeList
     self:cacheFullRecipeCount(self.recipeSource)
@@ -167,19 +167,19 @@ function CHC_uses:create()
 
     -- region recipe details windows
     local rph = self.height - self.headers.height
-    self.recipePanel = CHC_uses_recipepanel:new(rightX, y, rightW, rph);
-    self.recipePanel:initialise();
-    self.recipePanel:instantiate();
-    self.recipePanel:setAnchorRight(true)
-    self.recipePanel:setAnchorBottom(true)
+    self.objPanel = CHC_uses_recipepanel:new(rightX, y, rightW, rph);
+    self.objPanel:initialise();
+    self.objPanel:instantiate();
+    self.objPanel:setAnchorRight(true)
+    self.objPanel:setAnchorBottom(true)
     -- endregion
 
     -- Attach all to the craft helper window
     self:addChild(self.headers)
     self:addChild(self.filterRow)
     self:addChild(self.searchRow)
-    self:addChild(self.recipesList)
-    self:addChild(self.recipePanel)
+    self:addChild(self.objList)
+    self:addChild(self.objPanel)
 end
 
 -- endregion
@@ -197,7 +197,7 @@ function CHC_uses:onTextChange()
     end
 end
 
-function CHC_uses:onChangeUsesRecipeCategory(_option, sl)
+function CHC_uses:onChangeCategory(_option, sl)
     sl = sl or _option.options[_option.selected]
     self.parent:updateRecipes(sl)
 end
@@ -233,7 +233,7 @@ function CHC_uses:updateRecipes(sl)
     end
 
     -- get all containers nearby
-    ISCraftingUI.getContainers(self.recipesList)
+    ISCraftingUI.getContainers(self.objList)
 
     -- filter recipes
     local filteredRecipes = {}
@@ -267,24 +267,24 @@ function CHC_uses:processAddRecipeToRecipeList(recipe, modData)
     local name = recipe.recipeData.name
     recipe.favorite = modData[CHC_main.getFavoriteModDataString(recipe.recipe)] or false
 
-    self.recipesList:addItem(name, recipe)
+    self.objList:addItem(name, recipe)
 end
 
 function CHC_uses:refreshRecipeList(recipes)
-    self.recipesList:clear()
-    self.recipesList:setScrollHeight(0)
+    self.objList:clear()
+    self.objList:setScrollHeight(0)
 
     local modData = getPlayer():getModData()
 
     for i = 1, #recipes do
         self:processAddRecipeToRecipeList(recipes[i], modData)
     end
-    sort(self.recipesList.items, self.itemSortFunc)
+    sort(self.objList.items, self.itemSortFunc)
 end
 
 function CHC_uses:onRecipeChange(recipe)
-    self.recipePanel:setRecipe(recipe);
-    self.recipesList:onMouseDown_Recipes(self.recipesList:getMouseX(), self.recipesList:getMouseY())
+    self.objPanel:setRecipe(recipe);
+    self.objList:onMouseDown_Recipes(self.objList:getMouseX(), self.objList:getMouseY())
 end
 
 -- endregion
@@ -293,7 +293,7 @@ end
 
 -- region filter handlers
 function CHC_uses:recipeTypeFilter(recipe)
-    local rl = self.recipesList
+    local rl = self.objList
 
     local is_valid = RecipeManager.IsRecipeValid(recipe.recipe, rl.player, nil, rl.containerList)
     local is_known = rl.player:isRecipeKnown(recipe.recipe)
@@ -368,14 +368,14 @@ function CHC_uses:searchProcessToken(token, recipe)
         if resultItem then
             if char == "@" then
                 -- search by mod name of resulting item
-                whatCompare = resultItem:getModName()
+                whatCompare = resultItem.modname
             elseif char == "$" then
                 -- search by DisplayCategory of resulting item
-                local displayCat = resultItem:getDisplayCategory() or ""
+                local displayCat = resultItem.displayCategory or ""
                 whatCompare = getText("IGUI_ItemCat_" .. displayCat) or "None"
             elseif char == "%" then
                 -- search by name of resulting item
-                whatCompare = resultItem:getDisplayName()
+                whatCompare = resultItem.displayName
             end
         end
         if char == "#" then
@@ -390,7 +390,7 @@ function CHC_uses:searchProcessToken(token, recipe)
                 for k = 0, sItems:size() - 1 do
                     local itemString = sItems:get(k)
                     local item = CHC_main.items[itemString]
-                    if item then insert(items, item:getDisplayName()) end
+                    if item then insert(items, item.displayName) end
                 end
             end
             whatCompare = items
@@ -554,6 +554,7 @@ function CHC_uses:new(args)
     o.borderColor = { r = 0.4, g = 0.4, b = 0.4, a = 1 };
     o.backgroundColor = { r = 0, g = 0, b = 0, a = 0.8 };
 
+    o.item = args.item or nil
     o.recipeSource = args.recipeSource
     o.itemSortAsc = args.itemSortAsc
     o.typeFilter = args.typeFilter

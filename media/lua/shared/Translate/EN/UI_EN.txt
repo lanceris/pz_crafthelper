@@ -60,4 +60,5 @@ UI_EN = {
     UI_optionscreen_binding_chc_craft_all = "Craft all"
     UI_optionscreen_binding_chc_favorite_recipe = "Favorite selected recipe"
     UI_optionscreen_binding_chc_close_window = "Close Craft Helper window"
+    UI_optionscreen_binding_chc_toggle_window = "Toggle Craft Helper window"
 }

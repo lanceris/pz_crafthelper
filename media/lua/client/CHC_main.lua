@@ -35,19 +35,27 @@ end
 CHC_main.loadDatas = function()
 	CHC_main.loadAllItems()
 	CHC_main.loadAllRecipes()
+
+	CHC_menu.createCraftHelper()
 end
 
 CHC_main.processOneItem = function(item)
 	local fullType = item:getFullName()
 	local invItem = instanceItem(fullType)
 	if not CHC_main.items[fullType] then
-		CHC_main.items[invItem:getFullType()] = invItem
 		local toinsert = {
 			item = invItem,
+			fullType = invItem:getFullType(),
+			name = invItem:getName(),
+			modname = invItem:getModName(),
+			isVanilla = invItem:isVanilla(),
+			IsDrainable = invItem:IsDrainable(),
 			displayName = invItem:getDisplayName(),
+			count = invItem:getCount() or 1,
 			displayCategory = invItem:getDisplayCategory() or "Item",
 			texture = invItem:getTex()
 		}
+		CHC_main.items[invItem:getFullType()] = toinsert
 		insert(CHC_main.itemsForSearch, toinsert)
 		-- CHC_main.items[fullType] = invItem
 	else
@@ -118,7 +126,7 @@ CHC_main.loadAllRecipes = function()
 		newItem.recipeData.result.fullType = resultFullType
 		insert(CHC_main.allRecipes, newItem)
 		if itemres then
-			CHC_main.setRecipeForItem(CHC_main.recipesForItem, itemres:getName(), newItem)
+			CHC_main.setRecipeForItem(CHC_main.recipesForItem, itemres.name, newItem)
 		else
 			insert(CHC_main.recipesWithoutItem, resultItem:getFullType())
 		end
@@ -134,7 +142,7 @@ CHC_main.loadAllRecipes = function()
 				local item = CHC_main.handleItems(itemString, recipe)
 
 				if item then
-					CHC_main.setRecipeForItem(CHC_main.recipesByItem, item:getName(), newItem)
+					CHC_main.setRecipeForItem(CHC_main.recipesByItem, item.name, newItem)
 				end
 			end
 		end
@@ -169,13 +177,10 @@ function CHC_main.reloadMod(key)
 	if key == Keyboard.KEY_O then
 		CHC_main.loadDatas()
 		local all = CHC_main
-		error('debug')
+		-- error('debug')
 	end
 end
 
----
--- Load all recipes and items in array when game starts
---
 if CHC_main.isDebug then
 	Events.OnKeyPressed.Add(CHC_main.reloadMod)
 end

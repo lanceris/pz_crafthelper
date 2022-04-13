@@ -6,38 +6,47 @@ require 'UI/CHC_uses'
 require 'UI/CHC_search'
 -- require 'UI/craftHelperUpdSearchScreen';
 
-CHC_window = ISCollapsableWindow:derive("CHC_window");
+CHC_window = ISCollapsableWindow:derive("CHC_window")
 
 function CHC_window:initialise()
-    ISCollapsableWindow.initialise(self);
+    ISCollapsableWindow.initialise(self)
+    self:create()
 end
 
-function CHC_window:refresh()
-    local selectedView
-    if #self.panel.viewList > 2 then
-        -- there is item selected
-        selectedView = self.panel.viewList[3].name
-    else
-        selectedView = self.panel.activeView.name
-    end
+function CHC_window:create()
+    ISCollapsableWindow.createChildren(self)
 
-    self.panel:activateView(selectedView)
-end
+    -- region main container (search, favorites and all selected items)
+    self.panel = ISTabPanel:new(1, self:titleBarHeight(), self.width, self.height - 60)
+    self.panel:initialise()
+    self.panel:setAnchorRight(true)
+    self.panel.onRightMouseDown = self.onMainTabRightMouseDown
+    -- self.panel:setEqualTabWidth(true)
+    -- endregion
 
-function CHC_window:getRecipes(favOnly)
-    favOnly = favOnly or false
-    local favoriteRecipes = {}
-    local allrec = CHC_main.allRecipes
-    local insert = table.insert
-    for i = 1, #allrec do
-        if (favOnly and allrec[i].favorite) or (not favOnly) then
-            insert(favoriteRecipes, allrec[i])
+    self.common_screen_data = { x = 0, y = 8, w = self.width, h = self.panel.height - 42 }
+
+    self:addSearchPanel()
+    self:addFavoriteScreen()
+
+    -- add tab for each selected item
+    if self.items then
+        for i = 1, #self.items do
+            local item = self.items[i]
+            if not instanceof(item, "InventoryItem") then
+                item = item.items[1]
+            end
+            self:addItemView(item)
         end
     end
-    return favoriteRecipes
+
+    self:addChild(self.panel)
+
+    self:refresh()
 end
 
 function CHC_window:addSearchPanel()
+    local options = CHC_config.options
 
     -- region search panel
     if CHC_menu.cachedItemsView then
@@ -54,10 +63,10 @@ function CHC_window:addSearchPanel()
         local items_screen_init = self.common_screen_data
         local items_extra = {
             recipeSource = itemsData,
-            itemSortAsc = CHC_menu.cfg.uses_filter_name_asc or true,
-            typeFilter = CHC_menu.cfg.uses_filter_type or "all",
-            showHidden = CHC_menu.cfg.uses_show_hidden_recipes,
-            sep_x = CHC_menu.cfg.uses_tab_sep_x or 250
+            itemSortAsc = options.uses_filter_name_asc,
+            typeFilter = options.uses_filter_type,
+            showHidden = options.uses_show_hidden_recipes,
+            sep_x = options.uses_tab_sep_x
         }
         for k, v in pairs(items_extra) do items_screen_init[k] = v end
         self.searchItemsScreen = CHC_search:new(items_screen_init)
@@ -73,10 +82,10 @@ function CHC_window:addSearchPanel()
         local recipes_screen_init = self.common_screen_data
         local recipes_extra = {
             recipeSource = recipesData,
-            itemSortAsc = CHC_menu.cfg.uses_filter_name_asc or true,
-            typeFilter = CHC_menu.cfg.uses_filter_type or "all",
-            showHidden = CHC_menu.cfg.uses_show_hidden_recipes,
-            sep_x = CHC_menu.cfg.uses_tab_sep_x or 250
+            itemSortAsc = options.uses_filter_name_asc,
+            typeFilter = options.uses_filter_type,
+            showHidden = options.uses_show_hidden_recipes,
+            sep_x = options.uses_tab_sep_x
         }
         for k, v in pairs(recipes_extra) do recipes_screen_init[k] = v end
         self.searchRecipesScreen = CHC_uses:new(recipes_screen_init)
@@ -96,6 +105,7 @@ function CHC_window:addSearchPanel()
 end
 
 function CHC_window:addFavoriteScreen()
+    local options = CHC_config.options
 
     -- region favorites screen
     local favRec = self:getRecipes(true)
@@ -103,10 +113,10 @@ function CHC_window:addFavoriteScreen()
     local fav_screen_init = self.common_screen_data
     local fav_extra = {
         recipeSource = favRec,
-        itemSortAsc = CHC_menu.cfg.uses_filter_name_asc or true,
-        typeFilter = CHC_menu.cfg.uses_filter_type or "all",
-        showHidden = CHC_menu.cfg.uses_show_hidden_recipes,
-        sep_x = CHC_menu.cfg.uses_tab_sep_x or 250
+        itemSortAsc = options.uses_filter_name_asc,
+        typeFilter = options.uses_filter_type,
+        showHidden = options.uses_show_hidden_recipes,
+        sep_x = options.uses_tab_sep_x
     }
     for k, v in pairs(fav_extra) do fav_screen_init[k] = v end
     self.favoritesScreen = CHC_uses:new(fav_screen_init)
@@ -118,6 +128,20 @@ function CHC_window:addFavoriteScreen()
 end
 
 function CHC_window:addItemView(item)
+    local ifn = item:getFullType()
+    local itn = CHC_main.items[ifn]
+    local nameForTab = itn.displayName
+    -- check if there is existing tab with same name (and same item)
+    local existingView = self.panel:getView(nameForTab)
+    if existingView ~= nil then
+        if existingView.view and existingView.view.item ~= itn then -- same displayName, but different items
+            nameForTab = nameForTab .. string.format(" (%s)", itn.fullType)
+        else -- same displayName and same item
+            self:refresh(nameForTab)
+            return
+        end
+    end
+    local options = CHC_config.options
 
     -- region item screens
 
@@ -127,20 +151,22 @@ function CHC_window:addItemView(item)
     self.itemPanel:initialise()
     self.itemPanel:setAnchorRight(true)
     self.itemPanel:setAnchorBottom(true)
+    self.itemPanel.item = itn
     -- self.itemPanel:setEqualTabWidth(true)
-    self.panel:addView(item:getDisplayName(), self.itemPanel)
-
     -- endregion
+    local usesData = CHC_main.recipesByItem[itn.name]
+    local craftData = CHC_main.recipesForItem[itn.name]
+    self.panel:addView(nameForTab, self.itemPanel)
 
     --region uses screen
-    local usesData = CHC_main.recipesByItem[item:getName()]
     local uses_screen_init = self.common_screen_data
     local uses_extra = {
         recipeSource = usesData,
-        itemSortAsc = CHC_menu.cfg.uses_filter_name_asc or true,
-        typeFilter = CHC_menu.cfg.uses_filter_type or "all",
-        showHidden = CHC_menu.cfg.uses_show_hidden_recipes,
-        sep_x = CHC_menu.cfg.uses_tab_sep_x or 250
+        itemSortAsc = options.uses_filter_name_asc,
+        typeFilter = options.uses_filter_type,
+        showHidden = options.uses_show_hidden_recipes,
+        sep_x = options.uses_tab_sep_x,
+        item = itn
     }
     for k, v in pairs(uses_extra) do uses_screen_init[k] = v end
     self.usesScreen = CHC_uses:new(uses_screen_init)
@@ -153,15 +179,15 @@ function CHC_window:addItemView(item)
     --endregion
 
     -- region crafting screen
-    local craftData = CHC_main.recipesForItem[item:getName()]
 
     local craft_screen_init = self.common_screen_data
     local craft_extra = {
         recipeSource = craftData,
-        itemSortAsc = CHC_menu.cfg.craft_filter_name_asc or true,
-        typeFilter = CHC_menu.cfg.craft_filter_type or "all",
-        showHidden = CHC_menu.cfg.uses_show_hidden_recipes,
-        sep_x = CHC_menu.cfg.craft_tab_sep_x or 250
+        itemSortAsc = CHC_config.options.craft_filter_name_asc,
+        typeFilter = CHC_config.options.craft_filter_type,
+        showHidden = CHC_config.options.uses_show_hidden_recipes,
+        sep_x = CHC_config.options.craft_tab_sep_x,
+        item = itn
     }
     for k, v in pairs(craft_extra) do craft_screen_init[k] = v end
     self.craftScreen = CHC_uses:new(craft_screen_init)
@@ -173,44 +199,61 @@ function CHC_window:addItemView(item)
     end
     -- endregion
     --endregion
-
+    self:refresh()
 end
 
-function CHC_window:createChildren()
-    ISCollapsableWindow.createChildren(self)
-
-    -- region main container (search, favorites and all selected items)
-    self.panel = ISTabPanel:new(1, self:titleBarHeight(), self.width, self.height - 60)
-    self.panel:initialise()
-    self.panel:setAnchorRight(true)
-    -- self.panel:setEqualTabWidth(true)
-    -- endregion
-
-    self.common_screen_data = { x = 0, y = 8, w = self.width, h = self.panel.height - 60 }
-
-    self:addSearchPanel()
-    self:addFavoriteScreen()
-
-    -- add tab for each selected item
-    for i = 1, #self.items do
-        local item = self.items[i]
-        if not instanceof(item, "InventoryItem") then
-            item = item.items[1]
-        end
-        self:addItemView(item)
+function CHC_window:refresh(selectedView)
+    local panel = self.panel
+    selectedView = selectedView or nil
+    if selectedView then
+        panel:activateView(selectedView)
+        return
     end
+    local vl = panel.viewList
+    if #vl > 2 then
+        -- there is item selected
+        selectedView = vl[#vl].name
+    else
+        selectedView = vl[2].name -- favorites is default
+    end
+    panel:activateView(selectedView)
+end
 
-    self:addChild(self.panel)
+function CHC_window:getRecipes(favOnly)
+    favOnly = favOnly or false
+    local favoriteRecipes = {}
+    local allrec = CHC_main.allRecipes
+    local insert = table.insert
+    for i = 1, #allrec do
+        if (favOnly and allrec[i].favorite) or (not favOnly) then
+            insert(favoriteRecipes, allrec[i])
+        end
+    end
+    return favoriteRecipes
+end
 
-    self:refresh()
+function CHC_window:onMainTabRightMouseDown(x, y)
+    print('imma rmb')
 end
 
 -- region keyboard controls
 function CHC_window:onKeyRelease(key)
+    if self.isCollapsed then return end
+
+    -- local shiftDown = isShiftKeyDown()
+    -- local ctrlDown = isCtrlKeyDown()
+    -- local altDown = isAltKeyDown()
+
     local ui = self
-    if not ui.itemPanel or not ui.itemPanel.activeView then return end
-    local view = ui.itemPanel.activeView.view
-    local rl = view.recipesList
+    if not ui.panel or not ui.panel.activeView then return end
+    local view = ui.panel.activeView.view -- search, favorites or itemname
+    local subview
+    if not view.activeView then -- no subviews
+        subview = view
+    else
+        subview = view.activeView.view
+    end
+    local rl = subview.objList
 
     -- region close
     if key == CHC_settings.keybinds.close_window.key then
@@ -236,13 +279,15 @@ function CHC_window:onKeyRelease(key)
 
     local selectedItem = rl.items[rl.selected]
     if selectedItem then
-        view.recipesList:ensureVisible(rl.selected)
-        view.recipePanel:setRecipe(selectedItem.item)
+        subview.objList:ensureVisible(rl.selected)
+        if subview.objPanel then
+            subview.objPanel:setRecipe(selectedItem.item)
+        end
     end
     -- endregion
 
     -- region categories
-    local cs = view.filterRow.categorySelector
+    local cs = subview.filterRow.categorySelector
     local oldcsSel = cs.selected
     if key == CHC_settings.keybinds.move_left.key then
         cs.selected = cs.selected - 1
@@ -252,7 +297,7 @@ function CHC_window:onKeyRelease(key)
         if cs.selected > #cs.options then cs.selected = 1 end
     end
     if oldcsSel ~= cs.selected then
-        view:onChangeUsesRecipeCategory(nil, cs.options[cs.selected])
+        subview.onChangeCategory(subview.filterRow, nil, cs.options[cs.selected])
     end
     -- endregion
     -- endregion
@@ -265,23 +310,13 @@ function CHC_window:onKeyRelease(key)
 
     -- region crafting
     if key == CHC_settings.keybinds.craft_one.key then
-        if not view.recipePanel.newItem then return end
-        view.recipePanel:craft(nil, false)
+        if not subview.objPanel.newItem then return end
+        subview.objPanel:craft(nil, false)
     elseif key == CHC_settings.keybinds.craft_all.key then
-        if not view.recipePanel.newItem then return end
-        view.recipePanel:craft(nil, true)
+        if not subview.objPanel.newItem then return end
+        subview.objPanel:craft(nil, true)
     end
     -- endregion
-
-    -- search bar focus
-    -- if key == Keyboard.KEY_TAB then
-    --     -- if getCore():getGameMode() == "Multiplayer" then return end
-    --     if not view.searchRow then return end
-    --     local bar = view.searchRow.searchBar
-    --     if not bar:isFocused() then
-    --         bar:focus()
-    --     end
-    -- end
 end
 
 function CHC_window:isKeyConsumed(key)
@@ -293,7 +328,7 @@ function CHC_window:isKeyConsumed(key)
             break
         end
     end
-    -- if key == Keyboard.KEY_TAB then isKeyValid = true end
+    if key == CHC_settings.keybinds.toggle_window.key then isKeyValid = false end
 
     return isKeyValid
 end
@@ -327,6 +362,11 @@ function CHC_window:onResize()
         local view = ui.panel.viewList[i].view
         view:setWidth(self.width)
         view:setHeight(self.height - ui.panel.tabHeight - 60)
+        local headers = view.headers
+        if headers then
+            self:resizeHeaders(headers)
+            view:onResizeHeaders()
+        end
         if view.viewList then
             for j = 1, #view.viewList do
                 local subview = view.viewList[j].view
@@ -349,8 +389,14 @@ end
 
 function CHC_window:close()
     CHC_config.fn.updateSettings()
-    ISCollapsableWindow.close(self)
-    self:removeFromUIManager()
+    -- remove all views except search and favorites
+    local vl = self.panel
+    for i = #vl.viewList, 3, -1 do
+        vl:removeView(vl.viewList[i].view)
+    end
+    vl:activateView(vl.viewList[2].name)
+    CHC_menu.toggleUI()
+
 end
 
 function CHC_window:new(args)
@@ -376,7 +422,7 @@ function CHC_window:new(args)
     o.headerHgt = fontHgtSmall + 1
     o.player = args.player or nil
 
-    o:setWantKeyEvents(true);
+    o:setWantKeyEvents(true)
 
     return o;
 end

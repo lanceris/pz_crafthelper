@@ -37,7 +37,8 @@ CHC_settings = {
         craft_one = { key = Keyboard.KEY_NONE, name = "chc_craft_one" },
         favorite_recipe = { key = Keyboard.KEY_NONE, name = "chc_favorite_recipe" },
         craft_all = { key = Keyboard.KEY_NONE, name = "chc_craft_all" },
-        close_window = { key = Keyboard.KEY_ESCAPE, name = "chc_close_window" }
+        close_window = { key = Keyboard.KEY_ESCAPE, name = "chc_close_window" },
+        toggle_window = { key = Keyboard.KEY_NONE, name = "chc_toggle_window" }
     },
     integrations = {
         Hydrocraft = {
@@ -117,7 +118,6 @@ end
 
 CHC_config.fn.saveSettings = function(t)
     if is_open then return end
-    ;
     local fileWriterObj = getFileWriter(cfg_name, true, false)
     is_open = true
     local data = CHC_config.fn.encodeSettings(t)
@@ -134,26 +134,27 @@ CHC_config.fn.resetSettings = function()
     data.main_window_h = 600
     data.main_window_min_w = 400
     data.main_window_min_h = 350
-    -- data.uses_tab_sep_x = 500
-    -- data.uses_filter_name_asc = true
-    -- data.uses_filter_type = "all"
-    -- data.craft_tab_sep_x = 500
-    -- data.craft_filter_name_asc = true
-    -- data.craft_filter_type = "all"
+    data.uses_tab_sep_x = 300
+    data.craft_tab_sep_x = 300
+    data.uses_filter_name_asc = true
+    data.uses_filter_type = "all"
     CHC_config.fn.saveSettings(data)
 end
 
 CHC_config.fn.updateSettings = function(menu)
     local data = {}
-    local menu = menu or CHC_menu.CHC_Window
+    local menu = menu or CHC_menu.CHC_window
     if not menu then return end
-    ;
     data.main_window_x = menu:getX()
     data.main_window_y = menu:getY()
     data.main_window_w = menu.width
     data.main_window_h = menu.height
     data.main_window_min_w = menu.minimumWidth
     data.main_window_min_h = menu.minimumHeight
+    data.uses_tab_sep_x = 300
+    data.craft_tab_sep_x = 300
+    data.uses_filter_name_asc = true
+    data.uses_filter_type = "all"
     -- if menu.usesScreen and menu.usesScreen.headers then
     --     data.uses_tab_sep_x = menu.usesScreen.headers.nameHeader.width or 250
     --     data.uses_filter_name_asc = menu.usesScreen.itemSortAsc == true
