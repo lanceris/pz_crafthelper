@@ -73,7 +73,7 @@ function CHC_window:addSearchPanel()
         self.searchItemsScreen = CHC_search:new(items_screen_init)
         if itemsData then
             self.searchItemsScreen:initialise()
-            self.searchPanel:addView("Items", self.searchItemsScreen)
+            self.searchPanel:addView(getText("UI_search_items_tab_name"), self.searchItemsScreen)
         end
         -- endregion
 
@@ -92,13 +92,13 @@ function CHC_window:addSearchPanel()
 
         if recipesData then
             self.searchRecipesScreen:initialise()
-            self.searchPanel:addView("Recipes", self.searchRecipesScreen)
+            self.searchPanel:addView(getText("UI_search_recipes_tab_name"), self.searchRecipesScreen)
         end
         -- endregion
         CHC_menu.cachedItemsView = self.searchPanel
     end
-    self.searchPanel.infoText = getText("UI_infotext_search") .. getText("UI_infotext_common", getText("UI_tab_uses_recipe_title"), getText("UI_tab_uses_details_title"))
-    self.panel:addView("[WIP] Search", self.searchPanel)
+    self.searchPanel.infoText = getText("UI_infotext_search") .. getText("UI_infotext_common", getText("UI_common_left_col_name"), getText("UI_common_right_col_name"))
+    self.panel:addView("[WIP] " .. getText("UI_search_tab_name"), self.searchPanel)
 
     --endregion
 
@@ -121,8 +121,8 @@ function CHC_window:addFavoriteScreen()
     for k, v in pairs(fav_extra) do fav_screen_init[k] = v end
     self.favoritesScreen = CHC_uses:new(fav_screen_init)
     self.favoritesScreen:initialise()
-    self.favoritesScreen.infoText = getText("UI_infotext_favorites") .. getText("UI_infotext_common", getText("UI_tab_uses_recipe_title"), getText("UI_tab_uses_details_title"))
-    self.panel:addView("[WIP] Favorites", self.favoritesScreen)
+    self.favoritesScreen.infoText = getText("UI_infotext_favorites") .. getText("UI_infotext_common", getText("UI_common_left_col_name"), getText("UI_common_right_col_name"))
+    self.panel:addView("[WIP] " .. getText("IGUI_CraftCategory_Favorite"), self.favoritesScreen)
     -- endregion
 
 end
@@ -174,7 +174,7 @@ function CHC_window:addItemView(item)
 
     if usesData then
         self.usesScreen:initialise()
-        self.itemPanel:addView(getText("UI_tab_uses"), self.usesScreen)
+        self.itemPanel:addView(getText("UI_item_uses_tab_name"), self.usesScreen)
     end
     --endregion
 
@@ -194,12 +194,12 @@ function CHC_window:addItemView(item)
 
     if craftData then
         self.craftScreen:initialise()
-        self.itemPanel:addView(getText("UI_tab_craft"), self.craftScreen)
+        self.itemPanel:addView(getText("UI_item_craft_tab_name"), self.craftScreen)
     end
     -- endregion
     --endregion
-    self.itemPanel.infoText = getText("UI_infotext_itemtab", itn.displayName, getText("UI_tab_uses"), getText("UI_tab_craft")) ..
-        getText("UI_infotext_common", getText("UI_tab_uses_recipe_title"), getText("UI_tab_uses_details_title"))
+    self.itemPanel.infoText = getText("UI_infotext_itemtab", itn.displayName, getText("UI_item_uses_tab_name"), getText("UI_item_craft_tab_name")) ..
+        getText("UI_infotext_common", getText("UI_common_left_col_name"), getText("UI_common_right_col_name"))
     self:refresh()
 end
 
@@ -516,7 +516,7 @@ function CHC_window:new(args)
         o[k] = v
     end
 
-    o.title = 'Craft Helper 41'
+    o.title = getText("IGUI_chc_context_onclick")
     --o:noBackground();
     o.th = o:titleBarHeight()
     o.rh = o:resizeWidgetHeight()

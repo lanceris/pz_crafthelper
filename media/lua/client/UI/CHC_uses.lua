@@ -80,7 +80,7 @@ end
 
 function CHC_uses:filterRowTypeSetTooltip()
     local typeFilterToTxt = {
-        all = getText("UI_settings_av_all"),
+        all = getText("UI_All"),
         valid = getText("UI_settings_av_valid"),
         known = getText("UI_settings_av_known"),
         invalid = getText("UI_settings_av_invalid")
@@ -131,7 +131,7 @@ function CHC_uses:create()
             defaultIcon = self:filterRowTypeSetIcon()
         },
         filterSelectorData = {
-            defaultCategory = getText("UI_tab_uses_categorySelector_All"),
+            defaultCategory = getText("UI_All"),
             defaultTooltip = getText("IGUI_invpanel_Category"),
             onChange = self.onChangeCategory
         }
@@ -144,7 +144,7 @@ function CHC_uses:create()
     -- endregion
 
     -- region search bar
-    self.searchRow = CHC_search_bar:new(x, leftY, leftW, 24, nil, self.onTextChange, getText("UI_search_info"))
+    self.searchRow = CHC_search_bar:new(x, leftY, leftW, 24, nil, self.onTextChange, getText("UI_searchrow_info"))
     self.searchRow:initialise()
     leftY = leftY + 24
     -- endregion
@@ -222,7 +222,7 @@ function CHC_uses:cacheFullRecipeCount(recipes)
 end
 
 function CHC_uses:updateRecipes(sl)
-    local categoryAll = getText("UI_tab_uses_categorySelector_All")
+    local categoryAll = getText("UI_All")
     local searchBar = self.searchRow.searchBar
     local recipes = self.recipeSource
 
@@ -510,7 +510,7 @@ function CHC_uses:onFilterTypeMenu(button)
     local context = ISContextMenu.get(0, x + 10, y)
 
     local data = {
-        { txt = "UI_settings_av_all", num = self.numRecipesAll, arg = 'all' },
+        { txt = "UI_All", num = self.numRecipesAll, arg = 'all' },
         { txt = "UI_settings_av_valid", num = self.numRecipesValid, arg = 'valid' },
         { txt = "UI_settings_av_known", num = self.numRecipesKnown, arg = 'known' },
         { txt = "UI_settings_av_invalid", num = self.numRecipesInvalid, arg = 'invalid' }

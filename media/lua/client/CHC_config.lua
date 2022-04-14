@@ -34,38 +34,46 @@ CHC_settings = {
     }
 }
 
-if ModOptions and ModOptions.getInstance then
-    local function onModOptionsApply(values)
-        CHC_settings.config.allow_special_search = values.settings.options.allow_special_search
-        CHC_settings.config.show_icons = values.settings.options.show_icons
-        CHC_settings.config.show_hidden = values.settings.options.show_hidden
-        CHC_settings.config.close_all_on_exit = values.settings.options.close_all_on_exit
+local function onModOptionsApply(values)
+    CHC_settings.config.allow_special_search = values.settings.options.allow_special_search
+    CHC_settings.config.show_icons = values.settings.options.show_icons
+    CHC_settings.config.show_hidden = values.settings.options.show_hidden
+    CHC_settings.config.close_all_on_exit = values.settings.options.close_all_on_exit
+    if not CHC_settings.config.main_window then
+        CHC_settings.Load()
     end
+    CHC_settings.Save()
+end
 
+if ModOptions and ModOptions.getInstance then
     CHC_settings.settings = {
         options_data = {
             allow_special_search = {
                 name = "IGUI_AllowSpecialSearch",
                 tooltip = "IGUI_AllowSpecialSearchTooltip",
                 default = true,
+                OnApplyMainMenu = onModOptionsApply,
                 OnApplyInGame = onModOptionsApply
             },
             show_icons = {
                 name = "IGUI_ShowIcons",
                 tooltip = "IGUI_ShowIconsTooltip",
                 default = false,
+                OnApplyMainMenu = onModOptionsApply,
                 OnApplyInGame = onModOptionsApply
             },
             show_hidden = {
                 name = "IGUI_ShowHidden",
                 tooltip = "IGUI_ShowHiddenTooltip",
                 default = true,
+                OnApplyMainMenu = onModOptionsApply,
                 OnApplyInGame = onModOptionsApply
             },
             close_all_on_exit = {
                 name = "IGUI_CloseAllOnExit",
                 tooltip = "IGUI_CloseAllOnExitTooltip",
                 default = false,
+                OnApplyMainMenu = onModOptionsApply,
                 OnApplyInGame = onModOptionsApply
             }
         },
@@ -115,6 +123,7 @@ CHC_settings.Load = function()
             show_icons = false,
             allow_special_search = true,
             show_hidden = true,
+            close_all_on_exit = false,
             main_window = { x = 100, y = 100, w = 1000, h = 600 },
             uses = { sep_x = 500, filter_asc = true, filter_type = "all" },
             craft = { sep_x = 500, filter_asc = true, filter_type = "all" },

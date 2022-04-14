@@ -1,6 +1,36 @@
 UI_RU = {
-    UI_tab_uses = "Применение"
-    UI_tab_craft = "Создание"
+    UI_item_uses_tab_name = "Применение"
+    UI_item_craft_tab_name = "Создание"
+    UI_common_left_col_name = "Рецепт"
+    UI_common_right_col_name = "Подробности"
+    UI_search_tab_name = "Поиск"
+    UI_search_items_tab_name = "Предметы"
+    UI_search_recipes_tab_name = "Рецепты"
+    UI_recipe_panel_required_book = "Требуемые книги (одно из)"
+    UI_recipe_panel_near_item = "Необходимое оборудование для создания"
+
+    UI_settings_st_title = "Порядок сортировки"
+    UI_settings_av_title = "Доступность"
+    UI_settings_av_valid = "Доступные"
+    UI_settings_av_known = "Известные"
+    UI_settings_av_invalid = "Недоступные"
+
+    UI_optionscreen_binding_chc_category_title = "Craft Helper"
+    UI_optionscreen_binding_chc_move_up = "Предыдущий рецепт"
+    UI_optionscreen_binding_chc_move_down = "Следующий рецепт"
+    UI_optionscreen_binding_chc_move_left = "Предыдущая категория"
+    UI_optionscreen_binding_chc_move_right = "Следующая категория"
+    UI_optionscreen_binding_chc_craft_one = "Создать штуку"
+    UI_optionscreen_binding_chc_craft_all = "Создать максимум"
+    UI_optionscreen_binding_chc_favorite_recipe = "Добавить рецепт в избранное"
+    UI_optionscreen_binding_chc_close_window = "Закрыть окно Craft Helper"
+    UI_optionscreen_binding_chc_toggle_window = "Скрыть/показать окно Craft Helper"
+    UI_optionscreen_binding_chc_toggle_uses_craft = "Переключение между Применение/Создание"
+    UI_optionscreen_binding_chc_move_tab_left = "Предыдущая вкладка"
+    UI_optionscreen_binding_chc_move_tab_right = "Следующая вкладка"
+    UI_optionscreen_binding_chc_toggle_focus_search_bar = "Переключить фокус строки поиска"
+
+
     UI_infotext_common = "Левый столбец (%1) показывает список рецептов с дополнительными элементами управления. <LINE> "..
                         "Первая кнопка (с четырьмя линиями) показывает текущий порядок сортировки (По возрастанию или По убыванию). Вы можете изменить порядок, нажав на неё. <LINE> "..
                         "Вторая кнопка позволяет фильтровать список репецтов. <LINE> "..
@@ -12,9 +42,9 @@ UI_RU = {
                         "Под селектором категорий есть панель поиска, где вы можете искать по названию рецепта или по особым правилам, в зависимости от вашего запроса. <LINE> "..
                         "Чтобы узнать больше о правилах поиска, нажмите на <IMAGE:media/textures/search_icon.png> <LINE> "..
                         "В списке рецептов вы также можете добавить (убрать) рецепт в избранное, щелкнув на иконку звезды. <LINE> <LINE> "..
-                        "Правый столбец (%2) показывает детали рецепта (категорию, результат, и что требуется для создания)."..
+                        "Правый столбец (%2) показывает детали рецепта (категорию, результат, и что требуется для создания). <LINE> <LINE> "..
                         "Кстати, вы можете изменить размер столбцов %1 и %2, захватив и перетащив линию между их названиями. <LINE> "
-    UI_search_info = "<CENTRE><SIZE:medium> Помощник Поиска <LINE> <LINE> "..
+    UI_searchrow_info = "<CENTRE><SIZE:medium> Помощник Поиска <LINE> <LINE> "..
                     "<LEFT><SIZE:small> Эта панель поиска поддерживает настраиваемые правила. Каждый отдельный запрос называется Токен. <LINE> <LINE> "..
                     "Во-первых, вы можете искать сразу по нескольким запросам, используя один из следующих разделителей: <LINE> "..
                     "<SIZE:medium> , (запятая) <SIZE:small> : объединить все результаты Токенов (логическое И), можно использовать для очень специфической фильтрации <LINE> "..
@@ -40,33 +70,4 @@ UI_RU = {
                 "<SIZE:small> <LEFT> Здесь вы можете найти подробную информацию о '%1' <LINE> <LINE> "..
                 "Первая вкладка (%2) показывает рецепты, в которых '%1' используется в качестве ингредиента. <LINE> "..
                 "Вторая вкладка (%3) показывает рецепты, результатом которых является '%1'. <LINE> <LINE> " 
-    UI_tab_uses_recipe_title = "Рецепт"
-    UI_tab_uses_details_title = "Подробности"
-    UI_category = "Категория"
-    UI_recipe_panel_required_book = "Требуемые книги (одно из)"
-    UI_category_default = "Основное"
-    UI_tab_uses_details_near_item = "Необходимое оборудование для создания"
-    UI_tab_uses_categorySelector_All = "Все"
-    UI_tab_uses_categorySelector_Favorite = "Избранное"
-    UI_settings_st_title = "Порядок сортировки"
-    UI_settings_av_title = "Доступность"
-    UI_settings_av_all = "Все"
-    UI_settings_av_valid = "Доступные"
-    UI_settings_av_known = "Известные"
-    UI_settings_av_invalid = "Недоступные"
-    UI_settings_kb_title = "Закрыть по ESC"
-    UI_optionscreen_binding_chc_category_title = "Craft Helper"
-    UI_optionscreen_binding_chc_move_up = "Предыдущий рецепт"
-    UI_optionscreen_binding_chc_move_down = "Следующий рецепт"
-    UI_optionscreen_binding_chc_move_left = "Предыдущая категория"
-    UI_optionscreen_binding_chc_move_right = "Следующая категория"
-    UI_optionscreen_binding_chc_craft_one = "Создать штуку"
-    UI_optionscreen_binding_chc_craft_all = "Создать максимум"
-    UI_optionscreen_binding_chc_favorite_recipe = "Добавить рецепт в избранное"
-    UI_optionscreen_binding_chc_close_window = "Закрыть окно Craft Helper"
-    UI_optionscreen_binding_chc_toggle_window = "Скрыть/показать окно Craft Helper"
-    UI_optionscreen_binding_chc_toggle_uses_craft = "Переключение между Применение/Создание"
-    UI_optionscreen_binding_chc_move_tab_left = "Предыдущая вкладка"
-    UI_optionscreen_binding_chc_move_tab_right = "Следующая вкладка"
-    UI_optionscreen_binding_chc_toggle_focus_search_bar = "Переключить фокус строки поиска"
 }

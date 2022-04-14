@@ -54,7 +54,7 @@ function CHC_search:create()
             defaultIcon = CHC_uses.filterRowTypeSetIcon(self)
         },
         filterSelectorData = {
-            defaultCategory = getText("UI_tab_uses_categorySelector_All"),
+            defaultCategory = getText("UI_All"),
             defaultTooltip = getText("IGUI_invpanel_Category"),
             onChange = self.onChangeCategory
         }
@@ -67,7 +67,7 @@ function CHC_search:create()
     --endregion
 
     -- region search bar
-    self.searchRow = CHC_search_bar:new(x, leftY, leftW, 24, nil, self.onTextChange, getText("UI_search_info"))
+    self.searchRow = CHC_search_bar:new(x, leftY, leftW, 24, nil, self.onTextChange, getText("UI_searchrow_info"))
     self.searchRow:initialise()
     leftY = leftY + 24
     -- endregion
@@ -94,7 +94,7 @@ function CHC_search:create()
 end
 
 function CHC_search:updateItems(sl)
-    local categoryAll = getText("UI_tab_uses_categorySelector_All")
+    local categoryAll = getText("UI_All")
     local searchBar = self.searchRow.searchBar
     local items = self.itemSource
 

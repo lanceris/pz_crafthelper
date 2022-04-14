@@ -47,7 +47,7 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
 	-- If one or more items tested above are used in a recipe
 	-- we effectively add an option in the contextual menu
 	if type(itemsUsedInRecipes) == 'table' and #itemsUsedInRecipes > 0 then
-		context:addOption("Craft Helper 41", itemsUsedInRecipes, CHC_menu.onCraftHelper, player);
+		context:addOption(getText("IGUI_chc_context_onclick"), itemsUsedInRecipes, CHC_menu.onCraftHelper, player);
 	end
 end
 

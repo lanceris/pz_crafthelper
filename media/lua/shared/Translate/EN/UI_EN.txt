@@ -1,6 +1,36 @@
 UI_EN = {
-    UI_tab_uses = "Uses"
-    UI_tab_craft = "Craft"
+    UI_item_uses_tab_name = "Uses"
+    UI_item_craft_tab_name = "Craft"
+    UI_common_left_col_name = "Recipe"
+    UI_common_right_col_name = "Details"
+    UI_search_tab_name = "Search"
+    UI_search_items_tab_name = "Items"
+    UI_search_recipes_tab_name = "Recipes"
+    UI_recipe_panel_required_book = "Required books (one of)"
+    UI_recipe_panel_near_item = "Required Crafting Equipment"
+
+    UI_settings_st_title = "Sort order"
+    UI_settings_av_title = "Availability"
+    UI_settings_av_valid = "Valid"
+    UI_settings_av_known = "Known"
+    UI_settings_av_invalid = "Invalid"
+
+    UI_optionscreen_binding_chc_category_title = "Craft Helper"
+    UI_optionscreen_binding_chc_move_up = "Select previous recipe"
+    UI_optionscreen_binding_chc_move_down = "Select next recipe"
+    UI_optionscreen_binding_chc_move_left = "Select previous category"
+    UI_optionscreen_binding_chc_move_right = "Select next category"
+    UI_optionscreen_binding_chc_craft_one = "Craft one"
+    UI_optionscreen_binding_chc_craft_all = "Craft all"
+    UI_optionscreen_binding_chc_favorite_recipe = "Favorite selected recipe"
+    UI_optionscreen_binding_chc_close_window = "Close Craft Helper window"
+    UI_optionscreen_binding_chc_toggle_window = "Toggle Craft Helper window"
+    UI_optionscreen_binding_chc_toggle_uses_craft = "Toggle between uses/craft"
+    UI_optionscreen_binding_chc_move_tab_left = "Select previous tab"
+    UI_optionscreen_binding_chc_move_tab_right = "Select next tab"
+    UI_optionscreen_binding_chc_toggle_focus_search_bar = "Toggle search bar focus"
+
+
     UI_infotext_common = "Left column (%1) shows list of recipes with some additional controls. <LINE> "..
                         "First button (with four lines) shows current sorting order (Ascending or Descending). You can change the order by clicking it. <LINE> "..
                         "Second button allows you to filter the list of recipes. <LINE> "..
@@ -12,9 +42,9 @@ UI_EN = {
                         "Below category selector, there is search bar, where you can search by recipe name or by specific rules, depending on your query. <LINE> "..
                         "To learn more about search rules, click on <IMAGE:media/textures/search_icon.png> <LINE> "..
                         "In recipe list, you can also (un-)favorite recipe by clicking star icon. <LINE> <LINE> "..
-                        "Right column (%2) shows the details of the recipe (category, result, and what is required to create) <LINE><LINE>"..
+                        "Right column (%2) shows the details of the recipe (category, result, and what is required to create) <LINE> <LINE> "..
                         "By the way, you can resize %1 and %2 columns by grabbing and dragging line between their names. <LINE> "
-    UI_search_info = "<CENTRE><SIZE:medium> Search Helper <LINE> <LINE> "..
+    UI_searchrow_info = "<CENTRE><SIZE:medium> Search Helper <LINE> <LINE> "..
                     "<LEFT><SIZE:small> This search bar supports custom rules. Each separated query called Token. <LINE> <LINE> "..
                     "First, you can search by multiple queries at once, using one of the following separators: <LINE> "..
                     "<SIZE:medium> , (comma) <SIZE:small> : combine all Tokens results (logical AND), can be used for very specific filtering <LINE> "..
@@ -40,33 +70,4 @@ UI_EN = {
                     "<SIZE:small> <LEFT> Here you can find detailed information about '%1' <LINE> <LINE> "..
                     "First tab (%2) shows recipes, where '%1' is used as ingredient. <LINE> "..
                     "Second tab (%3) shows recipes, result of which is '%1'. <LINE> <LINE> " 
-    UI_tab_uses_recipe_title = "Recipe"
-    UI_tab_uses_details_title = "Details"
-    UI_category = "Category"
-    UI_recipe_panel_required_book = "Required books (one of)"
-    UI_category_default = "General"
-    UI_tab_uses_details_near_item = "Required Crafting Equipment"
-    UI_tab_uses_categorySelector_All = "All"
-    UI_tab_uses_categorySelector_Favorite = "Favorites"
-    UI_settings_st_title = "Sort order"
-    UI_settings_av_title = "Availability"
-    UI_settings_av_all = "All"
-    UI_settings_av_valid = "Valid"
-    UI_settings_av_known = "Known"
-    UI_settings_av_invalid = "Invalid"
-    UI_settings_kb_title = "Close on ESC"
-    UI_optionscreen_binding_chc_category_title = "Craft Helper"
-    UI_optionscreen_binding_chc_move_up = "Select previous recipe"
-    UI_optionscreen_binding_chc_move_down = "Select next recipe"
-    UI_optionscreen_binding_chc_move_left = "Select previous category"
-    UI_optionscreen_binding_chc_move_right = "Select next category"
-    UI_optionscreen_binding_chc_craft_one = "Craft one"
-    UI_optionscreen_binding_chc_craft_all = "Craft all"
-    UI_optionscreen_binding_chc_favorite_recipe = "Favorite selected recipe"
-    UI_optionscreen_binding_chc_close_window = "Close Craft Helper window"
-    UI_optionscreen_binding_chc_toggle_window = "Toggle Craft Helper window"
-    UI_optionscreen_binding_chc_toggle_uses_craft = "Toggle between uses/craft"
-    UI_optionscreen_binding_chc_move_tab_left = "Select previous tab"
-    UI_optionscreen_binding_chc_move_tab_right = "Select next tab"
-    UI_optionscreen_binding_chc_toggle_focus_search_bar = "Toggle search bar focus"
 }
