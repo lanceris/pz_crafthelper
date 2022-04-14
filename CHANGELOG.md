@@ -1,5 +1,19 @@
 # CraftHelper updates
 
+## 1.5.4 (14.04.2022)
+
+### New features
+
+- Ability to close item tab (RMB -> Close)
+- Keybind to toggle Craft Helper window
+- Keybind for toggling between uses/craft (and items/recipes in search tab)
+- Keybinds for changing active tab (left, right)
+- Option to close all item tabs on window close (by default OFF)
+
+### Improvements
+
+- Refactored config (from txt to json, will reset all settings)
+
 ## 1.5.3 (12.04.2022)
 
 ### New features

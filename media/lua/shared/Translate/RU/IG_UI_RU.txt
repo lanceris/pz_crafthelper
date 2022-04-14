@@ -1,8 +1,10 @@
 IGUI_RU = {
-    IGUI_SpecialSearch = "Включить специальные команды"
-    IGUI_SpecialSearchTooltip = "Команды используются в поиске (нажмите на лупу слева от строки поиска, чтобы узнать больше)"
-    IGUI_UsesListIcons = "Показывать изображение результата (Применение)"
-    IGUI_UsesListIconsTooltip = "Показывать изображение результата рецепта в списке рецептов (на вкладке 'Применение')"
-    IGUI_UsesShowHiddenRecipes = "Показывать скрытые рецепты"
-    IGUI_UsesShowHiddenRecipesTooltip = "Свойство 'IsHidden: true' в определении рецепта, не отображается в обычном меню крафта"
+    IGUI_AllowSpecialSearch = "Включить специальные команды"
+    IGUI_AllowSpecialSearchTooltip = "Команды используются в поиске (нажмите на лупу слева от строки поиска, чтобы узнать больше)"
+    IGUI_ShowIcons = "Показывать иконку предмета"
+    IGUI_ShowIconsTooltip = "Показывать иконку результата рецепта/предмета в списке"
+    IGUI_ShowHidden = "Показывать скрытые рецепты"
+    IGUI_ShowHiddenTooltip = "Свойство 'IsHidden: true' в определении рецепта, не отображается в обычном меню крафта"
+    IGUI_CloseAllOnExit = "Закрыть все вкладки при выходе"
+    IGUI_CloseAllOnExitTooltip = "Закрыть все вкладки с предметами при закрытии окна (через клавишу или нажатие на 'x')"
 }

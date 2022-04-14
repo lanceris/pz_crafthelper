@@ -1,11 +1,29 @@
 require 'CHC_main'
 
-CHC_menu = {};
+CHC_menu = {}
 
 CHC_menu.cachedItemsView = nil
 
+
+CHC_menu.createCraftHelper = function()
+	CHC_settings.Load()
+	local options = CHC_settings.config
+
+	local args = {
+		x = options.main_window.x,
+		y = options.main_window.y,
+		width = options.main_window.w,
+		height = options.main_window.h,
+		backgroundColor = { r = 0, g = 0, b = 0, a = 1 },
+		minimumWidth = 400,
+		minimumHeight = 350
+	}
+	CHC_menu.CHC_window = CHC_window:new(args)
+	CHC_menu.CHC_window:initialise()
+	CHC_menu.CHC_window:setVisible(false)
+end
+
 CHC_menu.doCraftHelperMenu = function(player, context, items)
-	local isUsedInRecipe = false;
 	local itemsUsedInRecipes = {}
 
 	local item
@@ -29,12 +47,6 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
 	-- If one or more items tested above are used in a recipe
 	-- we effectively add an option in the contextual menu
 	if type(itemsUsedInRecipes) == 'table' and #itemsUsedInRecipes > 0 then
-		CHC_config.fn.loadSettings() -- load config
-		if CHC_config.options.main_window_x == nil then
-			CHC_config.fn.resetSettings()
-			CHC_config.fn.loadSettings()
-		end
-		CHC_menu.cfg = CHC_config.options
 		context:addOption("Craft Helper 41", itemsUsedInRecipes, CHC_menu.onCraftHelper, player);
 	end
 end
@@ -43,27 +55,50 @@ end
 ---
 -- Action to perform when the Craft Helper option in contextual menu is clicked
 --
+
 CHC_menu.onCraftHelper = function(items, player)
+	local inst = CHC_menu.CHC_window
 
 	-- Show craft helper window
-
-	local args = {
-		x = CHC_menu.cfg.main_window_x,
-		y = CHC_menu.cfg.main_window_y,
-		width = CHC_menu.cfg.main_window_w,
-		height = CHC_menu.cfg.main_window_h,
-		backgroundColor = { r = 0, g = 0, b = 0, a = 1 },
-		minimumWidth = CHC_menu.cfg.main_window_min_w,
-		minimumHeight = CHC_menu.cfg.main_window_min_h,
-		items = items
-	}
-	CHC_menu.CHC_Window = CHC_window:new(args)
-	CHC_menu.CHC_Window:initialise()
-	CHC_menu.CHC_Window:addToUIManager()
+	for i = 1, #items do
+		local item = items[i]
+		if not instanceof(item, "InventoryItem") then
+			item = item.items[1]
+		end
+		inst:addItemView(item)
+	end
+	if not inst:getIsVisible() then
+		inst:setVisible(true)
+		inst:addToUIManager()
+	end
 end
 
+CHC_menu.toggleUI = function()
+	local ui = CHC_menu.CHC_window
+	if ui then
+		if ui:getIsVisible() then
+			ui:setVisible(false)
+			ui:removeFromUIManager()
+		else
+			ui:setVisible(true)
+			ui:addToUIManager()
+		end
+	end
+end
+
+
+CHC_menu.onPressKey = function(key)
+	if not MainScreen.instance or not MainScreen.instance.inGame or MainScreen.instance:getIsVisible() then
+		return
+	end
+	if key == CHC_settings.keybinds.toggle_window.key then
+		CHC_menu.toggleUI()
+	end
+end
 
 ---
 -- Call doCraftHelperMenu function when context menu in the inventory is created and displayed
 --
-Events.OnFillInventoryObjectContextMenu.Add(CHC_menu.doCraftHelperMenu);
+Events.OnFillInventoryObjectContextMenu.Add(CHC_menu.doCraftHelperMenu)
+
+Events.OnCustomUIKey.Add(CHC_menu.onPressKey)

@@ -56,7 +56,7 @@ function CHC_search:create()
         filterSelectorData = {
             defaultCategory = getText("UI_tab_uses_categorySelector_All"),
             defaultTooltip = getText("IGUI_invpanel_Category"),
-            onChange = self.onChangeUsesRecipeCategory
+            onChange = self.onChangeCategory
         }
     }
 
@@ -74,13 +74,13 @@ function CHC_search:create()
 
     -- region recipe list
     local rlh = self.height - self.headers.height - self.filterRow.height - self.searchRow.height
-    self.itemsList = CHC_items_list:new(x, leftY, leftW, rlh);
+    self.objList = CHC_items_list:new(x, leftY, leftW, rlh);
 
-    self.itemsList.drawBorder = true
-    self.itemsList:initialise()
-    self.itemsList:instantiate()
-    self.itemsList:setAnchorBottom(true)
-    self.itemsList:setOnMouseDownFunction(self, CHC_uses.onItemChange)
+    self.objList.drawBorder = true
+    self.objList:initialise()
+    self.objList:instantiate()
+    self.objList:setAnchorBottom(true)
+    self.objList:setOnMouseDownFunction(self, CHC_uses.onItemChange)
 
     -- Add entries to recipeList
     -- self:cacheFullRecipeCount(self.itemSource)
@@ -90,7 +90,7 @@ function CHC_search:create()
     self:addChild(self.headers)
     self:addChild(self.filterRow)
     self:addChild(self.searchRow)
-    self:addChild(self.itemsList)
+    self:addChild(self.objList)
 end
 
 function CHC_search:updateItems(sl)
@@ -149,7 +149,7 @@ function CHC_search:searchProcessToken(token, item)
     -- if not, compare token with recipe name
     --return state
     local state = false
-    local isAllowSpecialSearch = CHC_config.options.special_search
+    local isAllowSpecialSearch = CHC_settings.config.allow_special_search
     local isSpecialSearch = false
     local char
     local items = {}
@@ -216,23 +216,23 @@ function CHC_search:searchProcessToken(token, item)
 end
 
 function CHC_search:refreshItemsList(items)
-    self.itemsList:clear()
-    self.itemsList:setScrollHeight(0)
+    self.objList:clear()
+    self.objList:setScrollHeight(0)
 
     local modData = getPlayer():getModData()
     for i = 1, #items do
         self:processAddItemToItemList(items[i], modData)
     end
-    sort(self.itemsList.items, self.itemSortFunc)
+    sort(self.objList.items, self.itemSortFunc)
 end
 
 function CHC_search:processAddItemToItemList(item, modData)
-    -- if item:isHidden() then return end
+    if not CHC_settings.config.show_hidden and item.hidden then return end
     -- if not self.showHidden and item.recipe:isHidden() then return end
     -- item.favorite = modData[CHC_main.getFavoriteModDataString(item.recipe)] or false
     local name = item.displayName
     if name then
-        self.itemsList:addItem(name, item)
+        self.objList:addItem(name, item)
     end
 end
 
@@ -264,7 +264,7 @@ function CHC_search:categorySelectorFillOptions()
     end
 end
 
-function CHC_search:onChangeUsesRecipeCategory(_option, sl)
+function CHC_search:onChangeCategory(_option, sl)
     sl = sl or _option.options[_option.selected]
     self.parent:updateItems(sl)
 end
@@ -278,7 +278,7 @@ end
 function CHC_search:onResizeHeaders()
     self.filterRow:setWidth(self.headers.nameHeader.width)
     self.searchRow:setWidth(self.headers.nameHeader.width)
-    self.itemsList:setWidth(self.headers.nameHeader.width)
+    self.objList:setWidth(self.headers.nameHeader.width)
     -- self.recipePanel:setWidth(self.headers.typeHeader.width)
     -- self.recipePanel:setX(self.headers.typeHeader.x)
 end
@@ -321,18 +321,110 @@ end
 CHC_items_list = ISScrollingListBox:derive("CHC_items_list")
 
 function CHC_items_list:initialise()
+    self.ft = true
     ISScrollingListBox.initialise(self)
 end
 
+function CHC_items_list:prerender()
+    local now
+    if self.ft then
+        now = getTimestampMs()
+    end
+    if not self.items then return end
+
+    local stencilX = 0
+    local stencilY = 0
+    local stencilX2 = self.width
+    local stencilY2 = self.height
+
+    self:drawRect(0, -self:getYScroll(), self.width, self.height, self.backgroundColor.a, self.backgroundColor.r, self.backgroundColor.g, self.backgroundColor.b);
+
+    if self.drawBorder then
+        self:drawRectBorder(0, -self:getYScroll(), self.width, self.height, self.borderColor.a, self.borderColor.r, self.borderColor.g, self.borderColor.b)
+        stencilX = 1
+        stencilY = 1
+        stencilX2 = self.width - 1
+        stencilY2 = self.height - 1
+    end
+
+    if self:isVScrollBarVisible() then
+        stencilX2 = self.vscroll.x + 3 -- +3 because the scrollbar texture is narrower than the scrollbar width
+    end
+
+    self:setStencilRect(stencilX, stencilY, stencilX2 - stencilX, stencilY2 - stencilY)
+
+    local y = 0;
+    local alt = false;
+
+    --	if self.selected ~= -1 and self.selected < 1 then
+    --		self.selected = 1
+    if self.selected ~= -1 and self.selected > #self.items then
+        self.selected = #self.items
+    end
+
+
+    self.listHeight = 0;
+    local i = 1;  --@@@
+    for j = 1, #self.items do
+        self.items[j].index = i;
+        local y2 = self:doDrawItem(y, self.items[j], alt);
+        self.listHeight = y2;
+        self.items[j].height = y2 - y
+        y = y2
+
+        alt = not alt;
+        i = i + 1;
+
+    end
+
+    self:setScrollHeight((y));
+    self:clearStencilRect();
+
+    if self.doRepaintStencil then
+        self:repaintStencilRect(stencilX, stencilY, stencilX2 - stencilX, stencilY2 - stencilY)
+    end
+
+    local mouseY = self:getMouseY()
+    self:updateSmoothScrolling()
+
+    if mouseY ~= self:getMouseY() and self:isMouseOver() then
+        self:onMouseMove(0, self:getMouseY() - mouseY)
+    end
+    self:updateTooltip()
+
+    if #self.columns > 0 then
+        --		print(self:getScrollHeight())
+        self:drawRectBorderStatic(0, 0 - self.itemheight, self.width, self.itemheight - 1, 1, self.borderColor.r, self.borderColor.g, self.borderColor.b);
+        self:drawRectStatic(0, 0 - self.itemheight - 1, self.width, self.itemheight - 2, self.listHeaderColor.a, self.listHeaderColor.r, self.listHeaderColor.g, self.listHeaderColor.b);
+        local dyText = (self.itemheight - FONT_HGT_SMALL) / 2
+        for i, v in ipairs(self.columns) do
+            self:drawRectStatic(v.size, 0 - self.itemheight, 1, self.itemheight + math.min(self.height, self.itemheight * #self.items - 1), 1, self.borderColor.r, self.borderColor.g, self.borderColor.b);
+            if v.name then
+                self:drawText(v.name, v.size + 10, 0 - self.itemheight - 1 + dyText - self:getYScroll(), 1, 1, 1, 1, UIFont.Small);
+            end
+        end
+    end
+
+    if self.ft then
+        -- print(rerp:rer())
+        print(string.format("total: %s", getTimestampMs() - now))
+        self.ft = false
+        -- 177 ms per frame, need to reduce to at least 50 for smooth UX
+    end
+end
+
 function CHC_items_list:doDrawItem(y, item, alt)
+
+    if y + self:getYScroll() >= self.height then return y + item.height end
+    if y + item.height + self:getYScroll() <= 0 then return y + item.height end
+    if y < -self:getYScroll() - 1 then return y + item.height; end
+    if y > self:getHeight() - self:getYScroll() + 1 then return y + item.height; end
+
     local itemObj = item.item
     local a = 0.9
 
     local itemPadY = self.itemPadY or (item.height - self.fontHgt) / 2
-    local iconsEnabled = CHC_config.options.uses_list_icons
-
-    if y < -self:getYScroll() - 1 then return y + item.height; end
-    if y > self:getHeight() - self:getYScroll() + 1 then return y + item.height; end
+    local iconsEnabled = CHC_settings.config.show_icons
 
     -- region icons
     if iconsEnabled then
