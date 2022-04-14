@@ -1,7 +1,7 @@
 UI_EN = {
     UI_tab_uses = "Uses"
     UI_tab_craft = "Craft"
-    UI_infotext_common = "Left tab (Recipe) shows list of recipes with some additional controls. <LINE> "..
+    UI_infotext_common = "Left column (%1) shows list of recipes with some additional controls. <LINE> "..
                         "First button (with four lines) shows current sorting order (Ascending or Descending). You can change the order by clicking it. <LINE> "..
                         "Second button allows you to filter the list of recipes. <LINE> "..
                         "- <IMAGE:media/textures/type_filt_all.png> : All recipes <LINE> "..
@@ -10,10 +10,10 @@ UI_EN = {
                         "- <IMAGE:media/textures/type_filt_invalid.png> : Recipes that you know nothing about. Will show book(-s), from which it can be learned. <LINE> "..
                         "To the right of those two buttons, there is category selector, where you can specify desired recipe category. <LINE> "..
                         "Below category selector, there is search bar, where you can search by recipe name or by specific rules, depending on your query. <LINE> "..
-                        "To learn more about search rules, click on <IMAGE:media/textures/search_icon.png> <LINE> <LINE> "..
-                        "In recipe list, you can also (un-)favorite recipe by clicking star icon. <LINE> <LINE> <LINE> "..
-                        "The right tab (Details) shows the details of the recipe (category, result, and what is required to create) <LINE><LINE>"..
-                        "By the way, you can resize Recipe and Details tabs by grabbing and dragging line between them. <LINE> "
+                        "To learn more about search rules, click on <IMAGE:media/textures/search_icon.png> <LINE> "..
+                        "In recipe list, you can also (un-)favorite recipe by clicking star icon. <LINE> <LINE> "..
+                        "Right column (%2) shows the details of the recipe (category, result, and what is required to create) <LINE><LINE>"..
+                        "By the way, you can resize %1 and %2 columns by grabbing and dragging line between their names. <LINE> "
     UI_search_info = "<CENTRE><SIZE:medium> Search Helper <LINE> <LINE> "..
                     "<LEFT><SIZE:small> This search bar supports custom rules. Each separated query called Token. <LINE> <LINE> "..
                     "First, you can search by multiple queries at once, using one of the following separators: <LINE> "..
@@ -32,10 +32,14 @@ UI_EN = {
                     "<SIZE:medium> %plank|!food <SIZE:small> : show recipes where 'plank' is the result, OR recipes in 'food' category <LINE> <LINE> "..
                     "<SIZE:medium> Limitations: <LINE> <SIZE:small> "..
                     "- Can't use both separators (',' and '|') in one query <LINE> "
-    UI_infotext_uses =  "<CENTRE><SIZE:medium> This is the Uses Screen <LINE> <LINE> "..
-                    "<SIZE:small> <LEFT> Here you can find what selected item is used for. <LINE> <LINE> "
-    UI_infotext_craft = "<CENTRE><SIZE:medium> This is the Craft Screen <LINE> <LINE> "..
-                    "<SIZE:small> <LEFT> Here you can find how to craft selected item. <LINE> <LINE> "
+    UI_infotext_search =  "<CENTRE><SIZE:medium> This is the Search Screen <LINE> <LINE> "..
+                    "<SIZE:small> <LEFT> Here you can find all items and recipes. <LINE> <LINE> "
+    UI_infotext_favorites = "<CENTRE><SIZE:medium> This is the Favorites Screen <LINE> <LINE> "..
+                    "<SIZE:small> <LEFT> Here you can find favorited items(WIP) and recipes. <LINE> <LINE> "
+    UI_infotext_itemtab = "<CENTRE><SIZE:medium> This is Item tab <LINE>"..
+                    "<SIZE:small> <LEFT> Here you can find detailed information about '%1' <LINE> <LINE> "..
+                    "First tab (%2) shows recipes, where '%1' is used as ingredient. <LINE> "..
+                    "Second tab (%3) shows recipes, result of which is '%1'. <LINE> <LINE> " 
     UI_tab_uses_recipe_title = "Recipe"
     UI_tab_uses_details_title = "Details"
     UI_category = "Category"

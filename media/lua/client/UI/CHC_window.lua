@@ -73,7 +73,6 @@ function CHC_window:addSearchPanel()
         self.searchItemsScreen = CHC_search:new(items_screen_init)
         if itemsData then
             self.searchItemsScreen:initialise()
-            self.searchItemsScreen.infoText = getText("UI_infotext_uses") .. getText("UI_infotext_common")
             self.searchPanel:addView("Items", self.searchItemsScreen)
         end
         -- endregion
@@ -93,12 +92,12 @@ function CHC_window:addSearchPanel()
 
         if recipesData then
             self.searchRecipesScreen:initialise()
-            self.searchRecipesScreen.infoText = getText("UI_infotext_uses") .. getText("UI_infotext_common")
             self.searchPanel:addView("Recipes", self.searchRecipesScreen)
         end
         -- endregion
         CHC_menu.cachedItemsView = self.searchPanel
     end
+    self.searchPanel.infoText = getText("UI_infotext_search") .. getText("UI_infotext_common", getText("UI_tab_uses_recipe_title"), getText("UI_tab_uses_details_title"))
     self.panel:addView("[WIP] Search", self.searchPanel)
 
     --endregion
@@ -122,7 +121,7 @@ function CHC_window:addFavoriteScreen()
     for k, v in pairs(fav_extra) do fav_screen_init[k] = v end
     self.favoritesScreen = CHC_uses:new(fav_screen_init)
     self.favoritesScreen:initialise()
-    self.favoritesScreen.infoText = getText("UI_infotext_uses") .. getText("UI_infotext_common")
+    self.favoritesScreen.infoText = getText("UI_infotext_favorites") .. getText("UI_infotext_common", getText("UI_tab_uses_recipe_title"), getText("UI_tab_uses_details_title"))
     self.panel:addView("[WIP] Favorites", self.favoritesScreen)
     -- endregion
 
@@ -175,7 +174,6 @@ function CHC_window:addItemView(item)
 
     if usesData then
         self.usesScreen:initialise()
-        self.usesScreen.infoText = getText("UI_infotext_uses") .. getText("UI_infotext_common")
         self.itemPanel:addView(getText("UI_tab_uses"), self.usesScreen)
     end
     --endregion
@@ -196,11 +194,12 @@ function CHC_window:addItemView(item)
 
     if craftData then
         self.craftScreen:initialise()
-        self.craftScreen.infoText = getText("UI_infotext_craft") .. getText("UI_infotext_common")
         self.itemPanel:addView(getText("UI_tab_craft"), self.craftScreen)
     end
     -- endregion
     --endregion
+    self.itemPanel.infoText = getText("UI_infotext_itemtab", itn.displayName, getText("UI_tab_uses"), getText("UI_tab_craft")) ..
+        getText("UI_infotext_common", getText("UI_tab_uses_recipe_title"), getText("UI_tab_uses_details_title"))
     self:refresh()
 end
 
