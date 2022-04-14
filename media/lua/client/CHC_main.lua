@@ -51,6 +51,7 @@ CHC_main.processOneItem = function(item)
 			isVanilla = invItem:isVanilla(),
 			IsDrainable = invItem:IsDrainable(),
 			displayName = invItem:getDisplayName(),
+			hidden = item:isHidden(),
 			count = invItem:getCount() or 1,
 			displayCategory = invItem:getDisplayCategory() or "Item",
 			texture = invItem:getTex()

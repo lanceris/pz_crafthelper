@@ -1,34 +1,10 @@
 require 'luautils'
 require 'UI/CHC_menu'
 
-CHC_config = {}
-CHC_config.fn = {}
-CHC_config.options = {}
 
 
 CHC_settings = {
-    settings = {
-        options_data = {
-            special_search = {
-                name = "IGUI_SpecialSearch",
-                tooltip = "IGUI_SpecialSearchTooltip",
-                default = true
-            },
-            uses_list_icons = {
-                name = "IGUI_UsesListIcons",
-                tooltip = "IGUI_UsesListIconsTooltip",
-                default = false
-            },
-            uses_show_hidden_recipes = {
-                name = "IGUI_UsesShowHiddenRecipes",
-                tooltip = "IGUI_UsesShowHiddenRecipesTooltip",
-                default = true
-            }
-        },
-        mod_id = "CraftHelperContinued",
-        mod_shortname = "CHC",
-        mod_fullname = "Craft Helper Continued"
-    },
+    config = {},
     keybinds = {
         move_up = { key = Keyboard.KEY_NONE, name = "chc_move_up" },
         move_left = { key = Keyboard.KEY_NONE, name = "chc_move_left" },
@@ -38,7 +14,11 @@ CHC_settings = {
         favorite_recipe = { key = Keyboard.KEY_NONE, name = "chc_favorite_recipe" },
         craft_all = { key = Keyboard.KEY_NONE, name = "chc_craft_all" },
         close_window = { key = Keyboard.KEY_ESCAPE, name = "chc_close_window" },
-        toggle_window = { key = Keyboard.KEY_NONE, name = "chc_toggle_window" }
+        toggle_window = { key = Keyboard.KEY_NONE, name = "chc_toggle_window" },
+        toggle_uses_craft = { key = Keyboard.KEY_NONE, name = "chc_toggle_uses_craft" },
+        move_tab_left = { key = Keyboard.KEY_NONE, name = "chc_move_tab_left" },
+        move_tab_right = { key = Keyboard.KEY_NONE, name = "chc_move_tab_right" },
+        toggle_focus_search_bar = { key = Keyboard.KEY_NONE, name = "chc_toggle_focus_search_bar" }
     },
     integrations = {
         Hydrocraft = {
@@ -55,117 +35,99 @@ CHC_settings = {
 }
 
 if ModOptions and ModOptions.getInstance then
-    local settings = ModOptions:getInstance(CHC_settings.settings)
+    local function onModOptionsApply(values)
+        CHC_settings.config.allow_special_search = values.settings.options.allow_special_search
+        CHC_settings.config.show_icons = values.settings.options.show_icons
+        CHC_settings.config.show_hidden = values.settings.options.show_hidden
+        CHC_settings.config.close_all_on_exit = values.settings.options.close_all_on_exit
+    end
+
+    CHC_settings.settings = {
+        options_data = {
+            allow_special_search = {
+                name = "IGUI_AllowSpecialSearch",
+                tooltip = "IGUI_AllowSpecialSearchTooltip",
+                default = true,
+                OnApplyInGame = onModOptionsApply
+            },
+            show_icons = {
+                name = "IGUI_ShowIcons",
+                tooltip = "IGUI_ShowIconsTooltip",
+                default = false,
+                OnApplyInGame = onModOptionsApply
+            },
+            show_hidden = {
+                name = "IGUI_ShowHidden",
+                tooltip = "IGUI_ShowHiddenTooltip",
+                default = true,
+                OnApplyInGame = onModOptionsApply
+            },
+            close_all_on_exit = {
+                name = "IGUI_CloseAllOnExit",
+                tooltip = "IGUI_CloseAllOnExitTooltip",
+                default = false,
+                OnApplyInGame = onModOptionsApply
+            }
+        },
+        mod_id = "CraftHelperContinued",
+        mod_shortname = "CHC",
+        mod_fullname = "Craft Helper Continued"
+    }
+
+    ModOptions:getInstance(CHC_settings.settings)
     local category = "[chc_category_title]"
     for _, value in pairs(CHC_settings.keybinds) do
         ModOptions:AddKeyBinding(category, value)
     end
     ModOptions:loadFile()
 
-    local search = settings:getData("special_search")
-    CHC_config.options.special_search = search.value
-    function search:OnApplyInGame(val)
-        CHC_config.options.special_search = val
-    end
-
-    local uses_list_icons = settings:getData("uses_list_icons")
-    CHC_config.options.uses_list_icons = uses_list_icons
-    function uses_list_icons:OnApplyInGame(val)
-        CHC_config.options.uses_list_icons = val
-    end
-
-    local uses_show_hidden_recipes = settings:getData("uses_show_hidden_recipes")
-    CHC_config.options.uses_show_hidden_recipes = uses_show_hidden_recipes
-    function uses_show_hidden_recipes:OnApplyInGame(val)
-        CHC_config.options.uses_show_hidden_recipes = val
-    end
-
 else
-    CHC_config.options.special_search = true
-    CHC_config.options.uses_list_icons = false
-    CHC_config.options.uses_show_hidden_recipes = true
+    CHC_settings.config.allow_special_search = true
+    CHC_settings.config.show_icons = false
+    CHC_settings.config.show_hidden = true
+    CHC_settings.config.close_all_on_exit = false
 end
 
+local Json = require("Json")
+local cfg_name = "craft_helper_config.json"
 
--- region config
-local is_open = false
-
-local cfg_name = "CraftHelper_config.txt"
-
-
-CHC_config.fn.encodeSettings = function(t)
-    local out = ""
-    for k, v in pairs(t) do
-        out = out .. k .. "=" .. tostring(v) .. "\n"
-    end
-    return out
+CHC_settings.Save = function()
+    local fileWriterObj = getFileWriter(cfg_name, true, false)
+    local json = Json.Encode(CHC_settings.config)
+    fileWriterObj:write(json)
+    fileWriterObj:close()
 end
 
-CHC_config.fn.loadSettings = function()
+CHC_settings.Load = function()
     local fileReaderObj = getFileReader(cfg_name, true)
-    is_open = true
+    local json = ""
     local line = fileReaderObj:readLine()
     while line ~= nil do
-        local l = strsplit(line, '=')
-        if l[2] == 'true' then l[2] = true end
-        if l[2] == 'false' then l[2] = false end
-        CHC_config.options[l[1]] = tonumber(l[2]) or l[2]
+        json = json .. line
         line = fileReaderObj:readLine()
     end
     fileReaderObj:close()
-    is_open = false
-end
 
-CHC_config.fn.saveSettings = function(t)
-    if is_open then return end
-    local fileWriterObj = getFileWriter(cfg_name, true, false)
-    is_open = true
-    local data = CHC_config.fn.encodeSettings(t)
-    fileWriterObj:write(data)
-    fileWriterObj:close()
-    is_open = false
+    if json and json ~= "" then
+        CHC_settings.config = Json.Decode(json)
+    else
+        local init_cfg = {
+            show_icons = false,
+            allow_special_search = true,
+            show_hidden = true,
+            main_window = { x = 100, y = 100, w = 1000, h = 600 },
+            uses = { sep_x = 500, filter_asc = true, filter_type = "all" },
+            craft = { sep_x = 500, filter_asc = true, filter_type = "all" },
+            search = {
+                items = { sep_x = 500, filter_asc = true, filter_type = "all" },
+                recipes = { sep_x = 500, filter_asc = true, filter_type = "all" }
+            },
+            favorites = {
+                items = { sep_x = 500, filter_asc = true, filter_type = "all" },
+                recipes = { sep_x = 500, filter_asc = true, filter_type = "all" }
+            }
+        }
+        CHC_settings.config = init_cfg
+        CHC_settings.Save()
+    end
 end
-
-CHC_config.fn.resetSettings = function()
-    local data = {}
-    data.main_window_x = 100
-    data.main_window_y = 100
-    data.main_window_w = 1000
-    data.main_window_h = 600
-    data.main_window_min_w = 400
-    data.main_window_min_h = 350
-    data.uses_tab_sep_x = 300
-    data.craft_tab_sep_x = 300
-    data.uses_filter_name_asc = true
-    data.uses_filter_type = "all"
-    CHC_config.fn.saveSettings(data)
-end
-
-CHC_config.fn.updateSettings = function(menu)
-    local data = {}
-    local menu = menu or CHC_menu.CHC_window
-    if not menu then return end
-    data.main_window_x = menu:getX()
-    data.main_window_y = menu:getY()
-    data.main_window_w = menu.width
-    data.main_window_h = menu.height
-    data.main_window_min_w = menu.minimumWidth
-    data.main_window_min_h = menu.minimumHeight
-    data.uses_tab_sep_x = 300
-    data.craft_tab_sep_x = 300
-    data.uses_filter_name_asc = true
-    data.uses_filter_type = "all"
-    -- if menu.usesScreen and menu.usesScreen.headers then
-    --     data.uses_tab_sep_x = menu.usesScreen.headers.nameHeader.width or 250
-    --     data.uses_filter_name_asc = menu.usesScreen.itemSortAsc == true
-    --     data.uses_filter_type = menu.usesScreen.typeFilter or "all"
-    -- end
-    -- if menu.craftScreen and menu.craftScreen.headers then
-    --     data.craft_tab_sep_x = menu.craftScreen.headers.nameHeader.width or 250
-    --     data.craft_filter_name_asc = menu.craftScreen.itemSortAsc == true
-    --     data.craft_filter_type = menu.craftScreen.typeFilter or "all"
-    -- end
-    CHC_config.fn.saveSettings(data)
-
-end
--- endregion

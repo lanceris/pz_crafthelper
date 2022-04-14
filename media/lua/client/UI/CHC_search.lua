@@ -149,7 +149,7 @@ function CHC_search:searchProcessToken(token, item)
     -- if not, compare token with recipe name
     --return state
     local state = false
-    local isAllowSpecialSearch = CHC_config.options.special_search
+    local isAllowSpecialSearch = CHC_settings.config.allow_special_search
     local isSpecialSearch = false
     local char
     local items = {}
@@ -227,7 +227,7 @@ function CHC_search:refreshItemsList(items)
 end
 
 function CHC_search:processAddItemToItemList(item, modData)
-    -- if item:isHidden() then return end
+    if not CHC_settings.config.show_hidden and item.hidden then return end
     -- if not self.showHidden and item.recipe:isHidden() then return end
     -- item.favorite = modData[CHC_main.getFavoriteModDataString(item.recipe)] or false
     local name = item.displayName
@@ -424,7 +424,7 @@ function CHC_items_list:doDrawItem(y, item, alt)
     local a = 0.9
 
     local itemPadY = self.itemPadY or (item.height - self.fontHgt) / 2
-    local iconsEnabled = CHC_config.options.uses_list_icons
+    local iconsEnabled = CHC_settings.config.show_icons
 
     -- region icons
     if iconsEnabled then

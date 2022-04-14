@@ -1,8 +1,10 @@
 IGUI_EN = {
-    IGUI_SpecialSearch = "Enable special commands"
-    IGUI_SpecialSearchTooltip = "Commands are used in searches (click on magnifier left of the search bar to learn more)"
-    IGUI_UsesListIcons = "Show image of result (Uses)"
-    IGUI_UsesListIconsTooltip = "Show image of recipe result in the list of recipes (on 'Uses' tab)"
-    IGUI_UsesShowHiddenRecipes = "Show hidden recipes"
-    IGUI_UsesShowHiddenRecipesTooltip = "Property 'IsHidden: true' in recipe definition, not shown in vanilla craft menu"
+    IGUI_AllowSpecialSearch = "Enable special commands"
+    IGUI_AllowSpecialSearchTooltip = "Commands are used in searches (click on magnifier left of the search bar to learn more)"
+    IGUI_ShowIcons = "Show icons of items"
+    IGUI_ShowIconsTooltip = "Show icons of recipe results/items in the list"
+    IGUI_ShowHidden = "Show hidden recipes"
+    IGUI_ShowHiddenTooltip = "Property 'IsHidden: true' in recipe definition, not shown in vanilla craft menu",
+    IGUI_CloseAllOnExit = "Close all tabs on close"
+    IGUI_CloseAllOnExitTooltip = "Close all item tabs, when closing window (via hotkey or clicking 'x')"
 }

@@ -1,6 +1,5 @@
 require "ISUI/ISPanel"
 require 'ISUI/ISContextMenu'
-require 'ISUI/ISTextEntryBox'
 require "UI/CHC_tabs"
 require "UI/CHC_uses_recipelist"
 require "UI/CHC_uses_recipepanel"
@@ -340,7 +339,7 @@ function CHC_uses:searchProcessToken(token, recipe)
     -- if not, compare token with recipe name
     --return state
     local state = false
-    local isAllowSpecialSearch = CHC_config.options.special_search
+    local isAllowSpecialSearch = CHC_settings.config.allow_special_search
     local isSpecialSearch = false
     local char
     local items = {}

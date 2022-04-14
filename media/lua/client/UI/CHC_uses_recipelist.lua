@@ -80,7 +80,7 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 	local favoriteStar = nil
 	local favoriteAlpha = a
 	local itemPadY = self.itemPadY or (item.height - self.fontHgt) / 2
-	local iconsEnabled = CHC_config.options.uses_list_icons
+	local iconsEnabled = CHC_settings.config.show_icons
 
 	-- region icons
 	if iconsEnabled then

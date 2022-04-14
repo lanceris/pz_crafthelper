@@ -61,4 +61,8 @@ UI_RU = {
     UI_optionscreen_binding_chc_favorite_recipe = "Добавить рецепт в избранное"
     UI_optionscreen_binding_chc_close_window = "Закрыть окно Craft Helper"
     UI_optionscreen_binding_chc_toggle_window = "Скрыть/показать окно Craft Helper"
+    UI_optionscreen_binding_chc_toggle_uses_craft = "Переключение между Применение/Создание"
+    UI_optionscreen_binding_chc_move_tab_left = "Предыдущая вкладка"
+    UI_optionscreen_binding_chc_move_tab_right = "Следующая вкладка"
+    UI_optionscreen_binding_chc_toggle_focus_search_bar = "Переключить фокус строки поиска"
 }

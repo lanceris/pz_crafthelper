@@ -5,44 +5,18 @@ CHC_menu = {}
 CHC_menu.cachedItemsView = nil
 
 
-CHC_menu.loadConfig = function()
-	-- load config
-	CHC_config.fn.loadSettings() -- load config
-	local options = CHC_config.options
-	local conditions = {
-		options.main_window_x == nil,
-		options.main_window_y == nil,
-		options.main_window_w == nil,
-		options.main_window_h == nil,
-		options.main_window_min_w == nil,
-		options.main_window_min_h == nil,
-		options.uses_tab_sep_x == nil,
-		options.craft_tab_sep_x == nil,
-		options.uses_filter_name_asc == nil,
-		options.uses_filter_type == nil
-	}
-	for i = 1, #conditions do
-		if conditions[i] then
-			CHC_config.fn.resetSettings()
-			CHC_config.fn.loadSettings()
-			break
-		end
-	end
-end
-
-
 CHC_menu.createCraftHelper = function()
-	CHC_menu.loadConfig()
-	local options = CHC_config.options
+	CHC_settings.Load()
+	local options = CHC_settings.config
 
 	local args = {
-		x = options.main_window_x,
-		y = options.main_window_y,
-		width = options.main_window_w,
-		height = options.main_window_h,
+		x = options.main_window.x,
+		y = options.main_window.y,
+		width = options.main_window.w,
+		height = options.main_window.h,
 		backgroundColor = { r = 0, g = 0, b = 0, a = 1 },
-		minimumWidth = options.main_window_min_w,
-		minimumHeight = options.main_window_min_h
+		minimumWidth = 400,
+		minimumHeight = 350
 	}
 	CHC_menu.CHC_window = CHC_window:new(args)
 	CHC_menu.CHC_window:initialise()
