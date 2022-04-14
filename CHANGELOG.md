@@ -5,6 +5,7 @@
 ### New features
 
 - Ability to close item tab (RMB -> Close)
+- Keybind to toggle Craft Helper window
 - Keybind for toggling between uses/craft (and items/recipes in search tab)
 - Keybinds for changing active tab (left, right)
 - Option to close all item tabs on window close (by default OFF)
