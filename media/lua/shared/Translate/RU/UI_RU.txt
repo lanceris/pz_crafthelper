@@ -28,7 +28,7 @@ UI_RU = {
     UI_optionscreen_binding_chc_toggle_uses_craft = "Переключение между Применение/Создание"
     UI_optionscreen_binding_chc_move_tab_left = "Предыдущая вкладка"
     UI_optionscreen_binding_chc_move_tab_right = "Следующая вкладка"
-    UI_optionscreen_binding_chc_toggle_focus_search_bar = "Переключить фокус строки поиска"
+    UI_optionscreen_binding_chc_toggle_focus_search_bar = "Фокус на строку поиска"
 
 
     UI_infotext_common = "Левый столбец (%1) показывает список рецептов с дополнительными элементами управления. <LINE> "..

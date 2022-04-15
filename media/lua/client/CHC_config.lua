@@ -17,8 +17,8 @@ CHC_settings = {
         toggle_window = { key = Keyboard.KEY_NONE, name = "chc_toggle_window" },
         toggle_uses_craft = { key = Keyboard.KEY_NONE, name = "chc_toggle_uses_craft" },
         move_tab_left = { key = Keyboard.KEY_NONE, name = "chc_move_tab_left" },
-        move_tab_right = { key = Keyboard.KEY_NONE, name = "chc_move_tab_right" },
-        toggle_focus_search_bar = { key = Keyboard.KEY_NONE, name = "chc_toggle_focus_search_bar" }
+        toggle_focus_search_bar = { key = Keyboard.KEY_NONE, name = "chc_toggle_focus_search_bar" },
+        move_tab_right = { key = Keyboard.KEY_NONE, name = "chc_move_tab_right" }
     },
     integrations = {
         Hydrocraft = {

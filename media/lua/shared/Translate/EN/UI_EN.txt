@@ -28,7 +28,7 @@ UI_EN = {
     UI_optionscreen_binding_chc_toggle_uses_craft = "Toggle between uses/craft"
     UI_optionscreen_binding_chc_move_tab_left = "Select previous tab"
     UI_optionscreen_binding_chc_move_tab_right = "Select next tab"
-    UI_optionscreen_binding_chc_toggle_focus_search_bar = "Toggle search bar focus"
+    UI_optionscreen_binding_chc_toggle_focus_search_bar = "Focus search bar"
 
 
     UI_infotext_common = "Left column (%1) shows list of recipes with some additional controls. <LINE> "..

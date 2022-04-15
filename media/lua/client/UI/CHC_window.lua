@@ -284,11 +284,14 @@ function CHC_window:onKeyRelease(key)
     if key == CHC_settings.keybinds.toggle_focus_search_bar.key then
         -- try to get search bar
         local sr = subview.searchRow
-        if not sr.searchBar then end
-        if sr then
-            local sb = nil
+        if sr and sr.searchBar then
+            if sr.searchBar:isFocused() then
+                -- idk how to unfocus :(
+            else
+                sr.searchBar:focus()
+            end
         end
-        print(fkfk:kffk())
+
     end
     -- endregion
 
