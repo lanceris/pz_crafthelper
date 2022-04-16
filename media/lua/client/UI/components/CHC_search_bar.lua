@@ -50,8 +50,8 @@ function CHC_search_bar:create()
     self.searchBar:instantiate()
     self.searchBar:setText("")
     self.searchBar:setClearButton(true)
-    -- self.searchBar.onOtherKey = self.onOtherKey
     self.searchBarLastText = self.searchBar:getInternalText()
+    -- self.searchBar:setUIName("chat text entry") -- some hardcoded magic
     self.searchBarText = self.searchBarLastText
     self.searchBar.onTextChange = self.onTextChange
 
@@ -114,20 +114,6 @@ function CHC_search_bar:isSpecialCommand(txt, validSpecialChars)
     end
     return false
 end
-
--- function CHC_search_bar:onTextChange(parent)
---     parent = parent or self.parent
---     local stateText = self.searchBar:getInternalText()
---     if stateText ~= self.searchBarLastText or stateText == "" then
---         self.searchBarLastText = stateText
---         if not parent then return end
---         local option = parent.categorySelector
---         if not option then return end
---         local sl = option.options[option.selected]
---         parent:updateRecipes(sl)
---     end
--- end
-
 
 function CHC_search_bar:new(x, y, width, height, searchBarTooltip, onTextChange, searchBtnOnClickText)
     local o = {};

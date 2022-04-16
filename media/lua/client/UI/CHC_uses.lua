@@ -114,6 +114,7 @@ end
 
 function CHC_uses:onTextChange()
     local s = self.parent.parent
+    --self:unfocus() -- works here, but cant check special keys :c
     local stateText = s.searchRow.searchBar:getInternalText()
     if stateText ~= s.searchRow.searchBarLastText or stateText == "" then
         s.searchRow.searchBarLastText = stateText
@@ -219,7 +220,7 @@ end
 function CHC_uses:update()
     if self.filterRow then
         if self.needUpdateFavorites == true then
-            print('triggered upd favorites for: ' .. self.ui_type)
+            -- print('triggered upd favorites for: ' .. self.ui_type)
             -- self.backRef.updateQueue:push({action='updfav', })
             self:handleFavCategory()
             self.needUpdateFavorites = false
@@ -249,18 +250,15 @@ function CHC_uses:handleFavCategory()
     --if cond1 or cond2 or cond3 then
     self:catSelUpdateOptions()
     --end
-    if csSel.text == self.favCatName then
-        if csSel.data.count == 0 then
-            self.selectedCategory = self.categorySelectorDefaultOption
-        end
-    end
     if self.favRecNum == 0 then
         if self.selectedCategory == self.favCatName then
             self.selectedCategory = self.categorySelectorDefaultOption
             self.needUpdateRecipes = true
         end
     end
-
+    -- if self.ui_type == 'item_uses' then
+    --     print(self.selectedCategory)
+    -- end
     cs:select(self.selectedCategory)
     --update favorites in favorites view
     if not cond3 then

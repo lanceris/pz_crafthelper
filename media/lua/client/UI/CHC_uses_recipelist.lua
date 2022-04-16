@@ -76,7 +76,7 @@ function CHC_uses_recipelist:addToFavorite(selectedIndex, fromKeyboard)
 	else
 		parent.favRecNum = parent.favRecNum - 1
 		local cs = parent.filterRow.categorySelector
-		if cs.options[cs.selected] == parent.favCatName then
+		if cs.options[cs.selected].text == parent.favCatName then
 			self:removeItemByIndex(selectedIndex)
 	end
 	end

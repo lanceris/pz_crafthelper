@@ -50,6 +50,18 @@ function CHC_window:create()
     self:refresh()
 end
 
+function CHC_window:getActiveSubView()
+    if not self.panel or not self.panel.activeView then return end
+    local view = self.panel.activeView.view -- search, favorites or itemname
+    local subview
+    if not view.activeView then -- no subviews
+        subview = view
+    else
+        subview = view.activeView.view
+    end
+    return subview
+end
+
 function CHC_window:onActivateView(target)
     if not target.activeView or not target.activeView.view then return end
     local v = target.activeView.view -- top level tab
@@ -438,7 +450,7 @@ function CHC_window:onKeyRelease(key)
         if cs.selected > #cs.options then cs.selected = 1 end
     end
     if oldcsSel ~= cs.selected then
-        subview.onChangeCategory(subview.filterRow, nil, cs.options[cs.selected])
+        subview.onChangeCategory(subview.filterRow, nil, cs.options[cs.selected].text)
     end
     -- endregion
     -- endregion
