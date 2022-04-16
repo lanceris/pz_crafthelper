@@ -256,6 +256,10 @@ function CHC_uses:handleFavCategory()
             self.needUpdateRecipes = true
         end
     end
+    if csSel.data.count == 1 then
+        self.selectedCategory = self.categorySelectorDefaultOption
+        self.needUpdateRecipes = true
+    end
     -- if self.ui_type == 'item_uses' then
     --     print(self.selectedCategory)
     -- end
