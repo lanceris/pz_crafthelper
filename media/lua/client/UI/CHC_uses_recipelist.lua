@@ -37,6 +37,10 @@ function CHC_uses_recipelist:onMouseDown_Recipes(x, y)
 	end
 end
 
+function CHC_uses_recipelist:onMouseUpOutside(x, y)
+	ISScrollingListBox.onMouseUpOutside(self, x, y)
+end
+
 function CHC_uses_recipelist:getFavoriteX()
 	return self.width - 40
 end
@@ -45,12 +49,15 @@ function CHC_uses_recipelist:isMouseOverFavorite(x)
 	return (x >= self:getFavoriteX()) and not self:isMouseOverScrollBar()
 end
 
-function CHC_uses_recipelist:addToFavorite(selectedIndex)
-
+function CHC_uses_recipelist:addToFavorite(selectedIndex, fromKeyboard)
+	if fromKeyboard == true then
+		selectedIndex = self.selected
+	end
 	local selectedItem = self.items[selectedIndex]
 	local modData = self.player:getModData();
 	local allr = getPlayerCraftingUI(0).categories
 	local fav_idx;
+	local parent = self.parent
 
 	--find "Favorite" category
 	for i, v in ipairs(allr) do
@@ -60,12 +67,23 @@ function CHC_uses_recipelist:addToFavorite(selectedIndex)
 		end
 	end
 	if fav_idx == nil then return end
-	;local fav_recipes = allr[fav_idx].recipes.items
+	local fav_recipes = allr[fav_idx].recipes.items
 	selectedItem.item.favorite = not selectedItem.item.favorite;
 	modData[CHC_main.getFavoriteModDataString(selectedItem.item.recipe)] = selectedItem.item.favorite
-	if selectedItem.favorite then
+	if selectedItem.item.favorite then
+		parent.favRecNum = parent.favRecNum + 1
 		table.insert(fav_recipes, selectedItem)
+	else
+		parent.favRecNum = parent.favRecNum - 1
+		local cs = parent.filterRow.categorySelector
+		if cs.options[cs.selected] == parent.favCatName then
+			self:removeItemByIndex(selectedIndex)
 	end
+	end
+	if #self.items == 0 or self.parent.ui_type == 'favorites' then
+		parent.needUpdateRecipes = true
+	end
+	parent.needUpdateFavorites = true
 end
 
 function CHC_uses_recipelist:doDrawItem(y, item, alt)

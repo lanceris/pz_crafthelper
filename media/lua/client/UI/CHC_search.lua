@@ -63,7 +63,7 @@ function CHC_search:create()
     self.filterRow = CHC_filter_row:new(x, y, leftW, 24, filterRowData)
     self.filterRow:initialise()
     local leftY = y + 24
-    self:categorySelectorFillOptions()
+    self:catSelUpdateOptions()
     --endregion
 
     -- region search bar
@@ -236,13 +236,15 @@ function CHC_search:processAddItemToItemList(item, modData)
     end
 end
 
-function CHC_search:categorySelectorFillOptions()
+function CHC_search:catSelUpdateOptions()
 
+    local selector = self.filterRow.categorySelector
     local uniqueCategories = {}
     local missingDisplayCat = false
     local allItems = self.itemSource
     local c = 1
     local pairs = pairs
+
     for _, item in pairs(allItems) do
         local ic = item.displayCategory
         if ic then
@@ -260,7 +262,7 @@ function CHC_search:categorySelectorFillOptions()
     end
     sort(uniqueCategories)
     for i = 1, #uniqueCategories do
-        self.filterRow.categorySelector:addOption(uniqueCategories[i])
+        selector:addOption(uniqueCategories[i])
     end
 end
 

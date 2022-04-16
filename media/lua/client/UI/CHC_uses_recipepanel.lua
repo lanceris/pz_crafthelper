@@ -93,7 +93,7 @@ function CHC_uses_recipepanel:render()
     end
 
     if self.needRefreshRecipeCounts then
-        self.parent:cacheFullRecipeCount()
+        self.parent.needUpdateCounts = true
         self.needRefreshRecipeCounts = false
     end
 
