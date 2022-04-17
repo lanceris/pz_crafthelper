@@ -5,8 +5,12 @@
 ### New features
 
 - Option to change font size in recipe list
+- Options to select modifier keys (shift, ctrl) while selecting recipes, cetegories and tabs (by default all 'None')
 
 ### Improvements
+
+- Config checking: If something new added to config (e.g options), it will autoupdate with default values
+- Moved tab closing context menu a bit higher
 
 ## 1.5.5 (17.04.2022)
 

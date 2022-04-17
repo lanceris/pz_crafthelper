@@ -325,7 +325,7 @@ function CHC_window:onMainTabRightMouseDown(x, y)
     end
     local tabIndex = self:getTabIndexAtX(x)
     if tabIndex <= 2 then return end -- dont interact with search and favorites
-    local context = ISContextMenu.get(0, getMouseX() - 50, getMouseY() - 35)
+    local context = ISContextMenu.get(0, getMouseX() - 50, getMouseY() - 65)
     context:addOption(getText("IGUI_CraftUI_Close") .. " " .. getText("UI_All"), self, CHC_window.closeAllTabs)
     context:addOption(getText("IGUI_CraftUI_Close"), self, CHC_window.closeTab, tabIndex)
 end
@@ -345,15 +345,38 @@ function CHC_window:closeTab(tabIndex)
 end
 
 -- region keyboard controls
+
+local modifierOptionToKey = {
+    [1] = 'none',
+    [2] = 'control',
+    [3] = 'shift',
+    [4] = 'control+shift'
+}
+
+function CHC_window:isModifierKeyDown(_type)
+    local modifier
+    if _type == "recipe" then
+        modifier = modifierOptionToKey[CHC_settings.config.recipe_selector_modifier]
+    elseif _type == "category" then
+        modifier = modifierOptionToKey[CHC_settings.config.category_selector_modifier]
+    elseif _type == "tab" then
+        modifier = modifierOptionToKey[CHC_settings.config.tab_selector_modifier]
+    else
+        error("unknown modifier type")
+    end
+
+    if not modifier then error("no modifier found!") end
+
+    if modifier == 'none' then return true end
+    if modifier == "control" then return isCtrlKeyDown() end
+    if modifier == "shift" then return isShiftKeyDown() end
+    if modifier == "control+shift" then
+        return isCtrlKeyDown() and isShiftKeyDown()
+    end
+end
+
 function CHC_window:onKeyRelease(key)
     if self.isCollapsed then return end
-
-    local shiftDown = isShiftKeyDown()
-    local ctrlDown = isCtrlKeyDown()
-    local altDown = isAltKeyDown()
-    -- print(string.format("shift: %s", tostring(shiftDown)))
-    -- print(string.format("ctrl: %s", tostring(ctrlDown)))
-    -- print(string.format("alt: %s", tostring(altDown)))
 
     local ui = self
     if not ui.panel or not ui.panel.activeView then return end
@@ -398,15 +421,16 @@ function CHC_window:onKeyRelease(key)
     local oldvSel = ui.panel:getActiveViewIndex()
     local newvSel = oldvSel
     local pTabs = ui.panel.viewList
-    if key == CHC_settings.keybinds.move_tab_left.key then
+    if (key == CHC_settings.keybinds.move_tab_left.key) and self:isModifierKeyDown('tab') then
         newvSel = newvSel - 1
         if newvSel <= 0 then newvSel = #pTabs end
-    elseif key == CHC_settings.keybinds.move_tab_right.key then
+    elseif (key == CHC_settings.keybinds.move_tab_right.key) and self:isModifierKeyDown('tab') then
         newvSel = newvSel + 1
         if newvSel > #pTabs then newvSel = 1 end
     end
     if newvSel ~= oldvSel then
         self:refresh(pTabs[newvSel].name)
+        return
     end
     -- endregion
 
@@ -414,12 +438,12 @@ function CHC_window:onKeyRelease(key)
 
     -- region recipes
     local oldsel = rl.selected
-    if key == CHC_settings.keybinds.move_up.key then
+    if (key == CHC_settings.keybinds.move_up.key) and self:isModifierKeyDown('recipe') then
         rl.selected = rl.selected - 1
         if rl.selected <= 0 then
             rl.selected = #rl.items
         end
-    elseif key == CHC_settings.keybinds.move_down.key then
+    elseif (key == CHC_settings.keybinds.move_down.key) and self:isModifierKeyDown('recipe') then
         rl.selected = rl.selected + 1
         if rl.selected > #rl.items then
             rl.selected = 1
@@ -432,21 +456,23 @@ function CHC_window:onKeyRelease(key)
         if subview.objPanel then
             subview.objPanel:setRecipe(selectedItem.item)
         end
+        return
     end
     -- endregion
 
     -- region categories
     local cs = subview.filterRow.categorySelector
     local oldcsSel = cs.selected
-    if key == CHC_settings.keybinds.move_left.key then
+    if (key == CHC_settings.keybinds.move_left.key) and self:isModifierKeyDown('category') then
         cs.selected = cs.selected - 1
         if cs.selected <= 0 then cs.selected = #cs.options end
-    elseif key == CHC_settings.keybinds.move_right.key then
+    elseif (key == CHC_settings.keybinds.move_right.key) and self:isModifierKeyDown('category') then
         cs.selected = cs.selected + 1
         if cs.selected > #cs.options then cs.selected = 1 end
     end
     if oldcsSel ~= cs.selected then
         subview.onChangeCategory(subview.filterRow, nil, cs.options[cs.selected].text)
+        return
     end
     -- endregion
     -- endregion

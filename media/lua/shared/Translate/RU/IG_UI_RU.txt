@@ -9,4 +9,10 @@ IGUI_RU = {
     IGUI_CloseAllOnExitTooltip = "Закрыть все вкладки с предметами при закрытии окна (через клавишу или нажатие на 'x')"
     IGUI_ListFontSize = "Размер шрифта"
     IGUI_ListFontSizeTooltip = "Размер шрифта списка рецептов (левый столбец)"
+    IGUI_RecipeSelectorModifier = "Клавиша выбора рецепта"
+    IGUI_RecipeSelectorModifierTooltip = "Клавиши-модификаторы, удерживаемые при выборе рецептов (сочетания клавиш '%1' и '%2')"
+    IGUI_CategorySelectorModifier = "Клавиша выбора категории"
+    IGUI_CategorySelectorModifierTooltip = "Клавиши-модификаторы, удерживаемые при выборе категорий (сочетания клавиш '%1' и '%2')"
+    IGUI_TabSelectorModifier = "Клавиша выбора вкладки"
+    IGUI_TabSelectorModifierTooltip = "Клавиши-модификаторы, удерживаемые при выборе вкладок (сочетания клавиш '%1' и '%2')"
 }
