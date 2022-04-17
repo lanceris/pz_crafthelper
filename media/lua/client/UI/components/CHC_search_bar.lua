@@ -54,6 +54,7 @@ function CHC_search_bar:create()
     -- self.searchBar:setUIName("chat text entry") -- some hardcoded magic
     self.searchBarText = self.searchBarLastText
     self.searchBar.onTextChange = self.onTextChange
+    self.searchBar.onOtherKey = CHC_search_bar.onOtherKey
 
     self:addChild(self.searchBtn)
     self:addChild(self.searchBar)
@@ -61,6 +62,12 @@ end
 
 function CHC_search_bar:onResize()
     self.searchBar:setWidth(self.width - self.searchBtn.width)
+end
+
+function CHC_search_bar:onOtherKey(key)
+    if key == Keyboard.KEY_ESCAPE then
+        self:unfocus()
+    end
 end
 
 function CHC_search_bar:updateSearchBarLastText()

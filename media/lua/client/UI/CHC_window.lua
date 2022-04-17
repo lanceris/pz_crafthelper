@@ -378,11 +378,7 @@ function CHC_window:onKeyRelease(key)
         -- try to get search bar
         local sr = subview.searchRow
         if sr and sr.searchBar then
-            if sr.searchBar:isFocused() then
-                -- idk how to unfocus :(
-            else
-                sr.searchBar:focus()
-            end
+            sr.searchBar:focus()
         end
     end
     -- endregion

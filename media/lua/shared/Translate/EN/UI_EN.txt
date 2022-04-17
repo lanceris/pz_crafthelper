@@ -61,7 +61,8 @@ UI_EN = {
                     "<SIZE:medium> @hydrocra,!engineer,#saw <SIZE:small> : show recipes from Hydrocraft (or similar) in 'engineer' recipe category, which have 'saw' as ingredient <LINE>"..
                     "<SIZE:medium> %plank|!food <SIZE:small> : show recipes where 'plank' is the result, OR recipes in 'food' category <LINE> <LINE> "..
                     "<SIZE:medium> Limitations: <LINE> <SIZE:small> "..
-                    "- Can't use both separators (',' and '|') in one query <LINE> "
+                    "- Can't use both separators (',' and '|') in one query <LINE> <LINE> "..
+                    "Note: with 'Mod Options' you can set hotkey to focus search bar. Unfocus on ESC."
     UI_infotext_search =  "<CENTRE><SIZE:medium> This is the Search Screen <LINE> <LINE> "..
                     "<SIZE:small> <LEFT> Here you can find all items and recipes. <LINE> <LINE> "
     UI_infotext_favorites = "<CENTRE><SIZE:medium> This is the Favorites Screen <LINE> <LINE> "..

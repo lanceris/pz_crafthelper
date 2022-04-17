@@ -4,7 +4,7 @@
 
 ### New features
 
-- Keybind to focus search bar (unfocus not working)
+- Keybind to focus search bar (unfocus on ESC)
 
 ### Improvements
 
