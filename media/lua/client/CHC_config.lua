@@ -35,6 +35,7 @@ CHC_settings = {
 }
 
 local init_cfg = {
+    show_recipe_module = false,
     recipe_selector_modifier = 1, -- none
     category_selector_modifier = 1,
     tab_selector_modifier = 1,
@@ -57,6 +58,7 @@ local init_cfg = {
 }
 
 local function onModOptionsApply(values)
+    CHC_settings.config.show_recipe_module = values.settings.options.show_recipe_module
     CHC_settings.config.recipe_selector_modifier = values.settings.options.recipe_selector_modifier
     CHC_settings.config.category_selector_modifier = values.settings.options.category_selector_modifier
     CHC_settings.config.tab_selector_modifier = values.settings.options.tab_selector_modifier
@@ -139,6 +141,13 @@ if ModOptions and ModOptions.getInstance then
                 default = 1,
                 OnApplyMainMenu = onModOptionsApply,
                 OnApplyInGame = onModOptionsApply
+            },
+            show_recipe_module = {
+                name = "IGUI_ShowRecipeModule",
+                tooltip = "IGUI_ShowRecipeModuleTooltip",
+                default = false,
+                OnApplyMainMenu = onModOptionsApply,
+                OnApplyInGame = onModOptionsApply
             }
         },
         mod_id = "CraftHelperContinued",
@@ -154,6 +163,8 @@ if ModOptions and ModOptions.getInstance then
     ModOptions:loadFile()
 
 else
+    -- defaults in case no mod options installed
+    CHC_settings.config.show_recipe_module = false
     CHC_settings.config.recipe_selector_modifier = 1
     CHC_settings.config.category_selector_modifier = 1
     CHC_settings.config.tab_selector_modifier = 1

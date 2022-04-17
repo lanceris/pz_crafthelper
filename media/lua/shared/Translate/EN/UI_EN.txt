@@ -51,15 +51,17 @@ UI_EN = {
                     "<SIZE:medium> | (vertical bar) <SIZE:small> : separate all Tokens (logical OR), can be used to search multiple queries separately <LINE> <LINE> "..
                     "Second, you can prepend each Token with one of the following special charachers to specify search rule for this Token <LINE>"..
                     "<SIZE:medium> ! (exclamation mark) <SIZE:small> : search by recipe category <LINE>"..
-                    "<SIZE:medium> @ (at sign) <SIZE:small> : search by mod name of resulting item <LINE>"..
+                    "<SIZE:medium> @ (at sign) <SIZE:small> : search by mod name of resulting item ('Project Zomboid' for vanilla 'mod') <LINE>"..
                     "<SIZE:medium> # (number sign) <SIZE:small> : search by recipe ingredients <LINE>"..
                     "<SIZE:medium> $ (dollar sign) <SIZE:small> : search by category of resulting item (shown in right side of inventory panel) <LINE>"..
                     "<SIZE:medium> % (percent sign) <SIZE:small> : search by name of resulting item <LINE>"..
                     "<SIZE:medium> ^ (caret) <SIZE:small> : search by favorited recipes <LINE> <LINE>"..
+                    "<SIZE:medium> & (ampersand) <SIZE:small> : search by mod name of recipe <LINE> <LINE>"..
                     "<SIZE:medium> <LEFT> Examples: <LINE> <SIZE:small> "..
                     "<SIZE:medium> #hamm <SIZE:small> : show recipes which ingredients include something with 'hamm' in name <LINE>"..
                     "<SIZE:medium> @hydrocra,!engineer,#saw <SIZE:small> : show recipes from Hydrocraft (or similar) in 'engineer' recipe category, which have 'saw' as ingredient <LINE>"..
                     "<SIZE:medium> %plank|!food <SIZE:small> : show recipes where 'plank' is the result, OR recipes in 'food' category <LINE> <LINE> "..
+                    "Third, you can prepend each Token with <SIZE:medium>~<SIZE:small> (tilde) to negate this Token (i.e. find everything thats NOT Token, should be after special character, if using them) <LINE> <LINE> "..
                     "<SIZE:medium> Limitations: <LINE> <SIZE:small> "..
                     "- Can't use both separators (',' and '|') in one query <LINE> <LINE> "..
                     "Note: with 'Mod Options' you can set hotkey to focus search bar. Unfocus on ESC."

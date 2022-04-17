@@ -93,12 +93,23 @@ function CHC_uses_recipelist:addToFavorite(selectedIndex, fromKeyboard)
 end
 
 function CHC_uses_recipelist:doDrawItem(y, item, alt)
+	local shouldDrawMod = CHC_settings.config.show_recipe_module
 	local curFontData = fontSizeToInternal[CHC_settings.config.list_font_size]
 	if not curFontData then curFontData = fontSizeToInternal[3] end
 	if self.font ~= curFontData.font then
 		self:setFont(curFontData.font, curFontData.pad)
 	end
+
+	if shouldDrawMod then
+		if item.item.module == 'Base' then
+			shouldDrawMod = false
+		end
+	end
+
 	item.height = curFontData.icon + 2 * curFontData.pad
+	if shouldDrawMod then
+		item.height = item.height + 2 + getTextManager():getFontHeight(UIFont.Small)
+	end
 
 	if y < -self:getYScroll() - 1 then return y + item.height; end
 	if y > self.height - self:getYScroll() + 1 then return y + item.height; end
@@ -138,6 +149,10 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 		clr['r'], clr['g'], clr['b'] = 0.9, 0.9, 0.9
 	end
 	self:drawText(clr.txt, clr.x, clr.y, clr.r, clr.g, clr.b, clr.a, clr.font)
+	if shouldDrawMod then
+		local modY = clr.y + getTextManager():getFontHeight(self.font)
+		self:drawText("Mod: " .. item.item.module, clr.x + 5, modY, 1, 1, 1, 0.8, UIFont.Small)
+	end
 	--endregion
 
 	--region favorite handler

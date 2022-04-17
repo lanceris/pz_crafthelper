@@ -16,4 +16,6 @@ IGUI_EN = {
     IGUI_CategorySelectorModifierTooltip = "Modifier key(s) held down while selecting categories ('%1' and '%2' keybinds)"
     IGUI_TabSelectorModifier = "Select tab key"
     IGUI_TabSelectorModifierTooltip = "Modifier key(s) held down while selecting tabs ('%1' and '%2' keybinds)"
+    IGUI_ShowRecipeModule = "Show recipe origin"
+    IGUI_ShowRecipeModuleTooltip = "Display mod, where recipe came from. <LINE> Note: recipe 'mod' is just module, where this recipe was defined (in .txt file), alot of them using default module ('Base')"
 }

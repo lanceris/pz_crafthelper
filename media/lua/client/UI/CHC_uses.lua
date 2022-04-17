@@ -405,7 +405,7 @@ function CHC_uses:searchProcessToken(token, recipe)
         isSpecialSearch = true
         char = token:sub(1, 1)
         token = string.sub(token, 2)
-        if token == "" then token = nil end
+        if token == "" then return true end
     end
 
     local whatCompare
@@ -413,6 +413,10 @@ function CHC_uses:searchProcessToken(token, recipe)
         -- show favorited reciped and search by them
         if not recipe.favorite then return false end
         whatCompare = string.lower(recipe.recipeData.name)
+    end
+    if isAllowSpecialSearch and char == "&" then
+        -- search by mod(ule) name of recipe
+        whatCompare = string.lower(recipe.module)
     end
     if token and isSpecialSearch then
         if char == "!" then

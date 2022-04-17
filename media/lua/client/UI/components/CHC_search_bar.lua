@@ -111,10 +111,10 @@ end
 
 ---Checks if `txt` starts with any of the `validSpecialChars`
 ---@param txt string token
----@param validSpecialChars? table<number,string>  list of special characters to check, by default `{"!", "@", "#", "$", "%", "^"}`
+---@param validSpecialChars? table<number,string>  list of special characters to check, by default `{"!", "@", "#", "$", "%", "^", "&"}`
 ---@return boolean isSpecial
 function CHC_search_bar:isSpecialCommand(txt, validSpecialChars)
-    validSpecialChars = validSpecialChars or { "!", "@", "#", "$", "%", "^" }
+    validSpecialChars = validSpecialChars or { "!", "@", "#", "$", "%", "^", "&" }
 
     for i = 1, #validSpecialChars do
         if utils.startswith(txt, validSpecialChars[i]) then return true end
