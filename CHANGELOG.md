@@ -1,5 +1,20 @@
 # CraftHelper updates
 
+## 1.5.5 (14.04.2022)
+
+### New features
+
+- Keybind to focus search bar (unfocus on ESC)
+
+### Improvements
+
+- Updated infotext for views
+- Cleaned up translations
+
+### Bugfixes
+
+- Fixed settings not applying in main menu
+
 ## 1.5.4 (14.04.2022)
 
 ### New features

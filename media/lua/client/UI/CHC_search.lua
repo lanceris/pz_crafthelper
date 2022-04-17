@@ -54,7 +54,7 @@ function CHC_search:create()
             defaultIcon = CHC_uses.filterRowTypeSetIcon(self)
         },
         filterSelectorData = {
-            defaultCategory = getText("UI_tab_uses_categorySelector_All"),
+            defaultCategory = getText("UI_All"),
             defaultTooltip = getText("IGUI_invpanel_Category"),
             onChange = self.onChangeCategory
         }
@@ -63,11 +63,11 @@ function CHC_search:create()
     self.filterRow = CHC_filter_row:new(x, y, leftW, 24, filterRowData)
     self.filterRow:initialise()
     local leftY = y + 24
-    self:categorySelectorFillOptions()
+    self:catSelUpdateOptions()
     --endregion
 
     -- region search bar
-    self.searchRow = CHC_search_bar:new(x, leftY, leftW, 24, nil, self.onTextChange, getText("UI_search_info"))
+    self.searchRow = CHC_search_bar:new(x, leftY, leftW, 24, nil, self.onTextChange, getText("UI_searchrow_info"))
     self.searchRow:initialise()
     leftY = leftY + 24
     -- endregion
@@ -94,7 +94,7 @@ function CHC_search:create()
 end
 
 function CHC_search:updateItems(sl)
-    local categoryAll = getText("UI_tab_uses_categorySelector_All")
+    local categoryAll = getText("UI_All")
     local searchBar = self.searchRow.searchBar
     local items = self.itemSource
 
@@ -236,13 +236,15 @@ function CHC_search:processAddItemToItemList(item, modData)
     end
 end
 
-function CHC_search:categorySelectorFillOptions()
+function CHC_search:catSelUpdateOptions()
 
+    local selector = self.filterRow.categorySelector
     local uniqueCategories = {}
     local missingDisplayCat = false
     local allItems = self.itemSource
     local c = 1
     local pairs = pairs
+
     for _, item in pairs(allItems) do
         local ic = item.displayCategory
         if ic then
@@ -260,7 +262,7 @@ function CHC_search:categorySelectorFillOptions()
     end
     sort(uniqueCategories)
     for i = 1, #uniqueCategories do
-        self.filterRow.categorySelector:addOption(uniqueCategories[i])
+        selector:addOption(uniqueCategories[i])
     end
 end
 

@@ -2,25 +2,73 @@ local CHC_utils = {}
 
 local lower = string.lower
 local tostring = tostring
-local contains = string.contains
 local len = string.len
 local sub = string.sub
+
+
+CHC_utils.Deque = {}
+
+function CHC_utils.Deque:new()
+    local o = {}
+    o.first = 0
+    o.last = -1
+    o.len = 0
+    o.data = {}
+
+    function CHC_utils.Deque:_pushl(val)
+        local first = self.first - 1
+        self.first = first
+        self.data[first] = val
+        self.len = self.len + 1
+    end
+
+    function CHC_utils.Deque:_popr()
+        local last = self.last
+        if self.first > last then error('deque empty') end
+        local val = self.data[last]
+        self.data[last] = nil
+        self.last = last - 1
+        self.len = self.len - 1
+        return val
+    end
+
+    function CHC_utils.Deque:push(val)
+        local last = self.last + 1
+        self.last = last
+        self.data[last] = val
+        self.len = self.len + 1
+    end
+
+    function CHC_utils.Deque:pop()
+        local first = self.first
+        if first > self.last then error('deque empty') end
+        local val = self.data[first]
+        self.data[first] = nil
+        self.first = first + 1
+        self.len = self.len - 1
+        return val
+    end
+
+    setmetatable(o, self)
+    self.__index = self
+    return o
+end
 
 CHC_utils.tableSize = function(table1)
     if not table1 then return 0 end
     local count = 0;
-    for _,v in pairs(table1) do
+    for _, v in pairs(table1) do
         count = count + 1;
     end
     return count;
 end
 
-CHC_utils.areTablesDifferent = function (table1, table2)
+CHC_utils.areTablesDifferent = function(table1, table2)
     local size1 = CHC_utils.tableSize(table1)
     local size2 = CHC_utils.tableSize(table2)
     if size1 ~= size2 then return true end
     if size1 == 0 then return false end
-    for k1,v1 in pairs(table1) do
+    for k1, v1 in pairs(table1) do
         if table2[k1] ~= v1 then
             return true
         end
@@ -35,7 +83,8 @@ end
 ---@param to string right part of comparison
 ---@param passAll? boolean return true if true without checks
 ---@return boolean #result of comparison
-CHC_utils.compare = function (what, to, passAll)
+CHC_utils.compare = function(what, to, passAll)
+    local contains = string.contains
     if passAll then return true end
     local isList = type(what) == "table"
     to = lower(tostring(to))
@@ -46,7 +95,7 @@ CHC_utils.compare = function (what, to, passAll)
             state = true
         end
     else
-        for i=1, #what do
+        for i = 1, #what do
             local wh = lower(tostring(what[i]))
             if contains(wh, to) then
                 state = true
@@ -69,7 +118,7 @@ CHC_utils.all = function(t, val, start, stop, step)
     stop = stop or #t
     step = step or 1
 
-    for i=start, stop, step do
+    for i = start, stop, step do
         if t[i] ~= val then return false end
     end
     return true
@@ -86,7 +135,7 @@ CHC_utils.any = function(t, val, start, stop, step)
     start = start or 1
     stop = stop or #t
     step = step or 1
-    for i=start, stop, step do
+    for i = start, stop, step do
         if t[i] == val then return true end
     end
     return false
@@ -96,7 +145,7 @@ end
 ---@param txt string text to check
 ---@param start string string to check in text
 ---@return boolean #result
-CHC_utils.startswith = function (txt, start)
+CHC_utils.startswith = function(txt, start)
     return sub(txt, 1, len(start)) == start
 end
 

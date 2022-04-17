@@ -93,7 +93,7 @@ function CHC_uses_recipepanel:render()
     end
 
     if self.needRefreshRecipeCounts then
-        self.parent:cacheFullRecipeCount()
+        self.parent.needUpdateCounts = true
         self.needRefreshRecipeCounts = false
     end
 
@@ -285,7 +285,7 @@ function CHC_uses_recipepanel:drawNearItem(x, y, item)
     if not nearItem and not hydroFurniture then return 0 end
     local sy = y
 
-    self:drawText(getText("UI_tab_uses_details_near_item") .. ": ", x, y, 1, 1, 1, 1, UIFont.Medium);
+    self:drawText(getText("UI_recipe_panel_near_item") .. ": ", x, y, 1, 1, 1, 1, UIFont.Medium);
     y = y + CHC_uses_recipepanel.mediumFontHeight;
 
     if hydroFurniture then

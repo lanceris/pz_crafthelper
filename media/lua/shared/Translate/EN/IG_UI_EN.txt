@@ -1,4 +1,5 @@
 IGUI_EN = {
+    IGUI_chc_context_onclick = "Craft Helper 41"
     IGUI_AllowSpecialSearch = "Enable special commands"
     IGUI_AllowSpecialSearchTooltip = "Commands are used in searches (click on magnifier left of the search bar to learn more)"
     IGUI_ShowIcons = "Show icons of items"
