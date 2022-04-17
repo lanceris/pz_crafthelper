@@ -2,6 +2,12 @@ require "ISUI/ISScrollingListBox"
 
 CHC_uses_recipelist = ISScrollingListBox:derive("CHC_uses_recipelist")
 
+local fontSizeToInternal = {
+	{ font = UIFont.Small, pad = 4, icon = 10 },
+	{ font = UIFont.Medium, pad = 4, icon = 18 },
+	{ font = UIFont.Large, pad = 6, icon = 24 }
+}
+
 function CHC_uses_recipelist:initialise()
 	ISScrollingListBox.initialise(self)
 end
@@ -78,7 +84,7 @@ function CHC_uses_recipelist:addToFavorite(selectedIndex, fromKeyboard)
 		local cs = parent.filterRow.categorySelector
 		if cs.options[cs.selected].text == parent.favCatName then
 			self:removeItemByIndex(selectedIndex)
-	end
+		end
 	end
 	if #self.items == 0 or self.parent.ui_type == 'favorites' then
 		parent.needUpdateRecipes = true
@@ -87,6 +93,12 @@ function CHC_uses_recipelist:addToFavorite(selectedIndex, fromKeyboard)
 end
 
 function CHC_uses_recipelist:doDrawItem(y, item, alt)
+	local curFontData = fontSizeToInternal[CHC_settings.config.list_font_size]
+	if not curFontData then curFontData = fontSizeToInternal[3] end
+	if self.font ~= curFontData.font then
+		self:setFont(curFontData.font, curFontData.pad)
+	end
+	item.height = curFontData.icon + 2 * curFontData.pad
 
 	if y < -self:getYScroll() - 1 then return y + item.height; end
 	if y > self.height - self:getYScroll() + 1 then return y + item.height; end
@@ -106,14 +118,14 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 		if resultItem then
 			local tex = resultItem.texture
 			if tex then
-				self:drawTextureScaled(tex, 6, y + 6, item.height - 12, item.height - 12, 1)
+				self:drawTextureScaled(tex, 6, y + 6, curFontData.icon, curFontData.icon, 1)
 			end
 		end
 	end
 	--endregion
 
 	--region text
-	local clr = { txt = item.text, x = iconsEnabled and item.height or 15, y = (y) + itemPadY,
+	local clr = { txt = item.text, x = iconsEnabled and (curFontData.icon + 8) or 15, y = (y) + itemPadY,
 		a = 0.9, font = self.font }
 	if not self.player:isRecipeKnown(recipe.recipe) then
 		-- unknown recipe, red text

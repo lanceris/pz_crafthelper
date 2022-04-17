@@ -35,6 +35,7 @@ CHC_settings = {
 }
 
 local function onModOptionsApply(values)
+    CHC_settings.config.list_font_size = values.settings.options.list_font_size
     CHC_settings.config.allow_special_search = values.settings.options.allow_special_search
     CHC_settings.config.show_icons = values.settings.options.show_icons
     CHC_settings.config.show_hidden = values.settings.options.show_hidden
@@ -75,6 +76,14 @@ if ModOptions and ModOptions.getInstance then
                 default = false,
                 OnApplyMainMenu = onModOptionsApply,
                 OnApplyInGame = onModOptionsApply
+            },
+            list_font_size = {
+                getText("UI_optionscreen_Small"), getText("UI_optionscreen_Medium"), getText("UI_optionscreen_Large"),
+                name = "IGUI_ListFontSize",
+                tooltip = "IGUI_ListFontSizeTooltip",
+                default = 3,
+                OnApplyMainMenu = onModOptionsApply,
+                OnApplyInGame = onModOptionsApply
             }
         },
         mod_id = "CraftHelperContinued",
@@ -90,6 +99,7 @@ if ModOptions and ModOptions.getInstance then
     ModOptions:loadFile()
 
 else
+    CHC_settings.config.list_font_size = getText("UI_optionscreen_Large")
     CHC_settings.config.allow_special_search = true
     CHC_settings.config.show_icons = false
     CHC_settings.config.show_hidden = true
@@ -120,6 +130,7 @@ CHC_settings.Load = function()
         CHC_settings.config = Json.Decode(json)
     else
         local init_cfg = {
+            list_font_size = getText("UI_optionscreen_Large"),
             show_icons = false,
             allow_special_search = true,
             show_hidden = true,

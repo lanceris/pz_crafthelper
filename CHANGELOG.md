@@ -1,6 +1,14 @@
 # CraftHelper updates
 
-## 1.5.5 (14.04.2022)
+## 1.5.6 ()
+
+### New features
+
+- Option to change font size in recipe list
+
+### Improvements
+
+## 1.5.5 (17.04.2022)
 
 ### New features
 

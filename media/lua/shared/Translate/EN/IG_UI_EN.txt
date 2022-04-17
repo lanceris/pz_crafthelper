@@ -8,4 +8,6 @@ IGUI_EN = {
     IGUI_ShowHiddenTooltip = "Property 'IsHidden: true' in recipe definition, not shown in vanilla craft menu",
     IGUI_CloseAllOnExit = "Close all tabs on close"
     IGUI_CloseAllOnExitTooltip = "Close all item tabs, when closing window (via hotkey or clicking 'x')"
+    IGUI_ListFontSize = "Font size"
+    IGUI_ListFontSizeTooltip = "Font size of recipe list (left column)"
 }

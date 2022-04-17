@@ -7,4 +7,6 @@ IGUI_RU = {
     IGUI_ShowHiddenTooltip = "Свойство 'IsHidden: true' в определении рецепта, не отображается в обычном меню крафта"
     IGUI_CloseAllOnExit = "Закрыть все вкладки при выходе"
     IGUI_CloseAllOnExitTooltip = "Закрыть все вкладки с предметами при закрытии окна (через клавишу или нажатие на 'x')"
+    IGUI_ListFontSize = "Размер шрифта"
+    IGUI_ListFontSizeTooltip = "Размер шрифта списка рецептов (левый столбец)"
 }
