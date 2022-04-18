@@ -56,7 +56,7 @@ UI_EN = {
                     "<SIZE:medium> $ (dollar sign) <SIZE:small> : search by category of resulting item (shown in right side of inventory panel) <LINE>"..
                     "<SIZE:medium> % (percent sign) <SIZE:small> : search by name of resulting item <LINE>"..
                     "<SIZE:medium> ^ (caret) <SIZE:small> : search by favorited recipes <LINE> <LINE>"..
-                    "<SIZE:medium> & (ampersand) <SIZE:small> : search by mod name of recipe <LINE> <LINE>"..
+                    "<SIZE:medium> & (ampersand) <SIZE:small> : search by mod name of recipe ('Base' for vanilla 'mod') <LINE> <LINE>"..
                     "<SIZE:medium> <LEFT> Examples: <LINE> <SIZE:small> "..
                     "<SIZE:medium> #hamm <SIZE:small> : show recipes which ingredients include something with 'hamm' in name <LINE>"..
                     "<SIZE:medium> @hydrocra,!engineer,#saw <SIZE:small> : show recipes from Hydrocraft (or similar) in 'engineer' recipe category, which have 'saw' as ingredient <LINE>"..

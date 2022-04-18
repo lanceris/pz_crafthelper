@@ -15,6 +15,11 @@
 - Config checking: If something new added to config (e.g options), it will autoupdate with default values
 - Moved tab closing context menu a bit higher
 - Updated search helper info
+- Removed caching of search panel (TODO: check performance with alot of mods)
+
+### Bugfixes
+
+- Fixed error when favoriting via hotkey with no recipe selected
 
 ## 1.5.5 (17.04.2022)
 

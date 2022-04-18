@@ -5,7 +5,7 @@ require "UI/CHC_uses_recipelist"
 require "UI/CHC_uses_recipepanel"
 
 local derivative = ISPanel
-CHC_uses = derivative:derive("CHC_uses");
+CHC_uses = derivative:derive("CHC_uses")
 CHC_uses.sortOrderIconAsc = getTexture("media/textures/sort_order_asc.png")
 CHC_uses.sortOrderIconDesc = getTexture("media/textures/sort_order_desc.png")
 CHC_uses.typeFiltIconAll = getTexture("media/textures/type_filt_all.png")
@@ -19,13 +19,12 @@ local utils = require('CHC_utils')
 local insert = table.insert
 local sort = table.sort
 local pairs = pairs
-local concat = table.concat
 
 
 -- region create
 function CHC_uses:initialise()
-    derivative.initialise(self);
-    self:create();
+    derivative.initialise(self)
+    self:create()
 end
 
 function CHC_uses:create()
@@ -76,19 +75,19 @@ function CHC_uses:create()
 
     -- region recipe list
     local rlh = self.height - self.headers.height - self.filterRow.height - self.searchRow.height
-    self.objList = CHC_uses_recipelist:new(x, leftY, leftW, rlh);
-    self.objList.drawBorder = true;
-    self.objList:initialise();
-    self.objList:instantiate();
+    self.objList = CHC_uses_recipelist:new(x, leftY, leftW, rlh)
+    self.objList.drawBorder = true
+    self.objList:initialise()
+    self.objList:instantiate()
     self.objList:setAnchorBottom(true)
-    self.objList:setOnMouseDownFunction(self, CHC_uses.onRecipeChange);
+    self.objList:setOnMouseDownFunction(self, CHC_uses.onRecipeChange)
     -- endregion
 
     -- region recipe details windows
     local rph = self.height - self.headers.height
-    self.objPanel = CHC_uses_recipepanel:new(rightX, y, rightW, rph);
-    self.objPanel:initialise();
-    self.objPanel:instantiate();
+    self.objPanel = CHC_uses_recipepanel:new(rightX, y, rightW, rph)
+    self.objPanel:initialise()
+    self.objPanel:instantiate()
     self.objPanel:setAnchorRight(true)
     self.objPanel:setAnchorBottom(true)
     -- endregion
@@ -113,16 +112,7 @@ end
 -- region update
 
 function CHC_uses:onTextChange()
-    local s = self.parent.parent
-    --self:unfocus() -- works here, but cant check special keys :c
-    local stateText = s.searchRow.searchBar:getInternalText()
-    if stateText ~= s.searchRow.searchBarLastText or stateText == "" then
-        s.searchRow.searchBarLastText = stateText
-        local option = s.filterRow.categorySelector
-        local sl = option.options[option.selected].text
-        s.selectedCategory = sl
-        s.needUpdateRecipes = true
-    end
+    self.needUpdateRecipes = true
 end
 
 function CHC_uses:onChangeCategory(_option, sl)
@@ -213,7 +203,7 @@ function CHC_uses:refreshRecipeList(recipes)
 end
 
 function CHC_uses:onRecipeChange(recipe)
-    self.objPanel:setRecipe(recipe);
+    self.objPanel:setRecipe(recipe)
     self.objList:onMouseDown_Recipes(self.objList:getMouseX(), self.objList:getMouseY())
 end
 
@@ -221,7 +211,6 @@ function CHC_uses:update()
     if self.filterRow then
         if self.needUpdateFavorites == true then
             -- print('triggered upd favorites for: ' .. self.ui_type)
-            -- self.backRef.updateQueue:push({action='updfav', })
             self:handleFavCategory()
             self.needUpdateFavorites = false
         end
@@ -260,9 +249,6 @@ function CHC_uses:handleFavCategory()
         self.selectedCategory = self.categorySelectorDefaultOption
         self.needUpdateRecipes = true
     end
-    -- if self.ui_type == 'item_uses' then
-    --     print(self.selectedCategory)
-    -- end
     cs:select(self.selectedCategory)
     --update favorites in favorites view
     if not cond3 then
@@ -356,36 +342,10 @@ function CHC_uses:recipeTypeFilter(recipe)
 
     local state = true
     if self.typeFilter == 'all' then state = true end
-    ;if self.typeFilter == 'valid' then state = is_valid end
+    if self.typeFilter == 'valid' then state = is_valid end
     if self.typeFilter == 'known' then state = is_known and not is_valid end
     if self.typeFilter == 'invalid' then state = not is_known end
     return state
-end
-
-function CHC_uses:searchParseTokens(txt)
-
-    local delim = { ",", "|" }
-    local regex = "[^" .. concat(delim) .. "]+"
-    local queryType
-
-    txt = string.trim(txt)
-    if not string.contains(txt, ',') and not string.contains(txt, "|") then
-        return { txt }, false, nil
-    end
-    if string.contains(txt, ",") then queryType = 'AND'
-    elseif string.contains(txt, '|') then queryType = "OR" end
-
-    local tokens = {}
-    for token in txt:gmatch(regex) do
-        insert(tokens, token)
-    end
-    if #tokens == 1 then
-        return tokens, false, nil
-    elseif not tokens then -- just sep (e.g txt=",")
-        return nil, false, nil
-    end
-    -- tokens = table.unpack(tokens, 1, #tokens-1)
-    return tokens, true, queryType
 end
 
 function CHC_uses:searchProcessToken(token, recipe)
@@ -615,14 +575,14 @@ function CHC_uses:new(args)
     local h = args.h
     -- local item = args.item
 
-    local o = {};
-    o = derivative:new(x, y, w, h);
+    local o = {}
+    o = derivative:new(x, y, w, h)
 
-    setmetatable(o, self);
-    self.__index = self;
+    setmetatable(o, self)
+    self.__index = self
 
-    o.borderColor = { r = 0.4, g = 0.4, b = 0.4, a = 1 };
-    o.backgroundColor = { r = 0, g = 0, b = 0, a = 0.8 };
+    o.borderColor = { r = 0.4, g = 0.4, b = 0.4, a = 1 }
+    o.backgroundColor = { r = 0, g = 0, b = 0, a = 0.8 }
 
     o.item = args.item or nil
     o.recipeSource = args.recipeSource
@@ -648,5 +608,5 @@ function CHC_uses:new(args)
     o.numRecipesValid = 0
     o.numRecipesKnown = 0
     o.numRecipesInvalid = 0
-    return o;
+    return o
 end

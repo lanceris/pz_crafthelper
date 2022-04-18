@@ -60,6 +60,16 @@ function CHC_search_bar:create()
     self:addChild(self.searchBar)
 end
 
+function CHC_search_bar:onTextChange()
+    local s = self.parent
+    s:updateSearchBarLastText()
+
+    if s.onTextChangeSB ~= nil then
+        s.onTextChangeSB(s.parent)
+    end
+
+end
+
 function CHC_search_bar:onResize()
     self.searchBar:setWidth(self.width - self.searchBtn.width)
 end
@@ -134,7 +144,7 @@ function CHC_search_bar:new(x, y, width, height, searchBarTooltip, onTextChange,
     o.w = width
     o.h = height
     o.searchBtnOnClickText = searchBtnOnClickText
-    o.onTextChange = onTextChange
+    o.onTextChangeSB = onTextChange
     o.searchBarTooltip = searchBarTooltip or string.sub(getText("IGUI_CraftUI_Name_Filter"), 1, -2)
     return o
 end

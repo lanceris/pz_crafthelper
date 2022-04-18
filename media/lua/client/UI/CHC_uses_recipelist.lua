@@ -60,6 +60,7 @@ function CHC_uses_recipelist:addToFavorite(selectedIndex, fromKeyboard)
 		selectedIndex = self.selected
 	end
 	local selectedItem = self.items[selectedIndex]
+	if not selectedItem then return end
 	local modData = self.player:getModData();
 	local allr = getPlayerCraftingUI(0).categories
 	local fav_idx;
@@ -206,7 +207,5 @@ function CHC_uses_recipelist:new(x, y, width, height)
 	o.favoriteStar = getTexture("media/ui/FavoriteStar.png")
 	o.favCheckedTex = getTexture("media/ui/FavoriteStarChecked.png")
 	o.favNotCheckedTex = getTexture("media/ui/FavoriteStarUnchecked.png")
-	o.favPadX = 20;
-	o.favWidth = o.favoriteStar and o.favoriteStar:getWidth() or 13
 	return o
 end
