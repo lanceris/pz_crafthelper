@@ -17,4 +17,11 @@ IGUI_RU = {
     IGUI_TabSelectorModifierTooltip = "Клавиши-модификаторы, удерживаемые при выборе вкладок (сочетания клавиш '%1' и '%2')"
     IGUI_ShowRecipeModule = "Показать происхождение рецепта"
     IGUI_ShowRecipeModuleTooltip = "Показать мод, откуда взялся рецепт. <LINE> Примечание: 'мод' рецепта — это просто модуль, в котором этот рецепт был определен (в файле .txt), многие из них используют модуль по умолчанию ('Base')"
+    IGUI_CHC_ItemCat_AlarmClockClothing = "Наручные часы"
+    IGUI_CHC_ItemCat_Drainable = "Исчерпаемое"
+    IGUI_CHC_ItemCat_Map = "Карта"
+    IGUI_CHC_ItemCat_Moveable = "Мебель"
+    IGUI_CHC_ItemCat_Normal = "Normal"
+    IGUI_CHC_ItemCat_Radio = "Радио"
+    IGUI_CHC_ItemCat_Key = "Ключи"
 }
