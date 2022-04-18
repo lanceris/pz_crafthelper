@@ -42,6 +42,7 @@ end
 CHC_main.processOneItem = function(item)
 	local fullType = item:getFullName()
 	local invItem = instanceItem(fullType)
+	local itemDisplayCategory = invItem:getDisplayCategory()
 	if not CHC_main.items[fullType] then
 		local toinsert = {
 			item = invItem,
@@ -53,7 +54,8 @@ CHC_main.processOneItem = function(item)
 			displayName = invItem:getDisplayName(),
 			hidden = item:isHidden(),
 			count = invItem:getCount() or 1,
-			displayCategory = invItem:getDisplayCategory() or "Item",
+			category = item:getTypeString(),
+			displayCategory = itemDisplayCategory and getTextOrNull("IGUI_ItemCat_" .. itemDisplayCategory) or "Item",
 			texture = invItem:getTex()
 		}
 		CHC_main.items[invItem:getFullType()] = toinsert

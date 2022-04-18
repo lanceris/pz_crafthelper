@@ -6,7 +6,8 @@
 
 ### Improvements
 
-- Counts in type filter now updates when changing category
+- Counts in type filter now updates when changing category (disabled for now)
+- Available categories in selector now updates when changing filter type (disabled for now)
 
 ## 1.5.6 (18.04.2022)
 

@@ -19,6 +19,8 @@ local utils = require('CHC_utils')
 local insert = table.insert
 local sort = table.sort
 
+local advUpdCoCa = false
+
 -- region create
 function CHC_uses:initialise()
     derivative.initialise(self)
@@ -116,8 +118,10 @@ end
 function CHC_uses:onChangeCategory(_option, sl)
     self.parent.selectedCategory = sl or _option.options[_option.selected].text
     self.parent.needUpdateObjects = true
-    self.parent.updCountsWithCur = true
-    self.parent.needUpdateCounts = true
+    if advUpdCoCa then
+        self.parent.updCountsWithCur = true
+        self.parent.needUpdateCounts = true
+    end
 end
 
 function CHC_uses:cacheRecipeCounts(current)
@@ -213,27 +217,23 @@ function CHC_uses:onRecipeChange(recipe)
 end
 
 function CHC_uses:update()
-    if self.filterRow then
-        if self.needUpdateFavorites == true then
-            -- print('triggered upd favorites for: ' .. self.ui_type)
-            self:handleFavCategory()
-            self.needUpdateFavorites = false
-        end
-        if self.needUpdateCounts == true then
-            -- print('triggered upd counts for: ' .. self.ui_type)
-            self:cacheRecipeCounts(self.updCountsWithCur)
-            self.needUpdateCounts = false
-            self.updCountsWithCur = false
-        end
-    end
     if self.needUpdateObjects == true then
-        -- print('triggered upd recipes for: ' .. self.ui_type)
         self:updateRecipes(self.selectedCategory)
         self.needUpdateObjects = false
     end
+    if self.needUpdateFavorites == true then
+        self:handleFavCategory(self.updFavWithCur)
+        self.needUpdateFavorites = false
+        self.updFavWithCur = false
+    end
+    if self.needUpdateCounts == true then
+        self:cacheRecipeCounts(self.updCountsWithCur)
+        self.needUpdateCounts = false
+        self.updCountsWithCur = false
+    end
 end
 
-function CHC_uses:handleFavCategory()
+function CHC_uses:handleFavCategory(current)
     local cs = self.filterRow.categorySelector
     local csSel = cs.options[cs.selected]
     local cond3 = self.ui_type == 'favorites'
@@ -243,7 +243,7 @@ function CHC_uses:handleFavCategory()
     end
 
     --if cond1 or cond2 or cond3 then
-    self:catSelUpdateOptions()
+    self:catSelUpdateOptions(current)
     --end
     if self.favRecNum == 0 then
         if self.selectedCategory == self.favCatName then
@@ -299,26 +299,43 @@ end
 -- endregion
 
 
-function CHC_uses:catSelUpdateOptions()
+function CHC_uses:catSelUpdateOptions(current)
 
     local selector = self.filterRow.categorySelector
     local uniqueCategories = {}
     local catCounts = {}
+    local curCats = nil
     local allrec = self.ui_type == 'favorites' and self.favrec or self.recipeSource
+    local c1 = self.typeFilter == 'all'
     local c = 1
     self.favRecNum = 0
+
+    if current and (not c1) then
+        --collect current items categories
+        local curList = self.objList.items
+        for i = 1, #curList do
+            local cat = curList[i].item.recipeData.category
+            local catT = getTextOrNull("IGUI_CraftCategory_" .. cat) or cat
+            if not curCats then curCats = {} end
+            curCats[catT] = true
+        end
+    end
+
+
     for i = 1, #allrec do
         if allrec[i].favorite then
             self.favRecNum = self.favRecNum + 1
         end
         local rc = allrec[i].recipeData.category
         rc = getTextOrNull("IGUI_CraftCategory_" .. rc) or rc
-        if not utils.any(uniqueCategories, rc) then
-            uniqueCategories[c] = rc
-            catCounts[rc] = 1
-            c = c + 1
-        else
-            catCounts[rc] = catCounts[rc] + 1
+        if (not current) or (current and (c1 or curCats[rc])) then
+            if not utils.any(uniqueCategories, rc) then
+                uniqueCategories[c] = rc
+                catCounts[rc] = 1
+                c = c + 1
+            else
+                catCounts[rc] = catCounts[rc] + 1
+            end
         end
     end
 
@@ -496,6 +513,10 @@ function CHC_uses:sortByType(_type)
         self.filterRow.filterTypeBtn:setTooltip(self:filterRowTypeSetTooltip())
         self.filterRow.filterTypeBtn:setImage(self:filterRowTypeSetIcon())
         self.needUpdateObjects = true
+        if advUpdCoCa then
+            self.updFavWithCur = true
+            self.needUpdateFavorites = true
+        end
     end
 end
 
@@ -588,6 +609,7 @@ function CHC_uses:new(args)
     o.ui_type = args.ui_type
     o.favRecNum = 0
     o.updCountsWithCur = false
+    o.updFavWithCur = false
 
 
     o.numRecipesAll = 0
