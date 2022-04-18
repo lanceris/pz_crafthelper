@@ -8,4 +8,14 @@ IGUI_EN = {
     IGUI_ShowHiddenTooltip = "Property 'IsHidden: true' in recipe definition, not shown in vanilla craft menu",
     IGUI_CloseAllOnExit = "Close all tabs on close"
     IGUI_CloseAllOnExitTooltip = "Close all item tabs, when closing window (via hotkey or clicking 'x')"
+    IGUI_ListFontSize = "Font size"
+    IGUI_ListFontSizeTooltip = "Font size of recipe list (left column)"
+    IGUI_RecipeSelectorModifier = "Select recipe key"
+    IGUI_RecipeSelectorModifierTooltip = "Modifier key(s) held down while selecting recipes ('%1' and '%2' keybinds)"
+    IGUI_CategorySelectorModifier = "Select category key"
+    IGUI_CategorySelectorModifierTooltip = "Modifier key(s) held down while selecting categories ('%1' and '%2' keybinds)"
+    IGUI_TabSelectorModifier = "Select tab key"
+    IGUI_TabSelectorModifierTooltip = "Modifier key(s) held down while selecting tabs ('%1' and '%2' keybinds)"
+    IGUI_ShowRecipeModule = "Show recipe origin"
+    IGUI_ShowRecipeModuleTooltip = "Display mod, where recipe came from. <LINE> Note: recipe 'mod' is just module, where this recipe was defined (in .txt file), alot of them using default module ('Base')"
 }

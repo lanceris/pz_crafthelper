@@ -34,7 +34,35 @@ CHC_settings = {
     }
 }
 
+local init_cfg = {
+    show_recipe_module = false,
+    recipe_selector_modifier = 1, -- none
+    category_selector_modifier = 1,
+    tab_selector_modifier = 1,
+    list_font_size = 3, -- large
+    show_icons = false,
+    allow_special_search = true,
+    show_hidden = true,
+    close_all_on_exit = false,
+    main_window = { x = 100, y = 100, w = 1000, h = 600 },
+    uses = { sep_x = 500, filter_asc = true, filter_type = "all" },
+    craft = { sep_x = 500, filter_asc = true, filter_type = "all" },
+    search = {
+        items = { sep_x = 500, filter_asc = true, filter_type = "all" },
+        recipes = { sep_x = 500, filter_asc = true, filter_type = "all" }
+    },
+    favorites = {
+        items = { sep_x = 500, filter_asc = true, filter_type = "all" },
+        recipes = { sep_x = 500, filter_asc = true, filter_type = "all" }
+    }
+}
+
 local function onModOptionsApply(values)
+    CHC_settings.config.show_recipe_module = values.settings.options.show_recipe_module
+    CHC_settings.config.recipe_selector_modifier = values.settings.options.recipe_selector_modifier
+    CHC_settings.config.category_selector_modifier = values.settings.options.category_selector_modifier
+    CHC_settings.config.tab_selector_modifier = values.settings.options.tab_selector_modifier
+    CHC_settings.config.list_font_size = values.settings.options.list_font_size
     CHC_settings.config.allow_special_search = values.settings.options.allow_special_search
     CHC_settings.config.show_icons = values.settings.options.show_icons
     CHC_settings.config.show_hidden = values.settings.options.show_hidden
@@ -75,6 +103,51 @@ if ModOptions and ModOptions.getInstance then
                 default = false,
                 OnApplyMainMenu = onModOptionsApply,
                 OnApplyInGame = onModOptionsApply
+            },
+            list_font_size = {
+                getText("UI_optionscreen_Small"), getText("UI_optionscreen_Medium"), getText("UI_optionscreen_Large"),
+                name = "IGUI_ListFontSize",
+                tooltip = "IGUI_ListFontSizeTooltip",
+                default = 3,
+                OnApplyMainMenu = onModOptionsApply,
+                OnApplyInGame = onModOptionsApply
+            },
+            recipe_selector_modifier = {
+                getText("IGUI_None"), getText("UI_optionscreen_CycleContainerKey1"),
+                getText("UI_optionscreen_CycleContainerKey2"),
+                getText("UI_optionscreen_CycleContainerKey3"),
+                name = "IGUI_RecipeSelectorModifier",
+                tooltip = getText("IGUI_RecipeSelectorModifierTooltip", getText("UI_optionscreen_binding_chc_move_up"), getText("UI_optionscreen_binding_chc_move_down")),
+                default = 1,
+                OnApplyMainMenu = onModOptionsApply,
+                OnApplyInGame = onModOptionsApply
+            },
+            category_selector_modifier = {
+                getText("IGUI_None"), getText("UI_optionscreen_CycleContainerKey1"),
+                getText("UI_optionscreen_CycleContainerKey2"),
+                getText("UI_optionscreen_CycleContainerKey3"),
+                name = "IGUI_CategorySelectorModifier",
+                tooltip = getText("IGUI_CategorySelectorModifierTooltip", getText("UI_optionscreen_binding_chc_move_left"), getText("UI_optionscreen_binding_chc_move_right")),
+                default = 1,
+                OnApplyMainMenu = onModOptionsApply,
+                OnApplyInGame = onModOptionsApply
+            },
+            tab_selector_modifier = {
+                getText("IGUI_None"), getText("UI_optionscreen_CycleContainerKey1"),
+                getText("UI_optionscreen_CycleContainerKey2"),
+                getText("UI_optionscreen_CycleContainerKey3"),
+                name = "IGUI_TabSelectorModifier",
+                tooltip = getText("IGUI_TabSelectorModifierTooltip", getText("UI_optionscreen_binding_chc_move_tab_left"), getText("UI_optionscreen_binding_chc_move_tab_right")),
+                default = 1,
+                OnApplyMainMenu = onModOptionsApply,
+                OnApplyInGame = onModOptionsApply
+            },
+            show_recipe_module = {
+                name = "IGUI_ShowRecipeModule",
+                tooltip = "IGUI_ShowRecipeModuleTooltip",
+                default = false,
+                OnApplyMainMenu = onModOptionsApply,
+                OnApplyInGame = onModOptionsApply
             }
         },
         mod_id = "CraftHelperContinued",
@@ -90,6 +163,12 @@ if ModOptions and ModOptions.getInstance then
     ModOptions:loadFile()
 
 else
+    -- defaults in case no mod options installed
+    CHC_settings.config.show_recipe_module = false
+    CHC_settings.config.recipe_selector_modifier = 1
+    CHC_settings.config.category_selector_modifier = 1
+    CHC_settings.config.tab_selector_modifier = 1
+    CHC_settings.config.list_font_size = 3
     CHC_settings.config.allow_special_search = true
     CHC_settings.config.show_icons = false
     CHC_settings.config.show_hidden = true
@@ -119,24 +198,22 @@ CHC_settings.Load = function()
     if json and json ~= "" then
         CHC_settings.config = Json.Decode(json)
     else
-        local init_cfg = {
-            show_icons = false,
-            allow_special_search = true,
-            show_hidden = true,
-            close_all_on_exit = false,
-            main_window = { x = 100, y = 100, w = 1000, h = 600 },
-            uses = { sep_x = 500, filter_asc = true, filter_type = "all" },
-            craft = { sep_x = 500, filter_asc = true, filter_type = "all" },
-            search = {
-                items = { sep_x = 500, filter_asc = true, filter_type = "all" },
-                recipes = { sep_x = 500, filter_asc = true, filter_type = "all" }
-            },
-            favorites = {
-                items = { sep_x = 500, filter_asc = true, filter_type = "all" },
-                recipes = { sep_x = 500, filter_asc = true, filter_type = "all" }
-            }
-        }
         CHC_settings.config = init_cfg
+        CHC_settings.Save()
+    end
+    CHC_settings.checkConfig()
+end
+
+
+CHC_settings.checkConfig = function()
+    local shouldReSave = false
+    for name, _ in pairs(init_cfg) do
+        if not CHC_settings.config[name] then
+            CHC_settings.config[name] = init_cfg[name]
+            shouldReSave = true
+        end
+    end
+    if shouldReSave == true then
         CHC_settings.Save()
     end
 end

@@ -79,27 +79,44 @@ end
 ---Compares "what" to "to" via string.contains.
 ---
 ---In case "what" is table, comparison is done for each element (break after first hit)
+---If "~" is first symbol of "to", then negate logic is applied (i.e return true if "what" NOT in "to")
 ---@param what string|table left part of comparison
 ---@param to string right part of comparison
 ---@param passAll? boolean return true if true without checks
 ---@return boolean #result of comparison
 CHC_utils.compare = function(what, to, passAll)
     local contains = string.contains
+    local isNegate = sub(to, 1, 1) == "~"
+    if isNegate then to = sub(to, 2) end -- remove ~ from token
+    if to == "" then return true end
     if passAll then return true end
     local isList = type(what) == "table"
     to = lower(tostring(to))
     local state = false
     if not isList then
         what = lower(tostring(what))
-        if contains(what, to) then
-            state = true
+        if isNegate then
+            if not contains(what, to) then
+                state = true
+            end
+        else
+            if contains(what, to) then
+                state = true
+            end
         end
     else
         for i = 1, #what do
             local wh = lower(tostring(what[i]))
-            if contains(wh, to) then
-                state = true
-                break
+            if isNegate then
+                if not contains(wh, to) then
+                    state = true
+                    break
+                end
+            else
+                if contains(wh, to) then
+                    state = true
+                    break
+                end
             end
         end
     end

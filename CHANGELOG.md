@@ -1,6 +1,27 @@
 # CraftHelper updates
 
-## 1.5.5 (14.04.2022)
+## 1.5.6 (18.04.2022)
+
+### New features
+
+- Option to change font size in recipe list (by default 'Large')
+- Options to select modifier keys (shift, ctrl) while selecting recipes, cetegories and tabs (by default all 'None')
+- Option to show mod name of recipe (if not 'Base', by default 'false')
+- Added new special search character (&) - searches by mod name of recipe
+- Added new token modifier in search (~) - negates this token
+
+### Improvements
+
+- Config checking: If something new added to config (e.g options), it will autoupdate with default values
+- Moved tab closing context menu a bit higher
+- Updated search helper info
+- Removed caching of search panel (TODO: check performance with alot of mods)
+
+### Bugfixes
+
+- Fixed error when favoriting via hotkey with no recipe selected
+
+## 1.5.5 (17.04.2022)
 
 ### New features
 
