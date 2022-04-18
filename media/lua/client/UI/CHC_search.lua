@@ -139,9 +139,10 @@ function CHC_search:create()
 
     -- region recipe list
     local rlh = self.height - self.headers.height - self.filterRow.height - self.searchRow.height
-    self.objList = CHC_items_list:new(x, leftY, leftW, rlh);
+    self.objList = CHC_items_list:new(x, leftY, leftW, rlh, self.onMMBDownObjList)
 
     self.objList.drawBorder = true
+    self.objList.onRightMouseDown = self.onRMBDownObjList
     self.objList:initialise()
     self.objList:instantiate()
     self.objList:setAnchorBottom(true)
@@ -178,6 +179,38 @@ end
 
 function CHC_search:onTextChange()
     self.needUpdateObjects = true
+end
+
+function CHC_search:onRMBDownObjList(x, y)
+    local row = self:rowAt(x, y)
+    if row == -1 then return end
+    local backref = self.parent.backRef
+    local item = self.items[row].item.item
+    -- check if there is recipes for item
+    local cond1 = type(CHC_main.recipesByItem[item:getName()]) == 'table'
+    local cond2 = type(CHC_main.recipesForItem[item:getName()]) == 'table'
+    local cX = getMouseX()
+    local cY = getMouseY()
+    local context = ISContextMenu.get(0, cX + 10, cY)
+    if cond1 or cond2 then
+        context:addOption(getText("IGUI_new_tab"), backref, backref.addItemView, item, true)
+        -- backref:addItemView(item, true)
+    end
+end
+
+function CHC_search:onMMBDownObjList()
+    local x = self:getMouseX()
+    local y = self:getMouseY()
+    local row = self:rowAt(x, y)
+    if row == -1 then return end
+    local backref = self.parent.backRef
+    local item = self.items[row].item.item
+    -- check if there is recipes for item
+    local cond1 = type(CHC_main.recipesByItem[item:getName()]) == 'table'
+    local cond2 = type(CHC_main.recipesForItem[item:getName()]) == 'table'
+    if cond1 or cond2 then
+        backref:addItemView(item, false)
+    end
 end
 
 function CHC_search:onChangeCategory(_option, sl)
@@ -566,10 +599,30 @@ function CHC_items_list:prerender()
     end
 
     if self.ft then
-        -- print(rerp:rer())
-        print(string.format("total: %s", getTimestampMs() - now))
         self.ft = false
-        -- 177 ms per frame, need to reduce to at least 50 for smooth UX
+    end
+end
+
+function CHC_items_list:onMMBDown()
+    if self.onmiddlemousedown then
+        self:onmiddlemousedown()
+    end
+end
+
+function CHC_items_list:onMouseMove(dx, dy)
+    ISScrollingListBox.onMouseMove(self, dx, dy)
+    self.needmmb = true
+end
+
+function CHC_items_list:onMouseMoveOutside(x, y)
+    ISScrollingListBox.onMouseMoveOutside(self, x, y)
+    self.needmmb = false
+end
+
+function CHC_items_list:update()
+    if self.needmmb and Mouse.isMiddleDown() then
+        self:onMMBDown()
+        self.needmmb = false
     end
 end
 
@@ -619,7 +672,7 @@ function CHC_items_list:doDrawItem(y, item, alt)
     return y;
 end
 
-function CHC_items_list:new(x, y, width, height)
+function CHC_items_list:new(x, y, width, height, onmiddlemousedown)
     local o = {}
 
     o = ISScrollingListBox:new(x, y, width, height)
@@ -633,6 +686,8 @@ function CHC_items_list:new(x, y, width, height)
     o.favoriteStar = getTexture("media/ui/FavoriteStar.png")
     o.favCheckedTex = getTexture("media/ui/FavoriteStarChecked.png")
     o.favNotCheckedTex = getTexture("media/ui/FavoriteStarUnchecked.png")
+    o.onmiddlemousedown = onmiddlemousedown
+    o.needmmb = false
     return o
 end
 

@@ -25,6 +25,7 @@ IGUI_EN = {
     IGUI_CHC_ItemCat_Normal = "Normal"
     IGUI_CHC_ItemCat_Radio = "Radio"
     IGUI_CHC_ItemCat_Key = "Key"
+    IGUI_new_tab = "Open in new tab"
 
 
 }

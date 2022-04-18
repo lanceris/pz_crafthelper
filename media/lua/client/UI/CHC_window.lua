@@ -98,6 +98,7 @@ function CHC_window:addSearchPanel()
         typeFilter = options.search.items.filter_type,
         showHidden = options.show_hidden,
         ui_type = itemsUIType,
+        backRef = self,
         sep_x = math.min(self.width / 2, options.search.items.sep_x)
     }
     for k, v in pairs(items_extra) do items_screen_init[k] = v end
@@ -156,6 +157,7 @@ function CHC_window:addFavoriteScreen()
         typeFilter = options.favorites.items.filter_type,
         showHidden = options.show_hidden,
         ui_type = "fav_items",
+        backRef = self,
         sep_x = math.min(self.width / 2, options.favorites.items.sep_x)
     }
     for k, v in pairs(items_extra) do items_screen_init[k] = v end
@@ -195,7 +197,7 @@ function CHC_window:addFavoriteScreen()
 
 end
 
-function CHC_window:addItemView(item)
+function CHC_window:addItemView(item, focusOnNew)
     local ifn = item:getFullType()
     local itn = CHC_main.items[ifn]
     local nameForTab = itn.displayName
@@ -205,7 +207,7 @@ function CHC_window:addItemView(item)
         if existingView.view and existingView.view.item ~= itn then -- same displayName, but different items
             nameForTab = nameForTab .. string.format(" (%s)", itn.fullType)
         else -- same displayName and same item
-            self:refresh(nameForTab)
+            self:refresh(nameForTab, nil, focusOnNew)
             return
         end
     end
@@ -282,13 +284,13 @@ function CHC_window:addItemView(item)
     --endregion
     self.itemPanel.infoText = getText("UI_infotext_itemtab", itn.displayName, getText("UI_item_uses_tab_name"), getText("UI_item_craft_tab_name")) ..
         getText("UI_infotext_common", getText("UI_common_left_col_name"), getText("UI_common_right_col_name"))
-    self:refresh()
+    self:refresh(nil, nil, focusOnNew)
 end
 
-function CHC_window:refresh(viewName, panel)
+function CHC_window:refresh(viewName, panel, focusOnNew)
     local panel = panel or self.panel
     -- viewName = viewName or nil
-    if viewName then
+    if viewName and (focusOnNew == nil or focusOnNew == true) then
         panel:activateView(viewName)
         return
     end
@@ -299,7 +301,11 @@ function CHC_window:refresh(viewName, panel)
     else
         viewName = vl[2].name -- favorites is default
     end
-    panel:activateView(viewName)
+    if focusOnNew == false then
+        return
+    else
+        panel:activateView(viewName)
+    end
 end
 
 function CHC_window:getRecipes(favOnly)

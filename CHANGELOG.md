@@ -6,11 +6,16 @@
 
 - Added type filter for item views (select item category here)
 - Added special search for items (! - category, @ - mod, # - displayCategory)
+- Added RMB and MMB for items list (RMB opens context menu with option to open new tab (will focus), MMB opens new tab in background (will not focus))
 
 ### Improvements
 
 - Counts in type filter now updates when changing category (disabled for now)
 - Available categories in selector now updates when changing filter type (disabled for now)
+
+### Bugfixes
+
+- Removed obsolete items in CHC_main.loadAllItems (not item:getObsolete())
 
 ## 1.5.6 (18.04.2022)
 
