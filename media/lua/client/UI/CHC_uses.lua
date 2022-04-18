@@ -265,40 +265,6 @@ function CHC_uses:handleFavCategory(current)
     end
 end
 
--- region filterRow setters
-function CHC_uses:filterRowOrderSetTooltip()
-    local cursort = self.itemSortAsc and getText("IGUI_invpanel_ascending") or getText("IGUI_invpanel_descending")
-    return getText("UI_settings_st_title") .. " (" .. cursort .. ")"
-end
-
-function CHC_uses:filterRowOrderSetIcon()
-    return self.itemSortAsc and self.sortOrderIconAsc or self.sortOrderIconDesc
-end
-
-function CHC_uses:filterRowTypeSetTooltip()
-    local typeFilterToTxt = {
-        all = self.categorySelectorDefaultOption,
-        valid = getText("UI_settings_av_valid"),
-        known = getText("UI_settings_av_known"),
-        invalid = getText("UI_settings_av_invalid")
-    }
-    local curtype = typeFilterToTxt[self.typeFilter]
-    return getText("UI_settings_av_title") .. " (" .. curtype .. ")"
-end
-
-function CHC_uses:filterRowTypeSetIcon()
-    local typeFilterToIcon = {
-        all = self.typeFiltIconAll,
-        valid = self.typeFiltIconValid,
-        known = self.typeFiltIconKnown,
-        invalid = self.typeFiltIconInvalid
-    }
-    return typeFilterToIcon[self.typeFilter]
-end
-
--- endregion
-
-
 function CHC_uses:catSelUpdateOptions(current)
 
     local selector = self.filterRow.categorySelector
@@ -355,6 +321,39 @@ end
 -- endregion
 
 -- region filters
+
+-- region filterRow setters
+function CHC_uses:filterRowOrderSetTooltip()
+    local cursort = self.itemSortAsc and getText("IGUI_invpanel_ascending") or getText("IGUI_invpanel_descending")
+    return getText("UI_settings_st_title") .. " (" .. cursort .. ")"
+end
+
+function CHC_uses:filterRowOrderSetIcon()
+    return self.itemSortAsc and self.sortOrderIconAsc or self.sortOrderIconDesc
+end
+
+function CHC_uses:filterRowTypeSetTooltip()
+    local typeFilterToTxt = {
+        all = self.categorySelectorDefaultOption,
+        valid = getText("UI_settings_av_valid"),
+        known = getText("UI_settings_av_known"),
+        invalid = getText("UI_settings_av_invalid")
+    }
+    local curtype = typeFilterToTxt[self.typeFilter]
+    return getText("UI_settings_av_title") .. " (" .. curtype .. ")"
+end
+
+function CHC_uses:filterRowTypeSetIcon()
+    local typeFilterToIcon = {
+        all = self.typeFiltIconAll,
+        valid = self.typeFiltIconValid,
+        known = self.typeFiltIconKnown,
+        invalid = self.typeFiltIconInvalid
+    }
+    return typeFilterToIcon[self.typeFilter]
+end
+
+-- endregion
 
 -- region filter handlers
 function CHC_uses:recipeTypeFilter(recipe)

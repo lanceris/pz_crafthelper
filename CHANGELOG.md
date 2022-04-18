@@ -7,11 +7,15 @@
 - Added type filter for item views (select item category here)
 - Added special search for items (! - category, @ - mod, # - displayCategory)
 - Added RMB and MMB for items list (RMB opens context menu with option to open new tab (will focus), MMB opens new tab in background (will not focus))
+- Added RMB for recipe panel ingredients (will open context menu with option to open new tab)
 
 ### Improvements
 
 - Counts in type filter now updates when changing category (disabled for now)
 - Available categories in selector now updates when changing filter type (disabled for now)
+- Added trim to search bar token parser (removes whitespaces around token)
+- Moved items list to separate file
+- Changed recipe panel ingredients look a bit (border and red-ish fill for "one of" entry)
 
 ### Bugfixes
 

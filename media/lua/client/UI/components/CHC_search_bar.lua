@@ -10,7 +10,8 @@ CHC_search_bar = derivative:derive("CHC_search_bar")
 CHC_search_bar.searchIcon = getTexture("media/textures/search_icon.png")
 
 local contains = string.contains
-
+local insert = table.insert
+local concat = table.concat
 
 function CHC_search_bar:initialise()
     derivative.initialise(self)
@@ -103,7 +104,7 @@ end
 function CHC_search_bar:parseTokens(txt, delim)
 
     delim = delim or { ",", "|" }
-    local regex = "[^" .. table.concat(delim) .. "]+"
+    local regex = "[^" .. concat(delim) .. "]+"
     local queryType
 
     txt = string.trim(txt)
@@ -115,14 +116,13 @@ function CHC_search_bar:parseTokens(txt, delim)
 
     local tokens = {}
     for token in txt:gmatch(regex) do
-        table.insert(tokens, token)
+        insert(tokens, string.trim(token))
     end
     if #tokens == 1 then
         return tokens, false, nil
     elseif not tokens then -- just sep (e.g txt=",")
         return nil, false, nil
     end
-    -- tokens = table.unpack(tokens, 1, #tokens-1)
     return tokens, true, queryType
 end
 
