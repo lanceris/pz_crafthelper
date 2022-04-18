@@ -88,7 +88,7 @@ function CHC_uses_recipelist:addToFavorite(selectedIndex, fromKeyboard)
 		end
 	end
 	if #self.items == 0 or self.parent.ui_type == 'favorites' then
-		parent.needUpdateRecipes = true
+		parent.needUpdateObjects = true
 	end
 	parent.needUpdateFavorites = true
 end

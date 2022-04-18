@@ -6,6 +6,8 @@
 
 ### Improvements
 
+- Counts in type filter now updates when changing category
+
 ## 1.5.6 (18.04.2022)
 
 ### New features

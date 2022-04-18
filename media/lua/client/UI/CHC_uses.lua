@@ -18,8 +18,6 @@ local utils = require('CHC_utils')
 
 local insert = table.insert
 local sort = table.sort
-local pairs = pairs
-
 
 -- region create
 function CHC_uses:initialise()
@@ -112,30 +110,37 @@ end
 -- region update
 
 function CHC_uses:onTextChange()
-    self.needUpdateRecipes = true
+    self.needUpdateObjects = true
 end
 
 function CHC_uses:onChangeCategory(_option, sl)
     self.parent.selectedCategory = sl or _option.options[_option.selected].text
-    self.parent.needUpdateRecipes = true
+    self.parent.needUpdateObjects = true
+    self.parent.updCountsWithCur = true
+    self.parent.needUpdateCounts = true
 end
 
-function CHC_uses:cacheRecipeCounts()
+function CHC_uses:cacheRecipeCounts(current)
     local recipes = self.ui_type == 'favorites' and self.favrec or self.recipeSource
     local is_valid
     local is_known
     ISCraftingUI.getContainers(self.objList)
     self.numRecipesAll, self.numRecipesValid, self.numRecipesKnown, self.numRecipesInvalid = 0, 0, 0, 0
+    local c2 = self.selectedCategory == self.categorySelectorDefaultOption
+    local c3 = self.selectedCategory == self.favCatName
     for i = 1, #recipes do
-        is_valid = RecipeManager.IsRecipeValid(recipes[i].recipe, self.player, nil, self.objList.containerList)
-        is_known = self.player:isRecipeKnown(recipes[i].recipe)
-        self.numRecipesAll = self.numRecipesAll + 1
-        if is_known and not is_valid then
-            self.numRecipesKnown = self.numRecipesKnown + 1
-        elseif is_valid then
-            self.numRecipesValid = self.numRecipesValid + 1
-        else
-            self.numRecipesInvalid = self.numRecipesInvalid + 1
+        local c1 = recipes[i].displayCategory == self.selectedCategory
+        if (not current) or (current == true and (c1 or c2 or (c3 and recipes[i].favorite))) then
+            is_valid = RecipeManager.IsRecipeValid(recipes[i].recipe, self.player, nil, self.objList.containerList)
+            is_known = self.player:isRecipeKnown(recipes[i].recipe)
+            self.numRecipesAll = self.numRecipesAll + 1
+            if is_known and not is_valid then
+                self.numRecipesKnown = self.numRecipesKnown + 1
+            elseif is_valid then
+                self.numRecipesValid = self.numRecipesValid + 1
+            else
+                self.numRecipesInvalid = self.numRecipesInvalid + 1
+            end
         end
     end
 
@@ -148,7 +153,7 @@ function CHC_uses:updateRecipes(sl)
     local recipes = self.ui_type == 'favorites' and self.favrec or self.recipeSource
 
     if sl == categoryAll and self.typeFilter == "all" and searchBar:getInternalText() == "" then
-        self:refreshRecipeList(recipes)
+        self:refreshObjList(recipes)
         return
     end
 
@@ -179,10 +184,10 @@ function CHC_uses:updateRecipes(sl)
             insert(filteredRecipes, recipes[i])
         end
     end
-    self:refreshRecipeList(filteredRecipes)
+    self:refreshObjList(filteredRecipes)
 end
 
-function CHC_uses:processAddRecipeToRecipeList(recipe, modData)
+function CHC_uses:processAddObjToObjList(recipe, modData)
     if not self.showHidden and recipe.recipe:isHidden() then return end
     local name = recipe.recipeData.name
     recipe.favorite = modData[CHC_main.getFavoriteModDataString(recipe.recipe)] or false
@@ -190,14 +195,14 @@ function CHC_uses:processAddRecipeToRecipeList(recipe, modData)
     self.objList:addItem(name, recipe)
 end
 
-function CHC_uses:refreshRecipeList(recipes)
+function CHC_uses:refreshObjList(recipes)
     self.objList:clear()
     self.objList:setScrollHeight(0)
 
     local modData = getPlayer():getModData()
 
     for i = 1, #recipes do
-        self:processAddRecipeToRecipeList(recipes[i], modData)
+        self:processAddObjToObjList(recipes[i], modData)
     end
     sort(self.objList.items, self.itemSortFunc)
 end
@@ -216,14 +221,15 @@ function CHC_uses:update()
         end
         if self.needUpdateCounts == true then
             -- print('triggered upd counts for: ' .. self.ui_type)
-            self:cacheRecipeCounts()
+            self:cacheRecipeCounts(self.updCountsWithCur)
             self.needUpdateCounts = false
+            self.updCountsWithCur = false
         end
     end
-    if self.needUpdateRecipes == true then
+    if self.needUpdateObjects == true then
         -- print('triggered upd recipes for: ' .. self.ui_type)
         self:updateRecipes(self.selectedCategory)
-        self.needUpdateRecipes = false
+        self.needUpdateObjects = false
     end
 end
 
@@ -242,19 +248,19 @@ function CHC_uses:handleFavCategory()
     if self.favRecNum == 0 then
         if self.selectedCategory == self.favCatName then
             self.selectedCategory = self.categorySelectorDefaultOption
-            self.needUpdateRecipes = true
+            self.needUpdateObjects = true
         end
     end
     if csSel.data.count == 1 then
         self.selectedCategory = self.categorySelectorDefaultOption
-        self.needUpdateRecipes = true
+        self.needUpdateObjects = true
     end
     cs:select(self.selectedCategory)
     --update favorites in favorites view
     if not cond3 then
         self.backRef.updateQueue:push({
             targetView = 'favorites',
-            actions = { 'needUpdateFavorites', 'needUpdateRecipes', 'needUpdateCounts' }
+            actions = { 'needUpdateFavorites', 'needUpdateObjects', 'needUpdateCounts' }
         })
     end
 end
@@ -324,8 +330,8 @@ function CHC_uses:catSelUpdateOptions()
     end
 
     sort(uniqueCategories)
-    for _, rc in pairs(uniqueCategories) do
-        selector:addOptionWithData(rc, { count = catCounts[rc] })
+    for i = 1, #uniqueCategories do
+        selector:addOptionWithData(uniqueCategories[i], { count = catCounts[uniqueCategories[i]] })
     end
 end
 
@@ -481,36 +487,15 @@ function CHC_uses:sortByName()
     local newTooltip = self:filterRowOrderSetTooltip()
     self.filterRow.filterOrderBtn:setTooltip(newTooltip)
     self.selectedCategory = sl
-    self.needUpdateRecipes = true
+    self.needUpdateObjects = true
 end
 
 function CHC_uses:sortByType(_type)
-    local option = self.filterRow.categorySelector
-    local sl = option.options[option.selected].text
-
-    local stateChanged = false
-    if _type == "all" and self.typeFilter ~= 'all' then
-        self.typeFilter = 'all'
-        stateChanged = true
-    end
-    if _type == "valid" and self.typeFilter ~= 'valid' then
-        self.typeFilter = 'valid'
-        stateChanged = true
-    end
-    if _type == "known" and self.typeFilter ~= 'known' then
-        self.typeFilter = 'known'
-        stateChanged = true
-    end
-    if _type == "invalid" and self.typeFilter ~= 'invalid' then
-        self.typeFilter = 'invalid'
-        stateChanged = true
-    end
-
-    if stateChanged then
+    if _type ~= self.typeFilter then
+        self.typeFilter = _type
         self.filterRow.filterTypeBtn:setTooltip(self:filterRowTypeSetTooltip())
         self.filterRow.filterTypeBtn:setImage(self:filterRowTypeSetIcon())
-        self.selectedCategory = sl
-        self.needUpdateRecipes = true
+        self.needUpdateObjects = true
     end
 end
 
@@ -519,7 +504,7 @@ end
 -- region filter onClick handlers
 
 function CHC_uses:filterSortMenuGetText(textStr, value)
-    local txt = getText(textStr)
+    local txt = getTextOrNull(textStr) or textStr
     if value then
         txt = txt .. " (" .. tostring(value) .. ")"
     end
@@ -597,11 +582,12 @@ function CHC_uses:new(args)
 
     o.needUpdateFavorites = true
     o.needUpdateCounts = false
-    o.needUpdateRecipes = false
+    o.needUpdateObjects = false
     o.selectedCategory = o.categorySelectorDefaultOption
     o.backRef = args.backRef
     o.ui_type = args.ui_type
     o.favRecNum = 0
+    o.updCountsWithCur = false
 
 
     o.numRecipesAll = 0

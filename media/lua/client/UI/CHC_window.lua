@@ -70,7 +70,7 @@ function CHC_window:onActivateView(target)
         if sv.ui_type then -- @@@ FIXME better way to diff between items and recipes views
             sv.needUpdateFavorites = true -- update favorites (and categories in selector)
             if sv.favRecNum == 0 then
-                sv.needUpdateRecipes = true
+                sv.needUpdateObjects = true
             end
         end
     end
@@ -655,7 +655,7 @@ function CHC_window:new(args)
     o.options = CHC_settings.config
     o.needUpdateFavorites = false
     o.needUpdateCounts = false
-    o.needUpdateRecipes = false
+    o.needUpdateObjects = false
     o.updateQueue = utils.Deque:new()
     o.uiTypeToView = {}
 
