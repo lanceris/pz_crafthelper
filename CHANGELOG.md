@@ -4,6 +4,9 @@
 
 ### New features
 
+- Added type filter for item views (select item category here)
+- Added special search for items (! - category, @ - mod, # - displayCategory)
+
 ### Improvements
 
 - Counts in type filter now updates when changing category (disabled for now)

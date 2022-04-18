@@ -245,7 +245,7 @@ function CHC_search:searchProcessToken(token, item)
         isSpecialSearch = true
         char = token:sub(1, 1)
         token = string.sub(token, 2)
-        if token == "" then token = nil end
+        if token == "" then return true end
     end
 
 
@@ -256,44 +256,20 @@ function CHC_search:searchProcessToken(token, item)
         --     if not recipe.favorite then return false end
         --     whatCompare = string.lower(recipe.recipe:getName())
     end
-    -- if token and isSpecialSearch then
-    --     if char == "!" then
-    --         -- search by recipe category
-    --         local catName = getTextOrNull("IGUI_CraftCategory_" .. recipe.category) or recipe.category
-    --         whatCompare = catName
-    --     end
-    --     local resultItem = CHC_main.items[recipe.recipe:getResult():getFullType()]
-    --     if resultItem then
-    --         if char == "@" then
-    --             -- search by mod name of resulting item
-    --             whatCompare = resultItem:getModName()
-    --         elseif char == "$" then
-    --             -- search by DisplayCategory of resulting item
-    --             local displayCat = resultItem:getDisplayCategory() or ""
-    --             whatCompare = getText("IGUI_ItemCat_" .. displayCat) or "None"
-    --         elseif char == "%" then
-    --             -- search by name of resulting item
-    --             whatCompare = resultItem:getDisplayName()
-    --         end
-    --     end
-    --     if char == "#" then
-    --         -- search by ingredients
-    --         local rSources = recipe.recipe:getSource()
-
-    --         -- Go through items needed by the recipe
-    --         for n = 0, rSources:size() - 1 do
-    --             -- Get the item name (not the display name)
-    --             local rSource = rSources:get(n)
-    --             local sItems = rSource:getItems()
-    --             for k = 0, sItems:size() - 1 do
-    --                 local itemString = sItems:get(k)
-    --                 local item = CHC_main.items[itemString]
-    --                 if item then table.insert(items, item:getDisplayName()) end
-    --             end
-    --         end
-    --         whatCompare = items
-    --     end
-    -- end
+    if token and isSpecialSearch then
+        if char == "!" then
+            -- search by item category
+            whatCompare = item.category
+        end
+        if char == "@" then
+            -- search by mod name of item
+            whatCompare = item.modname
+        end
+        if char == "#" then
+            -- search by display category of item
+            whatCompare = item.displayCategory
+        end
+    end
     if token and not isSpecialSearch then
         whatCompare = string.lower(item.displayName)
     end
