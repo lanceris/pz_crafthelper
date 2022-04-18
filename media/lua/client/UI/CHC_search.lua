@@ -19,17 +19,18 @@ CHC_search.searchIcon = getTexture("media/textures/search_icon.png")
 local insert = table.insert
 local sort = table.sort
 
+-- region create
 function CHC_search:initialise()
     ISPanel.initialise(self)
     self:create()
 end
 
 function CHC_search:create()
+
     -- region draggable headers
     self.headers = CHC_tabs:new(0, 0, self.width, 20, { self.onResizeHeaders, self }, self.sep_x)
     self.headers:initialise()
     -- endregion
-
 
     local x = self.headers.x
     local y = self.headers.y + self.headers.height
@@ -43,15 +44,15 @@ function CHC_search:create()
             width = 24,
             title = "",
             onclick = self.sortByName,
-            defaultTooltip = CHC_uses.filterRowOrderSetTooltip(self),
-            defaultIcon = CHC_uses.filterRowOrderSetIcon(self)
+            defaultTooltip = self:filterRowOrderSetTooltip(),
+            defaultIcon = self:filterRowOrderSetIcon()
         },
         filterTypeData = {
             width = 24,
             title = "",
             onclick = self.onFilterTypeMenu,
             defaultTooltip = "TestTooltip",
-            defaultIcon = CHC_uses.filterRowTypeSetIcon(self)
+            defaultIcon = self:filterRowTypeSetIcon()
         },
         filterSelectorData = {
             defaultCategory = getText("UI_All"),
@@ -63,7 +64,6 @@ function CHC_search:create()
     self.filterRow = CHC_filter_row:new(x, y, leftW, 24, filterRowData)
     self.filterRow:initialise()
     local leftY = y + 24
-    self:catSelUpdateOptions()
     --endregion
 
     -- region search bar
@@ -80,17 +80,48 @@ function CHC_search:create()
     self.objList:initialise()
     self.objList:instantiate()
     self.objList:setAnchorBottom(true)
-    self.objList:setOnMouseDownFunction(self, CHC_uses.onItemChange)
+    self.objList:setOnMouseDownFunction(self, self.onItemChange)
 
     -- Add entries to recipeList
     -- self:cacheFullRecipeCount(self.itemSource)
-    self:updateItems(filterRowData.filterSelectorData.defaultCategory)
+
     -- endregion
 
     self:addChild(self.headers)
     self:addChild(self.filterRow)
     self:addChild(self.searchRow)
     self:addChild(self.objList)
+
+    self:catSelUpdateOptions()
+    self:cacheCategoryCounts()
+    self:updateItems(self.selectedCategory)
+end
+
+--endregion
+
+--region update
+
+function CHC_search:update()
+    if self.needUpdateFavorites == true then
+        self.needUpdateFavorites = false
+    end
+    if self.needUpdateItems == true then
+        self:updateItems(self.selectedCategory)
+        self.needUpdateItems = false
+    end
+end
+
+function CHC_search:onTextChange()
+    self.needUpdateItems = true
+end
+
+function CHC_search:onChangeCategory(_option, sl)
+    self.parent.selectedCategory = sl or _option.options[_option.selected].text
+    self.parent.needUpdateItems = true
+end
+
+function CHC_search:cacheItemCounts()
+
 end
 
 function CHC_search:updateItems(sl)
@@ -128,17 +159,6 @@ function CHC_search:updateItems(sl)
         end
     end
     self:refreshItemsList(filteredItems)
-end
-
-function CHC_search:onTextChange()
-    local s = self.parent.parent
-    local stateText = s.searchRow.searchBar:getInternalText()
-    if stateText ~= s.searchRow.searchBarLastText or stateText == "" then
-        s.searchRow.searchBarLastText = stateText
-        local option = s.filterRow.categorySelector
-        local sl = option.options[option.selected]
-        s:updateItems(sl)
-    end
 end
 
 function CHC_search:searchProcessToken(token, item)
@@ -215,6 +235,16 @@ function CHC_search:searchProcessToken(token, item)
     return state
 end
 
+function CHC_search:processAddItemToItemList(item, modData)
+    if not CHC_settings.config.show_hidden and item.hidden then return end
+    -- if not self.showHidden and item.recipe:isHidden() then return end
+    -- item.favorite = modData[CHC_main.getFavoriteModDataString(item.recipe)] or false
+    local name = item.displayName
+    if name then
+        self.objList:addItem(name, item)
+    end
+end
+
 function CHC_search:refreshItemsList(items)
     self.objList:clear()
     self.objList:setScrollHeight(0)
@@ -226,14 +256,10 @@ function CHC_search:refreshItemsList(items)
     sort(self.objList.items, self.itemSortFunc)
 end
 
-function CHC_search:processAddItemToItemList(item, modData)
-    if not CHC_settings.config.show_hidden and item.hidden then return end
-    -- if not self.showHidden and item.recipe:isHidden() then return end
-    -- item.favorite = modData[CHC_main.getFavoriteModDataString(item.recipe)] or false
-    local name = item.displayName
-    if name then
-        self.objList:addItem(name, item)
-    end
+function CHC_search:onItemChange(item)
+    print("imma change item in ItemList")
+    -- self.recipePanel:setRecipe(recipe);
+    -- self.recipesList:onMouseDown_Recipes(self.recipesList:getMouseX(), self.recipesList:getMouseY())
 end
 
 function CHC_search:catSelUpdateOptions()
@@ -266,16 +292,58 @@ function CHC_search:catSelUpdateOptions()
     end
 end
 
-function CHC_search:onChangeCategory(_option, sl)
-    sl = sl or _option.options[_option.selected]
-    self.parent:updateItems(sl)
+function CHC_search:handleFavorites()
+
 end
 
-function CHC_search:onItemChange(item)
-    print("imma change item in ItemList")
-    -- self.recipePanel:setRecipe(recipe);
-    -- self.recipesList:onMouseDown_Recipes(self.recipesList:getMouseX(), self.recipesList:getMouseY())
+-- endregion
+
+--region filters
+
+-- region filterRow setters
+function CHC_search:filterRowOrderSetTooltip()
+    local cursort = self.itemSortAsc and getText("IGUI_invpanel_ascending") or getText("IGUI_invpanel_descending")
+    return getText("UI_settings_st_title") .. " (" .. cursort .. ")"
 end
+
+function CHC_search:filterRowOrderSetIcon()
+    return self.itemSortAsc and self.sortOrderIconAsc or self.sortOrderIconDesc
+end
+
+function CHC_search:filterRowTypeSetTooltip()
+    local typeFilterToTxt = {
+        all = self.categorySelectorDefaultOption,
+        valid = getText("UI_settings_av_valid"),
+        known = getText("UI_settings_av_known"),
+        invalid = getText("UI_settings_av_invalid")
+    }
+    local curtype = typeFilterToTxt[self.typeFilter]
+    return getText("UI_settings_av_title") .. " (" .. curtype .. ")"
+end
+
+function CHC_search:filterRowTypeSetIcon()
+    local typeFilterToIcon = {
+        all = self.typeFiltIconAll,
+        valid = self.typeFiltIconValid,
+        known = self.typeFiltIconKnown,
+        invalid = self.typeFiltIconInvalid
+    }
+    return typeFilterToIcon[self.typeFilter]
+end
+
+-- endregion
+
+CHC_search.sortByNameAsc = function(a, b)
+    return a.text < b.text
+end
+
+CHC_search.sortByNameDesc = function(a, b)
+    return a.text > b.text
+end
+
+-- endregion
+
+--region render
 
 function CHC_search:onResizeHeaders()
     self.filterRow:setWidth(self.headers.nameHeader.width)
@@ -285,13 +353,8 @@ function CHC_search:onResizeHeaders()
     -- self.recipePanel:setX(self.headers.typeHeader.x)
 end
 
-CHC_search.sortByNameAsc = function(a, b)
-    return a.text < b.text
-end
+--endregion
 
-CHC_search.sortByNameDesc = function(a, b)
-    return a.text > b.text
-end
 
 function CHC_search:new(args)
     local o = {}
@@ -303,23 +366,30 @@ function CHC_search:new(args)
     o.borderColor = { r = 0.4, g = 0.4, b = 0.4, a = 1 }
     o.backgroundColor = { r = 0, g = 0, b = 0, a = 0.8 }
 
-    o.ui_name = args.ui_name
+    o.ui_type = args.ui_type
     o.sep_x = args.sep_x
     o.player = getPlayer()
+
+    o.favCatName = "* " .. getText("IGUI_CraftCategory_Favorite")
+    o.categorySelectorDefaultOption = getText("UI_All")
+    o.selectedCategory = o.categorySelectorDefaultOption
+    o.backRef = args.backRef
 
     o.itemSource = args.recipeSource
     o.itemSortAsc = args.itemSortAsc
     o.itemSortFunc = o.itemSortAsc == true and CHC_search.sortByNameAsc or CHC_search.sortByNameDesc
     o.typeFilter = args.typeFilter
+    o.showHidden = args.showHidden
+    o.favNum = 0 -- WIP favorite items
 
-    o.numRecipesAll = 0
-    o.numRecipesValid = 0
-    o.numRecipesKnown = 0
-    o.numRecipesInvalid = 0
+    o.needUpdateFavorites = false
+    o.needUpdateItems = false
+
     return o
 end
 
 ------------------------------------------------------------------------------------------------------------------------------------
+--region items list
 CHC_items_list = ISScrollingListBox:derive("CHC_items_list")
 
 function CHC_items_list:initialise()
@@ -471,5 +541,11 @@ function CHC_items_list:new(x, y, width, height)
     o.borderColor = { r = 0.4, g = 0.4, b = 0.4, a = 0.9 }
     o.anchorTop = true
     o.anchorBottom = true
+
+    o.favoriteStar = getTexture("media/ui/FavoriteStar.png")
+    o.favCheckedTex = getTexture("media/ui/FavoriteStarChecked.png")
+    o.favNotCheckedTex = getTexture("media/ui/FavoriteStarUnchecked.png")
     return o
 end
+
+--endregion
