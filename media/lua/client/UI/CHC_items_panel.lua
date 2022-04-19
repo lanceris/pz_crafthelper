@@ -12,6 +12,7 @@ function CHC_item_panel:create()
     -- common item properties
     -- - fullType
     -- - name
+    -- - weight
     -- - category
     -- - display category
     -- - modname
