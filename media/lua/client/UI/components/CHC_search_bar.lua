@@ -10,7 +10,8 @@ CHC_search_bar = derivative:derive("CHC_search_bar")
 CHC_search_bar.searchIcon = getTexture("media/textures/search_icon.png")
 
 local contains = string.contains
-
+local insert = table.insert
+local concat = table.concat
 
 function CHC_search_bar:initialise()
     derivative.initialise(self)
@@ -51,10 +52,10 @@ function CHC_search_bar:create()
     self.searchBar:setText("")
     self.searchBar:setClearButton(true)
     self.searchBarLastText = self.searchBar:getInternalText()
-    -- self.searchBar:setUIName("chat text entry") -- some hardcoded magic
     self.searchBarText = self.searchBarLastText
     self.searchBar.onTextChange = self.onTextChange
     self.searchBar.onOtherKey = CHC_search_bar.onOtherKey
+    -- self.searchBar.onRightMouseDown = self.onRightMouseDown
 
     self:addChild(self.searchBtn)
     self:addChild(self.searchBar)
@@ -80,6 +81,13 @@ function CHC_search_bar:onOtherKey(key)
     end
 end
 
+-- function CHC_search_bar:onRightMouseDown()
+--     local s = self.parent
+--     if s.onRightMouseDownSB then
+--         s.onRightMouseDownSB(s.parent)
+--     end
+-- end
+
 function CHC_search_bar:updateSearchBarLastText()
     local txt = self.searchBar:getInternalText()
     if txt == "" or txt ~= self.searchBarLastText then
@@ -96,7 +104,7 @@ end
 function CHC_search_bar:parseTokens(txt, delim)
 
     delim = delim or { ",", "|" }
-    local regex = "[^" .. table.concat(delim) .. "]+"
+    local regex = "[^" .. concat(delim) .. "]+"
     local queryType
 
     txt = string.trim(txt)
@@ -108,14 +116,13 @@ function CHC_search_bar:parseTokens(txt, delim)
 
     local tokens = {}
     for token in txt:gmatch(regex) do
-        table.insert(tokens, token)
+        insert(tokens, string.trim(token))
     end
     if #tokens == 1 then
         return tokens, false, nil
     elseif not tokens then -- just sep (e.g txt=",")
         return nil, false, nil
     end
-    -- tokens = table.unpack(tokens, 1, #tokens-1)
     return tokens, true, queryType
 end
 
@@ -145,6 +152,7 @@ function CHC_search_bar:new(x, y, width, height, searchBarTooltip, onTextChange,
     o.h = height
     o.searchBtnOnClickText = searchBtnOnClickText
     o.onTextChangeSB = onTextChange
+    -- o.onRightMouseDownSB = onRightMouseDown
     o.searchBarTooltip = searchBarTooltip or string.sub(getText("IGUI_CraftUI_Name_Filter"), 1, -2)
     return o
 end

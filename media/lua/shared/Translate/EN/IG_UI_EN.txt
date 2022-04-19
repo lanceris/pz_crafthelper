@@ -17,5 +17,16 @@ IGUI_EN = {
     IGUI_TabSelectorModifier = "Select tab key"
     IGUI_TabSelectorModifierTooltip = "Modifier key(s) held down while selecting tabs ('%1' and '%2' keybinds)"
     IGUI_ShowRecipeModule = "Show recipe origin"
-    IGUI_ShowRecipeModuleTooltip = "Display mod, where recipe came from. <LINE> Note: recipe 'mod' is just module, where this recipe was defined (in .txt file), alot of them using default module ('Base')"
+    IGUI_ShowRecipeModuleTooltip = "Display mod, where recipe came from. <LINE> Note: recipe 'mod' is just module, where this recipe was defined (in .txt file), some mods use default module ('Base')"
+    IGUI_CHC_ItemCat_AlarmClockClothing = "Wrist watch"
+    IGUI_CHC_ItemCat_Drainable = "Drainable"
+    IGUI_CHC_ItemCat_Map = "Map"
+    IGUI_CHC_ItemCat_Moveable = "Furniture"
+    IGUI_CHC_ItemCat_Normal = "Normal"
+    IGUI_CHC_ItemCat_Radio = "Radio"
+    IGUI_CHC_ItemCat_Key = "Key"
+    IGUI_new_tab = "Open in new tab"
+    IGUI_find_item = "Find item"
+
+
 }

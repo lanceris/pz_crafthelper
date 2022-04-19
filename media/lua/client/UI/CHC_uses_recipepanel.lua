@@ -15,6 +15,44 @@ CHC_uses_recipepanel.largeFontHeight = getTextManager():getFontFromEnum(UIFont.L
 CHC_uses_recipepanel.mediumFontHeight = getTextManager():getFontHeight(UIFont.Medium)
 CHC_uses_recipepanel.smallFontHeight = getTextManager():getFontFromEnum(UIFont.Small):getLineHeight()
 
+
+function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y)
+    local row = self:rowAt(x, y)
+    if row == -1 or not row then return end
+    local item = self.items[row]
+    if not item then return end
+    item = item.item
+    if not item.fullType then return end
+    local backref = self.parent.parent.backRef
+    -- -- check if there is recipes for item
+    local cX = getMouseX()
+    local cY = getMouseY()
+    local context = ISContextMenu.get(0, cX + 10, cY)
+
+    item = CHC_main.items[item.fullType]
+    local cond1 = type(CHC_main.recipesByItem[item.name]) == 'table'
+    local cond2 = type(CHC_main.recipesForItem[item.name]) == 'table'
+
+    local function findItem()
+        local viewName = getText("UI_search_tab_name")
+        backref:refresh(viewName) -- activate top level search view
+        backref:refresh(backref.uiTypeToView['search_items'].name,
+            backref.panel.activeView.view) -- activate Items subview
+        local view = backref:getActiveSubView()
+        local txt = string.format("!%s,#%s,%s", item.category, item.displayCategory, item.displayName)
+        txt = string.lower(txt)
+        view.searchRow.searchBar:setText(txt) -- set text to Items subview search bar
+        view.needUpdateObjects = true -- trigger objList update
+        -- @@@ TODO: check if item actually selected or not
+    end
+
+    context:addOption(getText("IGUI_find_item"), backref, findItem)
+    if cond1 or cond2 then
+        context:addOption(getText("IGUI_new_tab"), backref, backref.addItemView, item.item, true)
+        -- backref:addItemView(item, true)
+    end
+end
+
 -- region create
 function CHC_uses_recipepanel:createChildren()
     ISPanel.createChildren(self);
@@ -22,6 +60,7 @@ function CHC_uses_recipepanel:createChildren()
     self.ingredientPanel = ISScrollingListBox:new(1, 30, self.width, self.height - 40);
     self.ingredientPanel:initialise()
     self.ingredientPanel:instantiate()
+    self.ingredientPanel.onRightMouseDown = self.onRMBDownIngrPanel
     self.ingredientPanel.itemheight = math.max(CHC_uses_recipepanel.smallFontHeight, 22)
     self.ingredientPanel.font = UIFont.NewSmall
     self.ingredientPanel.doDrawItem = self.drawIngredient
@@ -165,14 +204,13 @@ function CHC_uses_recipepanel:getBottomHeight(item)
     end
 
     --skills
-
     if item.requiredSkillCount > 0 then
         bh = bh + CHC_uses_recipepanel.mediumFontHeight
         bh = bh + (item.requiredSkillCount) * CHC_uses_recipepanel.smallFontHeight + 4
     end
 
     -- books
-    if self.manualsSize > 0 then
+    if self.manualsEntries then
         bh = bh + (self.manualsSize + 1) * CHC_uses_recipepanel.smallFontHeight + 4
     end
 
@@ -660,10 +698,6 @@ function CHC_uses_recipepanel:drawIngredient(y, item, alt)
     if y + self:getYScroll() >= self.height then return y + self.itemheight end
     if y + self.itemheight + self:getYScroll() <= 0 then return y + self.itemheight end
 
-    --if not self.parent.recipeListHasFocus and self.selected == item.index then
-    --    self:drawRectBorder(1, y, self:getWidth()-2, self.itemheight, 1.0, 0.5, 0.5, 0.5);
-    --end
-
     if item.item.multipleHeader then
         local r, g, b = 1, 1, 1
         if not item.item.available then
@@ -695,6 +729,12 @@ function CHC_uses_recipepanel:drawIngredient(y, item, alt)
             self:drawTextureScaledAspect(item.item.texture, dx, y + (self.itemheight - imgH) / 2, 20, 20, a2, r2, g2, b2)
         end
     end
+    local ab, rb, gb, bb = 1, 0.1, 0.1, 0.1
+    if item.item.multipleHeader then
+        self:drawRect(1, y, self:getWidth() - 2, self.itemheight, 0.2, 0.2, gb, bb)
+    end
+    self:drawRectBorder(0, y, self:getWidth() - 2, self.itemheight, ab, rb, gb, bb)
+    -- ISUIElement:drawRectBorder( x, y, w, h, a, r, g, b)
 
     return y + self.itemheight;
 end

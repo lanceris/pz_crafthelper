@@ -4,7 +4,7 @@ CHC_main = {}
 CHC_main.author = "lanceris"
 CHC_main.previousAuthors = { "Peanut", "ddraigcymraeg", "b1n0m" }
 CHC_main.modName = "CraftHelperContinued"
-CHC_main.version = "1.5.6"
+CHC_main.version = "1.5.7"
 CHC_main.allRecipes = {}
 CHC_main.recipesByItem = {}
 CHC_main.recipesForItem = {}
@@ -42,6 +42,8 @@ end
 CHC_main.processOneItem = function(item)
 	local fullType = item:getFullName()
 	local invItem = instanceItem(fullType)
+	local itemDisplayCategory = invItem:getDisplayCategory()
+
 	if not CHC_main.items[fullType] then
 		local toinsert = {
 			item = invItem,
@@ -53,7 +55,8 @@ CHC_main.processOneItem = function(item)
 			displayName = invItem:getDisplayName(),
 			hidden = item:isHidden(),
 			count = invItem:getCount() or 1,
-			displayCategory = invItem:getDisplayCategory() or "Item",
+			category = item:getTypeString(),
+			displayCategory = itemDisplayCategory and getTextOrNull("IGUI_ItemCat_" .. itemDisplayCategory) or "Item",
 			texture = invItem:getTex()
 		}
 		CHC_main.items[invItem:getFullType()] = toinsert
@@ -87,9 +90,10 @@ CHC_main.loadAllItems = function(am)
 	print("Loading items...")
 	for i = 0, amount do
 		local item = allItems:get(i)
-		CHC_main.processOneItem(item)
-
-		nbItems = nbItems + 1
+		if not item:getObsolete() then -- and not item:isHidden() then
+			CHC_main.processOneItem(item)
+			nbItems = nbItems + 1
+		end
 	end
 	showTime(now, "All Items")
 	print(nbItems .. ' items loaded.')

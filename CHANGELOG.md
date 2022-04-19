@@ -1,5 +1,32 @@
 # CraftHelper updates
 
+## 1.5.7 (19.04.2022)
+
+### New features
+
+- Added type filter for item views (select item category here)
+- Added special search for items (! - category, @ - mod, # - displayCategory)
+- Added RMB and MMB for items list (RMB opens context menu with option to open new tab (will focus), MMB opens new tab in background (will not focus))
+- Added RMB for recipe panel ingredients (will open context menu with option to open new tab)
+- Added option to RMB for recipe panel ingredients (will find item in search-items view, will change focus)
+
+### Improvements
+
+- Counts in type filter now updates when changing category (disabled for now)
+- Available categories in selector now updates when changing filter type (disabled for now)
+- Added trim to search bar token parser (removes whitespaces around token)
+- Moved items list to separate file
+- Changed recipe panel ingredients look a bit (border and red-ish fill for "one of" entry)
+- Updated language files
+- Changed CHC_window.uiTypeToView structure to table with 2 fields (view and name)
+
+### Bugfixes
+
+- Removed obsolete items in CHC_main.loadAllItems (not item:getObsolete())
+- Fixed item views not respecting font size setting
+- Fixed recipes in favorite screen not removed on unfavoriting
+- Fixed rendering of recipe panel (caused by incorrect amount of books required)
+
 ## 1.5.6 (18.04.2022)
 
 ### New features

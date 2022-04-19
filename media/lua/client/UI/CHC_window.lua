@@ -69,8 +69,8 @@ function CHC_window:onActivateView(target)
         local sv = v.viewList[i].view
         if sv.ui_type then -- @@@ FIXME better way to diff between items and recipes views
             sv.needUpdateFavorites = true -- update favorites (and categories in selector)
-            if sv.favRecNum == 0 then
-                sv.needUpdateRecipes = true
+            if sv.ui_type == 'favorites' then
+                sv.needUpdateObjects = true
             end
         end
     end
@@ -98,14 +98,16 @@ function CHC_window:addSearchPanel()
         typeFilter = options.search.items.filter_type,
         showHidden = options.show_hidden,
         ui_type = itemsUIType,
+        backRef = self,
         sep_x = math.min(self.width / 2, options.search.items.sep_x)
     }
     for k, v in pairs(items_extra) do items_screen_init[k] = v end
     self.searchItemsScreen = CHC_search:new(items_screen_init)
     if itemsData then
         self.searchItemsScreen:initialise()
-        self.searchPanel:addView(getText("UI_search_items_tab_name"), self.searchItemsScreen)
-        self.uiTypeToView[items_extra.ui_type] = self.searchItemsScreen
+        local sivn = getText("UI_search_items_tab_name")
+        self.searchPanel:addView(sivn, self.searchItemsScreen)
+        self.uiTypeToView[items_extra.ui_type] = { view = self.searchItemsScreen, name = sivn }
     end
     -- endregion
 
@@ -126,11 +128,12 @@ function CHC_window:addSearchPanel()
 
     if recipesData then
         self.searchRecipesScreen:initialise()
-        self.searchPanel:addView(getText("UI_search_recipes_tab_name"), self.searchRecipesScreen)
-        self.uiTypeToView[recipes_extra.ui_type] = self.searchRecipesScreen
+        local srvn = getText("UI_search_recipes_tab_name")
+        self.searchPanel:addView(srvn, self.searchRecipesScreen)
+        self.uiTypeToView[recipes_extra.ui_type] = { view = self.searchRecipesScreen, name = srvn }
     end
     -- endregion
-    self.searchPanel.infoText = getText("UI_infotext_search") .. getText("UI_infotext_common", getText("UI_common_left_col_name"), getText("UI_common_right_col_name"))
+    self.searchPanel.infoText = getText("UI_infotext_search") .. self.infotext_common
     self.panel:addView(self.searchViewName, self.searchPanel)
 
     --endregion
@@ -156,14 +159,16 @@ function CHC_window:addFavoriteScreen()
         typeFilter = options.favorites.items.filter_type,
         showHidden = options.show_hidden,
         ui_type = "fav_items",
+        backRef = self,
         sep_x = math.min(self.width / 2, options.favorites.items.sep_x)
     }
     for k, v in pairs(items_extra) do items_screen_init[k] = v end
     self.favItemsScreen = CHC_search:new(items_screen_init)
     if itemsData then
         self.favItemsScreen:initialise()
-        self.favPanel:addView(getText("UI_search_items_tab_name"), self.favItemsScreen)
-        self.uiTypeToView[items_extra.ui_type] = self.favItemsScreen
+        local fivn = getText("UI_search_items_tab_name")
+        self.favPanel:addView(fivn, self.favItemsScreen)
+        self.uiTypeToView[items_extra.ui_type] = { view = self.favItemsScreen, name = fivn }
     end
     -- endregion
 
@@ -184,18 +189,19 @@ function CHC_window:addFavoriteScreen()
 
     if recipesData then
         self.favRecipesScreen:initialise()
-        self.favPanel:addView(getText("UI_search_recipes_tab_name"), self.favRecipesScreen)
-        self.uiTypeToView[recipes_extra.ui_type] = self.favRecipesScreen
+        local frvn = getText("UI_search_recipes_tab_name")
+        self.favPanel:addView(frvn, self.favRecipesScreen)
+        self.uiTypeToView[recipes_extra.ui_type] = { view = self.favRecipesScreen, name = frvn }
     end
     -- endregion
     --favoritesScreen
-    self.favPanel.infoText = getText("UI_infotext_favorites") .. getText("UI_infotext_common", getText("UI_common_left_col_name"), getText("UI_common_right_col_name"))
+    self.favPanel.infoText = getText("UI_infotext_favorites") .. self.infotext_common
     self.panel:addView(self.favViewName, self.favPanel)
     -- endregion
 
 end
 
-function CHC_window:addItemView(item)
+function CHC_window:addItemView(item, focusOnNew)
     local ifn = item:getFullType()
     local itn = CHC_main.items[ifn]
     local nameForTab = itn.displayName
@@ -205,7 +211,7 @@ function CHC_window:addItemView(item)
         if existingView.view and existingView.view.item ~= itn then -- same displayName, but different items
             nameForTab = nameForTab .. string.format(" (%s)", itn.fullType)
         else -- same displayName and same item
-            self:refresh(nameForTab)
+            self:refresh(nameForTab, nil, focusOnNew)
             return
         end
     end
@@ -244,11 +250,12 @@ function CHC_window:addItemView(item)
 
     if usesData then
         self.usesScreen:initialise()
-        self.itemPanel:addView(getText("UI_item_uses_tab_name"), self.usesScreen)
+        local iuvn = getText("UI_item_uses_tab_name")
+        self.itemPanel:addView(iuvn, self.usesScreen)
         if not self.uiTypeToView[uses_extra.ui_type] then
-            self.uiTypeToView[uses_extra.ui_type] = { self.usesScreen }
+            self.uiTypeToView[uses_extra.ui_type] = { { view = self.usesScreen, name = iuvn } }
         else
-            table.insert(self.uiTypeToView[uses_extra.ui_type], self.usesScreen)
+            table.insert(self.uiTypeToView[uses_extra.ui_type], { view = self.usesScreen, name = iuvn })
         end
     end
     --endregion
@@ -271,24 +278,24 @@ function CHC_window:addItemView(item)
 
     if craftData then
         self.craftScreen:initialise()
-        self.itemPanel:addView(getText("UI_item_craft_tab_name"), self.craftScreen)
+        local icvn = getText("UI_item_craft_tab_name")
+        self.itemPanel:addView(icvn, self.craftScreen)
         if not self.uiTypeToView[craft_extra.ui_type] then
-            self.uiTypeToView[craft_extra.ui_type] = { self.craftScreen }
+            self.uiTypeToView[craft_extra.ui_type] = { { view = self.craftScreen, name = icvn } }
         else
-            table.insert(self.uiTypeToView[craft_extra.ui_type], self.craftScreen)
+            table.insert(self.uiTypeToView[craft_extra.ui_type], { view = self.craftScreen, name = icvn })
         end
     end
     -- endregion
     --endregion
-    self.itemPanel.infoText = getText("UI_infotext_itemtab", itn.displayName, getText("UI_item_uses_tab_name"), getText("UI_item_craft_tab_name")) ..
-        getText("UI_infotext_common", getText("UI_common_left_col_name"), getText("UI_common_right_col_name"))
-    self:refresh()
+    self.itemPanel.infoText = getText("UI_infotext_itemtab", itn.displayName, getText("UI_item_uses_tab_name"), getText("UI_item_craft_tab_name")) .. self.infotext_common
+    self:refresh(nil, nil, focusOnNew)
 end
 
-function CHC_window:refresh(viewName, panel)
+function CHC_window:refresh(viewName, panel, focusOnNew)
     local panel = panel or self.panel
     -- viewName = viewName or nil
-    if viewName then
+    if viewName and (focusOnNew == nil or focusOnNew == true) then
         panel:activateView(viewName)
         return
     end
@@ -299,7 +306,11 @@ function CHC_window:refresh(viewName, panel)
     else
         viewName = vl[2].name -- favorites is default
     end
-    panel:activateView(viewName)
+    if focusOnNew == false then
+        return
+    else
+        panel:activateView(viewName)
+    end
 end
 
 function CHC_window:getRecipes(favOnly)
@@ -580,7 +591,7 @@ end
 function CHC_window:update()
     if self.updateQueue and self.updateQueue.len > 0 then
         local toProcess = self.updateQueue:pop()
-        local targetView = self.uiTypeToView[toProcess.targetView]
+        local targetView = self.uiTypeToView[toProcess.targetView].view
         if not targetView or not toProcess.actions then return end
         for i = 1, #toProcess.actions do
             targetView[toProcess.actions[i]] = true
@@ -649,16 +660,27 @@ function CHC_window:new(args)
     o.headerHgt = fontHgtSmall + 1
     o.player = args.player or nil
 
-    o.searchViewName = "[WIP] " .. getText("UI_search_tab_name")
+    o.searchViewName = getText("UI_search_tab_name")
     o.favViewName = getText("IGUI_CraftCategory_Favorite")
 
     o.options = CHC_settings.config
     o.needUpdateFavorites = false
     o.needUpdateCounts = false
-    o.needUpdateRecipes = false
+    o.needUpdateObjects = false
     o.updateQueue = utils.Deque:new()
     o.uiTypeToView = {}
 
+    o.infotext_common_type_filter = getText("UI_infotext_common_type_filters",
+        getText("UI_All"),
+        getText("UI_settings_av_valid"),
+        getText("UI_settings_av_known"),
+        getText("UI_settings_av_invalid")
+    )
+    o.infotext_common = getText("UI_infotext_common",
+        getText("UI_common_left_col_name"),
+        getText("UI_common_right_col_name"),
+        o.infotext_common_type_filter
+    )
     o:setWantKeyEvents(true)
 
     return o;
