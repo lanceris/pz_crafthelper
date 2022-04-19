@@ -132,7 +132,7 @@ function CHC_search:create()
     --endregion
 
     -- region search bar
-    self.searchRow = CHC_search_bar:new(x, leftY, leftW, 24, nil, self.onTextChange, getText("UI_searchrow_info"))
+    self.searchRow = CHC_search_bar:new(x, leftY, leftW, 24, nil, self.onTextChange, self.searchRowHelpText)
     self.searchRow:initialise()
     leftY = leftY + 24
     -- endregion
@@ -292,7 +292,7 @@ function CHC_search:searchProcessToken(token, item)
     if token and isSpecialSearch then
         if char == "!" then
             -- search by item category
-            whatCompare = item.category
+            whatCompare = self.categoryData[item.category].tooltip or item.category
         end
         if char == "@" then
             -- search by mod name of item
@@ -491,6 +491,12 @@ function CHC_search:new(args)
 
     o.favCatName = "* " .. getText("IGUI_CraftCategory_Favorite")
     o.categorySelectorDefaultOption = getText("UI_All")
+    o.searchRowHelpText = getText("UI_searchrow_info",
+        getText("UI_searchrow_info_items_special"),
+        getText("UI_searchrow_info_items_examples")
+    )
+
+
     o.selectedCategory = o.categorySelectorDefaultOption
     o.backRef = args.backRef
 

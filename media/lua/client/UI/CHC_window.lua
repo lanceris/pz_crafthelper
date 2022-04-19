@@ -69,7 +69,7 @@ function CHC_window:onActivateView(target)
         local sv = v.viewList[i].view
         if sv.ui_type then -- @@@ FIXME better way to diff between items and recipes views
             sv.needUpdateFavorites = true -- update favorites (and categories in selector)
-            if sv.favRecNum == 0 then
+            if sv.ui_type == 'favorites' then
                 sv.needUpdateObjects = true
             end
         end
@@ -131,7 +131,7 @@ function CHC_window:addSearchPanel()
         self.uiTypeToView[recipes_extra.ui_type] = self.searchRecipesScreen
     end
     -- endregion
-    self.searchPanel.infoText = getText("UI_infotext_search") .. getText("UI_infotext_common", getText("UI_common_left_col_name"), getText("UI_common_right_col_name"))
+    self.searchPanel.infoText = getText("UI_infotext_search") .. self.infotext_common
     self.panel:addView(self.searchViewName, self.searchPanel)
 
     --endregion
@@ -191,7 +191,7 @@ function CHC_window:addFavoriteScreen()
     end
     -- endregion
     --favoritesScreen
-    self.favPanel.infoText = getText("UI_infotext_favorites") .. getText("UI_infotext_common", getText("UI_common_left_col_name"), getText("UI_common_right_col_name"))
+    self.favPanel.infoText = getText("UI_infotext_favorites") .. self.infotext_common
     self.panel:addView(self.favViewName, self.favPanel)
     -- endregion
 
@@ -282,8 +282,7 @@ function CHC_window:addItemView(item, focusOnNew)
     end
     -- endregion
     --endregion
-    self.itemPanel.infoText = getText("UI_infotext_itemtab", itn.displayName, getText("UI_item_uses_tab_name"), getText("UI_item_craft_tab_name")) ..
-        getText("UI_infotext_common", getText("UI_common_left_col_name"), getText("UI_common_right_col_name"))
+    self.itemPanel.infoText = getText("UI_infotext_itemtab", itn.displayName, getText("UI_item_uses_tab_name"), getText("UI_item_craft_tab_name")) .. self.infotext_common
     self:refresh(nil, nil, focusOnNew)
 end
 
@@ -655,7 +654,7 @@ function CHC_window:new(args)
     o.headerHgt = fontHgtSmall + 1
     o.player = args.player or nil
 
-    o.searchViewName = "[WIP] " .. getText("UI_search_tab_name")
+    o.searchViewName = getText("UI_search_tab_name")
     o.favViewName = getText("IGUI_CraftCategory_Favorite")
 
     o.options = CHC_settings.config
@@ -665,6 +664,17 @@ function CHC_window:new(args)
     o.updateQueue = utils.Deque:new()
     o.uiTypeToView = {}
 
+    o.infotext_common_type_filter = getText("UI_infotext_common_type_filters",
+        getText("UI_All"),
+        getText("UI_settings_av_valid"),
+        getText("UI_settings_av_known"),
+        getText("UI_settings_av_invalid")
+    )
+    o.infotext_common = getText("UI_infotext_common",
+        getText("UI_common_left_col_name"),
+        getText("UI_common_right_col_name"),
+        o.infotext_common_type_filter
+    )
     o:setWantKeyEvents(true)
 
     return o;

@@ -83,11 +83,11 @@ function CHC_uses_recipelist:addToFavorite(selectedIndex, fromKeyboard)
 	else
 		parent.favRecNum = parent.favRecNum - 1
 		local cs = parent.filterRow.categorySelector
-		if cs.options[cs.selected].text == parent.favCatName then
+		if cs.options[cs.selected].text == parent.favCatName or parent.ui_type == 'favorites' then
 			self:removeItemByIndex(selectedIndex)
 		end
 	end
-	if #self.items == 0 or self.parent.ui_type == 'favorites' then
+	if #self.items == 0 then -- or self.parent.ui_type == 'favorites' then
 		parent.needUpdateObjects = true
 	end
 	parent.needUpdateFavorites = true

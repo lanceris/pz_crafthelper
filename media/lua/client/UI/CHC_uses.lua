@@ -68,7 +68,7 @@ function CHC_uses:create()
     -- endregion
 
     -- region search bar
-    self.searchRow = CHC_search_bar:new(x, leftY, leftW, 24, nil, self.onTextChange, getText("UI_searchrow_info"))
+    self.searchRow = CHC_search_bar:new(x, leftY, leftW, 24, nil, self.onTextChange, self.searchRowHelpText)
     self.searchRow:initialise()
     leftY = leftY + 24
     -- endregion
@@ -599,6 +599,10 @@ function CHC_uses:new(args)
     o.player = getPlayer()
     o.favCatName = "* " .. getText("IGUI_CraftCategory_Favorite")
     o.categorySelectorDefaultOption = getText("UI_All")
+    o.searchRowHelpText = getText("UI_searchrow_info",
+        getText("UI_searchrow_info_recipes_special"),
+        getText("UI_searchrow_info_recipes_examples")
+    )
 
     o.needUpdateFavorites = true
     o.needUpdateCounts = false

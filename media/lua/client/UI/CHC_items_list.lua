@@ -1,5 +1,11 @@
 CHC_items_list = ISScrollingListBox:derive("CHC_items_list")
 
+local fontSizeToInternal = {
+    { font = UIFont.Small, pad = 4, icon = 10 },
+    { font = UIFont.Medium, pad = 4, icon = 18 },
+    { font = UIFont.Large, pad = 6, icon = 24 }
+}
+
 -- region create
 
 function CHC_items_list:initialise()
@@ -112,6 +118,13 @@ end
 
 function CHC_items_list:doDrawItem(y, item, alt)
 
+    local curFontData = fontSizeToInternal[CHC_settings.config.list_font_size]
+    if not curFontData then curFontData = fontSizeToInternal[3] end
+    if self.font ~= curFontData.font then
+        self:setFont(curFontData.font, curFontData.pad)
+    end
+    item.height = curFontData.icon + 2 * curFontData.pad
+
     if y + self:getYScroll() >= self.height then return y + item.height end
     if y + item.height + self:getYScroll() <= 0 then return y + item.height end
     if y < -self:getYScroll() - 1 then return y + item.height; end
@@ -126,12 +139,12 @@ function CHC_items_list:doDrawItem(y, item, alt)
     -- region icons
     if iconsEnabled then
         local itemIcon = itemObj.texture
-        self:drawTextureScaled(itemIcon, 6, y + 6, item.height - 12, item.height - 12, 1)
+        self:drawTextureScaled(itemIcon, 6, y + 6, curFontData.icon, curFontData.icon, 1)
     end
     --endregion
 
     --region text
-    local clr = { txt = item.text, x = iconsEnabled and item.height or 15,
+    local clr = { txt = item.text, x = iconsEnabled and (curFontData.icon + 8) or 15,
         y = (y) + itemPadY, a = 0.9, font = self.font }
     clr['r'] = 1
     clr['g'] = 1

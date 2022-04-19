@@ -16,10 +16,13 @@
 - Added trim to search bar token parser (removes whitespaces around token)
 - Moved items list to separate file
 - Changed recipe panel ingredients look a bit (border and red-ish fill for "one of" entry)
+- Updated language files
 
 ### Bugfixes
 
 - Removed obsolete items in CHC_main.loadAllItems (not item:getObsolete())
+- Fixed item views not respecting font size setting
+- Fixed recipes in favorite screen not removed on unfavoriting
 
 ## 1.5.6 (18.04.2022)
 
