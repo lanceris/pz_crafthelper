@@ -25,14 +25,30 @@ function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y)
     if not item.fullType then return end
     local backref = self.parent.parent.backRef
     -- -- check if there is recipes for item
-    local cond1 = type(CHC_main.recipesByItem[item.name]) == 'table'
-    local cond2 = type(CHC_main.recipesForItem[item.name]) == 'table'
     local cX = getMouseX()
     local cY = getMouseY()
     local context = ISContextMenu.get(0, cX + 10, cY)
+
+    item = CHC_main.items[item.fullType]
+    local cond1 = type(CHC_main.recipesByItem[item.name]) == 'table'
+    local cond2 = type(CHC_main.recipesForItem[item.name]) == 'table'
+
+    local function findItem()
+        local viewName = getText("UI_search_tab_name")
+        backref:refresh(viewName) -- activate top level search view
+        backref:refresh(backref.uiTypeToView['search_items'].name,
+            backref.panel.activeView.view) -- activate Items subview
+        local view = backref:getActiveSubView()
+        local txt = string.format("!%s,#%s,%s", item.category, item.displayCategory, item.displayName)
+        txt = string.lower(txt)
+        view.searchRow.searchBar:setText(txt) -- set text to Items subview search bar
+        view.needUpdateObjects = true -- trigger objList update
+        -- @@@ TODO: check if item actually selected or not
+    end
+
+    context:addOption(getText("IGUI_find_item"), backref, findItem)
     if cond1 or cond2 then
-        item = CHC_main.items[item.fullType].item
-        context:addOption(getText("IGUI_new_tab"), backref, backref.addItemView, item, true)
+        context:addOption(getText("IGUI_new_tab"), backref, backref.addItemView, item.item, true)
         -- backref:addItemView(item, true)
     end
 end
@@ -188,14 +204,13 @@ function CHC_uses_recipepanel:getBottomHeight(item)
     end
 
     --skills
-
     if item.requiredSkillCount > 0 then
         bh = bh + CHC_uses_recipepanel.mediumFontHeight
         bh = bh + (item.requiredSkillCount) * CHC_uses_recipepanel.smallFontHeight + 4
     end
 
     -- books
-    if self.manualsSize > 0 then
+    if self.manualsEntries then
         bh = bh + (self.manualsSize + 1) * CHC_uses_recipepanel.smallFontHeight + 4
     end
 

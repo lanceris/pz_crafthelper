@@ -105,8 +105,9 @@ function CHC_window:addSearchPanel()
     self.searchItemsScreen = CHC_search:new(items_screen_init)
     if itemsData then
         self.searchItemsScreen:initialise()
-        self.searchPanel:addView(getText("UI_search_items_tab_name"), self.searchItemsScreen)
-        self.uiTypeToView[items_extra.ui_type] = self.searchItemsScreen
+        local sivn = getText("UI_search_items_tab_name")
+        self.searchPanel:addView(sivn, self.searchItemsScreen)
+        self.uiTypeToView[items_extra.ui_type] = { view = self.searchItemsScreen, name = sivn }
     end
     -- endregion
 
@@ -127,8 +128,9 @@ function CHC_window:addSearchPanel()
 
     if recipesData then
         self.searchRecipesScreen:initialise()
-        self.searchPanel:addView(getText("UI_search_recipes_tab_name"), self.searchRecipesScreen)
-        self.uiTypeToView[recipes_extra.ui_type] = self.searchRecipesScreen
+        local srvn = getText("UI_search_recipes_tab_name")
+        self.searchPanel:addView(srvn, self.searchRecipesScreen)
+        self.uiTypeToView[recipes_extra.ui_type] = { view = self.searchRecipesScreen, name = srvn }
     end
     -- endregion
     self.searchPanel.infoText = getText("UI_infotext_search") .. self.infotext_common
@@ -164,8 +166,9 @@ function CHC_window:addFavoriteScreen()
     self.favItemsScreen = CHC_search:new(items_screen_init)
     if itemsData then
         self.favItemsScreen:initialise()
-        self.favPanel:addView(getText("UI_search_items_tab_name"), self.favItemsScreen)
-        self.uiTypeToView[items_extra.ui_type] = self.favItemsScreen
+        local fivn = getText("UI_search_items_tab_name")
+        self.favPanel:addView(fivn, self.favItemsScreen)
+        self.uiTypeToView[items_extra.ui_type] = { view = self.favItemsScreen, name = fivn }
     end
     -- endregion
 
@@ -186,8 +189,9 @@ function CHC_window:addFavoriteScreen()
 
     if recipesData then
         self.favRecipesScreen:initialise()
-        self.favPanel:addView(getText("UI_search_recipes_tab_name"), self.favRecipesScreen)
-        self.uiTypeToView[recipes_extra.ui_type] = self.favRecipesScreen
+        local frvn = getText("UI_search_recipes_tab_name")
+        self.favPanel:addView(frvn, self.favRecipesScreen)
+        self.uiTypeToView[recipes_extra.ui_type] = { view = self.favRecipesScreen, name = frvn }
     end
     -- endregion
     --favoritesScreen
@@ -246,11 +250,12 @@ function CHC_window:addItemView(item, focusOnNew)
 
     if usesData then
         self.usesScreen:initialise()
-        self.itemPanel:addView(getText("UI_item_uses_tab_name"), self.usesScreen)
+        local iuvn = getText("UI_item_uses_tab_name")
+        self.itemPanel:addView(iuvn, self.usesScreen)
         if not self.uiTypeToView[uses_extra.ui_type] then
-            self.uiTypeToView[uses_extra.ui_type] = { self.usesScreen }
+            self.uiTypeToView[uses_extra.ui_type] = { { view = self.usesScreen, name = iuvn } }
         else
-            table.insert(self.uiTypeToView[uses_extra.ui_type], self.usesScreen)
+            table.insert(self.uiTypeToView[uses_extra.ui_type], { view = self.usesScreen, name = iuvn })
         end
     end
     --endregion
@@ -273,11 +278,12 @@ function CHC_window:addItemView(item, focusOnNew)
 
     if craftData then
         self.craftScreen:initialise()
-        self.itemPanel:addView(getText("UI_item_craft_tab_name"), self.craftScreen)
+        local icvn = getText("UI_item_craft_tab_name")
+        self.itemPanel:addView(icvn, self.craftScreen)
         if not self.uiTypeToView[craft_extra.ui_type] then
-            self.uiTypeToView[craft_extra.ui_type] = { self.craftScreen }
+            self.uiTypeToView[craft_extra.ui_type] = { { view = self.craftScreen, name = icvn } }
         else
-            table.insert(self.uiTypeToView[craft_extra.ui_type], self.craftScreen)
+            table.insert(self.uiTypeToView[craft_extra.ui_type], { view = self.craftScreen, name = icvn })
         end
     end
     -- endregion
@@ -585,7 +591,7 @@ end
 function CHC_window:update()
     if self.updateQueue and self.updateQueue.len > 0 then
         local toProcess = self.updateQueue:pop()
-        local targetView = self.uiTypeToView[toProcess.targetView]
+        local targetView = self.uiTypeToView[toProcess.targetView].view
         if not targetView or not toProcess.actions then return end
         for i = 1, #toProcess.actions do
             targetView[toProcess.actions[i]] = true

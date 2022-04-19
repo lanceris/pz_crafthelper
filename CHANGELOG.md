@@ -8,6 +8,7 @@
 - Added special search for items (! - category, @ - mod, # - displayCategory)
 - Added RMB and MMB for items list (RMB opens context menu with option to open new tab (will focus), MMB opens new tab in background (will not focus))
 - Added RMB for recipe panel ingredients (will open context menu with option to open new tab)
+- Added option to RMB for recipe panel ingredients (will find item in search-items view, will change focus)
 
 ### Improvements
 
@@ -17,12 +18,14 @@
 - Moved items list to separate file
 - Changed recipe panel ingredients look a bit (border and red-ish fill for "one of" entry)
 - Updated language files
+- Changed CHC_window.uiTypeToView structure to table with 2 fields (view and name)
 
 ### Bugfixes
 
 - Removed obsolete items in CHC_main.loadAllItems (not item:getObsolete())
 - Fixed item views not respecting font size setting
 - Fixed recipes in favorite screen not removed on unfavoriting
+- Fixed rendering of recipe panel (caused by incorrect amount of books required)
 
 ## 1.5.6 (18.04.2022)
 
