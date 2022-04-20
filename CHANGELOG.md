@@ -9,6 +9,7 @@
 ### Improvements
 
 - Added icons for type filter in item views
+- Improved search helper info
 
 ### Bugfixes
 

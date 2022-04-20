@@ -107,7 +107,7 @@ CHC_utils.compare = function(what, to, passAll)
     else
         for i = 1, #what do
             local wh = lower(tostring(what[i]))
-            if isNegate then
+            if isNegate then -- this is not working atm (so '#~smth' will not work)
                 if not contains(wh, to) then
                     state = true
                     break

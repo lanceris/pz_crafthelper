@@ -51,32 +51,34 @@ UI_EN = {
                                       "- <IMAGE:media/textures/type_filt_invalid.png> (%4): Recipes that you know nothing about. Will show book(-s), from which it can be learned. <LINE> <LINE> "
     
     UI_searchrow_info = "<CENTRE><SIZE:medium> Search Helper <LINE> <LINE> "..
-                        "<LEFT><SIZE:small> This search bar supports custom rules. Each separated query called Token. <LINE> <LINE> "..
-                        "First, you can search by multiple queries at once, using one of the following separators: <LINE> "..
-                        "<INDENT:8> <SIZE:medium> , <SIZE:small> <SPACE><SPACE>(comma) : combine all Tokens results (logical AND), can be used for very specific filtering <LINE> "..
-                        "<SIZE:medium> | <SIZE:small> <SPACE><SPACE>(vertical bar) : separate all Tokens (logical OR), can be used to search multiple queries separately <LINE> <LINE> "..
-                        "<INDENT:0> Second, you can prepend each Token with one of the following special charachers to specify search rule for this Token: <LINE>"..
-                        "<INDENT:8>%1"..
-                        "<LINE><INDENT:0><SIZE:medium> <LEFT> Examples: <LINE> <SIZE:small> "..
-                        "<INDENT:8>%2"..
-                        "<INDENT:0>Third, you can prepend each Token with ~ (tilde) to negate this Token (i.e. find everything thats NOT Token, should be after special character, if using them) <LINE> <LINE> "..
-                        "<SIZE:medium> Limitations: <LINE> <SIZE:small> "..
+                        "<LEFT><SIZE:small> This search bar supports custom rules. Each separated query (word) called Token. <LINE>"..
+                        "You can search by multiple queries at once, using SEPARATORS. <LINE>"..
+                        "You can prepend each Token with SPECIAL SYMBOLS to specify search rule for this Token. <LINE>"..
+                        "With 'Mod Options' you can set hotkey to focus search bar. Unfocus on ESC. <LINE><LINE>"..
+                        "<SIZE:medium> Separators: <LINE> <SIZE:small> "..
+                        "<INDENT:8> <SIZE:medium> , <SIZE:small> <SPACE><SPACE>(comma) - combine all Tokens results (logical AND), can be used for very specific filtering <LINE> "..
+                        "<SIZE:medium> | <SIZE:small> <SPACE><SPACE>(vertical bar) - separate all Tokens (logical OR), can be used to search multiple queries separately <LINE> <LINE> "..
+                        "<INDENT:0><SIZE:medium> Limitations: <LINE> <SIZE:small> "..
                         "<INDENT:8>- Can't use both separators (',' and '|') in one query <LINE> <LINE> "..
-                        "<INDENT:0>Note: with 'Mod Options' you can set hotkey to focus search bar. Unfocus on ESC."
+                        "<INDENT:0><SIZE:medium> Special symbols: <LINE> <SIZE:small> "..
+                        "<INDENT:8>%1"..
+                        "<SIZE:medium> ~ <SIZE:small> <SPACE><SPACE>(tilde) - excludes this Token (i.e find everything thats NOT Token; must be after special character, if using them) <LINE><LINE>"..
+                        "<INDENT:0><SIZE:medium> <LEFT> Examples: <LINE> <SIZE:small> "..
+                        "<INDENT:8>%2<LINE>"
 
-    UI_searchrow_info_recipes_special =  "<SIZE:medium> ! <SIZE:small> <SPACE><SPACE>(exclamation mark) : search by recipe category <LINE>"..
-                                         "<SIZE:medium> @ <SIZE:small> <SPACE><SPACE>(at sign) : search by mod name of resulting item ('Project Zomboid' for vanilla 'mod') <LINE>"..
-                                         "<SIZE:medium> # <SIZE:small> <SPACE><SPACE>(number sign) : search by recipe ingredients <LINE>"..
-                                         "<SIZE:medium> $ <SIZE:small> <SPACE><SPACE>(dollar sign) : search by category of resulting item (shown in right side of inventory panel) <LINE>"..
-                                         "<SIZE:medium> % <SIZE:small> <SPACE><SPACE>(percent sign) : search by name of resulting item <LINE>"..
-                                         "<SIZE:medium> ^ <SIZE:small> <SPACE><SPACE>(caret) : search by favorited recipes <LINE>"..
-                                         "<SIZE:medium> & <SIZE:small> <SPACE><SPACE>(ampersand) : search by mod name of recipe ('Base' for vanilla 'mod') <LINE> <LINE>"
-    UI_searchrow_info_recipes_examples = "#hamm <SPACE><SPACE>: show recipes which ingredients include something with 'hamm' in name <LINE>"..
-                                         "@hydrocra,!engineer,#saw <SPACE><SPACE>: show recipes from Hydrocraft (or similar) in 'engineer' recipe category, which have 'saw' as ingredient <LINE>"..
-                                         "%plank|!food <SPACE><SPACE>: show recipes where 'plank' is the result, OR recipes in 'food' category <LINE> <LINE> "
-    UI_searchrow_info_items_special = "<SIZE:medium> ! <SIZE:small> <SPACE><SPACE>(exclamation mark) : search by item category <LINE>"..
-                                      "<SIZE:medium> @ <SIZE:small> <SPACE><SPACE>(at sign) : search by mod name of item ('Project Zomboid' for vanilla 'mod') <LINE>"..
-                                      "<SIZE:medium> # <SIZE:small> <SPACE><SPACE>(number sign) : search by display category of item (shown in right side of inventory panel) <LINE>"
+    UI_searchrow_info_recipes_special =  "<SIZE:medium> ! <SIZE:small> <SPACE><SPACE>(exclamation mark) - search by recipe category <LINE>"..
+                                         "<SIZE:medium> @ <SIZE:small> <SPACE><SPACE>(at sign) - search by mod name of resulting item ('Project Zomboid' for vanilla 'mod') <LINE>"..
+                                         "<SIZE:medium> # <SIZE:small> <SPACE><SPACE>(number sign) - search by recipe ingredients <LINE>"..
+                                         "<SIZE:medium> $ <SIZE:small> <SPACE><SPACE>(dollar sign) - search by category of resulting item (shown in right side of inventory panel) <LINE>"..
+                                         "<SIZE:medium> % <SIZE:small> <SPACE><SPACE>(percent sign) - search by name of resulting item <LINE>"..
+                                         "<SIZE:medium> ^ <SIZE:small> <SPACE><SPACE>(caret) - search by favorited recipes <LINE>"..
+                                         "<SIZE:medium> & <SIZE:small> <SPACE><SPACE>(ampersand) - search by mod name of recipe ('Base' for vanilla 'mod') <LINE> <LINE>"
+    UI_searchrow_info_recipes_examples = "#hamm <SPACE><SPACE>- show recipes which ingredients include something with 'hamm' in name <LINE>"..
+                                         "@hydrocra,!engineer,#saw <SPACE><SPACE>- show recipes from Hydrocraft (or similar) in 'engineer' recipe category, which have 'saw' as ingredient <LINE>"..
+                                         "%plank|!food <SPACE><SPACE>- show recipes where 'plank' is the result, OR recipes in 'food' category <LINE> <LINE> "
+    UI_searchrow_info_items_special = "<SIZE:medium> ! <SIZE:small> <SPACE><SPACE>(exclamation mark) - search by item category <LINE>"..
+                                      "<SIZE:medium> @ <SIZE:small> <SPACE><SPACE>(at sign) - search by mod name of item ('Project Zomboid' for vanilla 'mod') <LINE>"..
+                                      "<SIZE:medium> # <SIZE:small> <SPACE><SPACE>(number sign) - search by display category of item (shown in right side of inventory panel) <LINE>"
     UI_searchrow_info_items_examples = "#tool,!~weapon <SPACE><SPACE>: show tools which is not a weapon (e.g needle, saw, tongs) <LINE> "
 
     UI_infotext_search =  "<CENTRE><SIZE:medium> Search Screen <LINE> <LINE> "..

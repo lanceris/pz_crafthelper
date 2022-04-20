@@ -71,7 +71,7 @@ function CHC_items_panel:createChildren()
 
     self.mainWeight = ISLabel:new(mainX, mainY, fnts, nil, mr, mg, mb, ma, mainSecFont, true)
     self.mainWeight:initialise()
-    mainY = mainY + mainPadY + self.mainWeight.height
+    -- mainY = mainY + mainPadY + self.mainWeight.height
     self.mainX = mainX
     self.mainY = mainY
 
@@ -160,16 +160,11 @@ function CHC_items_panel:setObj(item)
     self.mainName:setTooltip(string.format("%s <LINE>%s", item.name, item.fullType))
 
     local trCat = self.parent.categoryData[item.category].tooltip
-    self.mainType:setName("Type: " .. trCat)
-    self.mainDispCat:setName("Category: " .. item.displayCategory)
+    self.mainType:setName(getText("IGUI_invpanel_Type") .. ": " .. trCat)
+    self.mainDispCat:setName(getText("IGUI_invpanel_Category") .. ": " .. item.displayCategory)
 
-    if not item.isVanilla then
-        self.mainMod:setName("Mod: " .. item.modname)
-    else
-        self.mainWeight:setY(self.mainMod:getY())
-    end
-
-    self.mainWeight:setName("Weight: " .. round(item.item:getWeight(), 2))
+    self.mainMod:setName(getText("IGUI_mod_chc") .. ": " .. item.modname)
+    self.mainWeight:setName(getText("IGUI_invpanel_weight") .. ": " .. round(item.item:getWeight(), 2))
 
     self.mainInfo:setHeight(math.max(self.mainInfo.height, self.mainWeight.y + self.mainWeight.height + 2))
     self.mainInfo:setVisible(true)
