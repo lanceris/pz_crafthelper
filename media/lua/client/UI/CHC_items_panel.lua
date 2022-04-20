@@ -35,7 +35,7 @@ function CHC_items_panel:createChildren()
 
     -- region general info
     self.mainInfo = ISPanel:new(self.margin, y, self.width - 2 * self.margin, 74)
-    self.mainInfo.borderColor = { r = 1, g = 0.53, b = 0.53, a = 1 }
+    self.mainInfo.borderColor = { r = 1, g = 0.53, b = 0.53, a = 0.2 }
     self.mainInfo:initialise()
     self.mainInfo:setVisible(false)
 
@@ -51,24 +51,25 @@ function CHC_items_panel:createChildren()
     local mainPriFont = UIFont.Medium
     local mainSecFont = UIFont.Small
 
-    self.mainName = ISLabel:new(mainX, mainPadY, fntm, nil, 1, 1, 1, 1, mainPriFont, true)
+    local mr, mg, mb, ma = 1, 1, 1, 1
+    self.mainName = ISLabel:new(mainX, mainPadY, fntm, nil, mr, mg, mb, ma, mainPriFont, true)
     self.mainName:initialise()
     self.mainName.maxWidth = self.mainInfo.width - mainX - self.margin
     mainY = mainY + mainPadY + self.mainName.height
 
-    self.mainType = ISLabel:new(mainX, mainY, fnts, nil, 1, 1, 1, 1, mainSecFont, true)
+    self.mainType = ISLabel:new(mainX, mainY, fnts, nil, mr, mg, mb, ma, mainSecFont, true)
     self.mainType:initialise()
     mainY = mainY + mainPadY + self.mainType.height
 
-    self.mainDispCat = ISLabel:new(mainX, mainY, fnts, nil, 1, 1, 1, 1, mainSecFont, true)
+    self.mainDispCat = ISLabel:new(mainX, mainY, fnts, nil, mr, mg, mb, ma, mainSecFont, true)
     self.mainDispCat:initialise()
     mainY = mainY + mainPadY + self.mainDispCat.height
 
-    self.mainMod = ISLabel:new(mainX, mainY, fnts, nil, 1, 1, 1, 1, mainSecFont, true)
+    self.mainMod = ISLabel:new(mainX, mainY, fnts, nil, mr, mg, mb, ma, mainSecFont, true)
     self.mainMod:initialise()
     mainY = mainY + mainPadY + self.mainMod.height
 
-    self.mainWeight = ISLabel:new(mainX, mainY, fnts, nil, 1, 1, 1, 1, mainSecFont, true)
+    self.mainWeight = ISLabel:new(mainX, mainY, fnts, nil, mr, mg, mb, ma, mainSecFont, true)
     self.mainWeight:initialise()
     mainY = mainY + mainPadY + self.mainWeight.height
     self.mainX = mainX
@@ -150,13 +151,16 @@ function CHC_items_panel:setObj(item)
 
     self.mainImg:setImage(item.texture)
     if self.item.tooltip then
-        self.mainImg:setTooltip(self.item.tooltip)
+        self.mainImg:setTooltip(getText(self.item.tooltip))
+    else
+        self.mainImg:setTooltip(nil)
     end
 
     self.mainName:setName(item.name)
-    self.mainName:setTooltip(item.name)
+    self.mainName:setTooltip(string.format("%s <LINE>%s", item.name, item.fullType))
 
-    self.mainType:setName("Type: " .. item.category)
+    local trCat = self.parent.categoryData[item.category].tooltip
+    self.mainType:setName("Type: " .. trCat)
     self.mainDispCat:setName("Category: " .. item.displayCategory)
 
     if not item.isVanilla then
@@ -182,7 +186,7 @@ function CHC_items_panel:new(x, y, w, h)
 
     -- o.backgroundColor = { r = 1, g = 0, b = 0, a = 1 }
     -- o:noBackground()
-    o.padY = 8
+    o.padY = 5
     o.margin = 5
     o.anchorTop = true
     o.anchorBottom = false

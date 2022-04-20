@@ -508,7 +508,9 @@ function CHC_window:onKeyRelease(key)
 
     -- region favorite
     if key == CHC_settings.keybinds.favorite_recipe.key then
-        rl:addToFavorite(nil, true)
+        if rl.addToFavorite then
+            rl:addToFavorite(nil, true)
+        end
     end
     -- endregion
 

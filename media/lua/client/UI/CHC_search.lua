@@ -30,59 +30,59 @@ function CHC_search:initialise()
         },
         AlarmClock = {
             tooltip = getText("IGUI_ItemCat_AlarmClock"),
-            icon = getTexture("media/textures/type_filt_all.png")
+            icon = CHC_main.items["Base.AlarmClock2"].texture
         },
         AlarmClockClothing = {
             tooltip = getText("IGUI_CHC_ItemCat_AlarmClockClothing"),
-            icon = getTexture("media/textures/type_filt_all.png")
+            icon = CHC_main.items["Base.WristWatch_Right_DigitalRed"].texture
         },
         Clothing = {
             tooltip = getText("IGUI_ItemCat_Clothing"),
-            icon = getTexture("media/textures/type_filt_all.png")
+            icon = CHC_main.items["Base.Tshirt_Scrubs"].texture
         },
         Container = {
             tooltip = getText("IGUI_ItemCat_Container"),
-            icon = getTexture("media/textures/type_filt_all.png")
+            icon = CHC_main.items["Base.Purse"].texture
         },
         Drainable = {
-            tooltip = getText("IGUI_CHC_ItemCat_Drainable"),
-            icon = getTexture("media/textures/type_filt_all.png")
+            tooltip = getTextOrNull("IGUI_ItemCat_Drainable") or getText("IGUI_CHC_ItemCat_Drainable"),
+            icon = CHC_main.items["Base.Thread"].texture
         },
         Food = {
             tooltip = getText("IGUI_ItemCat_Food"),
-            icon = getTexture("media/textures/type_filt_valid.png")
+            icon = CHC_main.items["Base.Steak"].texture
         },
         Key = {
             tooltip = getText("IGUI_CHC_ItemCat_Key"),
-            icon = getTexture("media/textures/type_filt_all.png")
+            icon = CHC_main.items["Base.Key1"].texture
         },
         Literature = {
             tooltip = getText("IGUI_ItemCat_Literature"),
-            icon = getTexture("media/textures/type_filt_all.png")
+            icon = CHC_main.items["Base.Book"].texture
         },
         Map = {
             tooltip = getText("IGUI_CHC_ItemCat_Map"),
-            icon = getTexture("media/textures/type_filt_all.png")
+            icon = CHC_main.items["Base.Map"].texture
         },
         Moveable = {
             tooltip = getText("IGUI_CHC_ItemCat_Moveable"),
-            icon = getTexture("media/textures/type_filt_all.png")
+            icon = CHC_main.items["Base.Mov_GreyComfyChair"].texture
         },
         Normal = {
             tooltip = getText("IGUI_CHC_ItemCat_Normal"),
-            icon = getTexture("media/textures/type_filt_all.png")
+            icon = CHC_main.items["Base.Spiffo"].texture
         },
         Radio = {
             tooltip = getText("IGUI_CHC_ItemCat_Radio"),
-            icon = getTexture("media/textures/type_filt_all.png")
+            icon = CHC_main.items["Radio.RadioRed"].texture
         },
         Weapon = {
             tooltip = getText("IGUI_ItemCat_Weapon"),
-            icon = getTexture("media/textures/type_filt_all.png")
+            icon = CHC_main.items["Base.Pistol"].texture
         },
         WeaponPart = {
             tooltip = getText("IGUI_ItemCat_WeaponPart"),
-            icon = getTexture("media/textures/type_filt_all.png")
+            icon = CHC_main.items["Base.GunLight"].texture
         }
     }
 
@@ -431,7 +431,7 @@ end
 
 function CHC_search:filterRowTypeSetTooltip()
     local curtype = self.categoryData[self.typeFilter].tooltip
-    return getText("UI_settings_av_title") .. " (" .. curtype .. ")"
+    return getText("IGUI_invpanel_Type") .. " (" .. curtype .. ")"
 end
 
 function CHC_search:filterRowTypeSetIcon()

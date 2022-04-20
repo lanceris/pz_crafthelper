@@ -58,7 +58,7 @@ CHC_main.processOneItem = function(item)
 			hidden = item:isHidden(),
 			count = invItem:getCount() or 1,
 			category = item:getTypeString(),
-			displayCategory = itemDisplayCategory and getTextOrNull("IGUI_ItemCat_" .. itemDisplayCategory) or "Item",
+			displayCategory = itemDisplayCategory and getTextOrNull("IGUI_ItemCat_" .. itemDisplayCategory) or getText("IGUI_ItemCat_Item"),
 			texture = invItem:getTex()
 		}
 		CHC_main.items[invItem:getFullType()] = toinsert
