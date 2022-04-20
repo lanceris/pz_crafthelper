@@ -67,7 +67,7 @@ local function onModOptionsApply(values)
     CHC_settings.config.show_icons = values.settings.options.show_icons
     CHC_settings.config.show_hidden = values.settings.options.show_hidden
     CHC_settings.config.close_all_on_exit = values.settings.options.close_all_on_exit
-    if not CHC_settings.config.main_window then
+    if CHC_settings.config.main_window == nil then
         CHC_settings.Load()
     end
     CHC_settings.Save()
@@ -93,7 +93,7 @@ if ModOptions and ModOptions.getInstance then
             show_hidden = {
                 name = "IGUI_ShowHidden",
                 tooltip = "IGUI_ShowHiddenTooltip",
-                default = true,
+                default = false,
                 OnApplyMainMenu = onModOptionsApply,
                 OnApplyInGame = onModOptionsApply
             },
@@ -171,7 +171,7 @@ else
     CHC_settings.config.list_font_size = 3
     CHC_settings.config.allow_special_search = true
     CHC_settings.config.show_icons = false
-    CHC_settings.config.show_hidden = true
+    CHC_settings.config.show_hidden = false
     CHC_settings.config.close_all_on_exit = false
 end
 
@@ -208,7 +208,7 @@ end
 CHC_settings.checkConfig = function()
     local shouldReSave = false
     for name, _ in pairs(init_cfg) do
-        if not CHC_settings.config[name] then
+        if CHC_settings.config[name] == nil then
             CHC_settings.config[name] = init_cfg[name]
             shouldReSave = true
         end

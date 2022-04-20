@@ -1,14 +1,16 @@
+require 'ISUI/ISPanel'
+
 local utils = require('CHC_utils')
 
-CHC_item_panel = ISPanel:derive("CHC_item_panel")
+CHC_items_panel = ISPanel:derive("CHC_items_panel")
 
 -- region create
-function CHC_item_panel:initialise()
+function CHC_items_panel:initialise()
     ISPanel.initialise(self)
-    self:create()
 end
 
-function CHC_item_panel:create()
+function CHC_items_panel:createChildren()
+    ISPanel.createChildren(self)
     -- common item properties
     -- - fullType
     -- - name
@@ -19,27 +21,173 @@ function CHC_item_panel:create()
     -- - count (?)
     -- - texture
     -- - tooltip (?)
+
+    local x, y = 5, 5
+    local fnts = getTextManager():getFontHeight(UIFont.Small)
+    local fntm = getTextManager():getFontHeight(UIFont.Medium)
+    local fntl = getTextManager():getFontHeight(UIFont.Large)
+    -- region search bar
+    self.panelSearchRow = CHC_search_bar:new(0, 0, self.width - self.margin, 24, "search by attributes", self.onTextChange, self.searchRowHelpText)
+    self.panelSearchRow:initialise()
+    self.panelSearchRow:setVisible(false)
+    y = y + 24 + self.padY
+    -- endregion
+
+    -- region general info
+    self.mainInfo = ISPanel:new(self.margin, y, self.width - 2 * self.margin, 74)
+    self.mainInfo.borderColor = { r = 1, g = 0.53, b = 0.53, a = 1 }
+    self.mainInfo:initialise()
+    self.mainInfo:setVisible(false)
+
+    self.mainImg = ISButton:new(self.margin, 5, 64, 64, "", self, nil)
+    self.mainImg:initialise()
+    self.mainImg.backgroundColorMouseOver.a = 0
+    self.mainImg.backgroundColor.a = 0
+    self.mainImg.forcedWidthImage = 60
+    self.mainImg.forcedHeightImage = 60
+    local mainPadY = 2
+    local mainX = self.margin + 64 + 3
+    local mainY = mainPadY
+    local mainPriFont = UIFont.Medium
+    local mainSecFont = UIFont.Small
+
+    self.mainName = ISLabel:new(mainX, mainPadY, fntm, nil, 1, 1, 1, 1, mainPriFont, true)
+    self.mainName:initialise()
+    self.mainName.maxWidth = self.mainInfo.width - mainX - self.margin
+    mainY = mainY + mainPadY + self.mainName.height
+
+    self.mainType = ISLabel:new(mainX, mainY, fnts, nil, 1, 1, 1, 1, mainSecFont, true)
+    self.mainType:initialise()
+    mainY = mainY + mainPadY + self.mainType.height
+
+    self.mainDispCat = ISLabel:new(mainX, mainY, fnts, nil, 1, 1, 1, 1, mainSecFont, true)
+    self.mainDispCat:initialise()
+    mainY = mainY + mainPadY + self.mainDispCat.height
+
+    self.mainMod = ISLabel:new(mainX, mainY, fnts, nil, 1, 1, 1, 1, mainSecFont, true)
+    self.mainMod:initialise()
+    mainY = mainY + mainPadY + self.mainMod.height
+
+    self.mainWeight = ISLabel:new(mainX, mainY, fnts, nil, 1, 1, 1, 1, mainSecFont, true)
+    self.mainWeight:initialise()
+    mainY = mainY + mainPadY + self.mainWeight.height
+    self.mainX = mainX
+    self.mainY = mainY
+
+    self.mainInfo:addChild(self.mainImg)
+    self.mainInfo:addChild(self.mainName)
+    self.mainInfo:addChild(self.mainType)
+    self.mainInfo:addChild(self.mainDispCat)
+    self.mainInfo:addChild(self.mainMod)
+    self.mainInfo:addChild(self.mainWeight)
+    -- endregion
+
+    -- region attributes
+    self.attrList = nil -- endregion
+
+
+
+    self:addChild(self.panelSearchRow)
+    self:addChild(self.mainInfo)
+
 end
 
 -- endregion
 
 -- region render
+function CHC_items_panel:onResize()
+    self:setHeight(self.parent.height - self.parent.headers.height)
+    self.panelSearchRow:setWidth(self.parent.headers.typeHeader.width - self.margin)
+    self.mainInfo:setWidth(self.parent.headers.typeHeader.width - self.margin - self.mainInfo.x)
+    local children = self.mainInfo.children
+    for _, ch in pairs(children) do
+        if not ch.isButton then
+            ch:setName(ch.name)
+        end
+    end
+end
+
+function CHC_items_panel:render()
+    ISPanel.render(self)
+    if not self.item then return end
+    -- print(getTextManager():MeasureStringX(self.mainName.font, self.mainName.name))
+    -- print(self.mainName.width)
+end
 
 -- endregion
 
 -- region logic
+function CHC_items_panel:onTextChange()
+end
+
+function CHC_items_panel:setObj(item)
+    self.item = item
+    if false then
+        local iobj = item.itemObj
+        local invItem = item.item
+        if instanceof(invItem, "ComboItem") then
+            print('ignoring ComboItem')
+            return
+        end
+        local cl = getNumClassFields(invItem)
+        if cl == 0 then
+            print(string.format('No fields found for %s', invItem:getType()))
+        end
+        local objAttr = {}
+
+        for i = 0, cl - 1 do
+            local meth = getClassField(invItem, i)
+            if meth.getType then
+                local val = KahluaUtil.rawTostring2(getClassFieldVal(invItem, meth))
+                if val then
+                    objAttr[meth:getName()] = val
+                end
+            end
+        end
+        print(test:test())
+    end
+    self.panelSearchRow:setVisible(true)
+
+    self.mainImg:setImage(item.texture)
+    if self.item.tooltip then
+        self.mainImg:setTooltip(self.item.tooltip)
+    end
+
+    self.mainName:setName(item.name)
+    self.mainName:setTooltip(item.name)
+
+    self.mainType:setName("Type: " .. item.category)
+    self.mainDispCat:setName("Category: " .. item.displayCategory)
+
+    if not item.isVanilla then
+        self.mainMod:setName("Mod: " .. item.modname)
+    else
+        self.mainWeight:setY(self.mainMod:getY())
+    end
+
+    self.mainWeight:setName("Weight: " .. round(item.item:getWeight(), 2))
+
+    self.mainInfo:setHeight(math.max(self.mainInfo.height, self.mainWeight.y + self.mainWeight.height + 2))
+    self.mainInfo:setVisible(true)
+    -- self.mainImg.blinkImage = true
+end
 
 -- endregion
 
-function CHC_item_panel:new(x, y, w, h)
+function CHC_items_panel:new(x, y, w, h)
     local o = {}
     o = ISPanel:new(x, y, w, h)
     setmetatable(o, self)
     self.__index = self
 
-    o:noBackground()
+    -- o.backgroundColor = { r = 1, g = 0, b = 0, a = 1 }
+    -- o:noBackground()
+    o.padY = 8
+    o.margin = 5
     o.anchorTop = true
-    o.anchorBottom = true
+    o.anchorBottom = false
+    o.searchRowHelpText = "Help"
+    o:addScrollBars()
 
     o.item = nil
 

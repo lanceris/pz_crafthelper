@@ -4,9 +4,15 @@
 
 ### New features
 
+- Added item panel with (very) basic info about item
+
 ### Improvements
 
 ### Bugfixes
+
+- Fixed config values not applying correctly
+- Fixed "Search item" context option in recipe panel not selecting item in search view
+- Fixed "Show hidden" option not hiding items
 
 ## 1.5.7 (19.04.2022)
 
@@ -30,7 +36,7 @@
 
 ### Bugfixes
 
-- Removed obsolete items in CHC_main.loadAllItems (not item:getObsolete())
+- Removed obsolete items in CHC_main.loadAllItems (item:getObsolete())
 - Fixed item views not respecting font size setting
 - Fixed recipes in favorite screen not removed on unfavoriting
 - Fixed rendering of recipe panel (caused by incorrect amount of books required)

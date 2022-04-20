@@ -90,7 +90,7 @@ function CHC_window:addSearchPanel()
     self.searchPanel:setAnchorBottom(true)
 
     -- region search items screen
-    local itemsData = CHC_main.itemsForSearch
+    local itemsData = self:getItems(CHC_main.itemsForSearch)
     local items_screen_init = self.common_screen_data
     local items_extra = {
         recipeSource = itemsData,
@@ -151,7 +151,7 @@ function CHC_window:addFavoriteScreen()
     self.favPanel:setAnchorBottom(true)
 
     -- region fav items screen
-    local itemsData = { unpack(CHC_main.itemsForSearch, 1, 2) } -- @@@ FIXME
+    local itemsData = self:getItems(CHC_main.itemsForSearch, 10) -- @@@ FIXME
     local items_screen_init = self.common_screen_data
     local items_extra = {
         recipeSource = itemsData,
@@ -313,6 +313,24 @@ function CHC_window:refresh(viewName, panel, focusOnNew)
     end
 end
 
+function CHC_window:getItems(items, max)
+    local insert = table.insert
+    local showHidden = CHC_settings.config.show_hidden
+    local newItems = {}
+    local to = max or #items
+
+    for i = 1, to do
+        if (not showHidden) and (items[i].hidden == true) then
+        else
+            insert(newItems, items[i])
+        end
+    end
+    -- if not showHidden and not max then
+    --     print(string.format('Removed %d hidden items', #items - #newItems))
+    -- end
+    return newItems
+end
+
 function CHC_window:getRecipes(favOnly)
     favOnly = favOnly or false
     local favoriteRecipes = {}
@@ -463,7 +481,7 @@ function CHC_window:onKeyRelease(key)
     if selectedItem and oldsel ~= rl.selected then
         subview.objList:ensureVisible(rl.selected)
         if subview.objPanel then
-            subview.objPanel:setRecipe(selectedItem.item)
+            subview.objPanel:setObj(selectedItem.item)
         end
         return
     end

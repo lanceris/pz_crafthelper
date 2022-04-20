@@ -46,6 +46,7 @@ CHC_main.processOneItem = function(item)
 
 	if not CHC_main.items[fullType] then
 		local toinsert = {
+			itemObj = item,
 			item = invItem,
 			fullType = invItem:getFullType(),
 			name = invItem:getName(),
@@ -53,6 +54,7 @@ CHC_main.processOneItem = function(item)
 			isVanilla = invItem:isVanilla(),
 			IsDrainable = invItem:IsDrainable(),
 			displayName = invItem:getDisplayName(),
+			tooltip = invItem:getTooltip(),
 			hidden = item:isHidden(),
 			count = invItem:getCount() or 1,
 			category = item:getTypeString(),
@@ -81,6 +83,13 @@ CHC_main.processOneItem = function(item)
 	end
 end
 
+-- CHC_main.loadAllBooks = function()
+-- 	local allItems = getAllItems()
+-- 	local nbBooks = 0
+
+-- 	print('Loading books')
+-- end
+
 CHC_main.loadAllItems = function(am)
 	local allItems = getAllItems()
 	local nbItems = 0
@@ -90,7 +99,7 @@ CHC_main.loadAllItems = function(am)
 	print("Loading items...")
 	for i = 0, amount do
 		local item = allItems:get(i)
-		if not item:getObsolete() then -- and not item:isHidden() then
+		if not item:getObsolete() then
 			CHC_main.processOneItem(item)
 			nbItems = nbItems + 1
 		end

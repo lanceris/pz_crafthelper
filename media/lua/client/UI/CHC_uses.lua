@@ -212,7 +212,7 @@ function CHC_uses:refreshObjList(recipes)
 end
 
 function CHC_uses:onRecipeChange(recipe)
-    self.objPanel:setRecipe(recipe)
+    self.objPanel:setObj(recipe)
     self.objList:onMouseDown_Recipes(self.objList:getMouseX(), self.objList:getMouseY())
 end
 

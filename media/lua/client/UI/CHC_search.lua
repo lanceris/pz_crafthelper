@@ -150,6 +150,11 @@ function CHC_search:create()
 
     -- Add entries to recipeList
     -- self:cacheFullRecipeCount(self.itemSource)
+    local iph = self.height - self.headers.height
+    self.objPanel = CHC_items_panel:new(rightX, y, rightW, iph)
+    self.objPanel:initialise()
+    self.objPanel:instantiate()
+    self.objPanel:setAnchorLeft(true)
 
     -- endregion
 
@@ -157,6 +162,7 @@ function CHC_search:create()
     self:addChild(self.filterRow)
     self:addChild(self.searchRow)
     self:addChild(self.objList)
+    self:addChild(self.objPanel)
 
     self:catSelUpdateOptions()
     -- self:cacheCategoryCounts()
@@ -185,15 +191,23 @@ function CHC_search:onRMBDownObjList(x, y)
     local row = self:rowAt(x, y)
     if row == -1 then return end
     local backref = self.parent.backRef
-    local item = self.items[row].item.item
+    local item = self.items[row].item
     -- check if there is recipes for item
-    local cond1 = type(CHC_main.recipesByItem[item:getName()]) == 'table'
-    local cond2 = type(CHC_main.recipesForItem[item:getName()]) == 'table'
+    local cond1 = type(CHC_main.recipesByItem[item.item:getName()]) == 'table'
+    local cond2 = type(CHC_main.recipesForItem[item.item:getName()]) == 'table'
     local cX = getMouseX()
     local cY = getMouseY()
     local context = ISContextMenu.get(0, cX + 10, cY)
+
+    local function chccopy()
+        if item.name then
+            Clipboard.setClipboard(item.name)
+        end
+    end
+
+    -- context:addOption("Copy name to clipboard", self, chccopy)
     if cond1 or cond2 then
-        context:addOption(getText("IGUI_new_tab"), backref, backref.addItemView, item, true)
+        context:addOption(getText("IGUI_new_tab"), backref, backref.addItemView, item.item, true)
         -- backref:addItemView(item, true)
     end
 end
@@ -311,8 +325,6 @@ function CHC_search:searchProcessToken(token, item)
 end
 
 function CHC_search:processAddObjToObjList(item, modData)
-    if not CHC_settings.config.show_hidden and item.hidden then return end
-    -- if not self.showHidden and item.recipe:isHidden() then return end
     -- item.favorite = modData[CHC_main.getFavoriteModDataString(item.recipe)] or false
     local name = item.displayName
     if name then
@@ -321,8 +333,7 @@ function CHC_search:processAddObjToObjList(item, modData)
 end
 
 function CHC_search:onItemChange(item)
-    print("imma change item in ItemList")
-    -- self.recipePanel:setRecipe(recipe);
+    self.objPanel:setObj(item)
     -- self.recipesList:onMouseDown_Recipes(self.recipesList:getMouseX(), self.recipesList:getMouseY())
 end
 
@@ -336,6 +347,7 @@ function CHC_search:catSelUpdateOptions()
     local c = 1
 
     for i = 1, #allItems do
+
         local ic = allItems[i].category
         if not catCounts[ic] then
             catCounts[ic] = 1
@@ -468,8 +480,8 @@ function CHC_search:onResizeHeaders()
     self.filterRow:setWidth(self.headers.nameHeader.width)
     self.searchRow:setWidth(self.headers.nameHeader.width)
     self.objList:setWidth(self.headers.nameHeader.width)
-    -- self.recipePanel:setWidth(self.headers.typeHeader.width)
-    -- self.recipePanel:setX(self.headers.typeHeader.x)
+    self.objPanel:setWidth(self.headers.typeHeader.width)
+    self.objPanel:setX(self.headers.typeHeader.x)
 end
 
 --endregion

@@ -30,6 +30,7 @@ function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y)
     local context = ISContextMenu.get(0, cX + 10, cY)
 
     item = CHC_main.items[item.fullType]
+    if not item then return end
     local cond1 = type(CHC_main.recipesByItem[item.name]) == 'table'
     local cond2 = type(CHC_main.recipesForItem[item.name]) == 'table'
 
@@ -39,11 +40,24 @@ function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y)
         backref:refresh(backref.uiTypeToView['search_items'].name,
             backref.panel.activeView.view) -- activate Items subview
         local view = backref:getActiveSubView()
-        local txt = string.format("!%s,#%s,%s", item.category, item.displayCategory, item.displayName)
+        local txt = string.format("#%s,%s", item.displayCategory, item.displayName)
         txt = string.lower(txt)
         view.searchRow.searchBar:setText(txt) -- set text to Items subview search bar
-        view.needUpdateObjects = true -- trigger objList update
-        -- @@@ TODO: check if item actually selected or not
+        view:updateItems(view.selectedCategory)
+        -- trigger wont do here because we need to wait until objList actually updated and im too lazy to implement event listener
+        -- view.needUpdateObjects = true
+        if #view.objList.items ~= 0 then
+            local it = view.objList.items
+            local c = 1
+            for i = 1, #it do
+                if string.lower(it[i].text) == string.lower(item.displayName) then c = i break end
+            end
+            view.objList.selected = c
+            view.objList:ensureVisible(c)
+            if view.objPanel then
+                view.objPanel:setObj(it[c].item)
+            end
+        end
     end
 
     context:addOption(getText("IGUI_find_item"), backref, findItem)
@@ -453,7 +467,7 @@ function CHC_uses_recipepanel:processHydrocraft(newItem)
     return furniItem
 end
 
-function CHC_uses_recipepanel:setRecipe(recipe)
+function CHC_uses_recipepanel:setObj(recipe)
     CHC_uses_recipelist.getContainers(self)
     local newItem = {};
 
