@@ -406,7 +406,7 @@ function CHC_uses:searchProcessToken(token, recipe)
             local catName = getTextOrNull("IGUI_CraftCategory_" .. recipe.category) or recipe.category
             whatCompare = catName
         end
-        local resultItem = CHC_main.items[recipe.recipeData.result.fullType]
+        local resultItem = recipe.recipeData.result.fullType
         if resultItem then
             if char == "@" then
                 -- search by mod name of resulting item
@@ -555,12 +555,13 @@ end
 -- endregion
 
 -- region render
-function CHC_uses:prerender()
-end
+-- function CHC_uses:prerender()
+--     derivative.prerender(self)
+-- end
 
-function CHC_uses:render()
-    -- CHC_tabs.render(self)
-end
+-- function CHC_uses:render()
+--     derivative.render(self)
+-- end
 
 function CHC_uses:onResizeHeaders()
     self.filterRow:setWidth(self.headers.nameHeader.width)

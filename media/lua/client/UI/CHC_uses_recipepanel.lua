@@ -16,12 +16,14 @@ CHC_uses_recipepanel.mediumFontHeight = getTextManager():getFontHeight(UIFont.Me
 CHC_uses_recipepanel.smallFontHeight = getTextManager():getFontFromEnum(UIFont.Small):getLineHeight()
 
 
-function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y)
-    local row = self:rowAt(x, y)
-    if row == -1 or not row then return end
-    local item = self.items[row]
-    if not item then return end
-    item = item.item
+function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y, item)
+    if not item then
+        local row = self:rowAt(x, y)
+        if row == -1 or not row then return end
+        item = self.items[row]
+        if not item then return end
+        item = item.item
+    end
     if not item.fullType then return end
     local backref = self.parent.parent.backRef
     -- -- check if there is recipes for item
@@ -67,9 +69,23 @@ function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y)
     end
 end
 
+function CHC_uses_recipepanel:onRMBDownItemIcon(x, y)
+    if not self.item then return end
+    self.parent.onRMBDownIngrPanel(self, nil, nil, self.item)
+end
+
 -- region create
 function CHC_uses_recipepanel:createChildren()
     ISPanel.createChildren(self);
+
+    self.mainInfoImg = ISButton:new(1, 1, 42, 42, "", self, nil)
+    self.mainInfoImg.backgroundColorMouseOver.a = 0
+    self.mainInfoImg.backgroundColor.a = 0
+    self.mainInfoImg.onRightMouseDown = self.onRMBDownItemIcon
+    self.mainInfoImg:initialise()
+    self.mainInfoImg:setVisible(false)
+
+    self:addChild(self.mainInfoImg)
 
     self.ingredientPanel = ISScrollingListBox:new(1, 30, self.width, self.height - 40);
     self.ingredientPanel:initialise()
@@ -112,6 +128,126 @@ function CHC_uses_recipepanel:createChildren()
     -- self:addChild(self.debugGiveIngredientsButton);
 end
 
+function CHC_uses_recipepanel:setObj(recipe)
+    CHC_uses_recipelist.getContainers(self)
+    local newItem = {};
+
+    if recipe.recipe:getCategory() then
+        newItem.category = recipe.recipe:getCategory();
+    else
+        newItem.category = getText("IGUI_CraftCategory_General");
+    end
+
+    newItem.recipe = recipe.recipe;
+    newItem.available = RecipeManager.IsRecipeValid(recipe.recipe, self.player, nil, self.containerList);
+
+    -- local recipeResult = recipe.recipe:getResult()
+    local resultItem = recipe.recipeData.result
+    if resultItem then
+        newItem.module = resultItem.modname
+        newItem.isVanilla = resultItem.isVanilla
+        -- newItem.modname = resultItem:getModID()
+        newItem.texture = resultItem.texture
+        self.mainInfoImg:setImage(resultItem.texture)
+        self.mainInfoImg.item = resultItem
+        if resultItem.tooltip then
+            newItem.tooltip = getText(resultItem.tooltip)
+        end
+        newItem.itemName = resultItem.displayName
+        local displayCategory = resultItem.displayCategory
+        if displayCategory then
+            newItem.itemDisplayCategory = getTextOrNull("IGUI_ItemCat_" .. displayCategory)
+            -- print(newItem.itemDisplayCategory)
+        end
+
+        local resultCount = recipe.recipe:getResult():getCount()
+        if resultCount > 1 then
+            newItem.itemName = (resultCount * resultItem.count) .. " " .. newItem.itemName;
+        end
+    end
+
+    -- region Hydrocraft integration
+    local hydrocraftFurniture = self:processHydrocraft(newItem)
+    if hydrocraftFurniture then
+        newItem.nearFurniture = hydrocraftFurniture
+    end
+    -- endregion
+
+    newItem.sources = {};
+    for x = 0, recipe.recipe:getSource():size() - 1 do
+        local source = recipe.recipe:getSource():get(x);
+        local sourceInList = {};
+        sourceInList.items = {}
+        for k = 1, source:getItems():size() do
+            local sourceFullType = source:getItems():get(k - 1)
+            local item = nil
+            local itemName = nil
+            if sourceFullType == "Water" then
+                item = CHC_main.items["Base.WaterDrop"]
+            elseif luautils.stringStarts(sourceFullType, "[") then
+                -- a Lua test function
+                item = CHC_main.items["Base.WristWatch_Right_DigitalBlack"]
+            else
+                item = CHC_main.items[sourceFullType]
+            end
+            if item then
+                local itemInList = {};
+                itemInList.count = source:getCount();
+                itemInList.texture = item.texture;
+                if sourceFullType == "Water" then
+                    if itemInList.count == 1 then
+                        itemInList.name = getText("IGUI_CraftUI_CountOneUnit", getText("ContextMenu_WaterName"))
+                    else
+                        itemInList.name = getText("IGUI_CraftUI_CountUnits", getText("ContextMenu_WaterName"), itemInList.count)
+                    end
+                elseif source:getItems():size() > 1 then -- no units
+                    itemInList.name = item.displayName
+                elseif not source:isDestroy() and item.IsDrainable then
+                    if itemInList.count == 1 then
+                        itemInList.name = getText("IGUI_CraftUI_CountOneUnit", item.displayName)
+                    else
+                        itemInList.name = getText("IGUI_CraftUI_CountUnits", item.displayName, itemInList.count)
+                    end
+                elseif not source:isDestroy() and source:getUse() > 0 then -- food
+                    itemInList.count = source:getUse()
+                    if itemInList.count == 1 then
+                        itemInList.name = getText("IGUI_CraftUI_CountOneUnit", item.displayName)
+                    else
+                        itemInList.name = getText("IGUI_CraftUI_CountUnits", item.displayName, itemInList.count)
+                    end
+                elseif itemInList.count > 1 then
+                    itemInList.name = getText("IGUI_CraftUI_CountNumber", item.displayName, itemInList.count)
+                else
+                    itemInList.name = item.displayName
+                end
+                itemInList.fullType = item.fullType
+                if sourceFullType == "Water" then
+                    itemInList.fullType = "Water"
+                end
+                table.insert(sourceInList.items, itemInList);
+            end
+        end
+        table.insert(newItem.sources, sourceInList)
+    end
+
+
+    -- extra stuff for render
+    newItem.requiredSkillCount = recipe.recipe:getRequiredSkillCount()
+    newItem.isKnown = self.player:isRecipeKnown(recipe.recipe)
+    newItem.nearItem = recipe.recipe:getNearItem()
+    newItem.timeToMake = recipe.recipe:getTimeToMake()
+    newItem.howManyCanCraft = RecipeManager.getNumberOfTimesRecipeCanBeDone(newItem.recipe, self.player, self.containerList, nil)
+
+    self.recipe = recipe.recipe;
+    self.newItem = newItem;
+
+    self.manualsEntries = CHC_main.itemsManuals[newItem.recipe:getOriginalname()]
+    if not self.player:isRecipeKnown(newItem.recipe) and self.manualsEntries ~= nil then
+        self.manualsSize = #self.manualsEntries
+    end
+    self:refreshIngredientPanel();
+end
+
 -- endregion
 
 -- region render
@@ -152,39 +288,7 @@ function CHC_uses_recipepanel:render()
 
     -- endregion
 
-    -- region main recipe info + output
-    local catName = getTextOrNull("IGUI_CraftCategory_" .. selectedItem.category) or selectedItem.category
-    self:drawText(getText("IGUI_invpanel_Category") .. ": " .. catName, x, y, 1, 1, 1, 1, UIFont.Medium);
-    y = y + CHC_uses_recipepanel.mediumFontHeight + 3;
-
-    self:drawRectBorder(x, y, 32 + 10, 32 + 10, 1.0, 1.0, 1.0, 1.0);
-    if selectedItem.texture then
-        if selectedItem.texture:getWidth() <= 32 and selectedItem.texture:getHeight() <= 32 then
-            local newX = (32 - selectedItem.texture:getWidthOrig()) / 2;
-            local newY = (32 - selectedItem.texture:getHeightOrig()) / 2;
-            self:drawTexture(selectedItem.texture, x + 5 + newX, y + 5 + newY, 1, 1, 1, 1);
-        else
-            self:drawTextureScaledAspect(selectedItem.texture, x + 5, y + 5, 32, 32, 1, 1, 1, 1);
-        end
-    end
-    local lx = x + 32 + 15
-    local ly = y
-    self:drawText(selectedItem.recipe:getName(), lx, ly, 1, 1, 1, 1, UIFont.Small)
-    ly = ly + CHC_uses_recipepanel.smallFontHeight
-    self:drawText(selectedItem.itemName, lx, ly, 1, 1, 1, 1, UIFont.Small)
-    ly = ly + CHC_uses_recipepanel.smallFontHeight
-    if selectedItem.itemDisplayCategory then
-        self:drawText(getText("IGUI_invpanel_Category") .. ": " .. selectedItem.itemDisplayCategory, lx, ly, 0.8, 0.8, 0.8, 0.8, UIFont.Small)
-        ly = ly + CHC_uses_recipepanel.smallFontHeight
-    end
-    if selectedItem.isVanilla ~= nil or selectedItem.module ~= nil then
-        if selectedItem.isVanilla == false then
-            local clr = { r = 0.392, g = 0.584, b = 0.929 } -- CornFlowerBlue
-            self:drawText("Mod: " .. selectedItem.module, lx, ly, clr.r, clr.g, clr.b, 1, UIFont.Small)
-        end
-    end
-    y = y + ly - 20
-    -- endregion
+    y = y + self:drawMainInfo(x, y, selectedItem)
 
     -- region required items
     self:drawText(getText("IGUI_CraftUI_RequiredItems"), x, y, 1, 1, 1, 1, UIFont.Small);
@@ -245,6 +349,45 @@ function CHC_uses_recipepanel:getBottomHeight(item)
     return bh
 end
 
+function CHC_uses_recipepanel:drawMainInfo(x, y, item)
+    local sy = y
+    -- region main recipe info + output
+    local catName = getTextOrNull("IGUI_CraftCategory_" .. item.category) or item.category
+    self:drawText(getText("IGUI_invpanel_Category") .. ": " .. catName, x, y, 1, 1, 1, 1, UIFont.Medium);
+    y = y + CHC_uses_recipepanel.mediumFontHeight + 3;
+
+    -- self:drawRectBorder(x, y, 32 + 10, 32 + 10, 1.0, 1.0, 1.0, 1.0);
+    if item.texture then
+        self.mainInfoImg:setX(x)
+        self.mainInfoImg:setY(y)
+        self.mainInfoImg:setVisible(true)
+        if item.tooltip then
+            self.mainInfoImg:setTooltip(item.tooltip)
+        else
+            self.mainInfoImg:setTooltip(nil)
+        end
+    end
+    local lx = x + 32 + 15
+    local ly = y
+    self:drawText(item.recipe:getName(), lx, ly, 1, 1, 1, 1, UIFont.Small)
+    ly = ly + CHC_uses_recipepanel.smallFontHeight
+    self:drawText(item.itemName, lx, ly, 1, 1, 1, 1, UIFont.Small)
+    ly = ly + CHC_uses_recipepanel.smallFontHeight
+    if item.itemDisplayCategory then
+        self:drawText(getText("IGUI_invpanel_Category") .. ": " .. item.itemDisplayCategory, lx, ly, 0.8, 0.8, 0.8, 0.8, UIFont.Small)
+        ly = ly + CHC_uses_recipepanel.smallFontHeight
+    end
+    if item.isVanilla ~= nil or item.module ~= nil then
+        if item.isVanilla == false then
+            local clr = { r = 0.392, g = 0.584, b = 0.929 } -- CornFlowerBlue
+            self:drawText("Mod: " .. item.module, lx, ly, clr.r, clr.g, clr.b, 1, UIFont.Small)
+        end
+    end
+    y = y + ly - 20
+    -- endregion
+    return y - sy
+end
+
 function CHC_uses_recipepanel:drawCraftButtons(x, y, item)
     --if not self.newItem then return 0 end
     local sy = y
@@ -253,12 +396,14 @@ function CHC_uses_recipepanel:drawCraftButtons(x, y, item)
         self.craftAllButton:setVisible(false)
         return 0
     end
-    self.craftOneButton:setX(x)
-    self.craftOneButton:setY(y)
-    self.craftOneButton:setVisible(true)
-    self.craftAllButton:setX(self.craftOneButton:getX() + 5 + self.craftOneButton:getWidth())
-    self.craftAllButton:setY(y)
-    self.craftAllButton:setVisible(true)
+
+    if not self.craftOneButton:isVisible() then
+        self.craftOneButton:setX(x)
+        self.craftOneButton:setY(y)
+        self.craftOneButton:setVisible(true)
+    end
+
+    --region all
     local title = getText("IGUI_CraftUI_ButtonCraftAll")
     local count = item.howManyCanCraft
     if count > 1 then
@@ -270,8 +415,15 @@ function CHC_uses_recipepanel:drawCraftButtons(x, y, item)
         self.craftAllButton:setTitle(title)
         self.craftAllButton:setWidthToTitle()
     end
-    y = y + self.craftOneButton.height + 3
 
+    if not self.craftAllButton:isVisible() and count > 1 then
+        self.craftAllButton:setX(self.craftOneButton:getX() + 5 + self.craftOneButton:getWidth())
+        self.craftAllButton:setY(y)
+        self.craftAllButton:setVisible(true)
+    end
+    --endregion
+
+    y = y + self.craftOneButton.height + 3
 
     if self.player:isDriving() then
         self.craftOneButton.enable = false
@@ -465,121 +617,6 @@ function CHC_uses_recipepanel:processHydrocraft(newItem)
     furniItem.obj = furniItemObj
     furniItem.luaTest = _G[luaTest] -- calling global registry to get function obj
     return furniItem
-end
-
-function CHC_uses_recipepanel:setObj(recipe)
-    CHC_uses_recipelist.getContainers(self)
-    local newItem = {};
-
-    if recipe.recipe:getCategory() then
-        newItem.category = recipe.recipe:getCategory();
-    else
-        newItem.category = getText("IGUI_CraftCategory_General");
-    end
-
-    newItem.recipe = recipe.recipe;
-    newItem.available = RecipeManager.IsRecipeValid(recipe.recipe, self.player, nil, self.containerList);
-
-    local recipeResult = recipe.recipe:getResult()
-    local resultItem = CHC_main.items[recipeResult:getFullType()]
-    if resultItem then
-        newItem.module = resultItem.modname
-        newItem.isVanilla = resultItem.isVanilla
-        -- newItem.modname = resultItem:getModID()
-        newItem.texture = resultItem.texture
-        newItem.itemName = resultItem.displayName
-        local displayCategory = resultItem.displayCategory
-        if displayCategory then
-            newItem.itemDisplayCategory = getTextOrNull("IGUI_ItemCat_" .. displayCategory)
-            -- print(newItem.itemDisplayCategory)
-        end
-
-        local resultCount = recipe.recipe:getResult():getCount()
-        if resultCount > 1 then
-            newItem.itemName = (resultCount * resultItem.count) .. " " .. newItem.itemName;
-        end
-    end
-
-    -- region Hydrocraft integration
-    local hydrocraftFurniture = self:processHydrocraft(newItem)
-    if hydrocraftFurniture then
-        newItem.nearFurniture = hydrocraftFurniture
-    end
-    -- endregion
-
-    newItem.sources = {};
-    for x = 0, recipe.recipe:getSource():size() - 1 do
-        local source = recipe.recipe:getSource():get(x);
-        local sourceInList = {};
-        sourceInList.items = {}
-        for k = 1, source:getItems():size() do
-            local sourceFullType = source:getItems():get(k - 1)
-            local item = nil
-            local itemName = nil
-            if sourceFullType == "Water" then
-                item = CHC_main.items["Base.WaterDrop"]
-            elseif luautils.stringStarts(sourceFullType, "[") then
-                -- a Lua test function
-                item = CHC_main.items["Base.WristWatch_Right_DigitalBlack"]
-            else
-                item = CHC_main.items[sourceFullType]
-            end
-            if item then
-                local itemInList = {};
-                itemInList.count = source:getCount();
-                itemInList.texture = item.texture;
-                if sourceFullType == "Water" then
-                    if itemInList.count == 1 then
-                        itemInList.name = getText("IGUI_CraftUI_CountOneUnit", getText("ContextMenu_WaterName"))
-                    else
-                        itemInList.name = getText("IGUI_CraftUI_CountUnits", getText("ContextMenu_WaterName"), itemInList.count)
-                    end
-                elseif source:getItems():size() > 1 then -- no units
-                    itemInList.name = item.displayName
-                elseif not source:isDestroy() and item.IsDrainable then
-                    if itemInList.count == 1 then
-                        itemInList.name = getText("IGUI_CraftUI_CountOneUnit", item.displayName)
-                    else
-                        itemInList.name = getText("IGUI_CraftUI_CountUnits", item.displayName, itemInList.count)
-                    end
-                elseif not source:isDestroy() and source:getUse() > 0 then -- food
-                    itemInList.count = source:getUse()
-                    if itemInList.count == 1 then
-                        itemInList.name = getText("IGUI_CraftUI_CountOneUnit", item.displayName)
-                    else
-                        itemInList.name = getText("IGUI_CraftUI_CountUnits", item.displayName, itemInList.count)
-                    end
-                elseif itemInList.count > 1 then
-                    itemInList.name = getText("IGUI_CraftUI_CountNumber", item.displayName, itemInList.count)
-                else
-                    itemInList.name = item.displayName
-                end
-                itemInList.fullType = item.fullType
-                if sourceFullType == "Water" then
-                    itemInList.fullType = "Water"
-                end
-                table.insert(sourceInList.items, itemInList);
-            end
-        end
-        table.insert(newItem.sources, sourceInList)
-    end
-
-
-    -- extra stuff for render
-    newItem.requiredSkillCount = recipe.recipe:getRequiredSkillCount()
-    newItem.isKnown = self.player:isRecipeKnown(recipe.recipe)
-    newItem.nearItem = recipe.recipe:getNearItem()
-    newItem.timeToMake = recipe.recipe:getTimeToMake()
-    newItem.howManyCanCraft = RecipeManager.getNumberOfTimesRecipeCanBeDone(newItem.recipe, self.player, self.containerList, nil)
-
-    self.recipe = recipe.recipe;
-    self.newItem = newItem;
-
-    self.manualsEntries = CHC_main.itemsManuals[newItem.recipe:getOriginalname()]
-    if not self.player:isRecipeKnown(newItem.recipe) and self.manualsEntries ~= nil then
-        self.manualsSize = #self.manualsEntries
-    end
-    self:refreshIngredientPanel();
 end
 
 function CHC_uses_recipepanel:refreshIngredientPanel()

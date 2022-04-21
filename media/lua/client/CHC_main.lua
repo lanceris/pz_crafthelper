@@ -136,8 +136,7 @@ CHC_main.loadAllRecipes = function()
 		local resultFullType = resultItem:getFullType()
 		local itemres = CHC_main.handleItems(resultFullType, recipe)
 
-		newItem.recipeData.result = {}
-		newItem.recipeData.result.fullType = resultFullType
+		newItem.recipeData.result = itemres
 		insert(CHC_main.allRecipes, newItem)
 		if itemres then
 			CHC_main.setRecipeForItem(CHC_main.recipesForItem, itemres.name, newItem)

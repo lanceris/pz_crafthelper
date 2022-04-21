@@ -28,6 +28,7 @@ IGUI_EN = {
     IGUI_new_tab = "Open in new tab"
     IGUI_find_item = "Find item"
     IGUI_mod_chc = "Mod"
+    IGUI_tab_ctx_close_others = "Close others"
 
 
 }

@@ -45,6 +45,8 @@ function CHC_items_panel:createChildren()
     self.mainImg.backgroundColor.a = 0
     self.mainImg.forcedWidthImage = 60
     self.mainImg.forcedHeightImage = 60
+    self.mainImg.onRightMouseDown = self.onRMBDownItemIcon
+
     local mainPadY = 2
     local mainX = self.margin + 64 + 3
     local mainY = mainPadY
@@ -118,6 +120,12 @@ end
 -- endregion
 
 -- region logic
+function CHC_items_panel:onRMBDownItemIcon(x, y)
+    local items_panel = self.parent.parent
+    if not items_panel.item then return end
+    items_panel.parent.onRMBDownObjList(items_panel, nil, nil, items_panel.item)
+end
+
 function CHC_items_panel:onTextChange()
 end
 

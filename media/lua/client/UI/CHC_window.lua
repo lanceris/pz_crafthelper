@@ -352,9 +352,24 @@ function CHC_window:onMainTabRightMouseDown(x, y)
     end
     local tabIndex = self:getTabIndexAtX(x)
     if tabIndex <= 2 then return end -- dont interact with search and favorites
-    local context = ISContextMenu.get(0, getMouseX() - 50, getMouseY() - 65)
-    context:addOption(getText("IGUI_CraftUI_Close") .. " " .. getText("UI_All"), self, CHC_window.closeAllTabs)
+    local context = ISContextMenu.get(0, getMouseX() - 50, getMouseY() - 105)
+    -- context:addOption("Pin", self, CHC_window.togglePinTab, tabIndex)
+    context:addOption(getText("IGUI_tab_ctx_close_others"), self, CHC_window.closeOtherTabs, tabIndex)
+    context:addOption(getText("IGUI_CraftUI_Close") .. " " .. string.lower(getText("UI_All")), self, CHC_window.closeAllTabs)
     context:addOption(getText("IGUI_CraftUI_Close"), self, CHC_window.closeTab, tabIndex)
+end
+
+-- function CHC_window:togglePinTab(tabIndex)
+
+-- end
+
+function CHC_window:closeOtherTabs(tabIndex)
+    local vl = self.parent.panel
+    for i = #vl.viewList, 3, -1 do
+        if i ~= tabIndex then
+            vl:removeView(vl.viewList[i].view)
+        end
+    end
 end
 
 function CHC_window:closeAllTabs()

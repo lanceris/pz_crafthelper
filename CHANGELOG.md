@@ -5,11 +5,15 @@
 ### New features
 
 - Added item panel with (very) basic info about item
+- Added RMB for recipe result icon in recipe details (opens context menu with options to find item and open in new tab)
+- Added RMB for item icon in item details (opens context menu with option to open new tab (will focus))
+- Added option to item tabs ("Close other tabs")
 
 ### Improvements
 
 - Added icons for type filter in item views
 - Improved search helper info
+- Added tooltip to recipe result icon in recipe details view
 
 ### Bugfixes
 
@@ -60,7 +64,7 @@
 - Config checking: If something new added to config (e.g options), it will autoupdate with default values
 - Moved tab closing context menu a bit higher
 - Updated search helper info
-- Removed caching of search panel (TODO: check performance with alot of mods)
+- Removed caching of search panel
 
 ### Bugfixes
 

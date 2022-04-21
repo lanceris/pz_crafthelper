@@ -126,7 +126,7 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 
 	-- region icons
 	if iconsEnabled then
-		local resultItem = CHC_main.items[recipe.recipeData.result.fullType]
+		local resultItem = recipe.recipeData.result
 		if resultItem then
 			local tex = resultItem.texture
 			if tex then

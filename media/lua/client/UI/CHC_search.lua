@@ -187,14 +187,19 @@ function CHC_search:onTextChange()
     self.needUpdateObjects = true
 end
 
-function CHC_search:onRMBDownObjList(x, y)
-    local row = self:rowAt(x, y)
-    if row == -1 then return end
+function CHC_search:onRMBDownObjList(x, y, item)
+    if not item then
+        local row = self:rowAt(x, y)
+        if row == -1 then return end
+        item = self.items[row].item
+        if not item then return end
+    end
     local backref = self.parent.backRef
-    local item = self.items[row].item
     -- check if there is recipes for item
-    local cond1 = type(CHC_main.recipesByItem[item.item:getName()]) == 'table'
-    local cond2 = type(CHC_main.recipesForItem[item.item:getName()]) == 'table'
+    -- if true then return end
+    item = CHC_main.items[item.fullType]
+    local cond1 = type(CHC_main.recipesByItem[item.name]) == 'table'
+    local cond2 = type(CHC_main.recipesForItem[item.name]) == 'table'
     local cX = getMouseX()
     local cY = getMouseY()
     local context = ISContextMenu.get(0, cX + 10, cY)
