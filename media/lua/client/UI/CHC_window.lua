@@ -8,6 +8,7 @@ require 'UI/CHC_search'
 
 CHC_window = ISCollapsableWindow:derive("CHC_window")
 local utils = require('CHC_utils')
+local print = utils.chcprint
 
 function CHC_window:initialise()
     ISCollapsableWindow.initialise(self)
@@ -64,16 +65,33 @@ end
 
 function CHC_window:onActivateView(target)
     if not target.activeView or not target.activeView.view then return end
-    local v = target.activeView.view -- top level tab
-    for i = 1, #v.viewList do
-        local sv = v.viewList[i].view
-        if sv.ui_type then -- @@@ FIXME better way to diff between items and recipes views
-            sv.needUpdateFavorites = true -- update favorites (and categories in selector)
-            if sv.ui_type == 'favorites' then
-                sv.needUpdateObjects = true
-            end
-        end
+    local top = target.activeView -- top level tab
+    local sub = top.view.activeView
+    if sub.view.isItemView == false then
+        sub.view.needUpdateFavorites = true
     end
+
+    if sub.view.ui_type == 'fav_recipes' then
+        sub.view.needUpdateObjects = true
+    end
+end
+
+function CHC_window:onActivateSubView(target)
+    local info
+    local top = target.parent.activeView
+    local sub = target.activeView
+    if not top or not sub then return end
+    if sub.view.isItemView == false then
+        info = self.viewNameToInfoText[top.name] .. self.infotext_common_recipes
+        sub.view.needUpdateFavorites = true
+    else
+        info = self.viewNameToInfoText[top.name] .. self.infotext_common_items
+    end
+
+    if sub.view.ui_type == 'fav_recipes' then
+        sub.view.needUpdateObjects = true
+    end
+    self:setInfo(info)
 end
 
 function CHC_window:addSearchPanel()
@@ -85,6 +103,8 @@ function CHC_window:addSearchPanel()
     -- region search panel
     self.searchPanel = ISTabPanel:new(1, self.panelY, self.width, self.height - self.panelY)
     self.searchPanel.tabPadX = self.width / 2 - self.width / 4
+    self.searchPanel.onActivateView = CHC_window.onActivateSubView
+    self.searchPanel.target = self
     self.searchPanel:initialise()
     self.searchPanel:setAnchorRight(true)
     self.searchPanel:setAnchorBottom(true)
@@ -133,7 +153,7 @@ function CHC_window:addSearchPanel()
         self.uiTypeToView[recipes_extra.ui_type] = { view = self.searchRecipesScreen, name = srvn }
     end
     -- endregion
-    self.searchPanel.infoText = getText("UI_infotext_search") .. self.infotext_common
+    self.searchPanel.infoText = self.searchPanelInfo .. self.infotext_common_items
     self.panel:addView(self.searchViewName, self.searchPanel)
 
     --endregion
@@ -146,12 +166,14 @@ function CHC_window:addFavoriteScreen()
     -- region favorites panel
     self.favPanel = ISTabPanel:new(1, self.panelY, self.width, self.height - self.panelY)
     self.favPanel.tabPadX = self.width / 2 - self.width / 4
+    self.favPanel.onActivateView = CHC_window.onActivateSubView
+    self.favPanel.target = self
     self.favPanel:initialise()
     self.favPanel:setAnchorRight(true)
     self.favPanel:setAnchorBottom(true)
 
     -- region fav items screen
-    local itemsData = self:getItems(CHC_main.itemsForSearch, 10) -- @@@ FIXME
+    local itemsData = self:getItems(CHC_main.itemsForSearch, 30) -- @@@ FIXME
     local items_screen_init = self.common_screen_data
     local items_extra = {
         recipeSource = itemsData,
@@ -164,6 +186,7 @@ function CHC_window:addFavoriteScreen()
     }
     for k, v in pairs(items_extra) do items_screen_init[k] = v end
     self.favItemsScreen = CHC_search:new(items_screen_init)
+
     if itemsData then
         self.favItemsScreen:initialise()
         local fivn = getText("UI_search_items_tab_name")
@@ -180,7 +203,7 @@ function CHC_window:addFavoriteScreen()
         itemSortAsc = options.favorites.recipes.filter_asc,
         typeFilter = options.favorites.recipes.filter_type,
         showHidden = options.show_hidden,
-        ui_type = "favorites",
+        ui_type = "fav_recipes",
         backRef = self,
         sep_x = math.min(self.width / 2, options.favorites.recipes.sep_x)
     }
@@ -195,7 +218,7 @@ function CHC_window:addFavoriteScreen()
     end
     -- endregion
     --favoritesScreen
-    self.favPanel.infoText = getText("UI_infotext_favorites") .. self.infotext_common
+    self.favPanel.infoText = self.favPanelInfo .. self.infotext_common_items
     self.panel:addView(self.favViewName, self.favPanel)
     -- endregion
 
@@ -288,13 +311,12 @@ function CHC_window:addItemView(item, focusOnNew)
     end
     -- endregion
     --endregion
-    self.itemPanel.infoText = getText("UI_infotext_itemtab", itn.displayName, getText("UI_item_uses_tab_name"), getText("UI_item_craft_tab_name")) .. self.infotext_common
+    self.itemPanel.infoText = getText(self.itemPanelInfo, itn.displayName) .. self.infotext_common_recipes
     self:refresh(nil, nil, focusOnNew)
 end
 
 function CHC_window:refresh(viewName, panel, focusOnNew)
     local panel = panel or self.panel
-    -- viewName = viewName or nil
     if viewName and (focusOnNew == nil or focusOnNew == true) then
         panel:activateView(viewName)
         return
@@ -325,23 +347,23 @@ function CHC_window:getItems(items, max)
             insert(newItems, items[i])
         end
     end
-    -- if not showHidden and not max then
-    --     print(string.format('Removed %d hidden items', #items - #newItems))
-    -- end
+    if not showHidden and not max then
+        print(string.format('Removed %d hidden items', #items - #newItems))
+    end
     return newItems
 end
 
 function CHC_window:getRecipes(favOnly)
     favOnly = favOnly or false
-    local favoriteRecipes = {}
+    local recipes = {}
     local allrec = CHC_main.allRecipes
     local insert = table.insert
     for i = 1, #allrec do
         if (favOnly and allrec[i].favorite) or (not favOnly) then
-            insert(favoriteRecipes, allrec[i])
+            insert(recipes, allrec[i])
         end
     end
-    return favoriteRecipes
+    return recipes
 end
 
 function CHC_window:onMainTabRightMouseDown(x, y)
@@ -354,22 +376,27 @@ function CHC_window:onMainTabRightMouseDown(x, y)
     if tabIndex <= 2 then return end -- dont interact with search and favorites
     local context = ISContextMenu.get(0, getMouseX() - 50, getMouseY() - 105)
     -- context:addOption("Pin", self, CHC_window.togglePinTab, tabIndex)
-    context:addOption(getText("IGUI_tab_ctx_close_others"), self, CHC_window.closeOtherTabs, tabIndex)
-    context:addOption(getText("IGUI_CraftUI_Close") .. " " .. string.lower(getText("UI_All")), self, CHC_window.closeAllTabs)
+    if #self.viewList > 3 then
+        context:addOption(getText("IGUI_tab_ctx_close_others"), self, CHC_window.closeOtherTabs, tabIndex)
+        context:addOption(getText("IGUI_CraftUI_Close") .. " " .. string.lower(getText("UI_All")), self, CHC_window.closeAllTabs)
+    end
     context:addOption(getText("IGUI_CraftUI_Close"), self, CHC_window.closeTab, tabIndex)
+    context:setY(getMouseY() - #context.options * 35)
 end
 
 -- function CHC_window:togglePinTab(tabIndex)
 
 -- end
 
-function CHC_window:closeOtherTabs(tabIndex)
-    local vl = self.parent.panel
-    for i = #vl.viewList, 3, -1 do
-        if i ~= tabIndex then
-            vl:removeView(vl.viewList[i].view)
+function CHC_window:closeOtherTabs()
+    local vp = self.parent.panel
+    local vl = vp.viewList
+    for i = #vl, 3, -1 do
+        if vp.activeView ~= vl[i] then
+            vp:removeView(vl[i].view)
         end
     end
+    vp.scrollX = 0
 end
 
 function CHC_window:closeAllTabs()
@@ -378,12 +405,18 @@ function CHC_window:closeAllTabs()
         vl:removeView(vl.viewList[i].view)
     end
     vl:activateView(vl.viewList[2].name)
+    vl.scrollX = 0
 end
 
 function CHC_window:closeTab(tabIndex)
     local view = self.viewList[tabIndex].view
+    local needRefresh = true
+    if view ~= self.activeView then
+        needRefresh = false
+    end
     self:removeView(view)
-    self.parent:refresh()
+    if needRefresh then self.parent:refresh() end
+
 end
 
 -- region keyboard controls
@@ -588,7 +621,7 @@ function CHC_window:onResize()
             self:resizeHeaders(headers)
             view:onResizeHeaders()
         end
-        if view.viewList then
+        if view.viewList then -- handle subviews
             for j = 1, #view.viewList do
                 local subview = view.viewList[j].view
                 subview:setWidth(self.width)
@@ -705,16 +738,34 @@ function CHC_window:new(args)
     o.updateQueue = utils.Deque:new()
     o.uiTypeToView = {}
 
-    o.infotext_common_type_filter = getText("UI_infotext_common_type_filters",
+    o.infotext_recipe_type_filter = getText("UI_infotext_recipe_types",
         getText("UI_All"),
         getText("UI_settings_av_valid"),
         getText("UI_settings_av_known"),
         getText("UI_settings_av_invalid")
     )
-    o.infotext_common = getText("UI_infotext_common",
-        getText("UI_common_left_col_name"),
-        getText("UI_common_right_col_name"),
-        o.infotext_common_type_filter
+    o.searchPanelInfo = getText("UI_infotext_search")
+    o.favPanelInfo = getText("UI_infotext_favorites")
+    o.itemPanelInfo = getText("UI_infotext_itemtab",
+        "%1", -- item displayName
+        getText("UI_item_uses_tab_name"),
+        getText("UI_item_craft_tab_name")
+    )
+
+    o.viewNameToInfoText = {
+        [o.searchViewName] = o.searchPanelInfo,
+        [o.favViewName] = o.favPanelInfo
+    }
+
+    o.infotext_common_recipes = getText("UI_infotext_common",
+        o.infotext_recipe_type_filter,
+        getText("UI_infotext_recipe_details"),
+        getText("UI_infotext_recipe_mouse")
+    )
+    o.infotext_common_items = getText("UI_infotext_common",
+        getText("UI_infotext_item_types"),
+        getText("UI_infotext_item_details"),
+        getText("UI_infotext_item_mouse")
     )
     o:setWantKeyEvents(true)
 

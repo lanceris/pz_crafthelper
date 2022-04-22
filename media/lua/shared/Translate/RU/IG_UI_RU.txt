@@ -28,4 +28,5 @@ IGUI_RU = {
     IGUI_find_item = "Найти предмет"
     IGUI_mod_chc = "Мод"
     IGUI_tab_ctx_close_others = "Закрыть остальные"
+    IGUI_no_recipes = "Рецептов не найдено"
 }

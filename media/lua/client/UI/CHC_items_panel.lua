@@ -73,7 +73,10 @@ function CHC_items_panel:createChildren()
 
     self.mainWeight = ISLabel:new(mainX, mainY, fnts, nil, mr, mg, mb, ma, mainSecFont, true)
     self.mainWeight:initialise()
-    -- mainY = mainY + mainPadY + self.mainWeight.height
+    mainY = mainY + mainPadY + self.mainWeight.height
+
+    self.mainNumRecipes = ISLabel:new(mainX, mainY, fnts, nil, mr, mg, mb, ma, mainSecFont, true)
+    self.mainNumRecipes:initialise()
     self.mainX = mainX
     self.mainY = mainY
 
@@ -83,6 +86,7 @@ function CHC_items_panel:createChildren()
     self.mainInfo:addChild(self.mainDispCat)
     self.mainInfo:addChild(self.mainMod)
     self.mainInfo:addChild(self.mainWeight)
+    self.mainInfo:addChild(self.mainNumRecipes)
     -- endregion
 
     -- region attributes
@@ -173,8 +177,29 @@ function CHC_items_panel:setObj(item)
 
     self.mainMod:setName(getText("IGUI_mod_chc") .. ": " .. item.modname)
     self.mainWeight:setName(getText("IGUI_invpanel_weight") .. ": " .. round(item.item:getWeight(), 2))
+    local maxY = self.mainWeight.y + self.mainWeight.height + 2
 
-    self.mainInfo:setHeight(math.max(self.mainInfo.height, self.mainWeight.y + self.mainWeight.height + 2))
+    local usesNum = CHC_main.recipesByItem[item.name]
+    if type(usesNum) == 'table' then usesNum = #usesNum else usesNum = 0 end
+    local craftNum = CHC_main.recipesForItem[item.name]
+    if type(craftNum) == 'table' then craftNum = #craftNum else craftNum = 0 end
+    if usesNum + craftNum > 0 then
+        self.mainNumRecipes:setName(getText("UI_search_recipes_tab_name") .. ": " .. usesNum + craftNum)
+        local tooltip = ""
+        if usesNum > 0 then
+            tooltip = tooltip .. getText("UI_item_uses_tab_name") .. ": " .. usesNum
+            tooltip = tooltip .. " <LINE>"
+        end
+        if craftNum > 0 then
+            tooltip = tooltip .. getText("UI_item_craft_tab_name") .. ": " .. craftNum
+        end
+        self.mainNumRecipes:setTooltip(tooltip)
+        maxY = self.mainNumRecipes.y + self.mainNumRecipes.height + 2
+    else
+        self.mainNumRecipes:setName(nil)
+        self.mainNumRecipes:setTooltip(nil)
+    end
+    self.mainInfo:setHeight(math.max(74, maxY))
     self.mainInfo:setVisible(true)
     -- self.mainImg.blinkImage = true
 end

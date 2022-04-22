@@ -63,8 +63,16 @@ function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y, item)
     end
 
     context:addOption(getText("IGUI_find_item"), backref, findItem)
-    if cond1 or cond2 then
-        context:addOption(getText("IGUI_new_tab"), backref, backref.addItemView, item.item, true)
+
+    local newTabOption = context:addOption(getText("IGUI_new_tab"), backref, backref.addItemView, item.item, true)
+
+    if not (cond1 or cond2) then
+        local tooltip = ISToolTip:new()
+        tooltip:initialise()
+        tooltip:setVisible(false)
+        tooltip.description = getText("IGUI_no_recipes")
+        newTabOption.notAvailable = true
+        newTabOption.toolTip = tooltip
         -- backref:addItemView(item, true)
     end
 end
@@ -157,7 +165,6 @@ function CHC_uses_recipepanel:setObj(recipe)
         local displayCategory = resultItem.displayCategory
         if displayCategory then
             newItem.itemDisplayCategory = getTextOrNull("IGUI_ItemCat_" .. displayCategory)
-            -- print(newItem.itemDisplayCategory)
         end
 
         local resultCount = recipe.recipe:getResult():getCount()
@@ -166,12 +173,7 @@ function CHC_uses_recipepanel:setObj(recipe)
         end
     end
 
-    -- region Hydrocraft integration
-    local hydrocraftFurniture = self:processHydrocraft(newItem)
-    if hydrocraftFurniture then
-        newItem.nearFurniture = hydrocraftFurniture
-    end
-    -- endregion
+    newItem.hydrocraftEquipment = recipe.recipeData.hydroFurniture
 
     newItem.sources = {};
     for x = 0, recipe.recipe:getSource():size() - 1 do
@@ -234,7 +236,7 @@ function CHC_uses_recipepanel:setObj(recipe)
     -- extra stuff for render
     newItem.requiredSkillCount = recipe.recipe:getRequiredSkillCount()
     newItem.isKnown = self.player:isRecipeKnown(recipe.recipe)
-    newItem.nearItem = recipe.recipe:getNearItem()
+    newItem.nearItem = recipe.recipeData.nearItem
     newItem.timeToMake = recipe.recipe:getTimeToMake()
     newItem.howManyCanCraft = RecipeManager.getNumberOfTimesRecipeCanBeDone(newItem.recipe, self.player, self.containerList, nil)
 
@@ -333,7 +335,7 @@ function CHC_uses_recipepanel:getBottomHeight(item)
     end
 
     -- near item
-    local hydroFurniture = item.nearFurniture
+    local hydroFurniture = item.hydrocraftEquipment
     local nearItem = item.nearItem
     if hydroFurniture or nearItem then
         bh = bh + CHC_uses_recipepanel.mediumFontHeight
@@ -484,7 +486,7 @@ function CHC_uses_recipepanel:drawRequiredBooks(x, y, item)
 end
 
 function CHC_uses_recipepanel:drawNearItem(x, y, item)
-    local hydroFurniture = item.nearFurniture
+    local hydroFurniture = item.hydrocraftEquipment
     local nearItem = item.nearItem
     if not nearItem and not hydroFurniture then return 0 end
     local sy = y
@@ -501,12 +503,12 @@ function CHC_uses_recipepanel:drawNearItem(x, y, item)
             a = 0.75
         end
         self:drawText(" - ", hydroX, y, r, g, b, a, UIFont.Small)
-        if hydroFurniture.texture then
+        if hydroFurniture.obj.texture then
             hydroX = hydroX + 15
-            self:drawTextureScaledAspect(hydroFurniture.texture, hydroX, y, 20, 20, a, 1, 1, 1)
+            self:drawTextureScaledAspect(hydroFurniture.obj.texture, hydroX, y, 20, 20, a, 1, 1, 1)
             hydroX = hydroX + 25
         end
-        self:drawText(hydroFurniture.name, hydroX, y, r, g, b, a, UIFont.Small)
+        self:drawText(hydroFurniture.obj.name, hydroX, y, r, g, b, a, UIFont.Small)
         y = y + 25
     end
 
@@ -602,22 +604,6 @@ end
 
 -- endregion
 
-
-function CHC_uses_recipepanel:processHydrocraft(newItem)
-    if not getActivatedMods():contains("Hydrocraft") then return end
-
-    -- require "AdvancedBuild/HCItemsNearby" -- actually dont need this one
-    local luaTest = newItem.recipe:getLuaTest()
-    if not luaTest then return end
-    local integration = CHC_settings.integrations.Hydrocraft.luaOnTestReference
-    local itemName = integration[luaTest]
-    if not itemName then return end
-    local furniItem = {}
-    local furniItemObj = CHC_main.items[itemName]
-    furniItem.obj = furniItemObj
-    furniItem.luaTest = _G[luaTest] -- calling global registry to get function obj
-    return furniItem
-end
 
 function CHC_uses_recipepanel:refreshIngredientPanel()
     self.ingredientPanel:setVisible(false)
@@ -796,8 +782,9 @@ function CHC_uses_recipepanel:new(x, y, width, height)
     setmetatable(o, self);
     self.__index = self;
 
-    o.backgroundColor = { r = 0, g = 0, b = 0, a = 1 };
-    o:noBackground();
+    o.backgroundColor = { r = 0, g = 0, b = 0, a = 1 }
+    o.borderColor = { r = 0.4, g = 0.4, b = 0.4, a = 0.9 }
+    -- o:noBackground();
     o.anchorTop = true;
     o.anchorBottom = true;
     local player = getPlayer()

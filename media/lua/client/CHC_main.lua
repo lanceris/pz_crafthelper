@@ -4,7 +4,7 @@ CHC_main = {}
 CHC_main.author = "lanceris"
 CHC_main.previousAuthors = { "Peanut", "ddraigcymraeg", "b1n0m" }
 CHC_main.modName = "CraftHelperContinued"
-CHC_main.version = "1.5.8"
+CHC_main.version = "1.6"
 CHC_main.allRecipes = {}
 CHC_main.recipesByItem = {}
 CHC_main.recipesForItem = {}
@@ -15,6 +15,8 @@ CHC_main.isDebug = false or getDebug()
 CHC_main.recipesWithoutItem = {}
 
 local insert = table.insert
+local utils = require('CHC_utils')
+local print = utils.chcprint
 
 local showTime = function(start, st)
 	print(string.format("Loaded %s in %s seconds", st, tostring((getTimestampMs() - start) / 1000)))
@@ -130,15 +132,21 @@ CHC_main.loadAllRecipes = function()
 		newItem.recipeData = {}
 		newItem.recipeData.category = recipe:getCategory() or getText("IGUI_CraftCategory_General")
 		newItem.recipeData.name = recipe:getName()
+		newItem.recipeData.nearItem = recipe:getNearItem()
 
+		--check for hydrocraft furniture
+		local hydrocraftFurniture = CHC_main.processHydrocraft(recipe)
+		if hydrocraftFurniture then
+			newItem.recipeData.hydroFurniture = hydrocraftFurniture
+		end
 
 		local resultItem = recipe:getResult()
 		local resultFullType = resultItem:getFullType()
 		local itemres = CHC_main.handleItems(resultFullType, recipe)
 
-		newItem.recipeData.result = itemres
 		insert(CHC_main.allRecipes, newItem)
 		if itemres then
+			newItem.recipeData.result = itemres
 			CHC_main.setRecipeForItem(CHC_main.recipesForItem, itemres.name, newItem)
 		else
 			insert(CHC_main.recipesWithoutItem, resultItem:getFullType())
@@ -184,6 +192,21 @@ CHC_main.getFavoriteModDataString = function(recipe)
 		end
 	end
 	return text
+end
+
+CHC_main.processHydrocraft = function(recipe)
+	if not getActivatedMods():contains("Hydrocraft") then return end
+
+	local luaTest = recipe:getLuaTest()
+	if not luaTest then return end
+	local integration = CHC_settings.integrations.Hydrocraft.luaOnTestReference
+	local itemName = integration[luaTest]
+	if not itemName then return end
+	local furniItem = {}
+	local furniItemObj = CHC_main.items[itemName]
+	furniItem.obj = furniItemObj
+	furniItem.luaTest = _G[luaTest] -- calling global registry to get function obj
+	return furniItem
 end
 
 function CHC_main.reloadMod(key)

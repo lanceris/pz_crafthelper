@@ -1,6 +1,8 @@
 # CraftHelper updates
 
-## 1.5.8 ()
+# 1.6 (23.04.2022, workshop release)
+
+## 1.5.8 (22.04.2022)
 
 ### New features
 
@@ -14,6 +16,10 @@
 - Added icons for type filter in item views
 - Improved search helper info
 - Added tooltip to recipe result icon in recipe details view
+- Improved hydrocraft integration (search hydro furniture in #ingredients)
+- Improved type-category syncronization
+- Updated language files
+- Updated pictures
 
 ### Bugfixes
 

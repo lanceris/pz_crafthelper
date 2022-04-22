@@ -19,7 +19,7 @@ local utils = require('CHC_utils')
 local insert = table.insert
 local sort = table.sort
 
-local advUpdCoCa = false
+local advUpdCoCa = true
 
 -- region create
 function CHC_uses:initialise()
@@ -86,6 +86,7 @@ function CHC_uses:create()
     -- region recipe details windows
     local rph = self.height - self.headers.height
     self.objPanel = CHC_uses_recipepanel:new(rightX, y, rightW, rph)
+    self.objPanel.drawBorder = true
     self.objPanel:initialise()
     self.objPanel:instantiate()
     self.objPanel:setAnchorRight(true)
@@ -99,7 +100,7 @@ function CHC_uses:create()
     self:addChild(self.objList)
     self:addChild(self.objPanel)
 
-    if self.ui_type == 'favorites' then
+    if self.ui_type == 'fav_recipes' then
         self.favrec = self.backRef:getRecipes(true)
     end
     self:catSelUpdateOptions()
@@ -125,7 +126,7 @@ function CHC_uses:onChangeCategory(_option, sl)
 end
 
 function CHC_uses:cacheRecipeCounts(current)
-    local recipes = self.ui_type == 'favorites' and self.favrec or self.recipeSource
+    local recipes = self.ui_type == 'fav_recipes' and self.favrec or self.recipeSource
     local is_valid
     local is_known
     ISCraftingUI.getContainers(self.objList)
@@ -154,7 +155,7 @@ function CHC_uses:updateRecipes(sl)
     if type(sl) == "table" then sl = sl.text end
     local categoryAll = self.categorySelectorDefaultOption
     local searchBar = self.searchRow.searchBar
-    local recipes = self.ui_type == 'favorites' and self.favrec or self.recipeSource
+    local recipes = self.ui_type == 'fav_recipes' and self.favrec or self.recipeSource
 
     if sl == categoryAll and self.typeFilter == "all" and searchBar:getInternalText() == "" then
         self:refreshObjList(recipes)
@@ -236,7 +237,7 @@ end
 function CHC_uses:handleFavCategory(current)
     local cs = self.filterRow.categorySelector
     local csSel = cs.options[cs.selected]
-    local cond3 = self.ui_type == 'favorites'
+    local cond3 = self.ui_type == 'fav_recipes'
 
     if cond3 then
         self.favrec = self.backRef:getRecipes(true)
@@ -259,7 +260,7 @@ function CHC_uses:handleFavCategory(current)
     --update favorites in favorites view
     if not cond3 then
         self.backRef.updateQueue:push({
-            targetView = 'favorites',
+            targetView = 'fav_recipes',
             actions = { 'needUpdateFavorites', 'needUpdateObjects', 'needUpdateCounts' }
         })
     end
@@ -271,7 +272,7 @@ function CHC_uses:catSelUpdateOptions(current)
     local uniqueCategories = {}
     local catCounts = {}
     local curCats = nil
-    local allrec = self.ui_type == 'favorites' and self.favrec or self.recipeSource
+    local allrec = self.ui_type == 'fav_recipes' and self.favrec or self.recipeSource
     local c1 = self.typeFilter == 'all'
     local c = 1
     self.favRecNum = 0
@@ -308,7 +309,7 @@ function CHC_uses:catSelUpdateOptions(current)
     selector:clear()
     selector:addOptionWithData(self.categorySelectorDefaultOption, { count = #allrec })
 
-    if self.favRecNum > 0 and self.ui_type ~= 'favorites' then
+    if self.favRecNum > 0 and self.ui_type ~= 'fav_recipes' then
         selector:addOptionWithData(self.favCatName, { count = self.favRecNum })
     end
 
@@ -406,8 +407,8 @@ function CHC_uses:searchProcessToken(token, recipe)
             local catName = getTextOrNull("IGUI_CraftCategory_" .. recipe.category) or recipe.category
             whatCompare = catName
         end
-        local resultItem = recipe.recipeData.result.fullType
-        if resultItem then
+        local resultItem = recipe.recipeData.resultItem
+        if resultItem and resultItem.fullType then
             if char == "@" then
                 -- search by mod name of resulting item
                 whatCompare = resultItem.modname
@@ -435,6 +436,20 @@ function CHC_uses:searchProcessToken(token, recipe)
                     if item then insert(items, item.displayName) end
                 end
             end
+
+            if recipe.recipeData.hydroFurniture then
+                insert(items, recipe.recipeData.hydroFurniture.obj.displayName)
+            end
+
+            if recipe.recipeData.nearItem then
+                local nearItem = CHC_main.items[recipe.recipeData.nearItem]
+                if nearItem then
+                    insert(items, nearItem.displayName)
+                else
+                    insert(items, recipe.recipeData.nearItem)
+                end
+            end
+
             whatCompare = items
         end
     end
@@ -546,8 +561,10 @@ function CHC_uses:onFilterTypeMenu(button)
 
     local txt = nil
     for i = 1, #data do
-        txt = self:filterSortMenuGetText(data[i].txt, data[i].num)
-        context:addOption(txt, self, CHC_uses.sortByType, data[i].arg)
+        if data[i].num > 0 then
+            txt = self:filterSortMenuGetText(data[i].txt, data[i].num)
+            context:addOption(txt, self, CHC_uses.sortByType, data[i].arg)
+        end
     end
 end
 
@@ -614,6 +631,7 @@ function CHC_uses:new(args)
     o.favRecNum = 0
     o.updCountsWithCur = false
     o.updFavWithCur = false
+    o.isItemView = false
 
 
     o.numRecipesAll = 0

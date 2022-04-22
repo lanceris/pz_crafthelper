@@ -1,71 +1,105 @@
 UI_RU = {
-    UI_item_uses_tab_name = "Применение"
-    UI_item_craft_tab_name = "Создание"
-    UI_common_left_col_name = "Рецепт"
-    UI_common_right_col_name = "Подробности"
-    UI_search_tab_name = "Поиск"
-    UI_search_items_tab_name = "Предметы"
-    UI_search_recipes_tab_name = "Рецепты"
+    UI_item_uses_tab_name =         "Применение"
+    UI_item_craft_tab_name =        "Создание"
+    UI_common_left_col_name =       "Рецепт"
+    UI_common_right_col_name =      "Подробности"
+    UI_search_tab_name =            "Поиск"
+    UI_search_items_tab_name =      "Предметы"
+    UI_search_recipes_tab_name =    "Рецепты"
     UI_recipe_panel_required_book = "Требуемые книги (одно из)"
-    UI_recipe_panel_near_item = "Необходимое оборудование для создания"
+    UI_recipe_panel_near_item =     "Необходимое оборудование для создания"
 
-    UI_settings_st_title = "Порядок сортировки"
-    UI_settings_av_title = "Доступность"
-    UI_settings_av_valid = "Доступные"
-    UI_settings_av_known = "Известные"
+    UI_settings_st_title =   "Порядок сортировки"
+    UI_settings_av_title =   "Доступность"
+    UI_settings_av_valid =   "Доступные"
+    UI_settings_av_known =   "Известные"
     UI_settings_av_invalid = "Недоступные"
 
-    UI_optionscreen_binding_chc_category_title = "Craft Helper"
-    UI_optionscreen_binding_chc_move_up = "Предыдущий рецепт"
-    UI_optionscreen_binding_chc_move_down = "Следующий рецепт"
-    UI_optionscreen_binding_chc_move_left = "Предыдущая категория"
-    UI_optionscreen_binding_chc_move_right = "Следующая категория"
-    UI_optionscreen_binding_chc_craft_one = "Создать штуку"
-    UI_optionscreen_binding_chc_craft_all = "Создать максимум"
-    UI_optionscreen_binding_chc_favorite_recipe = "Добавить рецепт в избранное"
-    UI_optionscreen_binding_chc_close_window = "Закрыть окно Craft Helper"
-    UI_optionscreen_binding_chc_toggle_window = "Скрыть/показать окно Craft Helper"
-    UI_optionscreen_binding_chc_toggle_uses_craft = "Переключение между Применение/Создание"
-    UI_optionscreen_binding_chc_move_tab_left = "Предыдущая вкладка"
-    UI_optionscreen_binding_chc_move_tab_right = "Следующая вкладка"
+    UI_optionscreen_binding_chc_category_title =          "Craft Helper"
+    UI_optionscreen_binding_chc_move_up =                 "Предыдущий рецепт"
+    UI_optionscreen_binding_chc_move_down =               "Следующий рецепт"
+    UI_optionscreen_binding_chc_move_left =               "Предыдущая категория"
+    UI_optionscreen_binding_chc_move_right =              "Следующая категория"
+    UI_optionscreen_binding_chc_craft_one =               "Создать штуку"
+    UI_optionscreen_binding_chc_craft_all =               "Создать максимум"
+    UI_optionscreen_binding_chc_favorite_recipe =         "Добавить рецепт в избранное"
+    UI_optionscreen_binding_chc_close_window =            "Закрыть окно Craft Helper"
+    UI_optionscreen_binding_chc_toggle_window =           "Скрыть/показать окно Craft Helper"
+    UI_optionscreen_binding_chc_toggle_uses_craft =       "Переключение между Применение/Создание"
+    UI_optionscreen_binding_chc_move_tab_left =           "Предыдущая вкладка"
+    UI_optionscreen_binding_chc_move_tab_right =          "Следующая вкладка"
     UI_optionscreen_binding_chc_toggle_focus_search_bar = "Фокус на строку поиска"
 
+    UI_infotext_search =    "<CENTRE><SIZE:medium> Окно поиска <LINE><LINE> "..
+                            "<SIZE:small> <LEFT> Здесь вы можете найти все предметы и рецепты. <LINE><LINE> "
+    UI_infotext_favorites = "<CENTRE><SIZE:medium> Окно избранного <LINE><LINE> "..
+                            "<SIZE:small> <LEFT> Здесь вы можете найти все избранные предметы(WIP) и рецепты. <LINE><LINE> "
+    UI_infotext_itemtab =   "<CENTRE><SIZE:medium> Окно предмета <LINE>"..
+                            "<SIZE:small> <LEFT> Здесь вы можете найти подробную информацию о '%1' <LINE><LINE> "..
+                            "Первая вкладка (%2) показывает рецепты, в которых '%1' используется в качестве ингредиента. <LINE> "..
+                            "Вторая вкладка (%3) показывает рецепты, результатом которых является '%1'. <LINE><LINE> " 
 
-    UI_infotext_common = "<INDENT:0> Левый столбец (%1) показывает список рецептов с дополнительными элементами управления. <LINE> "..
-                        "<INDENT:4> Первая кнопка (с четырьмя линиями) показывает текущий порядок сортировки (По возрастанию или По убыванию). Вы можете изменить порядок, нажав на неё. <LINE> "..
-                        "Вторая кнопка позволяет фильтровать список репецтов. <LINE> "..
-                        "<INDENT:12>%3"..
-                        "<INDENT:4> Справа от этих двух кнопок находится селектор категорий, где вы можете указать нужную категорию рецепта. <LINE> <LINE> "..
-                        "Под селектором категорий есть панель поиска, где вы можете искать по названию рецепта или по особым правилам, в зависимости от вашего запроса. <LINE> "..
-                        "Чтобы узнать больше о правилах поиска, нажмите на <IMAGE:media/textures/search_icon.png> <LINE> "..
-                        "В списке рецептов вы также можете добавить (убрать) рецепт в избранное, щелкнув на иконку звезды. <LINE> <LINE> "..
-                        "<INDENT:0> Правый столбец (%2) показывает детали рецепта. <LINE> "..
-                        "<INDENT:4> - Информация о категории рецепта и результате <LINE> "..
-                        " - Необходимые предметы (с помощью правой кнопки мыши на предмете вы можете открыть новую вкладку Craft Helper с этим предметом) <LINE>"..
-                        " - Другие требования (навыки, книги, оборудование и время создания) <LINE> <LINE> "..
-                        "<INDENT:0>Кстати, вы можете изменить размер столбцов %1 и %2, захватив и перетащив линию между их названиями. "
-    --%3 in UI_infotext_common
-    UI_infotext_common_type_filters = "- <IMAGE:media/textures/type_filt_all.png> <SPACE>(%1): Все рецепты <LINE> "..
-                                      "- <IMAGE:media/textures/type_filt_valid.png> (%2): Рецепты, которые вы можете сделать прямо сейчас <LINE> "..
-                                      "- <IMAGE:media/textures/type_filt_known.png> (%3): Рецепты, о которых вы знаете, но не можете создать (не хватает навыков/предметов) <LINE> "..
-                                      "- <IMAGE:media/textures/type_filt_invalid.png> (%4): Рецепты, о которых вы ничего не знаете. Покажет книгу(-и), из которой его можно выучить. <LINE> <LINE> "
+    UI_infotext_common = "<INDENT:0> Левый столбец (Рецепт) показывает список предметов/рецептов с дополнительными элементами управления. Первая строка - строка фильтров. <LINE><LINE> "..
+                         "<IMAGECENTRE:media/textures/info_filter_row.png> <LINE>"..
+                         "<INDENT:8>Кнопка 1 показывает текущий порядок сортировки. Нажмите на кнопку, чтобы изменить порядок. <LINE> "..
+                         "Кнопка 2 позволяет выбрать тип желаемого результата: <LINE> "..
+                         "<INDENT:16> %1 <LINE>"..
+                         "<INDENT:8> Элемент 3 - селектор категорий, где вы можете указать необходимую категорию. <LINE><LINE>"..
+                         "Под строкой фильтров находится строка поиска, где вы можете искать по названию рецепта или по особым правилам, в зависимости от вашего запроса. <LINE> "..
+                         "Чтобы узнать больше о правилах поиска, нажмите на <IMAGE:media/textures/search_icon.png> <LINE> "..
+                         "<INDENT:0> Правый столбец (Подробности) показывает подробную информацию о предмете/рецепте: <LINE> "..
+                         "<INDENT:8> %2 <LINE><LINE>"..
+                         "<INDENT:0><SIZE:medium>Управление: <SIZE:small><LINE><LINE>"..
+                         "<INDENT:16> - Вы можете изменить размер столбцов Рецепт и Подробности перетащив линию между их названиями. <LINE> "..
+                         "(ЛКМ - левая кнопка мыши, СКМ - средняя, ПКМ - правая) <LINE>"..
+                         " - ПКМ на вкладке предмета откроет контекстное меню <LINE>"..
+                         "%3 <LINE>"..
+                         " - Используя мод 'Mod Options', вы можете настроить клавиши для частых действий"
+
+    -- %1
+    UI_infotext_recipe_types = " - <IMAGE:media/textures/type_filt_all.png> <SPACE>(%1): Все рецепты <LINE> "..
+                               " - <IMAGE:media/textures/type_filt_valid.png> (%2): Рецепты, которые вы можете сделать прямо сейчас <LINE> "..
+                               " - <IMAGE:media/textures/type_filt_known.png> (%3): Рецепты, о которых вы знаете, но не можете создать (не хватает навыков/предметов) <LINE> "..
+                               " - <IMAGE:media/textures/type_filt_invalid.png> (%4): Рецепты, о которых вы ничего не знаете. Покажет книгу(-и), из которой его можно выучить. "
+    UI_infotext_item_types =   " - Одежда <LINE> - Еда <LINE> - Оружие <LINE> - ..."
+
+    -- %2
+    UI_infotext_recipe_details = " - Информация о категории рецепта и результате <LINE> "..
+                                 " - Необходимые предметы <LINE>"..
+                                 " - Другие требования (навыки, книги, оборудование и время создания) "
+    UI_infotext_item_details =   " - Базовая информация о предмете и количество рецептов <LINE> "..
+                                 " - Атрибуты предмета (WIP) <LINE> "..
+                                 " - Как починить предмет (если возможно) (WIP) <LINE>"..
+                                 " - Где найти предмет (WIP)"
+
+    -- %3
+    UI_infotext_recipe_mouse = " - ЛКМ на иконке звезды (столбец Рецепт, мышь над элементом), чтобы добавить рецепт в избранное <LINE> "..
+                               " - ПКМ на иконке результата рецепта (столбец Подробности) откроет контекстное меню <LINE> "..
+                               " - ПКМ на предмете в 'Требуемые предметы' (столбец Подробности) откроет контекстное меню"
+    UI_infotext_item_mouse =   " - СКМ на предмете (столбец Рецепт) откроет новую вкладку с выбранным предметом <LINE>"..
+                               " - ПКМ на предмете (столбец Рецепт) откроет контекстное меню <LINE>"..
+                               " - ПКМ на иконке предмета (столбец Подробности) откроет контекстное меню <LINE>"..
+                               " - Shift + ПКМ на некоторых элементах (см. выше) покажет доп. опции"
+
 
     UI_searchrow_info = "<CENTRE><SIZE:medium> Помощник Поиска <LINE> <LINE>"..
-                    "<LEFT><SIZE:small> Эта панель поиска поддерживает настраиваемые правила. Каждый отдельный запрос (слово) называется Токен. <LINE>"..
-                    "Вы можете искать сразу по нескольким запросам, используя РАЗДЕЛИТЕЛИ. <LINE>"..
-                    "Вы можете добавить в начало каждого Токена один из СПЕЦИАЛЬНЫХ СИМВОЛОВ, чтобы указать правило поиска для этого Токена. <LINE>"..
-                    "Используя мод 'Mod Options', вы можете установить клавишу для фокусировки на строке поиска. Убрать фокус на ESC. <LINE><LINE>"..
-                    "<SIZE:medium> Разделители: <LINE> <SIZE:small> "..
-                    "<INDENT:8> <SIZE:medium> , <SIZE:small> <SPACE><SPACE>(запятая) - объединить все результаты Токенов (логическое И), можно использовать для очень специфической фильтрации <LINE> "..
-                    "<SIZE:medium> | <SIZE:small> <SPACE><SPACE>(вертикальная черта) - разделить все Токены (логическое ИЛИ), можно использовать для поиска нескольких запросов по отдельности <LINE> <LINE> "..
-                    "<INDENT:0><SIZE:medium> Ограничения: <LINE> <SIZE:small> "..
-                    "<INDENT:8>- Нельзя использовать оба разделителя в одном запросе <LINE> <LINE> "..
-                    "<INDENT:0><SIZE:medium> Специальные символы: <LINE> <SIZE:small> "..
-                    "<INDENT:8>%1"..
-                    "<SIZE:medium> ~ <SIZE:small> <SPACE><SPACE>(тильда) - исключает этот Токен (т.е найти всё, что НЕ Токен; должна быть после специального символа, если они используются) <LINE><LINE>"..
-                    "<INDENT:0><SIZE:medium> <LEFT> Примеры: <LINE> <SIZE:small> "..
-                    "<INDENT:8>%2<LINE>"
+                        "<LEFT><SIZE:small> Эта панель поиска поддерживает настраиваемые правила. Каждый отдельный запрос (слово) называется Токен. <LINE>"..
+                        "Вы можете искать сразу по нескольким запросам, используя РАЗДЕЛИТЕЛИ. <LINE>"..
+                        "Вы можете добавить в начало каждого Токена один из СПЕЦИАЛЬНЫХ СИМВОЛОВ, чтобы указать правило поиска для этого Токена. <LINE>"..
+                        "Используя мод 'Mod Options', вы можете установить клавишу для фокусировки на строке поиска. Убрать фокус на ESC. <LINE><LINE>"..
+                        "<SIZE:medium> Разделители: <LINE> <SIZE:small> "..
+                        "<INDENT:8> <SIZE:medium> , <SIZE:small> <SPACE><SPACE>(запятая) - объединить все результаты Токенов (логическое И), можно использовать для очень специфической фильтрации <LINE> "..
+                        "<SIZE:medium> | <SIZE:small> <SPACE><SPACE>(вертикальная черта) - разделить все Токены (логическое ИЛИ), можно использовать для поиска нескольких запросов по отдельности <LINE><LINE> "..
+                        "<INDENT:0><SIZE:medium> Специальные символы: <LINE> <SIZE:small> "..
+                        "<INDENT:8>%1"..
+                        "<SIZE:medium> ~ <SIZE:small> <SPACE><SPACE>(тильда) - исключает этот Токен (т.е найти всё, что НЕ Токен; должна быть после специального символа, если они используются) <LINE><LINE>"..
+                        "<INDENT:0><SIZE:medium> <LEFT> Примеры: <LINE> <SIZE:small> "..
+                        "<INDENT:8>%2<LINE>"..
+                        "<INDENT:0><SIZE:medium> Ограничения: <LINE> <SIZE:small> "..
+                        "<INDENT:8>- Нельзя использовать оба разделителя в одном запросе <LINE>"..
+                        "- Нельзя исключать ингредиенты (#~слово)"
 
+    -- %1
     UI_searchrow_info_recipes_special = "<SIZE:medium> ! <SIZE:small> <SPACE><SPACE>(восклицательный знак) - поиск по категории рецепта <LINE>"..
                                         "<SIZE:medium> @ <SIZE:small> <SPACE><SPACE>(собака) - поиск по имени мода получаемого предмета ('Project Zomboid' для 'мода' базовой игры) <LINE>"..
                                         "<SIZE:medium> # <SIZE:small> <SPACE><SPACE>(решетка) - поиск по ингредиентам рецепта <LINE>"..
@@ -73,20 +107,13 @@ UI_RU = {
                                         "<SIZE:medium> % <SIZE:small> <SPACE><SPACE>(знак процента) - поиск по имени получаемого предмета <LINE>"..
                                         "<SIZE:medium> ^ <SIZE:small> <SPACE><SPACE>(карет) - поиск по избранным рецептам <LINE>"..
                                         "<SIZE:medium> & <SIZE:small> <SPACE><SPACE>(амперсанд) - поиск по названию мода рецепта ('Base' для 'мода' базовой игры) <LINE>"
+    UI_searchrow_info_items_special =   "<SIZE:medium> ! <SIZE:small> <SPACE><SPACE>(восклицательный знак) - поиск по типу предмета <LINE>"..
+                                        "<SIZE:medium> @ <SIZE:small> <SPACE><SPACE>(собака) - поиск по имени мода предмета ('Project Zomboid' для 'мода' базовой игры) <LINE>"..
+                                        "<SIZE:medium> # <SIZE:small> <SPACE><SPACE>(решетка) - поиск по категории предмета (показана в правой части панели инвентаря) <LINE>"
+    
+    -- %2
     UI_searchrow_info_recipes_examples =  "#молот <SPACE><SPACE> - показать рецепты, в ингредиентах которого есть что-то с 'молот' в названии <LINE>"..
                                           "@hydrocra,!инж,#пил <SPACE><SPACE> - показать рецепты из мода 'Hydrocraft' (или с похожим названием) в категории рецептов 'инж', в которых есть 'пил' в качестве ингредиента <LINE>"..
                                           "%доска|!еда <SPACE><SPACE> - показать рецепты, в которых результатом является 'доска', ИЛИ рецепты в ккатегории 'еда' <LINE> "
-    UI_searchrow_info_items_special = "<SIZE:medium> ! <SIZE:small> <SPACE><SPACE>(восклицательный знак) - поиск по категории предмета <LINE>"..
-                                      "<SIZE:medium> @ <SIZE:small> <SPACE><SPACE>(собака) - поиск по имени мода предмета ('Project Zomboid' для 'мода' базовой игры) <LINE>"..
-                                      "<SIZE:medium> # <SIZE:small> <SPACE><SPACE>(решетка) - поиск по отображаемой категории предмета (показана в правой части панели инвентаря) <LINE>"
-    UI_searchrow_info_items_examples = "#инстр,!~оружи <SPACE><SPACE>: показать инстр(ументы), которые не являются оружи(ем) (игла, пила, щипцы) <LINE> " 
-
-    UI_infotext_search =  "<CENTRE><SIZE:medium> Окно поиска <LINE> <LINE> "..
-                    "<SIZE:small> <LEFT> Здесь вы можете найти все предметы и рецепты. <LINE> <LINE> "
-    UI_infotext_favorites = "<CENTRE><SIZE:medium> Окно избранного <LINE> <LINE> "..
-                    "<SIZE:small> <LEFT> Здесь вы можете найти все избранные предметы(WIP) и рецепты. <LINE> <LINE> "
-    UI_infotext_itemtab = "<CENTRE><SIZE:medium> Окно предмета <LINE>"..
-                "<SIZE:small> <LEFT> Здесь вы можете найти подробную информацию о '%1' <LINE> <LINE> "..
-                "Первая вкладка (%2) показывает рецепты, в которых '%1' используется в качестве ингредиента. <LINE> "..
-                "Вторая вкладка (%3) показывает рецепты, результатом которых является '%1'. <LINE> <LINE> " 
+    UI_searchrow_info_items_examples =    "#инстр,!~оружи <SPACE><SPACE>: показать инстр(ументы), которые не являются оружи(ем) (игла, пила, щипцы) <LINE> " 
 }

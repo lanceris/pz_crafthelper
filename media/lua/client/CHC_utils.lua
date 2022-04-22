@@ -166,5 +166,10 @@ CHC_utils.startswith = function(txt, start)
     return sub(txt, 1, len(start)) == start
 end
 
+CHC_utils.chcprint = function(txt)
+    if type(txt) ~= "string" then error('invalid type to chcprint') end
+    print("[CraftHelperContinued] " .. txt)
+end
+
 
 return CHC_utils
