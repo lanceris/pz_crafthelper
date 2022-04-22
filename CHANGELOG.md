@@ -1,5 +1,33 @@
 # CraftHelper updates
 
+# 1.6 (23.04.2022, workshop release)
+
+## 1.5.8 (22.04.2022)
+
+### New features
+
+- Added item panel with (very) basic info about item
+- Added RMB for recipe result icon in recipe details (opens context menu with options to find item and open in new tab)
+- Added RMB for item icon in item details (opens context menu with option to open new tab (will focus))
+- Added option to item tabs ("Close other tabs")
+
+### Improvements
+
+- Added icons for type filter in item views
+- Improved search helper info
+- Added tooltip to recipe result icon in recipe details view
+- Improved hydrocraft integration (search hydro furniture in #ingredients)
+- Improved type-category syncronization
+- Updated language files
+- Updated pictures
+
+### Bugfixes
+
+- Fixed config values not applying correctly
+- Fixed "Search item" context option in recipe panel not selecting item in search view
+- Fixed "Show hidden" option not hiding items
+- Fixed DisplayCategory for items without DisplayCategory (IGUI_ItemCat_Item)
+
 ## 1.5.7 (19.04.2022)
 
 ### New features
@@ -22,7 +50,7 @@
 
 ### Bugfixes
 
-- Removed obsolete items in CHC_main.loadAllItems (not item:getObsolete())
+- Removed obsolete items in CHC_main.loadAllItems (item:getObsolete())
 - Fixed item views not respecting font size setting
 - Fixed recipes in favorite screen not removed on unfavoriting
 - Fixed rendering of recipe panel (caused by incorrect amount of books required)
@@ -42,7 +70,7 @@
 - Config checking: If something new added to config (e.g options), it will autoupdate with default values
 - Moved tab closing context menu a bit higher
 - Updated search helper info
-- Removed caching of search panel (TODO: check performance with alot of mods)
+- Removed caching of search panel
 
 ### Bugfixes
 

@@ -107,7 +107,7 @@ CHC_utils.compare = function(what, to, passAll)
     else
         for i = 1, #what do
             local wh = lower(tostring(what[i]))
-            if isNegate then
+            if isNegate then -- this is not working atm (so '#~smth' will not work)
                 if not contains(wh, to) then
                     state = true
                     break
@@ -164,6 +164,11 @@ end
 ---@return boolean #result
 CHC_utils.startswith = function(txt, start)
     return sub(txt, 1, len(start)) == start
+end
+
+CHC_utils.chcprint = function(txt)
+    if type(txt) ~= "string" then error('invalid type to chcprint') end
+    print("[CraftHelperContinued] " .. txt)
 end
 
 

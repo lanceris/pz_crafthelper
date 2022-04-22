@@ -16,6 +16,8 @@ CHC_search.typeFiltIconKnown = getTexture("media/textures/type_filt_known.png")
 CHC_search.typeFiltIconInvalid = getTexture("media/textures/type_filt_invalid.png")
 CHC_search.searchIcon = getTexture("media/textures/search_icon.png")
 
+local advUpdCoCa = true
+
 local insert = table.insert
 local sort = table.sort
 
@@ -30,59 +32,59 @@ function CHC_search:initialise()
         },
         AlarmClock = {
             tooltip = getText("IGUI_ItemCat_AlarmClock"),
-            icon = getTexture("media/textures/type_filt_all.png")
+            icon = CHC_main.items["Base.AlarmClock2"].texture
         },
         AlarmClockClothing = {
             tooltip = getText("IGUI_CHC_ItemCat_AlarmClockClothing"),
-            icon = getTexture("media/textures/type_filt_all.png")
+            icon = CHC_main.items["Base.WristWatch_Right_DigitalRed"].texture
         },
         Clothing = {
             tooltip = getText("IGUI_ItemCat_Clothing"),
-            icon = getTexture("media/textures/type_filt_all.png")
+            icon = CHC_main.items["Base.Tshirt_Scrubs"].texture
         },
         Container = {
             tooltip = getText("IGUI_ItemCat_Container"),
-            icon = getTexture("media/textures/type_filt_all.png")
+            icon = CHC_main.items["Base.Purse"].texture
         },
         Drainable = {
-            tooltip = getText("IGUI_CHC_ItemCat_Drainable"),
-            icon = getTexture("media/textures/type_filt_all.png")
+            tooltip = getTextOrNull("IGUI_ItemCat_Drainable") or getText("IGUI_CHC_ItemCat_Drainable"),
+            icon = CHC_main.items["Base.Thread"].texture
         },
         Food = {
             tooltip = getText("IGUI_ItemCat_Food"),
-            icon = getTexture("media/textures/type_filt_valid.png")
+            icon = CHC_main.items["Base.Steak"].texture
         },
         Key = {
             tooltip = getText("IGUI_CHC_ItemCat_Key"),
-            icon = getTexture("media/textures/type_filt_all.png")
+            icon = CHC_main.items["Base.Key1"].texture
         },
         Literature = {
             tooltip = getText("IGUI_ItemCat_Literature"),
-            icon = getTexture("media/textures/type_filt_all.png")
+            icon = CHC_main.items["Base.Book"].texture
         },
         Map = {
             tooltip = getText("IGUI_CHC_ItemCat_Map"),
-            icon = getTexture("media/textures/type_filt_all.png")
+            icon = CHC_main.items["Base.Map"].texture
         },
         Moveable = {
             tooltip = getText("IGUI_CHC_ItemCat_Moveable"),
-            icon = getTexture("media/textures/type_filt_all.png")
+            icon = CHC_main.items["Base.Mov_GreyComfyChair"].texture
         },
         Normal = {
             tooltip = getText("IGUI_CHC_ItemCat_Normal"),
-            icon = getTexture("media/textures/type_filt_all.png")
+            icon = CHC_main.items["Base.Spiffo"].texture
         },
         Radio = {
             tooltip = getText("IGUI_CHC_ItemCat_Radio"),
-            icon = getTexture("media/textures/type_filt_all.png")
+            icon = CHC_main.items["Radio.RadioRed"].texture
         },
         Weapon = {
             tooltip = getText("IGUI_ItemCat_Weapon"),
-            icon = getTexture("media/textures/type_filt_all.png")
+            icon = CHC_main.items["Base.Pistol"].texture
         },
         WeaponPart = {
             tooltip = getText("IGUI_ItemCat_WeaponPart"),
-            icon = getTexture("media/textures/type_filt_all.png")
+            icon = CHC_main.items["Base.GunLight"].texture
         }
     }
 
@@ -150,6 +152,11 @@ function CHC_search:create()
 
     -- Add entries to recipeList
     -- self:cacheFullRecipeCount(self.itemSource)
+    local iph = self.height - self.headers.height
+    self.objPanel = CHC_items_panel:new(rightX, y, rightW, iph)
+    self.objPanel:initialise()
+    self.objPanel:instantiate()
+    self.objPanel:setAnchorLeft(true)
 
     -- endregion
 
@@ -157,6 +164,7 @@ function CHC_search:create()
     self:addChild(self.filterRow)
     self:addChild(self.searchRow)
     self:addChild(self.objList)
+    self:addChild(self.objPanel)
 
     self:catSelUpdateOptions()
     -- self:cacheCategoryCounts()
@@ -168,12 +176,13 @@ end
 --region update
 
 function CHC_search:update()
-    if self.needUpdateFavorites == true then
-        self.needUpdateFavorites = false
-    end
     if self.needUpdateObjects == true then
         self:updateItems(self.selectedCategory)
         self.needUpdateObjects = false
+    end
+    if self.needSyncFilters == true then
+        self:syncFilters()
+        self.needSyncFilters = false
     end
 end
 
@@ -181,19 +190,41 @@ function CHC_search:onTextChange()
     self.needUpdateObjects = true
 end
 
-function CHC_search:onRMBDownObjList(x, y)
-    local row = self:rowAt(x, y)
-    if row == -1 then return end
+function CHC_search:onRMBDownObjList(x, y, item)
+    if not item then
+        local row = self:rowAt(x, y)
+        if row == -1 then return end
+        item = self.items[row].item
+        if not item then return end
+    end
     local backref = self.parent.backRef
-    local item = self.items[row].item.item
     -- check if there is recipes for item
-    local cond1 = type(CHC_main.recipesByItem[item:getName()]) == 'table'
-    local cond2 = type(CHC_main.recipesForItem[item:getName()]) == 'table'
+    -- if true then return end
+    item = CHC_main.items[item.fullType]
+    local cond1 = type(CHC_main.recipesByItem[item.name]) == 'table'
+    local cond2 = type(CHC_main.recipesForItem[item.name]) == 'table'
     local cX = getMouseX()
     local cY = getMouseY()
     local context = ISContextMenu.get(0, cX + 10, cY)
+
+    local function chccopy(_, param)
+        if param then
+            Clipboard.setClipboard(param)
+        end
+    end
+
+    if isShiftKeyDown() then
+        local name = context:addOption("Copy to clipboard", nil, nil)
+        local subMenuName = ISContextMenu:getNew(context)
+        context:addSubMenu(name, subMenuName)
+        subMenuName:addOption("FullType", self, chccopy, item.fullType)
+        subMenuName:addOption("Name", self, chccopy, item.name)
+        subMenuName:addOption("!Type", self, chccopy, "!" .. self.parent.categoryData[item.category].tooltip or item.category)
+        subMenuName:addOption("#Category", self, chccopy, "#" .. item.displayCategory)
+        subMenuName:addOption("@Mod", self, chccopy, "@" .. item.modname)
+    end
     if cond1 or cond2 then
-        context:addOption(getText("IGUI_new_tab"), backref, backref.addItemView, item, true)
+        context:addOption(getText("IGUI_new_tab"), backref, backref.addItemView, item.item, true)
         -- backref:addItemView(item, true)
     end
 end
@@ -216,6 +247,9 @@ end
 function CHC_search:onChangeCategory(_option, sl)
     self.parent.selectedCategory = sl or _option.options[_option.selected].text
     self.parent.needUpdateObjects = true
+    if advUpdCoCa then
+        self.parent.needSyncFilters = true
+    end
 end
 
 function CHC_search:cacheItemCounts()
@@ -311,8 +345,6 @@ function CHC_search:searchProcessToken(token, item)
 end
 
 function CHC_search:processAddObjToObjList(item, modData)
-    if not CHC_settings.config.show_hidden and item.hidden then return end
-    -- if not self.showHidden and item.recipe:isHidden() then return end
     -- item.favorite = modData[CHC_main.getFavoriteModDataString(item.recipe)] or false
     local name = item.displayName
     if name then
@@ -321,9 +353,80 @@ function CHC_search:processAddObjToObjList(item, modData)
 end
 
 function CHC_search:onItemChange(item)
-    print("imma change item in ItemList")
-    -- self.recipePanel:setRecipe(recipe);
+    self.objPanel:setObj(item)
     -- self.recipesList:onMouseDown_Recipes(self.recipesList:getMouseX(), self.recipesList:getMouseY())
+end
+
+function CHC_search:updTypes(items)
+    local newTypes
+    local newTypesCounts = {}
+
+    for i = 1, #items do
+        local typ = items[i].item.category
+        if not newTypes then newTypes = {} end
+        if not utils.any(newTypes, typ) then
+            insert(newTypes, typ)
+            newTypesCounts[typ] = 1
+        else
+            newTypesCounts[typ] = newTypesCounts[typ] + 1
+        end
+    end
+    -- clear counts
+    for typ, _ in pairs(self.categoryData) do
+        self.categoryData[typ].count = 0
+    end
+    self.categoryData.all.count = #items
+    for typ, cnt in pairs(newTypesCounts) do
+        self.categoryData[typ].count = cnt
+    end
+end
+
+function CHC_search:updCategories(items, selector)
+    local newDisplayCategories
+    local newDCatCounts = {}
+
+    for i = 1, #items do
+        local cat = items[i].item.displayCategory
+        if not newDisplayCategories then newDisplayCategories = {} end
+        if not utils.any(newDisplayCategories, cat) then
+            insert(newDisplayCategories, cat)
+            newDCatCounts[cat] = 1
+        else
+            newDCatCounts[cat] = newDCatCounts[cat] + 1
+        end
+    end
+    selector:clear()
+    selector:addOptionWithData(self.categorySelectorDefaultOption, { count = #items })
+    sort(newDisplayCategories)
+    for i = 1, #newDisplayCategories do
+        local val = newDisplayCategories[i]
+        selector:addOptionWithData(val, { count = newDCatCounts[val] })
+    end
+end
+
+function CHC_search:syncFilters()
+    local curList = self.objList.items
+    if not curList or #curList == 0 then return end
+
+    local selector = self.filterRow.categorySelector
+
+    local isTypeSetToAll = self.typeFilter == 'all'
+    local isSelectorSetToAll = self.selectedCategory == self.categorySelectorDefaultOption
+
+
+    self:updTypes(curList)
+    self:updCategories(curList, selector)
+    selector:select(self.selectedCategory)
+
+    if isSelectorSetToAll == true and isTypeSetToAll == true then
+        selector.options = self.categoryData.all.selectorOptions
+        selector:select(self.categorySelectorDefaultOption)
+
+        self.categoryData.all.count = self.categoryData.all.initCount
+        for typ, _ in pairs(self.categoryData) do
+            self.categoryData[typ].count = self.categoryData[typ].initCount
+        end
+    end
 end
 
 function CHC_search:catSelUpdateOptions()
@@ -332,10 +435,11 @@ function CHC_search:catSelUpdateOptions()
     local uniqueCategories = {}
     local dcatCounts = {}
     local catCounts = {}
-    local allItems = self.ui_type == 'fav_items' and self.favrec or self.itemSource
+    local allItems = self.ui_type == 'fav_items' and self.favrec or self.itemSource -- CHC_items.itemsForSearch
     local c = 1
 
     for i = 1, #allItems do
+
         local ic = allItems[i].category
         if not catCounts[ic] then
             catCounts[ic] = 1
@@ -354,17 +458,21 @@ function CHC_search:catSelUpdateOptions()
     end
 
     selector:clear()
-    selector:addOptionWithData(self.categorySelectorDefaultOption, { count = #allItems })
+    selector:addOptionWithData(self.categorySelectorDefaultOption, { count = #allItems, initCount = #allItems })
 
     -- WIP favorite category
 
     sort(uniqueCategories)
     for i = 1, #uniqueCategories do
-        selector:addOptionWithData(uniqueCategories[i], { count = dcatCounts[uniqueCategories[i]] })
+        local val = dcatCounts[uniqueCategories[i]]
+        selector:addOptionWithData(uniqueCategories[i], { count = val, initCount = val })
     end
 
+    self.categoryData.all.selectorOptions = selector.options
     self.categoryData.all.count = #allItems
+    self.categoryData.all.initCount = #allItems
     for cat, cnt in pairs(catCounts) do
+        self.categoryData[cat].initCount = cnt
         self.categoryData[cat].count = cnt
     end
 end
@@ -391,8 +499,10 @@ function CHC_search:onFilterTypeMenu(button)
 
     local txt
     for i = 1, #data do
-        txt = CHC_uses.filterSortMenuGetText(self, data[i].txt, data[i].num)
-        context:addOption(txt, self, CHC_search.sortByType, data[i].arg)
+        if data[i].num and data[i].num > 0 then
+            txt = CHC_uses.filterSortMenuGetText(self, data[i].txt, data[i].num)
+            context:addOption(txt, self, CHC_search.sortByType, data[i].arg)
+        end
     end
 
 end
@@ -419,7 +529,7 @@ end
 
 function CHC_search:filterRowTypeSetTooltip()
     local curtype = self.categoryData[self.typeFilter].tooltip
-    return getText("UI_settings_av_title") .. " (" .. curtype .. ")"
+    return getText("IGUI_invpanel_Type") .. " (" .. curtype .. ")"
 end
 
 function CHC_search:filterRowTypeSetIcon()
@@ -457,6 +567,9 @@ function CHC_search:sortByType(_type)
         self.filterRow.filterTypeBtn:setTooltip(self:filterRowTypeSetTooltip())
         self.filterRow.filterTypeBtn:setImage(self:filterRowTypeSetIcon())
         self.needUpdateObjects = true
+        if advUpdCoCa then
+            self.needSyncFilters = true
+        end
     end
 end
 
@@ -468,8 +581,8 @@ function CHC_search:onResizeHeaders()
     self.filterRow:setWidth(self.headers.nameHeader.width)
     self.searchRow:setWidth(self.headers.nameHeader.width)
     self.objList:setWidth(self.headers.nameHeader.width)
-    -- self.recipePanel:setWidth(self.headers.typeHeader.width)
-    -- self.recipePanel:setX(self.headers.typeHeader.x)
+    self.objPanel:setWidth(self.headers.typeHeader.width)
+    self.objPanel:setX(self.headers.typeHeader.x)
 end
 
 --endregion
@@ -489,7 +602,7 @@ function CHC_search:new(args)
     o.sep_x = args.sep_x
     o.player = getPlayer()
 
-    o.favCatName = "* " .. getText("IGUI_CraftCategory_Favorite")
+    o.favCatName = "* " .. getText("IGUI_CraftCategory_Favorite") -- WIP favorite items
     o.categorySelectorDefaultOption = getText("UI_All")
     o.searchRowHelpText = getText("UI_searchrow_info",
         getText("UI_searchrow_info_items_special"),
@@ -507,10 +620,10 @@ function CHC_search:new(args)
     o.showHidden = args.showHidden
     o.favNum = 0 -- WIP favorite items
 
-    o.needUpdateFavorites = false
-    o.needUpdateCounts = false
     o.needUpdateObjects = false
-    o.updCountsWithCur = false
+    o.needSyncFilters = true
+
+    o.isItemView = true
 
     return o
 end
