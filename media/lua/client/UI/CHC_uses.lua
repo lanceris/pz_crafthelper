@@ -388,7 +388,7 @@ function CHC_uses:searchProcessToken(token, recipe)
         isSpecialSearch = true
         char = token:sub(1, 1)
         token = string.sub(token, 2)
-        if token == "" then return true end
+        if token == "" and char ~= "^" then return true end
     end
 
     local whatCompare
@@ -407,7 +407,7 @@ function CHC_uses:searchProcessToken(token, recipe)
             local catName = getTextOrNull("IGUI_CraftCategory_" .. recipe.category) or recipe.category
             whatCompare = catName
         end
-        local resultItem = recipe.recipeData.resultItem
+        local resultItem = recipe.recipeData.result
         if resultItem and resultItem.fullType then
             if char == "@" then
                 -- search by mod name of resulting item
