@@ -58,6 +58,7 @@ function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y, item)
             view.objList:ensureVisible(c)
             if view.objPanel then
                 view.objPanel:setObj(it[c].item)
+                -- view.needSyncFilters = true
             end
         end
     end

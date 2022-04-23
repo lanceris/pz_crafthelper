@@ -117,8 +117,6 @@ end
 function CHC_items_panel:render()
     ISPanel.render(self)
     if not self.item then return end
-    -- print(getTextManager():MeasureStringX(self.mainName.font, self.mainName.name))
-    -- print(self.mainName.width)
 end
 
 -- endregion

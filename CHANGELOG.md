@@ -20,6 +20,7 @@
 - Improved type-category syncronization
 - Updated language files
 - Updated pictures
+- Set "Show icons" and "Show recipe module" to true by default
 
 ### Bugfixes
 
