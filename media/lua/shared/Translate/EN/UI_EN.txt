@@ -1,62 +1,118 @@
 UI_EN = {
-    UI_tab_uses = "Uses"
-    UI_tab_craft = "Craft"
-    UI_infotext_uses =  "<CENTRE><SIZE:medium> This is the Uses Screen <LINE> <LINE> "..
-                        "<SIZE:small> <LEFT> Here you can find what selected item is used for. <LINE> <LINE> "..
-                        "Left tab (Recipe) shows list of recipes with some additional controls. <LINE> "..
-                        "First button (with four lines) shows current sorting order (Ascending or Descending). You can change the order by clicking it. <LINE> "..
-                        "Second button allows you to filter the list of recipes. <LINE> "..
-                        "- <IMAGE:media/textures/type_filt_all.png> : All recipes <LINE> "..
-                        "- <IMAGE:media/textures/type_filt_valid.png> : Recipes that you can craft right now <LINE> "..
-                        "- <IMAGE:media/textures/type_filt_known.png> : Recipes that you know about, but can't craft (lack of skills/items) <LINE> "..
-                        "- <IMAGE:media/textures/type_filt_invalid.png> : Recipes that you know nothing about. Will show book(-s), from which it can be learned. <LINE> "..
-                        "To the right of those two buttons, there is category selector, where you can specify desired recipe category. <LINE> "..
-                        "Below category selector, there is search bar, where you can search by recipe name or by specific rules, depending on your query. <LINE> "..
-                        "To learn more about search rules, click on <IMAGE:media/textures/search_icon.png> <LINE> <LINE> "..
-                        "In recipe list, you can also (un-)favorite recipe by clicking star icon. <LINE> <LINE> <LINE> "..
-                        "The right tab (Details) shows the details of the recipe (category, result, and what is required to create) <LINE><LINE>"..
-                        "By the way, you can resize Recipe and Details tabs by grabbing and dragging line between them. <LINE> "
-    UI_search_info = "<CENTRE><SIZE:medium> Search Helper <LINE> <LINE> "..
-                    "<LEFT><SIZE:small> This search bar supports custom rules. Each separated query called Token. <LINE> <LINE> "..
-                    "First, you can search by multiple queries at once, using one of the following separators: <LINE> "..
-                    "<SIZE:medium> , (comma) <SIZE:small> : combine all Tokens results (logical AND), can be used for very specific filtering <LINE> "..
-                    "<SIZE:medium> | (vertical bar) <SIZE:small> : separate all Tokens (logical OR), can be used to search multiple queries separately <LINE> <LINE> "..
-                    "Second, you can prepend each Token with one of the following special charachers to specify search rule for this Token <LINE>"..
-                    "<SIZE:medium> ! (exclamation mark) <SIZE:small> : search by recipe category <LINE>"..
-                    "<SIZE:medium> @ (at sign) <SIZE:small> : search by mod name of resulting item <LINE>"..
-                    "<SIZE:medium> # (number sign) <SIZE:small> : search by recipe ingredients <LINE>"..
-                    "<SIZE:medium> $ (dollar sign) <SIZE:small> : search by category of resulting item (shown in right side of inventory panel) <LINE>"..
-                    "<SIZE:medium> % (percent sign) <SIZE:small> : search by name of resulting item <LINE>"..
-                    "<SIZE:medium> ^ (caret) <SIZE:small> : search by favorited recipes <LINE> <LINE>"..
-                    "<SIZE:medium> <LEFT> Examples: <LINE> <SIZE:small> "..
-                    "<SIZE:medium> #hamm <SIZE:small> : show recipes which ingredients include something with 'hamm' in name <LINE>"..
-                    "<SIZE:medium> @hydrocra,!engineer,#saw <SIZE:small> : show recipes from Hydrocraft (or similar) in 'engineer' recipe category, which have 'saw' as ingredient <LINE>"..
-                    "<SIZE:medium> %plank|!food <SIZE:small> : show recipes where 'plank' is the result, OR recipes in 'food' category <LINE> <LINE> "..
-                    "<SIZE:medium> Limitations: <LINE> <SIZE:small> "..
-                    "- Can't use both separators (',' and '|') in one query <LINE> "
-    UI_infotext_craft = "TBD"
-    UI_tab_uses_recipe_title = "Recipe"
-    UI_tab_uses_details_title = "Details"
-    UI_category = "Category"
+    UI_item_uses_tab_name =         "Uses"
+    UI_item_craft_tab_name =        "Craft"
+    UI_common_left_col_name =       "Recipe"
+    UI_common_right_col_name =      "Details"
+    UI_search_tab_name =            "Search"
+    UI_search_items_tab_name =      "Items"
+    UI_search_recipes_tab_name =    "Recipes"
     UI_recipe_panel_required_book = "Required books (one of)"
-    UI_category_default = "General"
-    UI_tab_uses_details_near_item = "Required Crafting Equipment"
-    UI_tab_uses_categorySelector_All = "All"
-    UI_tab_uses_categorySelector_Favorite = "Favorites"
-    UI_settings_st_title = "Sort order"
-    UI_settings_av_title = "Availability"
-    UI_settings_av_all = "All"
-    UI_settings_av_valid = "Valid"
-    UI_settings_av_known = "Known"
+    UI_recipe_panel_near_item =     "Required Crafting Equipment"
+
+    UI_settings_st_title =   "Sort order"
+    UI_settings_av_title =   "Availability"
+    UI_settings_av_valid =   "Valid"
+    UI_settings_av_known =   "Known"
     UI_settings_av_invalid = "Invalid"
-    UI_settings_kb_title = "Close on ESC"
-    UI_optionscreen_binding_chc_category_title = "Craft Helper"
-    UI_optionscreen_binding_chc_move_up = "Select previous recipe"
-    UI_optionscreen_binding_chc_move_down = "Select next recipe"
-    UI_optionscreen_binding_chc_move_left = "Select previous category"
-    UI_optionscreen_binding_chc_move_right = "Select next category"
-    UI_optionscreen_binding_chc_craft_one = "Craft one"
-    UI_optionscreen_binding_chc_craft_all = "Craft all"
-    UI_optionscreen_binding_chc_favorite_recipe = "Favorite selected recipe"
-    UI_optionscreen_binding_chc_close_window = "Close Craft Helper window"
+
+    UI_optionscreen_binding_chc_category_title =            "Craft Helper"
+    UI_optionscreen_binding_chc_move_up =                   "Select previous recipe"
+    UI_optionscreen_binding_chc_move_down =                 "Select next recipe"
+    UI_optionscreen_binding_chc_move_left =                 "Select previous category"
+    UI_optionscreen_binding_chc_move_right =                "Select next category"
+    UI_optionscreen_binding_chc_craft_one =                 "Craft one"
+    UI_optionscreen_binding_chc_craft_all =                 "Craft all"
+    UI_optionscreen_binding_chc_favorite_recipe =           "Favorite selected recipe"
+    UI_optionscreen_binding_chc_close_window =              "Close Craft Helper window"
+    UI_optionscreen_binding_chc_toggle_window =             "Toggle Craft Helper window"
+    UI_optionscreen_binding_chc_toggle_uses_craft =         "Toggle between uses/craft"
+    UI_optionscreen_binding_chc_move_tab_left =             "Select previous tab"
+    UI_optionscreen_binding_chc_move_tab_right =            "Select next tab"
+    UI_optionscreen_binding_chc_toggle_focus_search_bar =   "Focus search bar"
+
+    UI_infotext_search =    "<CENTRE><SIZE:medium> Search Screen <LINE><LINE> "..
+                            "<SIZE:small> <LEFT> Here you can find all items and recipes. <LINE><LINE> "
+    UI_infotext_favorites = "<CENTRE><SIZE:medium> Favorite Screen <LINE><LINE> "..
+                            "<SIZE:small> <LEFT> Here you can find favorited items(WIP) and recipes. <LINE><LINE> "
+    UI_infotext_itemtab =   "<CENTRE><SIZE:medium> Item Screen <LINE>"..
+                            "<SIZE:small> <LEFT> Here you can find detailed information about '%1' <LINE> "..
+                            "First tab (%2) shows recipes, where '%1' is used as ingredient. <LINE> "..
+                            "Second tab (%3) shows recipes, result of which is '%1'. <LINE><LINE> " 
+    
+    UI_infotext_common = "<INDENT:0> Left column (Recipe) shows list of items/recipes with some additional controls. First line is filter row. <LINE><LINE> "..
+                         "<IMAGECENTRE:media/textures/info_filter_row.png> <LINE>"..
+                         "<INDENT:8>Button 1 shows current sorting order of items/recipes. Click button to change order. <LINE>"..
+                         "Button 2 allows you to select type of desired output: <LINE>"..
+                         "<INDENT:16> %1 <LINE>"..
+                         "<INDENT:8> Element 3 is category selector, where you can specify desired category. <LINE><LINE>"..
+                         "Under filter row there is search bar, where you can search by item/recipe name or by specific rules, depending on your query. <LINE>"..
+                         "To learn more about search rules, click on <IMAGE:media/textures/search_icon.png> <LINE><LINE>"..
+                         "<INDENT:0> Right column (Details) shows the details of the item/recipe: <LINE>"..
+                         "<INDENT:8> %2 <LINE><LINE>"..
+                         "<INDENT:0><SIZE:medium>Controls: <SIZE:small><LINE><LINE>"..
+                         "<INDENT:16> - You can resize Recipe and Details columns by dragging line between their names <LINE> "..
+                         " - Right click on item tab name to open context menu <LINE>"..
+                         "%3 <LINE>"..
+                         " - With 'Mod Options' you can set hotkeys for frequent actions"
+                         
+    -- %1
+    UI_infotext_recipe_types = "- <IMAGE:media/textures/type_filt_all.png> <SPACE>(%1): All recipes <LINE> "..
+                               "- <IMAGE:media/textures/type_filt_valid.png> (%2): Recipes that you can craft right now <LINE> "..
+                               "- <IMAGE:media/textures/type_filt_known.png> (%3): Recipes that you know about, but can't craft (lack of skills/items) <LINE> "..
+                               "- <IMAGE:media/textures/type_filt_invalid.png> (%4): Recipes that you know nothing about. Will show book(-s), from which it can be learned."
+    UI_infotext_item_types =   " - Clothing <LINE> - Food <LINE> - Weapon <LINE> - ..."
+
+    -- %2
+    UI_infotext_recipe_details = " - Info about recipe category and resulting item(-s) <LINE> "..
+                                 " - Required items <LINE>"..
+                                 " - Other requirements (skills, books, crafting equipment and time to craft)"
+    UI_infotext_item_details =   " - Basic info about item and number of recipes <LINE> "..
+                                 " - Item attributes (WIP) <LINE> "..
+                                 " - How to fix this item (if possible) (WIP) <LINE>"..
+                                 " - Where to find this item (WIP)"
+
+    -- %3
+    UI_infotext_recipe_mouse = " - Left click on star icon (Recipe column, mouse over element) to (un-)favorite recipe <LINE> "..
+                               " - Right click on recipe result icon (Details column) to open context menu <LINE> "..
+                               " - Right click on item in 'Required items' (Details column) to open context menu"
+    UI_infotext_item_mouse =   " - Middle click on item (Recipe column) to open new tab with clicked item in background <LINE>"..
+                               " - Right click on item (Recipe column) to open context menu <LINE>"..
+                               " - Right click on item icon (Details column) to open context menu <LINE>"..
+                               " - Shift + Right click on some elements (see above) will display additional options"
+
+
+    UI_searchrow_info = "<CENTRE><SIZE:medium> Search Helper <LINE><LINE> "..
+                        "<LEFT><SIZE:small> This search bar supports custom rules. Each separated query (word) called Token. <LINE>"..
+                        "You can search by multiple queries at once, using SEPARATORS. <LINE>"..
+                        "You can prepend each Token with SPECIAL SYMBOLS to specify search rule for this Token. <LINE>"..
+                        "With 'Mod Options' you can set hotkey to focus search bar. Unfocus on ESC. <LINE><LINE>"..
+                        "<SIZE:medium> Separators: <LINE> <SIZE:small> "..
+                        "<INDENT:8> <SIZE:medium> , <SIZE:small> <SPACE><SPACE>(comma) - combine all Tokens results (logical AND), can be used for very specific filtering <LINE> "..
+                        "<SIZE:medium> | <SIZE:small> <SPACE><SPACE>(vertical bar) - separate all Tokens (logical OR), can be used to search multiple queries separately <LINE><LINE> "..
+                        "<INDENT:0><SIZE:medium> Special symbols: <LINE> <SIZE:small> "..
+                        "<INDENT:8>%1"..
+                        "<SIZE:medium> ~ <SIZE:small> <SPACE><SPACE>(tilde) - excludes this Token (i.e find everything thats NOT Token; must be after special character, if using them) <LINE><LINE>"..
+                        "<INDENT:0><SIZE:medium> <LEFT> Examples: <LINE> <SIZE:small> "..
+                        "<INDENT:8>%2<LINE>"..
+                        "<INDENT:0><SIZE:medium> Limitations: <LINE> <SIZE:small> "..
+                        "<INDENT:8>- Can't use both separators (',' and '|') in one query <LINE> "..
+                        "- Can't exclude ingredients (#~word)"
+
+    -- %1
+    UI_searchrow_info_recipes_special = "<SIZE:medium> ! <SIZE:small> <SPACE><SPACE>(exclamation mark) - search by recipe category <LINE>"..
+                                        "<SIZE:medium> @ <SIZE:small> <SPACE><SPACE>(at sign) - search by mod name of resulting item ('Project Zomboid' for vanilla 'mod') <LINE>"..
+                                        "<SIZE:medium> # <SIZE:small> <SPACE><SPACE>(number sign) - search by recipe ingredients <LINE>"..
+                                        "<SIZE:medium> $ <SIZE:small> <SPACE><SPACE>(dollar sign) - search by category of resulting item (shown in right side of inventory panel) <LINE>"..
+                                        "<SIZE:medium> % <SIZE:small> <SPACE><SPACE>(percent sign) - search by name of resulting item <LINE>"..
+                                        "<SIZE:medium> ^ <SIZE:small> <SPACE><SPACE>(caret) - search by favorited recipes <LINE>"..
+                                        "<SIZE:medium> & <SIZE:small> <SPACE><SPACE>(ampersand) - search by mod name of recipe ('Base' for vanilla 'mod') <LINE>"
+    UI_searchrow_info_items_special =   "<SIZE:medium> ! <SIZE:small> <SPACE><SPACE>(exclamation mark) - search by item type <LINE>"..
+                                        "<SIZE:medium> @ <SIZE:small> <SPACE><SPACE>(at sign) - search by mod name of item ('Project Zomboid' for vanilla 'mod') <LINE>"..
+                                        "<SIZE:medium> # <SIZE:small> <SPACE><SPACE>(number sign) - search by item category (shown in right side of inventory panel) <LINE>"
+    
+    -- %2
+    UI_searchrow_info_recipes_examples = "#hamm <SPACE><SPACE>- show recipes which ingredients include something with 'hamm' in name <LINE>"..
+                                         "@hydrocra,!engineer,#saw <SPACE><SPACE>- show recipes from Hydrocraft (or similar) in 'engineer' recipe category, which have 'saw' as ingredient <LINE>"..
+                                         "%plank|!food <SPACE><SPACE>- show recipes where 'plank' is the result, OR recipes in 'food' category <LINE> "
+    UI_searchrow_info_items_examples =   "#tool,!~weapon <SPACE><SPACE>: show tools which is not a weapon (e.g needle, saw, tongs) <LINE> "
 }

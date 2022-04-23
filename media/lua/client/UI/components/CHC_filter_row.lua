@@ -1,7 +1,6 @@
 require 'ISUI/ISPanel'
 require 'ISUI/ISButton'
 require 'ISUI/ISModalRichText'
-require 'ISUI/ISTextEntryBox'
 
 local derivative = ISPanel
 CHC_filter_row = derivative:derive("CHC_filter_row")
@@ -11,9 +10,8 @@ function CHC_filter_row:initialise()
     self:create()
 end
 
-
 function CHC_filter_row:create()
-    local x,y,w,h = self.x, self.y, self.width, self.height
+    local x, y, w, h = self.x, self.y, self.width, self.height
 
     -- region order btn
     local foo = self.filterOrderData
@@ -39,14 +37,12 @@ function CHC_filter_row:create()
 
     -- region selector
     local fsd = self.filterSelectorData
-    local dw = self.filterOrderBtn.width+self.filterTypeBtn.width
-    self.categorySelector = ISComboBox:new(x, 0, w-dw, h)
+    local dw = self.filterOrderBtn.width + self.filterTypeBtn.width
+    self.categorySelector = ISComboBox:new(x, 0, w - dw, h)
     self.categorySelector:initialise()
-    self.categorySelector.selected = 1
-    self.categorySelector:addOption(fsd.defaultCategory)
     self.categorySelector.onChange = fsd.onChange
     self.categorySelector.target = self
-    self.categorySelector.tooltip={defaultTooltip=fsd.defaultTooltip}
+    self.categorySelector.tooltip = { defaultTooltip = fsd.defaultTooltip }
     -- endregion
 
     self:addChild(self.filterOrderBtn)
@@ -55,21 +51,20 @@ function CHC_filter_row:create()
 end
 
 function CHC_filter_row:onResize()
-    self.categorySelector:setWidth(self.width-self.filterOrderBtn.width-self.filterTypeBtn.width)
+    self.categorySelector:setWidth(self.width - self.filterOrderBtn.width - self.filterTypeBtn.width)
 end
 
-
-function CHC_filter_row:new(x,y,width,height, filtersData)
+function CHC_filter_row:new(x, y, width, height, filtersData)
     local o = {};
-    o = derivative:new(x,y,width,height)
+    o = derivative:new(x, y, width, height)
 
     setmetatable(o, self)
     self.__index = self
 
-    o.x=x
-    o.y=y
-    o.w=width
-    o.h=height
+    o.x = x
+    o.y = y
+    o.w = width
+    o.h = height
     o.filterOrderData = filtersData.filterOrderData
     o.filterTypeData = filtersData.filterTypeData
     o.filterSelectorData = filtersData.filterSelectorData

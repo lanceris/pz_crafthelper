@@ -1,5 +1,135 @@
 # CraftHelper updates
 
+# 1.6 (23.04.2022, workshop release)
+
+## 1.5.8 (22.04.2022)
+
+### New features
+
+- Added item panel with (very) basic info about item
+- Added RMB for recipe result icon in recipe details (opens context menu with options to find item and open in new tab)
+- Added RMB for item icon in item details (opens context menu with option to open new tab (will focus))
+- Added option to item tabs ("Close other tabs")
+
+### Improvements
+
+- Added icons for type filter in item views
+- Improved search helper info
+- Added tooltip to recipe result icon in recipe details view
+- Improved hydrocraft integration (search hydro furniture in #ingredients)
+- Improved type-category syncronization
+- Updated language files
+- Updated pictures
+
+### Bugfixes
+
+- Fixed config values not applying correctly
+- Fixed "Search item" context option in recipe panel not selecting item in search view
+- Fixed "Show hidden" option not hiding items
+- Fixed DisplayCategory for items without DisplayCategory (IGUI_ItemCat_Item)
+
+## 1.5.7 (19.04.2022)
+
+### New features
+
+- Added type filter for item views (select item category here)
+- Added special search for items (! - category, @ - mod, # - displayCategory)
+- Added RMB and MMB for items list (RMB opens context menu with option to open new tab (will focus), MMB opens new tab in background (will not focus))
+- Added RMB for recipe panel ingredients (will open context menu with option to open new tab)
+- Added option to RMB for recipe panel ingredients (will find item in search-items view, will change focus)
+
+### Improvements
+
+- Counts in type filter now updates when changing category (disabled for now)
+- Available categories in selector now updates when changing filter type (disabled for now)
+- Added trim to search bar token parser (removes whitespaces around token)
+- Moved items list to separate file
+- Changed recipe panel ingredients look a bit (border and red-ish fill for "one of" entry)
+- Updated language files
+- Changed CHC_window.uiTypeToView structure to table with 2 fields (view and name)
+
+### Bugfixes
+
+- Removed obsolete items in CHC_main.loadAllItems (item:getObsolete())
+- Fixed item views not respecting font size setting
+- Fixed recipes in favorite screen not removed on unfavoriting
+- Fixed rendering of recipe panel (caused by incorrect amount of books required)
+
+## 1.5.6 (18.04.2022)
+
+### New features
+
+- Option to change font size in recipe list (by default 'Large')
+- Options to select modifier keys (shift, ctrl) while selecting recipes, cetegories and tabs (by default all 'None')
+- Option to show mod name of recipe (if not 'Base', by default 'false')
+- Added new special search character (&) - searches by mod name of recipe
+- Added new token modifier in search (~) - negates this token
+
+### Improvements
+
+- Config checking: If something new added to config (e.g options), it will autoupdate with default values
+- Moved tab closing context menu a bit higher
+- Updated search helper info
+- Removed caching of search panel
+
+### Bugfixes
+
+- Fixed error when favoriting via hotkey with no recipe selected
+
+## 1.5.5 (17.04.2022)
+
+### New features
+
+- Keybind to focus search bar (unfocus on ESC)
+
+### Improvements
+
+- Updated infotext for views
+- Cleaned up translations
+
+### Bugfixes
+
+- Fixed settings not applying in main menu
+
+## 1.5.4 (14.04.2022)
+
+### New features
+
+- Ability to close item tab (RMB -> Close)
+- Keybind to toggle Craft Helper window
+- Keybind for toggling between uses/craft (and items/recipes in search tab)
+- Keybinds for changing active tab (left, right)
+- Option to close all item tabs on window close (by default OFF)
+
+### Improvements
+
+- Refactored config (from txt to json, will reset all settings)
+
+## 1.5.3 (12.04.2022)
+
+### New features
+
+- Added functionality to search tab (search and category selection for all items/recipes). Lags a lot with large amount of mods.
+- Added caching for search tab (first opening of craft helper will take a while, but subsequent ones will be instant)
+
+### Improvements
+
+- Moved java calls (getCategory, getFullType etc) to item/recipe properties, gathered on start (in CHC_main)
+
+## 1.5.2 (11.04.2022)
+
+### New features
+
+- Added new layer of tabs above Uses and Craft, this tab will display all selected items (previously multiple windows were opened)
+- Added Favorites tab, showing all favorited recipes
+- Added Search tab, showing all recipes and items(WIP)
+
+## 1.5.1 (11.04.2022)
+
+### New features
+
+- Craft screen, shows how to craft selected item
+
 # 1.5 (10.04.2022, workshop release)
 
 ## 1.4.6 (10.04.2022)

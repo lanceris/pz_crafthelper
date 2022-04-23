@@ -11,41 +11,39 @@ end
 
 function CHC_tabs:addTabs()
 
-	local sep_x=CHC_menu.cfg.uses_tab_sep_x
-
-    local fontHgtSmall = getTextManager():getFontHeight(UIFont.Medium)
-    local headerHgt = fontHgtSmall + 1
-    -- region list
+	local fontHgtSmall = getTextManager():getFontHeight(UIFont.Medium)
+	local headerHgt = fontHgtSmall + 1
+	-- region list
 	local nha = {
-		x=0,
-		y=1,
-		w=sep_x,
-		h=headerHgt,
-		title=self.tabName1,
-		clicktgt=self,
-		onclick=nil
+		x = 0,
+		y = 1,
+		w = self.sep_x,
+		h = headerHgt,
+		title = self.tabName1,
+		clicktgt = self,
+		onclick = nil
 	}
-    self.nameHeader = ISResizableButton:new(nha.x, nha.y, nha.w, nha.h,
-											 nha.title, nha.clicktgt, nha.onclick)
+	self.nameHeader = ISResizableButton:new(nha.x, nha.y, nha.w, nha.h,
+		nha.title, nha.clicktgt, nha.onclick)
 	self.nameHeader:initialise()
 	self.nameHeader.borderColor.a = 0.2;
 	self.nameHeader.minimumWidth = 100;
-	self.nameHeader.onresize = { CHC_tabs.onResizeColumn, self, self.nameHeader}
+	self.nameHeader.onresize = { CHC_tabs.onResizeColumn, self, self.nameHeader }
 	self:addChild(self.nameHeader);
 	-- endregion
 
-    -- region details
+	-- region details
 	local tha = {
-		x=self.nameHeader.width,
-		y=1,
-		w=self.width-self.nameHeader.width,
-		h=headerHgt,
-		title=self.tabName2,
-		clicktgt=self,
-		onclick=nil
+		x = self.nameHeader.width,
+		y = 1,
+		w = self.width - self.nameHeader.width,
+		h = headerHgt,
+		title = self.tabName2,
+		clicktgt = self,
+		onclick = nil
 	}
 	self.typeHeader = ISResizableButton:new(tha.x, tha.y, tha.w, tha.h,
-											 tha.title, tha.clicktgt, tha.onclick)
+		tha.title, tha.clicktgt, tha.onclick)
 	self.typeHeader.borderColor.a = 0.2
 	self.typeHeader.anchorRight = true
 	self.typeHeader.minimumWidth = 100
@@ -53,10 +51,9 @@ function CHC_tabs:addTabs()
 	self.typeHeader.onresize = { CHC_tabs.onResizeColumn, self, self.typeHeader }
 	self.typeHeader:initialise();
 	self:addChild(self.typeHeader)
-	self.proportion = self.nameHeader.width/self.width
+	self.proportion = self.nameHeader.width / self.width
 	-- endregion
 end
-
 
 function CHC_tabs:onResizeColumn(button)
 	if button == self.nameHeader then
@@ -69,17 +66,15 @@ function CHC_tabs:onResizeColumn(button)
 	if self.onresize then
 		self.onresize[1](self.onresize[2], self.onresize[3])
 	end
-	self.proportion = self.nameHeader.width/self.width
+	self.proportion = self.nameHeader.width / self.width
 end
-
 
 function CHC_tabs:prerender()
-    self.nameHeader.maximumWidth = self.width - self.typeHeader.minimumWidth
-    self.typeHeader.maximumWidth = self.width - self.nameHeader.minimumWidth
+	self.nameHeader.maximumWidth = self.width - self.typeHeader.minimumWidth
+	self.typeHeader.maximumWidth = self.width - self.nameHeader.minimumWidth
 
-    self:setStencilRect(0,0,self.width-1, self.height-1);
+	self:setStencilRect(0, 0, self.width - 1, self.height - 1);
 end
-
 
 function CHC_tabs:render()
 
@@ -95,26 +90,26 @@ function CHC_tabs:render()
 	end
 end
 
-
 ---@param onresize table<number,function|any|any> `table` with 3 values, first is `function`, second and third are arguments
 ---@return table self
-function CHC_tabs:new(x,y,width,height, onresize)
-    local o = {};
-    o = derivative:new(x,y,width,height)
+function CHC_tabs:new(x, y, width, height, onresize, sep_x)
+	local o = {};
+	o = derivative:new(x, y, width, height)
 
-    setmetatable(o, self)
-    self.__index = self
+	setmetatable(o, self)
+	self.__index = self
 
-    o.x=x
-    o.y=y
-    o.w=width
-    o.h=height
+	o.x = x
+	o.y = y
+	o.w = width
+	o.h = height
 
 	o.onresize = onresize
 	o.column2 = 30;
-	o.tabName1 = getText("UI_tab_uses_recipe_title")
-	o.tabName2 = getText("UI_tab_uses_details_title")
+	o.tabName1 = getText("UI_common_left_col_name")
+	o.tabName2 = getText("UI_common_right_col_name")
 	o.proportion = nil
+	o.sep_x = sep_x
 
-    return o
+	return o
 end

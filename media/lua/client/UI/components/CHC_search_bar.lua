@@ -10,13 +10,13 @@ CHC_search_bar = derivative:derive("CHC_search_bar")
 CHC_search_bar.searchIcon = getTexture("media/textures/search_icon.png")
 
 local contains = string.contains
-
+local insert = table.insert
+local concat = table.concat
 
 function CHC_search_bar:initialise()
     derivative.initialise(self)
     self:create()
 end
-
 
 function CHC_search_bar:searchBtnOnClick()
     if self.searchBtn.modal:isVisible() then
@@ -29,43 +29,64 @@ function CHC_search_bar:searchBtnOnClick()
 end
 
 function CHC_search_bar:create()
-    local x,y,w,h = self.x, self.y, self.width, self.height
+    local x, y, w, h = self.x, self.y, self.width, self.height
 
     self.searchBtn = ISButton:new(x, 0, h, h, "", self, self.searchBtnOnClick)
     self.searchBtn:initialise()
     self.searchBtn.borderColor.a = 0
     self.searchBtn:setImage(self.searchIcon)
     self.searchBtn:setTooltip(getText("UI_ServerOptionDesc_Help"))
-    local mw,mh = 600, 350
-    local mx, my = getCore():getScreenWidth() / 2 - mw/2,getCore():getScreenHeight() / 2 - mh/2
-    self.searchBtn.modal = ISModalRichText:new(mx,my,mw,mh,self.searchBtnOnClickText, false, nil)
-    -- self.searchBtn.modal = ISRichTextBox:new(x,y,w,h,getText("UI_search_info"), "abc", self)
+    local mw, mh = 600, 350
+    local mx, my = getCore():getScreenWidth() / 2 - mw / 2, getCore():getScreenHeight() / 2 - mh / 2
+    self.searchBtn.modal = ISModalRichText:new(mx, my, mw, mh, self.searchBtnOnClickText, false, nil)
     self.searchBtn.modal:initialise()
     self.searchBtn.modal:setVisible(false)
     -- self.searchBtn:addChild(self.searchBtn.modal)
 
     x = x + self.searchBtn.width
 
-    self.searchBar = ISTextEntryBox:new("", x, 0, w-self.searchBtn.width, h)
+    self.searchBar = ISTextEntryBox:new("", x, 0, w - self.searchBtn.width, h)
     self.searchBar:setTooltip(self.searchBarTooltip)
     self.searchBar:initialise()
     self.searchBar:instantiate()
     self.searchBar:setText("")
     self.searchBar:setClearButton(true)
-    -- self.searchBar.onOtherKey = self.onOtherKey
     self.searchBarLastText = self.searchBar:getInternalText()
     self.searchBarText = self.searchBarLastText
     self.searchBar.onTextChange = self.onTextChange
+    self.searchBar.onOtherKey = CHC_search_bar.onOtherKey
+    -- self.searchBar.onRightMouseDown = self.onRightMouseDown
 
     self:addChild(self.searchBtn)
     self:addChild(self.searchBar)
 end
 
+function CHC_search_bar:onTextChange()
+    local s = self.parent
+    s:updateSearchBarLastText()
 
-function CHC_search_bar:onResize()
-    self.searchBar:setWidth(self.width-self.searchBtn.width)
+    if s.onTextChangeSB ~= nil then
+        s.onTextChangeSB(s.parent)
+    end
+
 end
 
+function CHC_search_bar:onResize()
+    self.searchBar:setWidth(self.width - self.searchBtn.width)
+end
+
+function CHC_search_bar:onOtherKey(key)
+    if key == Keyboard.KEY_ESCAPE then
+        self:unfocus()
+    end
+end
+
+-- function CHC_search_bar:onRightMouseDown()
+--     local s = self.parent
+--     if s.onRightMouseDownSB then
+--         s.onRightMouseDownSB(s.parent)
+--     end
+-- end
 
 function CHC_search_bar:updateSearchBarLastText()
     local txt = self.searchBar:getInternalText()
@@ -82,36 +103,35 @@ end
 ---@return string|nil queryType type of search query ('AND' or 'OR'), `nil` if `isMultiSearch==false`
 function CHC_search_bar:parseTokens(txt, delim)
 
-    delim = delim or {",", "|"}
-    local regex = "[^"..table.concat(delim).."]+"
+    delim = delim or { ",", "|" }
+    local regex = "[^" .. concat(delim) .. "]+"
     local queryType
 
     txt = string.trim(txt)
     if not contains(txt, ',') and not contains(txt, "|") then
-        return {txt}, false, nil
+        return { txt }, false, nil
     end
-    if contains(txt,",") then queryType = 'AND'
-    elseif contains(txt,'|') then queryType = "OR" end
+    if contains(txt, ",") then queryType = 'AND'
+    elseif contains(txt, '|') then queryType = "OR" end
 
     local tokens = {}
     for token in txt:gmatch(regex) do
-        table.insert(tokens, token)
+        insert(tokens, string.trim(token))
     end
     if #tokens == 1 then
         return tokens, false, nil
     elseif not tokens then -- just sep (e.g txt=",")
         return nil, false, nil
     end
-    -- tokens = table.unpack(tokens, 1, #tokens-1)
     return tokens, true, queryType
 end
 
 ---Checks if `txt` starts with any of the `validSpecialChars`
 ---@param txt string token
----@param validSpecialChars? table<number,string>  list of special characters to check, by default `{"!", "@", "#", "$", "%", "^"}`
+---@param validSpecialChars? table<number,string>  list of special characters to check, by default `{"!", "@", "#", "$", "%", "^", "&"}`
 ---@return boolean isSpecial
 function CHC_search_bar:isSpecialCommand(txt, validSpecialChars)
-    validSpecialChars = validSpecialChars or {"!", "@", "#", "$", "%", "^"}
+    validSpecialChars = validSpecialChars or { "!", "@", "#", "$", "%", "^", "&" }
 
     for i = 1, #validSpecialChars do
         if utils.startswith(txt, validSpecialChars[i]) then return true end
@@ -119,33 +139,20 @@ function CHC_search_bar:isSpecialCommand(txt, validSpecialChars)
     return false
 end
 
--- function CHC_search_bar:onTextChange(parent)
---     parent = parent or self.parent
---     local stateText = self.searchBar:getInternalText()
---     if stateText ~= self.searchBarLastText or stateText == "" then
---         self.searchBarLastText = stateText
---         if not parent then return end
---         local option = parent.categorySelector
---         if not option then return end
---         local sl = option.options[option.selected]
---         parent:updateRecipes(sl)
---     end
--- end
-
-
-function CHC_search_bar:new(x,y,width,height, searchBarTooltip, onTextChange, searchBtnOnClickText)
+function CHC_search_bar:new(x, y, width, height, searchBarTooltip, onTextChange, searchBtnOnClickText)
     local o = {};
-    o = derivative:new(x,y,width,height)
+    o = derivative:new(x, y, width, height)
 
     setmetatable(o, self)
     self.__index = self
 
-    o.x=x
-    o.y=y
-    o.w=width
-    o.h=height
+    o.x = x
+    o.y = y
+    o.w = width
+    o.h = height
     o.searchBtnOnClickText = searchBtnOnClickText
-    o.onTextChange = onTextChange
+    o.onTextChangeSB = onTextChange
+    -- o.onRightMouseDownSB = onRightMouseDown
     o.searchBarTooltip = searchBarTooltip or string.sub(getText("IGUI_CraftUI_Name_Filter"), 1, -2)
     return o
 end

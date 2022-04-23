@@ -4,12 +4,13 @@ description=Craft Helper for build 41.65+ with additional features and improved 
 icon=icon.png
 authors=Lanceris
 
-modversion=1.5
+modversion=1.6
 versionMin=41.65
 tags=Build 41,Interface
 
 poster=posters/poster.png
 poster=posters/pic_main.png
-poster=posters/pic_favorites.png
-poster=posters/pic_filter_type.png
-poster=posters/pic_filter_order.png
+poster=posters/items.png
+poster=posters/items_ctx.png
+poster=posters/recipes_ingr_ctx.png
+poster=posters/tab_ctx.png
