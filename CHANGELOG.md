@@ -1,5 +1,11 @@
 # CraftHelper updates
 
+## 1.6.0.1 (23.04.2022, hotfix)
+
+### Bugfixes
+
+- Fixed compatibility with ExtraSause QoL mod (json.lua was causing this)
+
 # 1.6 (23.04.2022, workshop release)
 
 ## 1.5.8 (22.04.2022)

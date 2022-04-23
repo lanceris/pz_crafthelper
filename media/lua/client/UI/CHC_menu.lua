@@ -58,6 +58,9 @@ end
 
 CHC_menu.onCraftHelper = function(items, player)
 	local inst = CHC_menu.CHC_window
+	if inst == nil then
+		inst = CHC_menu.createCraftHelper()
+	end
 
 	-- Show craft helper window
 	for i = 1, #items do

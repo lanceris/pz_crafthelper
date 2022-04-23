@@ -175,7 +175,7 @@ else
     CHC_settings.config.close_all_on_exit = false
 end
 
-local Json = require("Json")
+local Json = require("CHC_json")
 local cfg_name = "craft_helper_config.json"
 
 CHC_settings.Save = function()
