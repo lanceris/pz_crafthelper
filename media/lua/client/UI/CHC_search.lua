@@ -257,7 +257,6 @@ function CHC_search:cacheItemCounts()
 end
 
 function CHC_search:updateItems(sl)
-    -- print(sl)
     if type(sl) == 'table' then sl = sl.text end
     local categoryAll = self.categorySelectorDefaultOption
     local searchBar = self.searchRow.searchBar
@@ -412,7 +411,7 @@ function CHC_search:syncFilters()
 
     local isTypeSetToAll = self.typeFilter == 'all'
     local isSelectorSetToAll = self.selectedCategory == self.categorySelectorDefaultOption
-
+    -- local isFromSearch = self.searchRow.searchBar:getInternalText() ~= ""
 
     self:updTypes(curList)
     self:updCategories(curList, selector)

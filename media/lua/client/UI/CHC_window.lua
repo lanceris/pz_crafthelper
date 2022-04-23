@@ -405,18 +405,23 @@ function CHC_window:closeAllTabs()
         vl:removeView(vl.viewList[i].view)
     end
     vl:activateView(vl.viewList[2].name)
+    vl.activeView.view:activateView(getText("UI_search_recipes_tab_name"))
     vl.scrollX = 0
 end
 
 function CHC_window:closeTab(tabIndex)
-    local view = self.viewList[tabIndex].view
-    local needRefresh = true
-    if view ~= self.activeView then
-        needRefresh = false
-    end
-    self:removeView(view)
-    if needRefresh then self.parent:refresh() end
+    local vl = self.viewList
+    local clicked = vl[tabIndex]
+    local active = self.activeView
 
+    self:removeView(clicked.view)
+    if clicked == active then
+        local actIdx = math.min(#vl, tabIndex + 1)
+        if not self:getView(vl[actIdx].name) then
+            actIdx = actIdx - 1
+        end
+        self:activateView(vl[actIdx].name)
+    end
 end
 
 -- region keyboard controls

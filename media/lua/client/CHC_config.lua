@@ -35,14 +35,14 @@ CHC_settings = {
 }
 
 local init_cfg = {
-    show_recipe_module = false,
+    show_recipe_module = true,
     recipe_selector_modifier = 1, -- none
     category_selector_modifier = 1,
     tab_selector_modifier = 1,
     list_font_size = 3, -- large
-    show_icons = false,
+    show_icons = true,
     allow_special_search = true,
-    show_hidden = true,
+    show_hidden = false,
     close_all_on_exit = false,
     main_window = { x = 100, y = 100, w = 1000, h = 600 },
     uses = { sep_x = 500, filter_asc = true, filter_type = "all" },
@@ -86,7 +86,7 @@ if ModOptions and ModOptions.getInstance then
             show_icons = {
                 name = "IGUI_ShowIcons",
                 tooltip = "IGUI_ShowIconsTooltip",
-                default = false,
+                default = true,
                 OnApplyMainMenu = onModOptionsApply,
                 OnApplyInGame = onModOptionsApply
             },
@@ -145,7 +145,7 @@ if ModOptions and ModOptions.getInstance then
             show_recipe_module = {
                 name = "IGUI_ShowRecipeModule",
                 tooltip = "IGUI_ShowRecipeModuleTooltip",
-                default = false,
+                default = true,
                 OnApplyMainMenu = onModOptionsApply,
                 OnApplyInGame = onModOptionsApply
             }
@@ -163,14 +163,14 @@ if ModOptions and ModOptions.getInstance then
     ModOptions:loadFile()
 
 else
-    -- defaults in case no mod options installed
-    CHC_settings.config.show_recipe_module = false
+    -- defaults in case "Mod Options" not installed
+    CHC_settings.config.show_recipe_module = true
     CHC_settings.config.recipe_selector_modifier = 1
     CHC_settings.config.category_selector_modifier = 1
     CHC_settings.config.tab_selector_modifier = 1
     CHC_settings.config.list_font_size = 3
     CHC_settings.config.allow_special_search = true
-    CHC_settings.config.show_icons = false
+    CHC_settings.config.show_icons = true
     CHC_settings.config.show_hidden = false
     CHC_settings.config.close_all_on_exit = false
 end

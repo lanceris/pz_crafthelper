@@ -20,6 +20,7 @@
 - Improved type-category syncronization
 - Updated language files
 - Updated pictures
+- Set "Show icons" and "Show recipe module" to true by default
 
 ### Bugfixes
 
@@ -27,6 +28,8 @@
 - Fixed "Search item" context option in recipe panel not selecting item in search view
 - Fixed "Show hidden" option not hiding items
 - Fixed DisplayCategory for items without DisplayCategory (IGUI_ItemCat_Item)
+- Fixed vanilla radio recipes not showing
+- Fixed close tab logic
 
 ## 1.5.7 (19.04.2022)
 

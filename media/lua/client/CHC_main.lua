@@ -22,11 +22,9 @@ local showTime = function(start, st)
 	print(string.format("Loaded %s in %s seconds", st, tostring((getTimestampMs() - start) / 1000)))
 end
 
-CHC_main.handleItems = function(itemString, recipe)
+CHC_main.handleItems = function(itemString)
 	local item
-	if (string.find(itemString, "Radio%.")) then
-		item = CHC_main.items[recipe:getModule():getName() .. "." .. itemString]
-	elseif (string.find(itemString, "Base%.DigitalWatch2") or string.find(itemString, "Base%.AlarmClock2")) then
+	if (string.find(itemString, "Base%.DigitalWatch2") or string.find(itemString, "Base%.AlarmClock2")) then
 		item = nil
 	else
 		item = CHC_main.items[itemString]
@@ -142,7 +140,7 @@ CHC_main.loadAllRecipes = function()
 
 		local resultItem = recipe:getResult()
 		local resultFullType = resultItem:getFullType()
-		local itemres = CHC_main.handleItems(resultFullType, recipe)
+		local itemres = CHC_main.handleItems(resultFullType)
 
 		insert(CHC_main.allRecipes, newItem)
 		if itemres then
@@ -160,7 +158,7 @@ CHC_main.loadAllRecipes = function()
 			local items = rSource:getItems()
 			for k = 0, rSource:getItems():size() - 1 do
 				local itemString = items:get(k)
-				local item = CHC_main.handleItems(itemString, recipe)
+				local item = CHC_main.handleItems(itemString)
 
 				if item then
 					CHC_main.setRecipeForItem(CHC_main.recipesByItem, item.name, newItem)
