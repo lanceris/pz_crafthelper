@@ -10,3 +10,5 @@ Contributors will be shown in order of first pull request / commit:
   - Spanish translation
 - [radiusgreenhill](https://github.com/radiusgreenhill)
   - Thai translation
+- [척현](https://steamcommunity.com/profiles/76561198379317304)
+  - Korean translation

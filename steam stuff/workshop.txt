@@ -48,6 +48,7 @@ description=[*]English
 description=[*]Russian
 description=[*]Spanish (partial)
 description=[*]Thai (partial)
+description=[*]Korean
 description=[/list]
 description=
 description=[h3]Future plans:[/h3]
