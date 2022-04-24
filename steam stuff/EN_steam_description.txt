@@ -47,6 +47,9 @@ Also, with "Mod Options" you can set keybinds (Key bindings -> Craft Helper) for
 [*]Thai (partial)
 [/list]
 
+[h3]Thanks to everyone who made this mod better![/h3]
+[list][*][url=https://github.com/lanceris/pz_crafthelper/blob/main/CONTRIBUTORS.md]List of contributors[/url][/list]
+
 [h3]Future plans:[/h3]
 [list][*][url=https://trello.com/b/KmLQqo32/craft-helper-continued]Trello[/url][/list]
 
@@ -64,7 +67,7 @@ This item is not authorized for posting on Steam, except under the Steam account
 One exception for the above rule is redistribution of this mod (and/or modified versions) as part of the server modpack (collection of multiple mods bundled and configured together as one workshop item). 
 Support will NOT be provided for users, while they are using such modpacks.
 
-Copyright 2022 Lanceris
+© 2022 Lanceris
 [/quote]
 
 

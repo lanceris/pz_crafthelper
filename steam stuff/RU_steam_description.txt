@@ -48,6 +48,9 @@
 [*]Korean
 [/list]
 
+[h3]Спасибо всем, кто сделал этот мод лучше![/h3]
+[list][*][url=https://github.com/lanceris/pz_crafthelper/blob/main/CONTRIBUTORS.md]Список участников[/url][/list]
+
 [h3]Планы на будущее:[/h3]
 [list][*][url=https://trello.com/b/KmLQqo32/craft-helper-continued]Trello[/url][/list]
 
