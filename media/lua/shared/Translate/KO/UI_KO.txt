@@ -1,0 +1,120 @@
+UI_KO = {
+    UI_item_uses_tab_name =         "사용가능"
+    UI_item_craft_tab_name =        "제작"
+    UI_common_left_col_name =       "레시피"
+    UI_common_right_col_name =      "세부 정보"
+    UI_search_tab_name =            "검색"
+    UI_search_items_tab_name =      "아이템 목록"
+    UI_search_recipes_tab_name =    "레시피 목록"
+    UI_recipe_panel_required_book = "필요한 레시피 서적"
+    UI_recipe_panel_near_item =     "필요한 제작 장비"
+
+    UI_settings_st_title =   "정렬 순서"
+    UI_settings_av_title =   "유효성"
+    UI_settings_av_valid =   "유효한"
+    UI_settings_av_known =   "알고 있는"
+    UI_settings_av_invalid = "유효하지 않은"
+
+    UI_optionscreen_binding_chc_category_title =            "제작 도우미"
+    UI_optionscreen_binding_chc_move_up =                   "이전 레시피 선택"
+    UI_optionscreen_binding_chc_move_down =                 "다음 레시피 선택"
+    UI_optionscreen_binding_chc_move_left =                 "이전 카테고리 선택"
+    UI_optionscreen_binding_chc_move_right =                "다음 카테고리 선택"
+    UI_optionscreen_binding_chc_craft_one =                 "한개 만들기"
+    UI_optionscreen_binding_chc_craft_all =                 "모두 만들기"
+    UI_optionscreen_binding_chc_favorite_recipe =           "즐겨찾기된 레시피 선택"
+    UI_optionscreen_binding_chc_close_window =              "제작 도우미 창 닫기"
+    UI_optionscreen_binding_chc_toggle_window =             "토글 제작 도우미 창"
+    UI_optionscreen_binding_chc_toggle_uses_craft =         "사용가능/제작 간 전환"
+    UI_optionscreen_binding_chc_move_tab_left =             "이전 탭 선택"
+    UI_optionscreen_binding_chc_move_tab_right =            "다음 탭 선택"
+    UI_optionscreen_binding_chc_toggle_focus_search_bar =   "상세 검색 창"
+
+    UI_infotext_search =    "<CENTRE><SIZE:medium> 검색 화면 <LINE><LINE> "..
+                            "<SIZE:small> <LEFT> 여기에서 모든 아이템과 레시피를 찾을 수 있습니다. <LINE><LINE> "
+    UI_infotext_favorites = "<CENTRE><SIZE:medium> 즐겨찾기 화면 <LINE><LINE> "..
+                            "<SIZE:small> <LEFT> 즐겨찾는 아이템(WIP)과 레시피를 확인할 수 있습니다. <LINE><LINE> "
+    UI_infotext_itemtab =   "<CENTRE><SIZE:medium> 아이템 화면 <LINE>"..
+                            "<SIZE:small> <LEFT> 여기에서 '%1'에 대한 자세한 정보를 찾을 수 있습니다. <LINE> "..
+                            "첫 번째 탭(%2)은 '%1'이(가) 재료로 사용되는 조리법을 보여줍니다. <LINE> "..
+                            "두 번째 탭(%3)은 레시피를 보여주며 그 결과는 '%1'입니다. <LINE><LINE> " 
+    
+    UI_infotext_common = "<INDENT:0> 왼쪽 열(레시피)에는 몇 가지 추가 컨트롤이 있는 항목/레시피 목록이 표시됩니다. 첫 번째 줄은 필터 행입니다. <LINE><LINE> "..
+                         "<IMAGECENTRE:media/textures/info_filter_row.png> <LINE>"..
+                         "<INDENT:8>버튼 1은 항목/레시피의 현재 정렬 순서를 보여줍니다. 버튼을 클릭하여 순서를 변경합니다. <LINE>"..
+                         "버튼 2를 사용하면 원하는 출력 유형을 선택할 수 있습니다: <LINE>"..
+                         "<INDENT:16> %1 <LINE>"..
+                         "<INDENT:8> 요소 3은 원하는 카테고리를 지정할 수 있는 카테고리 선택기입니다. <LINE><LINE>"..
+                         "필터 행 아래에는 검색어에 따라 항목/레시피 이름 또는 특정 규칙으로 검색할 수 있는 검색 표시줄이 있습니다. <LINE>"..
+                         "검색 규칙에 대해 자세히 알아보려면 클릭 <IMAGE:media/textures/search_icon.png> <LINE><LINE>"..
+                         "<INDENT:0> 오른쪽 열(세부 사항)은 항목/레서피의 세부 사항을 보여줍니다: <LINE>"..
+                         "<INDENT:8> %2 <LINE><LINE>"..
+                         "<INDENT:0><SIZE:medium>통제 수단: <SIZE:small><LINE><LINE>"..
+                         "<INDENT:16> - 이름 사이의 선을 드래그하여 레시피 및 세부 정보 열의 크기를 조정할 수 있습니다. <LINE> "..
+                         " - 항목 탭 이름을 마우스 오른쪽 버튼으로 클릭하여 상황에 맞는 메뉴 열기 <LINE>"..
+                         "%3 <LINE>"..
+                         " - '모드 옵션'을 사용하면 빈번한 작업에 대한 단축키를 설정할 수 있습니다."
+                         
+    -- %1
+    UI_infotext_recipe_types = "- <IMAGE:media/textures/type_filt_all.png> <SPACE>(%1): 모든 레시피 <LINE> "..
+                               "- <IMAGE:media/textures/type_filt_valid.png> (%2): 지금 당장 만들 수 있는 레시피 <LINE> "..
+                               "- <IMAGE:media/textures/type_filt_known.png> (%3): 알고 있지만 만들 수 없는 레시피(스킬/아이템 부족) <LINE> "..
+                               "- <IMAGE:media/textures/type_filt_invalid.png> (%4): 당신이 전혀 모르는 레시피. 학습할 수 있는 책을 표시합니다."
+    UI_infotext_item_types =   " - 의류 <LINE> - 음식 <LINE> - 무기 <LINE> - ..."
+
+    -- %2
+    UI_infotext_recipe_details = " - 레시피 카테고리 및 결과 항목에 대한 정보 <LINE> "..
+                                 " - 필수 항목 <LINE>"..
+                                 " - 기타 요구 사항(기술, 책, 제작 장비 및 제작 시간)"
+    UI_infotext_item_details =   " - 아이템 및 레시피 수에 대한 기본 정보 <LINE> "..
+                                 " - 품목 속성(WIP) <LINE> "..
+                                 " - 이 항목을 수정하는 방법(가능한 경우)(WIP) <LINE>"..
+                                 " - 이 항목을 찾을 수 있는 위치(WIP)"
+
+    -- %3
+    UI_infotext_recipe_mouse = " - 별 아이콘(레시피 열, 요소 위에 마우스를 놓기)을 왼쪽 클릭하여 즐겨찾는 레시피를 (취소) <LINE> "..
+                               " - 레시피 결과 아이콘(세부 사항 열)을 마우스 오른쪽 버튼으로 클릭하여 컨텍스트 메뉴를 엽니다. <LINE> "..
+                               " - '필수 항목'(세부 정보 열)에서 항목을 마우스 오른쪽 버튼으로 클릭하여 상황에 맞는 메뉴를 엽니다."
+    UI_infotext_item_mouse =   " - 항목(레시피 열)을 가운데 클릭하여 클릭한 항목을 배경으로 새 탭을 엽니다. <LINE>"..
+                               " - 항목(레시피 열)을 마우스 오른쪽 버튼으로 클릭하여 컨텍스트 메뉴를 엽니다. <LINE>"..
+                               " - 항목 아이콘(세부 정보 열)을 마우스 오른쪽 버튼으로 클릭하여 상황에 맞는 메뉴를 엽니다. <LINE>"..
+                               " - Shift + 일부 요소를 마우스 오른쪽 버튼으로 클릭하면(위 참조) 추가 옵션이 표시됩니다."
+
+
+    UI_searchrow_info = "<CENTRE><SIZE:medium> 검색 도우미 <LINE><LINE> "..
+                        "<LEFT><SIZE:small> 이 검색 표시줄은 사용자 지정 규칙을 지원합니다. 각각의 분리된 쿼리(단어)는 토큰이라고 합니다. <LINE>"..
+                        "SEPARATORS를 사용하여 한 번에 여러 쿼리로 검색할 수 있습니다. <LINE>"..
+                        "각 토큰 앞에 특수 기호를 추가하여 이 토큰에 대한 검색 규칙을 지정할 수 있습니다. <LINE>"..
+                        "'모드 옵션'을 사용하면 검색창에 초점을 맞추는 단축키를 설정할 수 있습니다. ESC에 초점을 둡니다. <LINE><LINE>"..
+                        "<SIZE:medium> 구분자: <LINE> <SIZE:small> "..
+                        "<INDENT:8> <SIZE:medium> , <SIZE:small> <SPACE><SPACE>(쉼표) - 모든 토큰 결과 결합(논리적 AND), 매우 구체적인 필터링에 사용할 수 있음 <LINE> "..
+                        "<SIZE:medium> | <SIZE:small> <SPACE><SPACE>(vertical bar) - 모든 토큰(논리적 OR)을 분리하여 여러 쿼리를 개별적으로 검색하는 데 사용할 수 있습니다. <LINE><LINE> "..
+                        "<INDENT:0><SIZE:medium> 특수 기호: <LINE> <SIZE:small> "..
+                        "<INDENT:8>%1"..
+                        "<SIZE:medium> ~ <SIZE:small> <SPACE><SPACE>(물결표) - 이 토큰을 제외합니다(즉, 토큰이 아닌 모든 항목을 찾습니다. 사용하는 경우 특수 문자 뒤에 있어야 함) <LINE><LINE>"..
+                        "<INDENT:0><SIZE:medium> <LEFT> 예: <LINE> <SIZE:small> "..
+                        "<INDENT:8>%2<LINE>"..
+                        "<INDENT:0><SIZE:medium> 제한 사항: <LINE> <SIZE:small> "..
+                        "<INDENT:8>- 하나의 쿼리에서 구분 기호(',' 및 '|')를 모두 사용할 수 없습니다. <LINE> "..
+                        "- 성분(#~단어)을 제외할 수 없습니다."
+
+    -- %1
+    UI_searchrow_info_recipes_special = "<SIZE:medium> ! <SIZE:small> <SPACE><SPACE>(느낌표) - 레시피 카테고리로 검색 <LINE>"..
+                                        "<SIZE:medium> @ <SIZE:small> <SPACE><SPACE>(표지판에) - 결과 항목의 모드 이름으로 검색(바닐라 'mod'의 경우 'Project Zomboid') <LINE>"..
+                                        "<SIZE:medium> # <SIZE:small> <SPACE><SPACE>(숫자 기호) - 레시피 재료로 검색 <LINE>"..
+                                        "<SIZE:medium> $ <SIZE:small> <SPACE><SPACE>(달러 기호) - 결과 항목의 범주로 검색(인벤토리 패널의 오른쪽에 표시됨) <LINE>"..
+                                        "<SIZE:medium> % <SIZE:small> <SPACE><SPACE>(퍼센트 기호) - 결과 항목의 이름으로 검색 <LINE>"..
+                                        "<SIZE:medium> ^ <SIZE:small> <SPACE><SPACE>(캐럿) - 즐겨찾는 레시피로 검색 <LINE>"..
+                                        "<SIZE:medium> & <SIZE:small> <SPACE><SPACE>(앰퍼샌드) - 레시피의 모드 이름으로 검색(바닐라 'mod'의 경우 'Base') <LINE>"
+    UI_searchrow_info_items_special =   "<SIZE:medium> ! <SIZE:small> <SPACE><SPACE>(느낌표) - 항목 유형으로 검색 <LINE>"..
+                                        "<SIZE:medium> @ <SIZE:small> <SPACE><SPACE>(표지판에) - 항목의 모드 이름으로 검색(바닐라 'mod'의 경우 'Project Zomboid') <LINE>"..
+                                        "<SIZE:medium> # <SIZE:small> <SPACE><SPACE>(숫자 기호) - 항목 범주별로 검색(인벤토리 패널의 오른쪽에 표시됨) <LINE>"
+    
+    -- %2
+    UI_searchrow_info_recipes_examples = "#hamm <SPACE><SPACE>- 재료에 이름에 '망치'가 포함된 레시피 표시 <LINE>"..
+                                         "@hydrocra,!engineer,#saw <SPACE><SPACE>- 재료로 '톱'이 있는 '엔지니어' 레시피 카테고리의 Hydrocraft(또는 이와 유사한)의 레시피 표시 <LINE>"..
+                                         "%plank|!food <SPACE><SPACE>- '판자'가 결과인 레시피 표시 또는 '음식' 카테고리의 레시피 표시 <LINE> "
+    UI_searchrow_info_items_examples =   "#tool,!~weapon <SPACE><SPACE>: 무기가 아닌 도구 표시(예: 바늘, 톱, 집게) <LINE> "
+
+
+}

@@ -1,5 +1,15 @@
 # CraftHelper updates
 
+## 1.6.1 ()
+
+### New features
+
+### Improvements
+
+- Added Korean translation (thanks to [척현](https://steamcommunity.com/profiles/76561198379317304))
+
+### Bugfixes
+
 ## 1.6.0.1 (23.04.2022, hotfix)
 
 ### Bugfixes
