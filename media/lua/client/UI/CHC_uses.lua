@@ -4,6 +4,12 @@ require "UI/CHC_tabs"
 require "UI/CHC_uses_recipelist"
 require "UI/CHC_uses_recipepanel"
 
+local hh = {
+    headers = 20,
+    filter_row = 24,
+    search_row = 24
+}
+
 local derivative = ISPanel
 CHC_uses = derivative:derive("CHC_uses")
 CHC_uses.sortOrderIconAsc = getTexture("media/textures/sort_order_asc.png")
@@ -30,7 +36,7 @@ end
 function CHC_uses:create()
 
     -- region draggable headers
-    self.headers = CHC_tabs:new(0, 0, self.width, 20, { self.onResizeHeaders, self }, self.sep_x)
+    self.headers = CHC_tabs:new(0, 0, self.width, hh.headers, { self.onResizeHeaders, self }, self.sep_x)
     self.headers:initialise()
     -- endregion
 
@@ -43,14 +49,14 @@ function CHC_uses:create()
 
     local filterRowData = {
         filterOrderData = {
-            width = 24,
+            width = hh.filter_row,
             title = "",
             onclick = self.sortByName,
             defaultTooltip = self:filterRowOrderSetTooltip(),
             defaultIcon = self:filterRowOrderSetIcon()
         },
         filterTypeData = {
-            width = 24,
+            width = hh.filter_row,
             title = "",
             onclick = self.onFilterTypeMenu,
             defaultTooltip = self:filterRowTypeSetTooltip(),
@@ -62,15 +68,15 @@ function CHC_uses:create()
         }
     }
 
-    self.filterRow = CHC_filter_row:new(x, y, leftW, 24, filterRowData)
+    self.filterRow = CHC_filter_row:new(x, y, leftW, hh.filter_row, filterRowData)
     self.filterRow:initialise()
-    local leftY = y + 24
+    local leftY = y + hh.filter_row
     -- endregion
 
     -- region search bar
-    self.searchRow = CHC_search_bar:new(x, leftY, leftW, 24, nil, self.onTextChange, self.searchRowHelpText)
+    self.searchRow = CHC_search_bar:new(x, leftY, leftW, hh.search_row, nil, self.onTextChange, self.searchRowHelpText)
     self.searchRow:initialise()
-    leftY = leftY + 24
+    leftY = leftY + hh.search_row
     -- endregion
 
     -- region recipe list

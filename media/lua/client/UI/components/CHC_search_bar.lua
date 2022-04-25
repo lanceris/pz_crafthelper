@@ -46,6 +46,7 @@ function CHC_search_bar:create()
     x = x + self.searchBtn.width
 
     self.searchBar = ISTextEntryBox:new("", x, 0, w - self.searchBtn.width, h)
+    self.searchBar.font = UIFont.Medium -- TODO: move to options
     self.searchBar:setTooltip(self.searchBarTooltip)
     self.searchBar:initialise()
     self.searchBar:instantiate()

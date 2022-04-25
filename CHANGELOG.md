@@ -7,8 +7,12 @@
 ### Improvements
 
 - Added Korean translation (thanks to [척현](https://steamcommunity.com/profiles/76561198379317304))
+- Refactored CHC_window
+- TIL ISComboBox can be editable (TODO: create option for that)
 
 ### Bugfixes
+
+- Fixed type/category filters synchronization for items
 
 ## 1.6.0.1 (23.04.2022, hotfix)
 

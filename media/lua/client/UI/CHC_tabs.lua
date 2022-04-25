@@ -12,7 +12,7 @@ end
 function CHC_tabs:addTabs()
 
 	local fontHgtSmall = getTextManager():getFontHeight(UIFont.Medium)
-	local headerHgt = fontHgtSmall + 1
+	local headerHgt = math.max(fontHgtSmall + 1, self.height)
 	-- region list
 	local nha = {
 		x = 0,
@@ -98,11 +98,6 @@ function CHC_tabs:new(x, y, width, height, onresize, sep_x)
 
 	setmetatable(o, self)
 	self.__index = self
-
-	o.x = x
-	o.y = y
-	o.w = width
-	o.h = height
 
 	o.onresize = onresize
 	o.column2 = 30;

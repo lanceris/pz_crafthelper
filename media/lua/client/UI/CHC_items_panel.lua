@@ -169,7 +169,7 @@ function CHC_items_panel:setObj(item)
     self.mainName:setName(item.name)
     self.mainName:setTooltip(string.format("%s <LINE>%s", item.name, item.fullType))
 
-    local trCat = self.parent.categoryData[item.category].tooltip
+    local trCat = self.parent.typeData[item.category].tooltip
     self.mainType:setName(getText("IGUI_invpanel_Type") .. ": " .. trCat)
     self.mainDispCat:setName(getText("IGUI_invpanel_Category") .. ": " .. item.displayCategory)
 
