@@ -9,6 +9,7 @@
 - Added Korean translation (thanks to [척현](https://steamcommunity.com/profiles/76561198379317304))
 - Refactored CHC_window
 - TIL ISComboBox can be editable (TODO: create option for that)
+- Refactored bunch of files
 
 ### Bugfixes
 

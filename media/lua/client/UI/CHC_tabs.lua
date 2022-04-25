@@ -3,13 +3,13 @@ require "ISUI/ISPanel"
 local derivative = ISPanel
 CHC_tabs = derivative:derive("CHC_tabs");
 
-
+--create
 function CHC_tabs:initialise()
 	derivative.initialise(self)
-	self:addTabs()
+	self:create()
 end
 
-function CHC_tabs:addTabs()
+function CHC_tabs:create()
 
 	local fontHgtSmall = getTextManager():getFontHeight(UIFont.Medium)
 	local headerHgt = math.max(fontHgtSmall + 1, self.height)
@@ -55,6 +55,7 @@ function CHC_tabs:addTabs()
 	-- endregion
 end
 
+-- render
 function CHC_tabs:onResizeColumn(button)
 	if button == self.nameHeader then
 		self.typeHeader:setX(self.nameHeader.width)

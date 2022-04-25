@@ -2,9 +2,8 @@ require 'CHC_main'
 
 CHC_menu = {}
 
-CHC_menu.cachedItemsView = nil
-
-
+--- called just after CHC_main.loadDatas
+--- loads config and creates window instance
 CHC_menu.createCraftHelper = function()
 	CHC_settings.Load()
 	local options = CHC_settings.config
@@ -23,6 +22,7 @@ CHC_menu.createCraftHelper = function()
 	CHC_menu.CHC_window:setVisible(false)
 end
 
+--- called on right-clicking item in inventory/hotbar
 CHC_menu.doCraftHelperMenu = function(player, context, items)
 	local itemsUsedInRecipes = {}
 
@@ -30,13 +30,14 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
 	-- Go through the items selected (because multiple selections in inventory is possible)
 	for i = 1, #items do
 
+		-- allows to get ctx option when clicking on hotbar/equipped item
 		if not instanceof(items[i], "InventoryItem") then
 			item = items[i].items[1]
 		else
 			item = items[i]
 		end
 
-		-- We test here if the item is used in any recipes
+		-- if item is used in any recipe OR there is a way to create this item - mark item as valid
 		local cond1 = type(CHC_main.recipesByItem[item:getName()]) == 'table'
 		local cond2 = type(CHC_main.recipesForItem[item:getName()]) == 'table'
 		if cond1 or cond2 then
@@ -50,11 +51,6 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
 		context:addOption(getText("IGUI_chc_context_onclick"), itemsUsedInRecipes, CHC_menu.onCraftHelper, player);
 	end
 end
-
-
----
--- Action to perform when the Craft Helper option in contextual menu is clicked
---
 
 CHC_menu.onCraftHelper = function(items, player)
 	local inst = CHC_menu.CHC_window
@@ -76,6 +72,7 @@ CHC_menu.onCraftHelper = function(items, player)
 	end
 end
 
+--- window toggle logic
 CHC_menu.toggleUI = function()
 	local ui = CHC_menu.CHC_window
 	if ui then
@@ -89,7 +86,8 @@ CHC_menu.toggleUI = function()
 	end
 end
 
-
+---Show/hide Craft Helper window keybind listener
+---@param key number key code
 CHC_menu.onPressKey = function(key)
 	if not MainScreen.instance or not MainScreen.instance.inGame or MainScreen.instance:getIsVisible() then
 		return
@@ -99,9 +97,5 @@ CHC_menu.onPressKey = function(key)
 	end
 end
 
----
--- Call doCraftHelperMenu function when context menu in the inventory is created and displayed
---
 Events.OnFillInventoryObjectContextMenu.Add(CHC_menu.doCraftHelperMenu)
-
 Events.OnCustomUIKey.Add(CHC_menu.onPressKey)

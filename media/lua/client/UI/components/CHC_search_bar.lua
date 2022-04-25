@@ -7,25 +7,16 @@ local utils = require("CHC_utils")
 
 local derivative = ISPanel
 CHC_search_bar = derivative:derive("CHC_search_bar")
-CHC_search_bar.searchIcon = getTexture("media/textures/search_icon.png")
 
 local contains = string.contains
 local insert = table.insert
 local concat = table.concat
 
+-- region create
+
 function CHC_search_bar:initialise()
     derivative.initialise(self)
     self:create()
-end
-
-function CHC_search_bar:searchBtnOnClick()
-    if self.searchBtn.modal:isVisible() then
-        self.searchBtn.modal:setVisible(false)
-        self.searchBtn.modal:removeFromUIManager()
-    else
-        self.searchBtn.modal:setVisible(true)
-        self.searchBtn.modal:addToUIManager()
-    end
 end
 
 function CHC_search_bar:create()
@@ -62,32 +53,9 @@ function CHC_search_bar:create()
     self:addChild(self.searchBar)
 end
 
-function CHC_search_bar:onTextChange()
-    local s = self.parent
-    s:updateSearchBarLastText()
+-- endregion
 
-    if s.onTextChangeSB ~= nil then
-        s.onTextChangeSB(s.parent)
-    end
-
-end
-
-function CHC_search_bar:onResize()
-    self.searchBar:setWidth(self.width - self.searchBtn.width)
-end
-
-function CHC_search_bar:onOtherKey(key)
-    if key == Keyboard.KEY_ESCAPE then
-        self:unfocus()
-    end
-end
-
--- function CHC_search_bar:onRightMouseDown()
---     local s = self.parent
---     if s.onRightMouseDownSB then
---         s.onRightMouseDownSB(s.parent)
---     end
--- end
+-- region update
 
 function CHC_search_bar:updateSearchBarLastText()
     local txt = self.searchBar:getInternalText()
@@ -95,6 +63,18 @@ function CHC_search_bar:updateSearchBarLastText()
         self.searchBarLastText = txt
     end
 end
+
+-- endregion
+
+-- region render
+
+function CHC_search_bar:onResize()
+    self.searchBar:setWidth(self.width - self.searchBtn.width)
+end
+
+-- endregion
+
+-- region logic
 
 ---Parses the query string with optional list of delimiters
 ---@param txt string search query, e.g `'t1,@t2,%t3'` or `'t1'`
@@ -140,6 +120,45 @@ function CHC_search_bar:isSpecialCommand(txt, validSpecialChars)
     return false
 end
 
+function CHC_search_bar:searchBtnOnClick()
+    if self.searchBtn.modal:isVisible() then
+        self.searchBtn.modal:setVisible(false)
+        self.searchBtn.modal:removeFromUIManager()
+    else
+        self.searchBtn.modal:setVisible(true)
+        self.searchBtn.modal:addToUIManager()
+    end
+end
+
+-- region event handlers
+
+function CHC_search_bar:onTextChange()
+    local s = self.parent
+    s:updateSearchBarLastText()
+
+    if s.onTextChangeSB ~= nil then
+        s.onTextChangeSB(s.parent)
+    end
+
+end
+
+function CHC_search_bar:onOtherKey(key)
+    if key == Keyboard.KEY_ESCAPE then
+        self:unfocus()
+    end
+end
+
+-- function CHC_search_bar:onRightMouseDown()
+--     local s = self.parent
+--     if s.onRightMouseDownSB then
+--         s.onRightMouseDownSB(s.parent)
+--     end
+-- end
+
+-- endregion
+
+-- endregion
+
 function CHC_search_bar:new(x, y, width, height, searchBarTooltip, onTextChange, searchBtnOnClickText)
     local o = {};
     o = derivative:new(x, y, width, height)
@@ -155,5 +174,6 @@ function CHC_search_bar:new(x, y, width, height, searchBarTooltip, onTextChange,
     o.onTextChangeSB = onTextChange
     -- o.onRightMouseDownSB = onRightMouseDown
     o.searchBarTooltip = searchBarTooltip or string.sub(getText("IGUI_CraftUI_Name_Filter"), 1, -2)
+    o.searchIcon = getTexture("media/textures/search_icon.png")
     return o
 end

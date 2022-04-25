@@ -8,89 +8,26 @@ local fontSizeToInternal = {
 	{ font = UIFont.Large, pad = 6, icon = 24 }
 }
 
+-- region create
 function CHC_uses_recipelist:initialise()
 	ISScrollingListBox.initialise(self)
 end
 
-function CHC_uses_recipelist:getContainers()
-	if not self.player then return end
-	local playerNum = self.player and self.player:getPlayerNum() or -1
-	-- get all the surrounding inventory of the player, gonna check for the item in them too
-	local playerInv = getPlayerInventory(playerNum)
-	local playerLoot = getPlayerLoot(playerNum)
-	if not playerInv and not playerLoot then return end
-	self.containerList = ArrayList.new()
-	playerInv = playerInv.inventoryPane.inventoryPage.backpacks
-	playerLoot = playerLoot.inventoryPane.inventoryPage.backpacks
-	for i = 1, #playerInv do
-		self.containerList:add(playerInv[i].inventory)
-	end
-	for i = 1, #playerLoot do
-		self.containerList:add(playerLoot[i].inventory)
-	end
+-- endregion
+
+-- region update
+
+function CHC_uses_recipelist:isMouseOverFavorite(x)
+	return (x >= self.width - 40) and not self:isMouseOverScrollBar()
 end
+
+-- endregion
+
+-- region render
 
 function CHC_uses_recipelist:prerender()
 	ISScrollingListBox.prerender(self)
 	self:getContainers();
-end
-
-function CHC_uses_recipelist:onMouseDown_Recipes(x, y)
-	local row = self:rowAt(x, y)
-	if row == -1 then return end
-	if self:isMouseOverFavorite(x) then
-		self:addToFavorite(row)
-	end
-end
-
-function CHC_uses_recipelist:onMouseUpOutside(x, y)
-	ISScrollingListBox.onMouseUpOutside(self, x, y)
-end
-
-function CHC_uses_recipelist:getFavoriteX()
-	return self.width - 40
-end
-
-function CHC_uses_recipelist:isMouseOverFavorite(x)
-	return (x >= self:getFavoriteX()) and not self:isMouseOverScrollBar()
-end
-
-function CHC_uses_recipelist:addToFavorite(selectedIndex, fromKeyboard)
-	if fromKeyboard == true then
-		selectedIndex = self.selected
-	end
-	local selectedItem = self.items[selectedIndex]
-	if not selectedItem then return end
-	local modData = self.player:getModData();
-	local allr = getPlayerCraftingUI(0).categories
-	local fav_idx;
-	local parent = self.parent
-
-	--find "Favorite" category
-	for i, v in ipairs(allr) do
-		if v.category == getText("IGUI_CraftCategory_Favorite") then
-			fav_idx = i
-			break
-		end
-	end
-	if fav_idx == nil then return end
-	local fav_recipes = allr[fav_idx].recipes.items
-	selectedItem.item.favorite = not selectedItem.item.favorite;
-	modData[CHC_main.getFavoriteModDataString(selectedItem.item.recipe)] = selectedItem.item.favorite
-	if selectedItem.item.favorite then
-		parent.favRecNum = parent.favRecNum + 1
-		table.insert(fav_recipes, selectedItem)
-	else
-		parent.favRecNum = parent.favRecNum - 1
-		local cs = parent.filterRow.categorySelector
-		if cs.options[cs.selected].text == parent.favCatName or parent.ui_type == 'fav_recipes' then
-			self:removeItemByIndex(selectedIndex)
-		end
-	end
-	if #self.items == 0 then
-		parent.needUpdateObjects = true
-	end
-	parent.needUpdateFavorites = true
 end
 
 function CHC_uses_recipelist:doDrawItem(y, item, alt)
@@ -188,6 +125,85 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 	y = y + item.height;
 	return y;
 end
+
+-- endregion
+
+-- region logic
+
+-- region event handlers
+
+function CHC_uses_recipelist:onMouseDown_Recipes(x, y)
+	local row = self:rowAt(x, y)
+	if row == -1 then return end
+	if self:isMouseOverFavorite(x) then
+		self:addToFavorite(row)
+	end
+end
+
+function CHC_uses_recipelist:onMouseUpOutside(x, y)
+	ISScrollingListBox.onMouseUpOutside(self, x, y)
+end
+
+-- endregion
+
+function CHC_uses_recipelist:getContainers()
+	if not self.player then return end
+	local playerNum = self.player and self.player:getPlayerNum() or -1
+	-- get all the surrounding inventory of the player, gonna check for the item in them too
+	local playerInv = getPlayerInventory(playerNum)
+	local playerLoot = getPlayerLoot(playerNum)
+	if not playerInv and not playerLoot then return end
+	self.containerList = ArrayList.new()
+	playerInv = playerInv.inventoryPane.inventoryPage.backpacks
+	playerLoot = playerLoot.inventoryPane.inventoryPage.backpacks
+	for i = 1, #playerInv do
+		self.containerList:add(playerInv[i].inventory)
+	end
+	for i = 1, #playerLoot do
+		self.containerList:add(playerLoot[i].inventory)
+	end
+end
+
+function CHC_uses_recipelist:addToFavorite(selectedIndex, fromKeyboard)
+	if fromKeyboard == true then
+		selectedIndex = self.selected
+	end
+	local selectedItem = self.items[selectedIndex]
+	if not selectedItem then return end
+	local modData = self.player:getModData();
+	local allr = getPlayerCraftingUI(0).categories
+	local fav_idx;
+	local parent = self.parent
+
+	--find "Favorite" category
+	for i, v in ipairs(allr) do
+		if v.category == getText("IGUI_CraftCategory_Favorite") then
+			fav_idx = i
+			break
+		end
+	end
+	if fav_idx == nil then return end
+	local fav_recipes = allr[fav_idx].recipes.items
+	selectedItem.item.favorite = not selectedItem.item.favorite;
+	modData[CHC_main.getFavoriteModDataString(selectedItem.item.recipe)] = selectedItem.item.favorite
+	if selectedItem.item.favorite then
+		parent.favRecNum = parent.favRecNum + 1
+		table.insert(fav_recipes, selectedItem)
+	else
+		parent.favRecNum = parent.favRecNum - 1
+		local cs = parent.filterRow.categorySelector
+		if cs.options[cs.selected].text == parent.favCatName or parent.ui_type == 'fav_recipes' then
+			self:removeItemByIndex(selectedIndex)
+		end
+	end
+	if #self.items == 0 then
+		parent.needUpdateObjects = true
+	end
+	parent.needUpdateFavorites = true
+end
+
+-- endregion
+
 
 function CHC_uses_recipelist:new(x, y, width, height)
 	local o = {}
