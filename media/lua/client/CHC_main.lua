@@ -24,7 +24,9 @@ end
 
 CHC_main.handleItems = function(itemString)
 	local item
-	if (string.find(itemString, "Base%.DigitalWatch2") or string.find(itemString, "Base%.AlarmClock2")) then
+	if itemString == "Water" then
+		item = CHC_main.items["Base.WaterDrop"]
+	elseif (string.find(itemString, "Base%.DigitalWatch2") or string.find(itemString, "Base%.AlarmClock2")) then
 		item = nil
 	else
 		item = CHC_main.items[itemString]

@@ -208,7 +208,6 @@ function CHC_window:addItemView(item, focusOnNew)
     self.itemPanel:setAnchorRight(true)
     self.itemPanel:setAnchorBottom(true)
     self.itemPanel.item = itn
-    -- self.itemPanel:setEqualTabWidth(true)
     -- endregion
     local usesData = CHC_main.recipesByItem[itn.name]
     local craftData = CHC_main.recipesForItem[itn.name]

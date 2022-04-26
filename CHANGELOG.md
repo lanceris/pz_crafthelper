@@ -14,6 +14,7 @@
 ### Bugfixes
 
 - Fixed type/category filters synchronization for items
+- Fixed Water (Base.WaterDrop) having no recipes
 
 ## 1.6.0.1 (23.04.2022, hotfix)
 

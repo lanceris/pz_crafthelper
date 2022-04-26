@@ -157,7 +157,7 @@ function CHC_uses_recipepanel:setObj(recipe)
                 end
                 itemInList.fullType = item.fullType
                 if sourceFullType == "Water" then
-                    itemInList.fullType = "Water"
+                    itemInList.fullType = "Base.WaterDrop"
                 end
                 table.insert(sourceInList.items, itemInList);
             end
