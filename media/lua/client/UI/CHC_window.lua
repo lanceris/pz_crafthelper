@@ -189,8 +189,9 @@ function CHC_window:addItemView(item, focusOnNew)
     -- check if there is existing tab with same name (and same item)
     local existingView = self.panel:getView(nameForTab)
     if existingView ~= nil then
-        if existingView.view and existingView.view.item ~= itn then -- same displayName, but different items
-            nameForTab = nameForTab .. string.format(" (%s)", itn.fullType)
+
+        if existingView.item.fullType ~= ifn then -- same displayName, but different items
+            nameForTab = nameForTab .. string.format(" (%s)", ifn)
         else -- same displayName and same item
             self:refresh(nameForTab, nil, focusOnNew)
             return
@@ -209,8 +210,8 @@ function CHC_window:addItemView(item, focusOnNew)
     self.itemPanel:setAnchorBottom(true)
     self.itemPanel.item = itn
     -- endregion
-    local usesData = CHC_main.recipesByItem[itn.name]
-    local craftData = CHC_main.recipesForItem[itn.name]
+    local usesData = CHC_main.recipesByItem[itn.fullType]
+    local craftData = CHC_main.recipesForItem[itn.fullType]
     self.panel:addView(nameForTab, self.itemPanel)
 
     --region uses screen

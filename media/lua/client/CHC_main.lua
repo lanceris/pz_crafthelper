@@ -134,6 +134,13 @@ CHC_main.loadAllRecipes = function()
 		newItem.recipeData.name = recipe:getName()
 		newItem.recipeData.nearItem = recipe:getNearItem()
 
+		newItem.recipeData.lua = {}
+		newItem.recipeData.lua.onCreate = recipe:getLuaCreate()
+		newItem.recipeData.lua.onTest = recipe:getLuaTest()
+		newItem.recipeData.lua.onCanPerform = recipe:getCanPerform()
+		newItem.recipeData.lua.onGiveXP = recipe:getLuaGiveXP()
+
+
 		--check for hydrocraft furniture
 		local hydrocraftFurniture = CHC_main.processHydrocraft(recipe)
 		if hydrocraftFurniture then
@@ -147,7 +154,7 @@ CHC_main.loadAllRecipes = function()
 		insert(CHC_main.allRecipes, newItem)
 		if itemres then
 			newItem.recipeData.result = itemres
-			CHC_main.setRecipeForItem(CHC_main.recipesForItem, itemres.name, newItem)
+			CHC_main.setRecipeForItem(CHC_main.recipesForItem, itemres.fullType, newItem)
 		else
 			insert(CHC_main.recipesWithoutItem, resultItem:getFullType())
 		end
@@ -163,7 +170,7 @@ CHC_main.loadAllRecipes = function()
 				local item = CHC_main.handleItems(itemString)
 
 				if item then
-					CHC_main.setRecipeForItem(CHC_main.recipesByItem, item.name, newItem)
+					CHC_main.setRecipeForItem(CHC_main.recipesByItem, item.fullType, newItem)
 				end
 			end
 		end

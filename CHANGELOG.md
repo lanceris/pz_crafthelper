@@ -4,12 +4,14 @@
 
 ### New features
 
+- Show status of item(-s) in recipe (K - keep, D - destroy, nothing - consumed)
+
 ### Improvements
 
 - Added Korean translation (thanks to [척현](https://steamcommunity.com/profiles/76561198379317304))
-- Refactored CHC_window
 - TIL ISComboBox can be editable (TODO: create option for that)
 - Refactored bunch of files
+- Changed name saved in recipesByItem and recipesForItem (name -> fulltype)
 
 ### Bugfixes
 

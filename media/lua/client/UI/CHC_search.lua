@@ -370,8 +370,8 @@ function CHC_search:onRMBDownObjList(x, y, item)
     -- check if there is recipes for item
     -- if true then return end
     item = CHC_main.items[item.fullType]
-    local cond1 = type(CHC_main.recipesByItem[item.name]) == 'table'
-    local cond2 = type(CHC_main.recipesForItem[item.name]) == 'table'
+    local cond1 = type(CHC_main.recipesByItem[item.fullType]) == 'table'
+    local cond2 = type(CHC_main.recipesForItem[item.fullType]) == 'table'
     local cX = getMouseX()
     local cY = getMouseY()
     local context = ISContextMenu.get(0, cX + 10, cY)
@@ -406,8 +406,8 @@ function CHC_search:onMMBDownObjList()
     local backref = self.parent.backRef
     local item = self.items[row].item.item
     -- check if there is recipes for item
-    local cond1 = type(CHC_main.recipesByItem[item:getName()]) == 'table'
-    local cond2 = type(CHC_main.recipesForItem[item:getName()]) == 'table'
+    local cond1 = type(CHC_main.recipesByItem[item:getFullType()]) == 'table'
+    local cond2 = type(CHC_main.recipesForItem[item:getFullType()]) == 'table'
     if cond1 or cond2 then
         backref:addItemView(item, false)
     end

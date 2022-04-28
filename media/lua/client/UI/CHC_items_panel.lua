@@ -177,9 +177,9 @@ function CHC_items_panel:setObj(item)
     self.mainWeight:setName(getText("IGUI_invpanel_weight") .. ": " .. round(item.item:getWeight(), 2))
     local maxY = self.mainWeight.y + self.mainWeight.height + 2
 
-    local usesNum = CHC_main.recipesByItem[item.name]
+    local usesNum = CHC_main.recipesByItem[item.fullType]
     if type(usesNum) == 'table' then usesNum = #usesNum else usesNum = 0 end
-    local craftNum = CHC_main.recipesForItem[item.name]
+    local craftNum = CHC_main.recipesForItem[item.fullType]
     if type(craftNum) == 'table' then craftNum = #craftNum else craftNum = 0 end
     if usesNum + craftNum > 0 then
         self.mainNumRecipes:setName(getText("UI_search_recipes_tab_name") .. ": " .. usesNum + craftNum)
