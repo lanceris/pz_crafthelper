@@ -100,31 +100,10 @@ function CHC_uses_recipepanel:setObj(recipe)
     newItem.recipe = recipe.recipe;
     newItem.available = RecipeManager.IsRecipeValid(recipe.recipe, self.player, nil, self.containerList);
 
-    -- local luastuff = recipe.recipeData.lua
-    -- local luafunc = _G[luastuff.onCreate]
-    -- if luafunc then
-    --     -- local reader = getModFileReader()
-    --     local abc = getFilenameOfClosure(luafunc)
-    --     local firstline = getFirstLineOfClosure(luafunc)
-    --     local code = ""
-    --     -- local test = luafunc.prototype.lines.length
-    --     local fr = getFileReader(abc, false)
-    --     local line = fr:readLine()
-    --     local maxlines = 50
-    --     while line ~= nil do
-    --         if utils.startswith(string.trim(line), "function") then
-    --             break
-    --         end
-    --         if maxlines <= 0 then break end
-    --         code = code .. line
-    --         maxlines = maxlines - 1
-    --     end
-    --     fr:close()
+    if recipe.recipeData.lua.onCreate then
+        -- efg:dfg() -- testing lua parsing
+    end
 
-    --     print(firstline)
-    --     erhg:eh()
-    -- end
-    -- local recipeResult = recipe.recipe:getResult()
     local resultItem = recipe.recipeData.result
     if resultItem then
         newItem.module = resultItem.modname
@@ -319,7 +298,7 @@ function CHC_uses_recipepanel:getAvailableItemsType()
         for x = 0, items:size() - 1 do
             local item = items:get(x)
             if sourceItemTypes["Water"] and ISCraftingUI:isWaterSource(item, source:getCount()) then
-                result["Water"] = (result["Water"] or 0) + item:getDrainableUsesInt()
+                result["Base.WaterDrop"] = (result["Base.WaterDrop"] or 0) + item:getDrainableUsesInt()
             elseif sourceItemTypes[item:getFullType()] then
                 local count = 1
                 if not source:isDestroy() and item:IsDrainable() then

@@ -170,5 +170,14 @@ CHC_utils.chcprint = function(txt)
     print("[CraftHelperContinued] " .. tostring(txt))
 end
 
+CHC_utils.jsonutil = {}
+CHC_utils.jsonutil.Load = function(fname, objToTransfer)
+    -- load cached lua stuff
+end
+
+CHC_utils.jsonutil.Save = function(fname, data)
+    -- save cached lua stuff from CHC_main.luaRecipeCache
+end
+
 
 return CHC_utils

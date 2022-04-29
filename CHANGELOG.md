@@ -12,6 +12,8 @@
 - TIL ISComboBox can be editable (TODO: create option for that)
 - Refactored bunch of files
 - Changed name saved in recipesByItem and recipesForItem (name -> fulltype)
+- Added Brazilian Portuguese translation (thanks to [Não é o Gui](https://steamcommunity.com/profiles/76561199131666750))
+- Added onCreate, onTest, onCanPerform, onGiveXP processing (actual parsing is WIP)
 
 ### Bugfixes
 

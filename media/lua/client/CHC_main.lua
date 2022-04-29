@@ -13,6 +13,8 @@ CHC_main.items = {}
 CHC_main.itemsForSearch = {}
 CHC_main.isDebug = false or getDebug()
 CHC_main.recipesWithoutItem = {}
+CHC_main.recipesWithLua = {}
+CHC_main.luaRecipeCache = {}
 
 local insert = table.insert
 local utils = require('CHC_utils')
@@ -33,6 +35,79 @@ CHC_main.handleItems = function(itemString)
 	end
 	return item
 end
+
+
+CHC_main.handleRecipeLua = function(luaClosure)
+	local luafunc = _G[luaClosure]
+	if luafunc then
+		local closureFileName = getFilenameOfClosure(luafunc)
+		local closureShortFileName = getShortenedFilename(closureFileName)
+		local closureFirstLine = getFirstLineOfClosure(luafunc)
+		local code
+		local closureName = KahluaUtil.rawTostring2(luafunc)
+		closureName = string.sub(closureName, 11, string.find(closureName, " --") - 1)
+		if CHC_main.luaRecipeCache[closureName] then
+			return CHC_main.luaRecipeCache[closureName]
+		end
+		if CHC_main.isDebug then
+			local br = getGameFilesTextInput(closureFileName)
+			local cnt = 0
+
+			while closureFirstLine - 2 > cnt do
+				br:readLine()
+				cnt = cnt + 1
+			end
+
+			local maxlines = 300
+			local line = br:readLine()
+			local firstline = line
+			while line ~= nil do
+				if line ~= firstline and utils.startswith(string.trim(line), "function") then
+					break
+				end
+				if maxlines <= 0 then
+					print('Max lines reached: ' .. closureName)
+					break
+				end
+				if not code then code = {} end
+				if line ~= "" then
+					table.insert(code, line)
+				end
+				maxlines = maxlines - 1
+				line = br:readLine()
+			end
+			endTextFileInput()
+		else
+			-- if not debug, we cant get luaclosure source code (check zombie\Lua\LuaManager.java@getGameFilesTextInput)
+			-- so we just store filename and starting line
+			closureName = nil
+		end
+		local res = { code = code,
+			filepath = closureFileName,
+			shortname = closureShortFileName,
+			startline = closureFirstLine,
+			funcname = closureName }
+		CHC_main.luaRecipeCache[res.funcname] = res
+		return res
+	end
+end
+
+CHC_main.parseOnCreate = function(recipeLua)
+	-- AddItem and such
+end
+
+CHC_main.parseOnTest = function(recipeLua)
+	-- ???
+end
+
+CHC_main.parseOnCanPerform = function(recipeLua)
+	-- ???
+end
+
+CHC_main.parseOnGiveXP = function(recipeLua)
+	-- AddXP, parse perk, parse amount
+end
+
 
 CHC_main.loadDatas = function()
 	CHC_main.loadAllItems()
@@ -134,12 +209,28 @@ CHC_main.loadAllRecipes = function()
 		newItem.recipeData.name = recipe:getName()
 		newItem.recipeData.nearItem = recipe:getNearItem()
 
-		newItem.recipeData.lua = {}
-		newItem.recipeData.lua.onCreate = recipe:getLuaCreate()
-		newItem.recipeData.lua.onTest = recipe:getLuaTest()
-		newItem.recipeData.lua.onCanPerform = recipe:getCanPerform()
-		newItem.recipeData.lua.onGiveXP = recipe:getLuaGiveXP()
-
+		local onCreate = recipe:getLuaCreate()
+		local onTest = recipe:getLuaTest()
+		local onCanPerform = recipe:getCanPerform()
+		local onGiveXP = recipe:getLuaGiveXP()
+		if onCreate or onTest or onCanPerform or onGiveXP then
+			newItem.recipeData.lua = {}
+			if onCreate then
+				newItem.recipeData.lua.onCreate = CHC_main.handleRecipeLua(onCreate)
+			end
+			if onTest then
+				newItem.recipeData.lua.onTest = CHC_main.handleRecipeLua(onTest)
+			end
+			if onCanPerform then
+				newItem.recipeData.lua.onCanPerform = CHC_main.handleRecipeLua(onCanPerform)
+			end
+			if onGiveXP then
+				newItem.recipeData.lua.onGiveXP = CHC_main.handleRecipeLua(onGiveXP)
+			end
+		end
+		if newItem.recipeData.lua then
+			CHC_main.recipesWithLua[newItem.recipeData.name] = newItem.recipeData.lua
+		end
 
 		--check for hydrocraft furniture
 		local hydrocraftFurniture = CHC_main.processHydrocraft(recipe)
