@@ -100,7 +100,7 @@ function CHC_uses_recipepanel:setObj(recipe)
     newItem.recipe = recipe.recipe;
     newItem.available = RecipeManager.IsRecipeValid(recipe.recipe, self.player, nil, self.containerList);
 
-    if recipe.recipeData.lua.onCreate then
+    if recipe.recipeData.lua then
         -- efg:dfg() -- testing lua parsing
     end
 
@@ -696,7 +696,7 @@ function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y, item)
 
     context:addOption(getText("IGUI_find_item"), backref, findItem)
 
-    local newTabOption = context:addOption(getText("IGUI_new_tab"), backref, backref.addItemView, item.item, true)
+    local newTabOption = context:addOption(getText("IGUI_new_tab"), backref, backref.addItemView, item.item, true, 2)
 
     if not (cond1 or cond2) then
         local tooltip = ISToolTip:new()

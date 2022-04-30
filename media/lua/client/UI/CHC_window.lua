@@ -182,7 +182,7 @@ function CHC_window:addFavoriteScreen()
 
 end
 
-function CHC_window:addItemView(item, focusOnNew)
+function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
     local ifn = item:getFullType()
     local itn = CHC_main.items[ifn]
     local nameForTab = itn.displayName
@@ -193,7 +193,7 @@ function CHC_window:addItemView(item, focusOnNew)
         if existingView.item.fullType ~= ifn then -- same displayName, but different items
             nameForTab = nameForTab .. string.format(" (%s)", ifn)
         else -- same displayName and same item
-            self:refresh(nameForTab, nil, focusOnNew)
+            self:refresh(nameForTab, nil, focusOnNew, focusOnTabIdx)
             return
         end
     end
@@ -270,7 +270,7 @@ function CHC_window:addItemView(item, focusOnNew)
     -- endregion
     --endregion
     self.itemPanel.infoText = getText(self.itemPanelInfo, itn.displayName) .. self.infotext_common_recipes
-    self:refresh(nil, nil, focusOnNew)
+    self:refresh(nil, nil, focusOnNew, focusOnTabIdx)
 end
 
 function CHC_window:getItems(items, max)
@@ -319,7 +319,7 @@ function CHC_window:update()
     end
 end
 
-function CHC_window:refresh(viewName, panel, focusOnNew)
+function CHC_window:refresh(viewName, panel, focusOnNew, focusOnTabIdx)
     local panel = panel or self.panel
     if viewName and (focusOnNew == nil or focusOnNew == true) then
         panel:activateView(viewName)
@@ -336,6 +336,13 @@ function CHC_window:refresh(viewName, panel, focusOnNew)
         return
     else
         panel:activateView(viewName)
+    end
+    if focusOnTabIdx then
+        -- uses/craft or items/recipes
+        local v = panel.activeView.view
+        if v.viewList[focusOnTabIdx] then
+            v:activateView(v.viewList[focusOnTabIdx].name)
+        end
     end
 end
 

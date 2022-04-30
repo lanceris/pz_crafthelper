@@ -393,7 +393,7 @@ function CHC_search:onRMBDownObjList(x, y, item)
         subMenuName:addOption("@Mod", self, chccopy, "@" .. item.modname)
     end
     if cond1 or cond2 then
-        context:addOption(getText("IGUI_new_tab"), backref, backref.addItemView, item.item, true)
+        context:addOption(getText("IGUI_new_tab"), backref, backref.addItemView, item.item, true, 2)
         -- backref:addItemView(item, true)
     end
 end
