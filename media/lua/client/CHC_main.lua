@@ -20,6 +20,8 @@ local insert = table.insert
 local utils = require('CHC_utils')
 local print = utils.chcprint
 
+local cacheFileName = "CraftHelperLuaCache.json"
+
 local showTime = function(start, st)
 	print(string.format("Loaded %s in %s seconds", st, tostring((getTimestampMs() - start) / 1000)))
 end
@@ -45,9 +47,10 @@ CHC_main.handleRecipeLua = function(luaClosure)
 		local closureFirstLine = getFirstLineOfClosure(luafunc)
 		local code
 		local closureName = KahluaUtil.rawTostring2(luafunc)
-		closureName = string.sub(closureName, 11, string.find(closureName, " --") - 1)
-		if CHC_main.luaRecipeCache[closureName] then
-			return CHC_main.luaRecipeCache[closureName]
+		closureName = string.sub(closureName, 11, string.find(closureName, " %-%-") - 1)
+		local funcData = CHC_main.luaRecipeCache[closureName]
+		if funcData and type(funcData.code) == "table" then
+			return funcData
 		end
 		if CHC_main.isDebug then
 			local br = getGameFilesTextInput(closureFileName)
@@ -70,6 +73,10 @@ CHC_main.handleRecipeLua = function(luaClosure)
 					break
 				end
 				if not code then code = {} end
+				local idx = line:find("%-%-")
+				if idx then line = line:sub(1, idx - 1) end
+				line = line:trim()
+
 				if line ~= "" then
 					table.insert(code, line)
 				end
@@ -80,14 +87,13 @@ CHC_main.handleRecipeLua = function(luaClosure)
 		else
 			-- if not debug, we cant get luaclosure source code (check zombie\Lua\LuaManager.java@getGameFilesTextInput)
 			-- so we just store filename and starting line
-			closureName = nil
 		end
 		local res = { code = code,
 			filepath = closureFileName,
 			shortname = closureShortFileName,
 			startline = closureFirstLine,
 			funcname = closureName }
-		CHC_main.luaRecipeCache[res.funcname] = res
+		CHC_main.luaRecipeCache[closureName] = res
 		return res
 	end
 end
@@ -111,7 +117,18 @@ end
 
 CHC_main.loadDatas = function()
 	CHC_main.loadAllItems()
+	local luaCache = utils.jsonutil.Load(cacheFileName)
+	if not luaCache then
+		print('Lua cache is empty, will init new one...')
+		CHC_main.luaRecipeCache = {}
+	else
+		CHC_main.luaRecipeCache = luaCache
+	end
 	CHC_main.loadAllRecipes()
+
+	-- if not luaCache then
+	utils.jsonutil.Save(cacheFileName, CHC_main.luaRecipeCache)
+	-- end
 
 	CHC_menu.createCraftHelper()
 end
