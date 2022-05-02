@@ -13,10 +13,14 @@ CHC_main.items = {}
 CHC_main.itemsForSearch = {}
 CHC_main.isDebug = false or getDebug()
 CHC_main.recipesWithoutItem = {}
+CHC_main.recipesWithLua = {}
+CHC_main.luaRecipeCache = {}
 
 local insert = table.insert
 local utils = require('CHC_utils')
 local print = utils.chcprint
+
+local cacheFileName = "CraftHelperLuaCache.json"
 
 local showTime = function(start, st)
 	print(string.format("Loaded %s in %s seconds", st, tostring((getTimestampMs() - start) / 1000)))
@@ -24,7 +28,9 @@ end
 
 CHC_main.handleItems = function(itemString)
 	local item
-	if (string.find(itemString, "Base%.DigitalWatch2") or string.find(itemString, "Base%.AlarmClock2")) then
+	if itemString == "Water" then
+		item = CHC_main.items["Base.WaterDrop"]
+	elseif (string.find(itemString, "Base%.DigitalWatch2") or string.find(itemString, "Base%.AlarmClock2")) then
 		item = nil
 	else
 		item = CHC_main.items[itemString]
@@ -32,9 +38,99 @@ CHC_main.handleItems = function(itemString)
 	return item
 end
 
+-- region lua stuff
+CHC_main.handleRecipeLua = function(luaClosure)
+	local luafunc = _G[luaClosure]
+	if luafunc then
+		local closureFileName = getFilenameOfClosure(luafunc)
+		local closureShortFileName = getShortenedFilename(closureFileName)
+		local closureFirstLine = getFirstLineOfClosure(luafunc)
+		local code
+		local closureName = KahluaUtil.rawTostring2(luafunc)
+		closureName = string.sub(closureName, 11, string.find(closureName, " %-%-") - 1)
+		local funcData = CHC_main.luaRecipeCache[closureName]
+		if funcData and type(funcData.code) == "table" then
+			return funcData
+		end
+		if CHC_main.isDebug then
+			local br = getGameFilesTextInput(closureFileName)
+			local cnt = 0
+
+			while closureFirstLine - 2 > cnt do
+				br:readLine()
+				cnt = cnt + 1
+			end
+
+			local maxlines = 300
+			local line = br:readLine()
+			local firstline = line
+			while line ~= nil do
+				if line ~= firstline and utils.startswith(string.trim(line), "function") then
+					break
+				end
+				if maxlines <= 0 then
+					print('Max lines reached: ' .. closureName)
+					break
+				end
+				if not code then code = {} end
+				local idx = line:find("%-%-")
+				if idx then line = line:sub(1, idx - 1) end
+				line = line:trim()
+
+				if line ~= "" then
+					table.insert(code, line)
+				end
+				maxlines = maxlines - 1
+				line = br:readLine()
+			end
+			endTextFileInput()
+		else
+			-- if not debug, we cant get luaclosure source code (check zombie\Lua\LuaManager.java@getGameFilesTextInput)
+			-- so we just store filename and starting line
+		end
+		local res = { code = code,
+			filepath = closureFileName,
+			shortname = closureShortFileName,
+			startline = closureFirstLine,
+			funcname = closureName }
+		CHC_main.luaRecipeCache[closureName] = res
+		return res
+	end
+end
+
+CHC_main.parseOnCreate = function(recipeLua)
+	-- AddItem and such
+end
+
+CHC_main.parseOnTest = function(recipeLua)
+	-- ???
+end
+
+CHC_main.parseOnCanPerform = function(recipeLua)
+	-- ???
+end
+
+CHC_main.parseOnGiveXP = function(recipeLua)
+	-- AddXP, parse perk, parse amount
+end
+-- endregion
+
 CHC_main.loadDatas = function()
+	CHC_main.playerModData = getPlayer():getModData()
+
 	CHC_main.loadAllItems()
+	local luaCache = utils.jsonutil.Load(cacheFileName)
+	if not luaCache then
+		print('Lua cache is empty, will init new one...')
+		CHC_main.luaRecipeCache = {}
+	else
+		CHC_main.luaRecipeCache = luaCache
+	end
 	CHC_main.loadAllRecipes()
+
+	-- if not luaCache then
+	utils.jsonutil.Save(cacheFileName, CHC_main.luaRecipeCache)
+	-- end
 
 	CHC_menu.createCraftHelper()
 end
@@ -61,7 +157,8 @@ CHC_main.processOneItem = function(item)
 			displayCategory = itemDisplayCategory and getTextOrNull("IGUI_ItemCat_" .. itemDisplayCategory) or getText("IGUI_ItemCat_Item"),
 			texture = invItem:getTex()
 		}
-		CHC_main.items[invItem:getFullType()] = toinsert
+		-- toinsert.favorite = CHC_main.playerModData[CHC_main.getFavItemModDataStr(toinsert)] or false
+		CHC_main.items[toinsert.fullType] = toinsert
 		insert(CHC_main.itemsForSearch, toinsert)
 		-- CHC_main.items[fullType] = invItem
 	else
@@ -116,7 +213,6 @@ CHC_main.loadAllRecipes = function()
 	-- Get all recipes in game (vanilla recipes + any mods recipes)
 	local allRecipes = getAllRecipes()
 
-	local modData = getPlayer():getModData()
 	-- Go through recipes stack
 	for i = 0, allRecipes:size() - 1 do
 		local newItem = {}
@@ -126,11 +222,34 @@ CHC_main.loadAllRecipes = function()
 		newItem.displayCategory = getTextOrNull("IGUI_CraftCategory_" .. newItem.category) or newItem.category
 		newItem.recipe = recipe
 		newItem.module = recipe:getModule():getName()
-		newItem.favorite = modData[CHC_main.getFavoriteModDataString(recipe)] or false
+		newItem.favorite = CHC_main.playerModData[CHC_main.getFavoriteRecipeModDataString(recipe)] or false
 		newItem.recipeData = {}
 		newItem.recipeData.category = recipe:getCategory() or getText("IGUI_CraftCategory_General")
 		newItem.recipeData.name = recipe:getName()
 		newItem.recipeData.nearItem = recipe:getNearItem()
+
+		-- local onCreate = recipe:getLuaCreate()
+		-- local onTest = recipe:getLuaTest()
+		-- local onCanPerform = recipe:getCanPerform()
+		-- local onGiveXP = recipe:getLuaGiveXP()
+		-- if onCreate or onTest or onCanPerform or onGiveXP then
+		-- 	newItem.recipeData.lua = {}
+		-- 	if onCreate then
+		-- 		newItem.recipeData.lua.onCreate = CHC_main.handleRecipeLua(onCreate)
+		-- 	end
+		-- 	if onTest then
+		-- 		newItem.recipeData.lua.onTest = CHC_main.handleRecipeLua(onTest)
+		-- 	end
+		-- 	if onCanPerform then
+		-- 		newItem.recipeData.lua.onCanPerform = CHC_main.handleRecipeLua(onCanPerform)
+		-- 	end
+		-- 	if onGiveXP then
+		-- 		newItem.recipeData.lua.onGiveXP = CHC_main.handleRecipeLua(onGiveXP)
+		-- 	end
+		-- end
+		-- if newItem.recipeData.lua then
+		-- 	CHC_main.recipesWithLua[newItem.recipeData.name] = newItem.recipeData.lua
+		-- end
 
 		--check for hydrocraft furniture
 		local hydrocraftFurniture = CHC_main.processHydrocraft(recipe)
@@ -145,7 +264,7 @@ CHC_main.loadAllRecipes = function()
 		insert(CHC_main.allRecipes, newItem)
 		if itemres then
 			newItem.recipeData.result = itemres
-			CHC_main.setRecipeForItem(CHC_main.recipesForItem, itemres.name, newItem)
+			CHC_main.setRecipeForItem(CHC_main.recipesForItem, itemres.fullType, newItem)
 		else
 			insert(CHC_main.recipesWithoutItem, resultItem:getFullType())
 		end
@@ -161,7 +280,7 @@ CHC_main.loadAllRecipes = function()
 				local item = CHC_main.handleItems(itemString)
 
 				if item then
-					CHC_main.setRecipeForItem(CHC_main.recipesByItem, item.name, newItem)
+					CHC_main.setRecipeForItem(CHC_main.recipesByItem, item.fullType, newItem)
 				end
 			end
 		end
@@ -176,7 +295,20 @@ CHC_main.setRecipeForItem = function(tbl, itemName, recipe)
 	insert(tbl[itemName], recipe)
 end
 
-CHC_main.getFavoriteModDataString = function(recipe)
+CHC_main.getFavItemModDataStr = function(item)
+	local fullType
+	if item.fullType then
+		fullType = item.fullType
+	elseif instanceof(item, "InventoryItem") then
+		fullType = item:getFullType()
+	elseif type(item) == "string" then
+		fullType = item
+	end
+	local text = "itemFavoriteCHC:" .. fullType
+	return text
+end
+
+CHC_main.getFavoriteRecipeModDataString = function(recipe)
 	local text = "craftingFavorite:" .. recipe:getOriginalname()
 	if nil then --instanceof(recipe, "EvolvedRecipe") then
 		text = text .. ':' .. recipe:getBaseItem()

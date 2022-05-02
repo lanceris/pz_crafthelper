@@ -12,3 +12,5 @@ Contributors will be shown in order of first pull request / commit:
   - Thai translation
 - [척현](https://steamcommunity.com/profiles/76561198379317304)
   - Korean translation
+- [Não é o Gui](https://steamcommunity.com/profiles/76561199131666750)
+  - Brazilian Portuguese translation

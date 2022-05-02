@@ -40,15 +40,15 @@ function CHC_items_list:update()
     end
 end
 
+function CHC_items_list:isMouseOverFavorite(x)
+    return (x >= self.width - 40) and not self:isMouseOverScrollBar()
+end
+
 -- endregion
 
 -- region render
 
 function CHC_items_list:prerender()
-    local now
-    if self.ft then
-        now = getTimestampMs()
-    end
     if not self.items then return end
 
     local stencilX = 0
@@ -133,6 +133,9 @@ function CHC_items_list:doDrawItem(y, item, alt)
     local itemObj = item.item
     local a = 0.9
 
+    local favoriteStar = nil
+    local favoriteAlpha = a
+
     local itemPadY = self.itemPadY or (item.height - self.fontHgt) / 2
     local iconsEnabled = CHC_settings.config.show_icons
 
@@ -153,6 +156,24 @@ function CHC_items_list:doDrawItem(y, item, alt)
     self:drawText(clr.txt, clr.x, clr.y, clr.r, clr.g, clr.b, clr.a, clr.font)
     --endregion
 
+    --region favorite handler
+    local isFav = CHC_main.playerModData[CHC_main.getFavItemModDataStr(item.item)] == true
+    local favYPos = self.width - 30
+    if item.index == self.mouseoverselected and not self:isMouseOverScrollBar() then
+        if self:getMouseX() >= favYPos - 20 then
+            favoriteStar = isFav and self.favCheckedTex or self.favNotCheckedTex
+            favoriteAlpha = 0.9
+        else
+            favoriteStar = isFav and self.favoriteStar or self.favNotCheckedTex
+            favoriteAlpha = isFav and a or 0.3
+        end
+    elseif isFav then
+        favoriteStar = self.favoriteStar
+    end
+    if favoriteStar then
+        self:drawTexture(favoriteStar, favYPos, y + (item.height / 2 - favoriteStar:getHeight() / 2), favoriteAlpha, 1, 1, 1);
+    end
+    --endregion
 
     --region filler
     local sc = { x = 0, y = y, w = self:getWidth(), h = item.height - 1, a = 0.2, r = 0.75, g = 0.5, b = 0.5 }
@@ -171,6 +192,46 @@ end
 
 -- endregion
 
+-- region logic
+
+-- region event handlers
+function CHC_items_list:onMouseDown_Recipes(x, y)
+    local row = self:rowAt(x, y)
+    if row == -1 then return end
+    if self:isMouseOverFavorite(x) then
+        self:addToFavorite(row)
+    end
+end
+
+-- endregion
+
+function CHC_items_list:addToFavorite(selectedIndex, fromKeyboard)
+    if fromKeyboard == true then
+        selectedIndex = self.selected
+    end
+    local selectedItem = self.items[selectedIndex]
+    if not selectedItem then return end
+    local parent = self.parent
+
+    local isFav = self.modData[CHC_main.getFavItemModDataStr(selectedItem.item)] == true
+    isFav = not isFav
+    self.modData[CHC_main.getFavItemModDataStr(selectedItem.item)] = isFav or nil
+
+    if isFav == true then
+    else
+        if parent.ui_type == 'fav_items' then
+            self:removeItemByIndex(selectedIndex)
+        end
+
+    end
+    parent.needUpdateTypes = true
+    parent.needUpdateFavorites = true
+    if parent.ui_type == 'fav_items' then
+        parent.needUpdateCategories = true
+    end
+end
+
+-- endregion
 
 function CHC_items_list:new(x, y, width, height, onmiddlemousedown)
     local o = {}
@@ -183,10 +244,13 @@ function CHC_items_list:new(x, y, width, height, onmiddlemousedown)
     o.anchorTop = true
     o.anchorBottom = true
 
-    o.favoriteStar = getTexture("media/ui/FavoriteStar.png")
-    o.favCheckedTex = getTexture("media/ui/FavoriteStarChecked.png")
-    o.favNotCheckedTex = getTexture("media/ui/FavoriteStarUnchecked.png")
+    o.favoriteStar = getTexture("media/textures/itemFavoriteStar.png")
+    o.favCheckedTex = getTexture("media/textures/itemFavoriteStarChecked.png")
+    o.favNotCheckedTex = getTexture("media/textures/itemFavoriteStarOutline.png")
     o.onmiddlemousedown = onmiddlemousedown
     o.needmmb = false
+    o.modData = CHC_main.playerModData
+
+    o.player = getPlayer()
     return o
 end
