@@ -50,6 +50,10 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
 	if type(itemsUsedInRecipes) == 'table' and #itemsUsedInRecipes > 0 then
 		context:addOption(getText("IGUI_chc_context_onclick"), itemsUsedInRecipes, CHC_menu.onCraftHelper, player);
 	end
+	if isShiftKeyDown() and CHC_menu.CHC_window ~= nil then
+		local optName = getText("UI_servers_addToFavorite") .. " (" .. getText("IGUI_chc_context_onclick") .. ")"
+		context:addOption(optName, items, CHC_menu.toggleItemFavorite)
+	end
 end
 
 CHC_menu.onCraftHelper = function(items, player)
@@ -84,6 +88,25 @@ CHC_menu.toggleUI = function()
 			ui:addToUIManager()
 		end
 	end
+end
+
+CHC_menu.toggleItemFavorite = function(items)
+	local modData = CHC_main.playerModData
+	for i = 1, #items do
+		local item
+		if not instanceof(items[i], "InventoryItem") then
+			item = items[i].items[1]
+		else
+			item = items[i]
+		end
+		local isFav = modData[CHC_main.getFavItemModDataStr(item)] == true
+		isFav = not isFav
+		modData[CHC_main.getFavItemModDataStr(item)] = isFav or nil
+	end
+	CHC_menu.CHC_window.updateQueue:push({
+		targetView = 'fav_items',
+		actions = { 'needUpdateFavorites', 'needUpdateObjects', 'needUpdateTypes', 'needUpdateCategories' }
+	})
 end
 
 ---Show/hide Craft Helper window keybind listener

@@ -29,4 +29,6 @@ IGUI_RU = {
     IGUI_mod_chc = "Мод"
     IGUI_tab_ctx_close_others = "Закрыть остальные"
     IGUI_no_recipes = "Рецептов не найдено"
+    IGUI_ShowFavItemsInventory = "Показывать иконки избранных предметов"
+    IGUI_ShowFavItemsInventoryTooltip = "Показывает контур синей звезды на предмете в инвентаре (предмет должен быть в избранном)"
 }

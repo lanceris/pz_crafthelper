@@ -165,6 +165,10 @@ function CHC_search:create()
     self:addChild(self.objList)
     self:addChild(self.objPanel)
 
+    if self.ui_type == 'fav_items' then
+        self.favrec = self.backRef:getItems(CHC_main.itemsForSearch, nil, true)
+    end
+
     self:updateTypesCategoriesInitial()
     self:updateItems(self.selectedCategory)
 end
@@ -204,8 +208,6 @@ function CHC_search:updateTypesCategoriesInitial()
     selector:clear()
     selector:addOptionWithData(self.defaultCategory, { count = #allItems, initCount = #allItems })
 
-    -- WIP favorite category
-
     sort(uniqueCategories)
     for i = 1, #uniqueCategories do
         local val = dcatCounts[uniqueCategories[i]]
@@ -222,15 +224,23 @@ function CHC_search:updateTypesCategoriesInitial()
 end
 
 function CHC_search:update()
+    if self.needUpdateFavorites == true then
+        -- print("upd Favorites; ui: " .. self.ui_type)
+        self:handleFavorites()
+        self.needUpdateFavorites = false
+    end
     if self.needUpdateObjects == true then
+        -- print("upd Objects; ui: " .. self.ui_type)
         self:updateItems(self.selectedCategory)
         self.needUpdateObjects = false
     end
     if self.needUpdateTypes == true then
+        -- print("upd Types; ui: " .. self.ui_type)
         self:updateTypes()
         self.needUpdateTypes = false
     end
     if self.needUpdateCategories == true then
+        -- print("upd Categories; ui: " .. self.ui_type)
         self:updateCategories()
         self.needUpdateCategories = false
     end
@@ -255,11 +265,6 @@ function CHC_search:updateItems(sl)
         local fav_cat_state = false
         local type_filter_state = false
         local search_state = false
-        -- local condFav1 = sl == "* " .. getText("IGUI_CraftCategory_Favorite")
-        -- local condFav2 = items[i].favorite
-        -- if condFav1 and condFav2 then
-        --     fav_cat_state = true
-        -- end
 
         if (rc == sl or sl == categoryAll) then
             type_filter_state = self:itemTypeFilter(items[i])
@@ -335,7 +340,21 @@ function CHC_search:updateCategories()
 end
 
 function CHC_search:handleFavorites()
-    -- TODO
+
+    local cond3 = self.ui_type == 'fav_items'
+
+    if cond3 then
+        self.favrec = self.backRef:getItems(CHC_main.itemsForSearch, nil, true)
+    end
+
+
+    --update favorites in favorites view
+    if not cond3 then
+        self.backRef.updateQueue:push({
+            targetView = 'fav_items',
+            actions = { 'needUpdateFavorites', 'needUpdateObjects', 'needUpdateTypes', 'needUpdateCategories' }
+        })
+    end
 end
 
 -- endregion
@@ -423,7 +442,7 @@ end
 
 function CHC_search:onItemChange(item)
     self.objPanel:setObj(item)
-    -- self.recipesList:onMouseDown_Recipes(self.recipesList:getMouseX(), self.recipesList:getMouseY())
+    self.objList:onMouseDown_Recipes(self.objList:getMouseX(), self.objList:getMouseY())
 end
 
 function CHC_search:onFilterTypeMenu(button)
@@ -496,16 +515,14 @@ function CHC_search:searchProcessToken(token, item)
         isSpecialSearch = true
         char = token:sub(1, 1)
         token = string.sub(token, 2)
-        if token == "" then return true end
+        if token == "" and char ~= "^" then return true end
     end
 
 
     local whatCompare
     if isAllowSpecialSearch and char == "^" then
-        -- print('fav items(?) here')
-        --     -- show favorited reciped and search by them
-        --     if not recipe.favorite then return false end
-        --     whatCompare = string.lower(recipe.recipe:getName())
+        if not self.modData[CHC_main.getFavItemModDataStr(item)] then return false end
+        whatCompare = string.lower(item.displayName)
     end
     if token and isSpecialSearch then
         if char == "!" then
@@ -539,7 +556,6 @@ function CHC_search:itemTypeFilter(item)
 end
 
 function CHC_search:processAddObjToObjList(item, modData)
-    -- item.favorite = modData[CHC_main.getFavoriteModDataString(item.recipe)] or false
     local name = item.displayName
     if name then
         self.objList:addItem(name, item)
@@ -582,8 +598,8 @@ function CHC_search:new(args)
     o.ui_type = args.ui_type
     o.sep_x = args.sep_x
     o.player = getPlayer()
+    o.modData = CHC_main.playerModData
 
-    o.favCatName = "* " .. getText("IGUI_CraftCategory_Favorite") -- WIP favorite items
     o.defaultCategory = getText("UI_All")
     o.searchRowHelpText = getText("UI_searchrow_info",
         getText("UI_searchrow_info_items_special"),
@@ -599,11 +615,11 @@ function CHC_search:new(args)
     o.itemSortFunc = o.itemSortAsc == true and CHC_search.sortByNameAsc or CHC_search.sortByNameDesc
     o.typeFilter = args.typeFilter
     o.showHidden = args.showHidden
-    o.favNum = 0 -- WIP favorite items
 
     o.needUpdateObjects = false
     o.needUpdateTypes = false
     o.needUpdateCategories = false
+    o.needUpdateFavorites = false
 
     o.isItemView = true
 

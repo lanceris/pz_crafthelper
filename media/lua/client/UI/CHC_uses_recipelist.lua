@@ -104,7 +104,7 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 			favoriteAlpha = item.item.favorite and a or 0.3
 		end
 	elseif item.item.favorite then
-		favoriteStar = self.favCheckedTex
+		favoriteStar = self.favoriteStar
 	end
 	if favoriteStar then
 		self:drawTexture(favoriteStar, favYPos, y + (item.height / 2 - favoriteStar:getHeight() / 2), favoriteAlpha, 1, 1, 1);
@@ -170,7 +170,6 @@ function CHC_uses_recipelist:addToFavorite(selectedIndex, fromKeyboard)
 	end
 	local selectedItem = self.items[selectedIndex]
 	if not selectedItem then return end
-	local modData = self.player:getModData();
 	local allr = getPlayerCraftingUI(0).categories
 	local fav_idx;
 	local parent = self.parent
@@ -185,7 +184,7 @@ function CHC_uses_recipelist:addToFavorite(selectedIndex, fromKeyboard)
 	if fav_idx == nil then return end
 	local fav_recipes = allr[fav_idx].recipes.items
 	selectedItem.item.favorite = not selectedItem.item.favorite;
-	modData[CHC_main.getFavoriteModDataString(selectedItem.item.recipe)] = selectedItem.item.favorite
+	self.modData[CHC_main.getFavoriteRecipeModDataString(selectedItem.item.recipe)] = selectedItem.item.favorite
 	if selectedItem.item.favorite then
 		parent.favRecNum = parent.favRecNum + 1
 		table.insert(fav_recipes, selectedItem)
@@ -194,6 +193,7 @@ function CHC_uses_recipelist:addToFavorite(selectedIndex, fromKeyboard)
 		local cs = parent.filterRow.categorySelector
 		if cs.options[cs.selected].text == parent.favCatName or parent.ui_type == 'fav_recipes' then
 			self:removeItemByIndex(selectedIndex)
+			parent.needUpdateTypes = true
 		end
 	end
 	if #self.items == 0 then
@@ -219,6 +219,7 @@ function CHC_uses_recipelist:new(x, y, width, height)
 	o.player = player
 	o.character = player
 	o.playerNum = player and player:getPlayerNum() or -1
+	o.modData = CHC_main.playerModData
 
 	o.favoriteStar = getTexture("media/ui/FavoriteStar.png")
 	o.favCheckedTex = getTexture("media/ui/FavoriteStarChecked.png")

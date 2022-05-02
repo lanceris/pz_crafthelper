@@ -5,6 +5,10 @@
 ### New features
 
 - Show status of item(-s) in recipe (K - keep, D - destroy, nothing - consumed)
+- Item favorites
+- Show favorite items in inventories
+- Option to show favorite items in inventories (by default OFF)
+- Context menu option to toggle favorite status of item when Shift + RMB on item in inventory
 
 ### Improvements
 
@@ -14,7 +18,9 @@
 - Changed name saved in recipesByItem and recipesForItem (name -> fulltype)
 - Added Brazilian Portuguese translation (thanks to [Não é o Gui](https://steamcommunity.com/profiles/76561199131666750))
 - Added onCreate, onTest, onCanPerform, onGiveXP processing (actual parsing is WIP)
+- Added caching of lua functions
 - Changed default subview when clicking on "Open in new tab" to Craft
+- Ability to favorite items from recipe ingredients
 
 ### Bugfixes
 

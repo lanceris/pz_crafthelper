@@ -32,6 +32,7 @@ function CHC_uses_recipepanel:createChildren()
     self.ingredientPanel:initialise()
     self.ingredientPanel:instantiate()
     self.ingredientPanel.onRightMouseDown = self.onRMBDownIngrPanel
+    self.ingredientPanel:setOnMouseDownFunction(self, self.onIngredientMouseDown)
     self.ingredientPanel.itemheight = math.max(fhSmall, 22)
     self.ingredientPanel.font = UIFont.NewSmall
     self.ingredientPanel.doDrawItem = self.drawIngredient
@@ -364,6 +365,30 @@ function CHC_uses_recipepanel:drawIngredient(y, item, alt)
         if item.item.texture then
             self:drawTextureScaledAspect(item.item.texture, dx, y + (self.itemheight - imgH) / 2, 20, 20, a2, r2, g2, b2)
         end
+
+        --region favorite handler
+        local favoriteStar = nil
+        local favoriteAlpha = 0.9
+        local favYPos = self.width - 30
+        local parent = self.parent
+        local isFav = CHC_main.playerModData[CHC_main.getFavItemModDataStr(item.item)] == true
+
+        if item.index == self.mouseoverselected then
+            if self:getMouseX() >= favYPos - 20 then
+                favoriteStar = isFav and parent.itemFavCheckedTex or parent.itemFavNotCheckedTex
+                favoriteAlpha = 0.9
+            else
+                favoriteStar = isFav and parent.itemFavoriteStar or parent.itemFavNotCheckedTex
+                favoriteAlpha = isFav and 0.9 or 0.3
+            end
+        elseif isFav then
+            favoriteStar = parent.itemFavoriteStar
+        end
+        if favoriteStar then
+            self:drawTexture(favoriteStar, favYPos, y + (item.height / 2 - favoriteStar:getHeight() / 2), favoriteAlpha, 1, 1, 1);
+        end
+        --endregion
+
     end
     local ab, rb, gb, bb = 1, 0.1, 0.1, 0.1
     if item.item.multipleHeader then
@@ -694,6 +719,10 @@ function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y, item)
         end
     end
 
+    local function addToFav()
+        -- @@@ TODO
+    end
+
     context:addOption(getText("IGUI_find_item"), backref, findItem)
 
     local newTabOption = context:addOption(getText("IGUI_new_tab"), backref, backref.addItemView, item.item, true, 2)
@@ -707,11 +736,28 @@ function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y, item)
         newTabOption.toolTip = tooltip
         -- backref:addItemView(item, true)
     end
+
+    -- context:addOption(getText("UI_servers_addToFavorite"), )
 end
 
 function CHC_uses_recipepanel:onRMBDownItemIcon(x, y)
     if not self.item then return end
     self.parent.onRMBDownIngrPanel(self, nil, nil, self.item)
+end
+
+function CHC_uses_recipepanel:onIngredientMouseDown(item)
+    if not item then return end
+    local x = self:getMouseX()
+
+    if (x >= self.width - 40) then
+        local isFav = self.modData[CHC_main.getFavItemModDataStr(item)] == true
+        isFav = not isFav
+        self.modData[CHC_main.getFavItemModDataStr(item)] = isFav or nil
+        self.parent.backRef.updateQueue:push({
+            targetView = 'fav_items',
+            actions = { 'needUpdateFavorites', 'needUpdateObjects', 'needUpdateTypes', 'needUpdateCategories' }
+        })
+    end
 end
 
 -- endregion
@@ -820,5 +866,10 @@ function CHC_uses_recipepanel:new(x, y, width, height)
     o.recipe = nil;
     o.manualsSize = 0
     o.manualsEntries = nil
+    o.modData = CHC_main.playerModData
+
+    o.itemFavoriteStar = getTexture("media/textures/itemFavoriteStar.png")
+    o.itemFavCheckedTex = getTexture("media/textures/itemFavoriteStarChecked.png")
+    o.itemFavNotCheckedTex = getTexture("media/textures/itemFavoriteStarOutline.png")
     return o;
 end

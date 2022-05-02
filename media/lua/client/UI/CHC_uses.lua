@@ -258,10 +258,8 @@ function CHC_uses:refreshObjList(recipes)
     self.objList:clear()
     self.objList:setScrollHeight(0)
 
-    local modData = getPlayer():getModData()
-
     for i = 1, #recipes do
-        self:processAddObjToObjList(recipes[i], modData)
+        self:processAddObjToObjList(recipes[i], self.modData)
     end
     sort(self.objList.items, self.itemSortFunc)
 end
@@ -579,7 +577,7 @@ end
 function CHC_uses:processAddObjToObjList(recipe, modData)
     if not self.showHidden and recipe.recipe:isHidden() then return end
     local name = recipe.recipeData.name
-    recipe.favorite = modData[CHC_main.getFavoriteModDataString(recipe.recipe)] or false
+    recipe.favorite = modData[CHC_main.getFavoriteRecipeModDataString(recipe.recipe)] or false
 
     self.objList:addItem(name, recipe)
 end
@@ -628,6 +626,7 @@ function CHC_uses:new(args)
     o.updCountsWithCur = false
     o.updFavWithCur = false
     o.isItemView = false
+    o.modData = CHC_main.playerModData
 
 
     o.numRecipesAll = 0

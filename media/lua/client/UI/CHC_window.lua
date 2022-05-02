@@ -131,7 +131,7 @@ function CHC_window:addFavoriteScreen()
     self.favPanel:setAnchorBottom(true)
 
     -- region fav items screen
-    local itemsData = self:getItems(CHC_main.itemsForSearch, 30) -- @@@ FIXME
+    local itemsData = self:getItems(CHC_main.itemsForSearch, nil, true)
     local items_screen_init = self.common_screen_data
     local items_extra = {
         recipeSource = itemsData,
@@ -273,19 +273,20 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
     self:refresh(nil, nil, focusOnNew, focusOnTabIdx)
 end
 
-function CHC_window:getItems(items, max)
+function CHC_window:getItems(items, max, favOnly)
     local insert = table.insert
     local showHidden = CHC_settings.config.show_hidden
     local newItems = {}
     local to = max or #items
 
     for i = 1, to do
+        local isFav = self.modData[CHC_main.getFavItemModDataStr(items[i])] == true
         if (not showHidden) and (items[i].hidden == true) then
-        else
+        elseif (favOnly and isFav) or (not favOnly) then
             insert(newItems, items[i])
         end
     end
-    if not showHidden and not max then
+    if not showHidden and not max and not favOnly then
         print(string.format('Removed %d hidden items', #items - #newItems))
     end
     return newItems
@@ -442,7 +443,7 @@ function CHC_window:onActivateView(target)
         sub.view.needUpdateFavorites = true
     end
 
-    if sub.view.ui_type == 'fav_recipes' then
+    if sub.view.ui_type == 'fav_recipes' or sub.view.ui_type == 'fav_items' then
         sub.view.needUpdateObjects = true
     end
 end
@@ -766,6 +767,7 @@ function CHC_window:new(args)
     local fontHgtSmall = getTextManager():getFontHeight(UIFont.Small);
     o.headerHgt = fontHgtSmall + 1
     o.player = args.player or nil
+    o.modData = CHC_main.playerModData
 
     o.searchViewName = getText("UI_search_tab_name")
     o.favViewName = getText("IGUI_CraftCategory_Favorite")

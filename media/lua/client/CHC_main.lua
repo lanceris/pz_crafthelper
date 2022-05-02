@@ -38,7 +38,7 @@ CHC_main.handleItems = function(itemString)
 	return item
 end
 
-
+-- region lua stuff
 CHC_main.handleRecipeLua = function(luaClosure)
 	local luafunc = _G[luaClosure]
 	if luafunc then
@@ -113,9 +113,11 @@ end
 CHC_main.parseOnGiveXP = function(recipeLua)
 	-- AddXP, parse perk, parse amount
 end
-
+-- endregion
 
 CHC_main.loadDatas = function()
+	CHC_main.playerModData = getPlayer():getModData()
+
 	CHC_main.loadAllItems()
 	local luaCache = utils.jsonutil.Load(cacheFileName)
 	if not luaCache then
@@ -155,7 +157,8 @@ CHC_main.processOneItem = function(item)
 			displayCategory = itemDisplayCategory and getTextOrNull("IGUI_ItemCat_" .. itemDisplayCategory) or getText("IGUI_ItemCat_Item"),
 			texture = invItem:getTex()
 		}
-		CHC_main.items[invItem:getFullType()] = toinsert
+		-- toinsert.favorite = CHC_main.playerModData[CHC_main.getFavItemModDataStr(toinsert)] or false
+		CHC_main.items[toinsert.fullType] = toinsert
 		insert(CHC_main.itemsForSearch, toinsert)
 		-- CHC_main.items[fullType] = invItem
 	else
@@ -210,7 +213,6 @@ CHC_main.loadAllRecipes = function()
 	-- Get all recipes in game (vanilla recipes + any mods recipes)
 	local allRecipes = getAllRecipes()
 
-	local modData = getPlayer():getModData()
 	-- Go through recipes stack
 	for i = 0, allRecipes:size() - 1 do
 		local newItem = {}
@@ -220,34 +222,34 @@ CHC_main.loadAllRecipes = function()
 		newItem.displayCategory = getTextOrNull("IGUI_CraftCategory_" .. newItem.category) or newItem.category
 		newItem.recipe = recipe
 		newItem.module = recipe:getModule():getName()
-		newItem.favorite = modData[CHC_main.getFavoriteModDataString(recipe)] or false
+		newItem.favorite = CHC_main.playerModData[CHC_main.getFavoriteRecipeModDataString(recipe)] or false
 		newItem.recipeData = {}
 		newItem.recipeData.category = recipe:getCategory() or getText("IGUI_CraftCategory_General")
 		newItem.recipeData.name = recipe:getName()
 		newItem.recipeData.nearItem = recipe:getNearItem()
 
-		local onCreate = recipe:getLuaCreate()
-		local onTest = recipe:getLuaTest()
-		local onCanPerform = recipe:getCanPerform()
-		local onGiveXP = recipe:getLuaGiveXP()
-		if onCreate or onTest or onCanPerform or onGiveXP then
-			newItem.recipeData.lua = {}
-			if onCreate then
-				newItem.recipeData.lua.onCreate = CHC_main.handleRecipeLua(onCreate)
-			end
-			if onTest then
-				newItem.recipeData.lua.onTest = CHC_main.handleRecipeLua(onTest)
-			end
-			if onCanPerform then
-				newItem.recipeData.lua.onCanPerform = CHC_main.handleRecipeLua(onCanPerform)
-			end
-			if onGiveXP then
-				newItem.recipeData.lua.onGiveXP = CHC_main.handleRecipeLua(onGiveXP)
-			end
-		end
-		if newItem.recipeData.lua then
-			CHC_main.recipesWithLua[newItem.recipeData.name] = newItem.recipeData.lua
-		end
+		-- local onCreate = recipe:getLuaCreate()
+		-- local onTest = recipe:getLuaTest()
+		-- local onCanPerform = recipe:getCanPerform()
+		-- local onGiveXP = recipe:getLuaGiveXP()
+		-- if onCreate or onTest or onCanPerform or onGiveXP then
+		-- 	newItem.recipeData.lua = {}
+		-- 	if onCreate then
+		-- 		newItem.recipeData.lua.onCreate = CHC_main.handleRecipeLua(onCreate)
+		-- 	end
+		-- 	if onTest then
+		-- 		newItem.recipeData.lua.onTest = CHC_main.handleRecipeLua(onTest)
+		-- 	end
+		-- 	if onCanPerform then
+		-- 		newItem.recipeData.lua.onCanPerform = CHC_main.handleRecipeLua(onCanPerform)
+		-- 	end
+		-- 	if onGiveXP then
+		-- 		newItem.recipeData.lua.onGiveXP = CHC_main.handleRecipeLua(onGiveXP)
+		-- 	end
+		-- end
+		-- if newItem.recipeData.lua then
+		-- 	CHC_main.recipesWithLua[newItem.recipeData.name] = newItem.recipeData.lua
+		-- end
 
 		--check for hydrocraft furniture
 		local hydrocraftFurniture = CHC_main.processHydrocraft(recipe)
@@ -293,7 +295,20 @@ CHC_main.setRecipeForItem = function(tbl, itemName, recipe)
 	insert(tbl[itemName], recipe)
 end
 
-CHC_main.getFavoriteModDataString = function(recipe)
+CHC_main.getFavItemModDataStr = function(item)
+	local fullType
+	if item.fullType then
+		fullType = item.fullType
+	elseif instanceof(item, "InventoryItem") then
+		fullType = item:getFullType()
+	elseif type(item) == "string" then
+		fullType = item
+	end
+	local text = "itemFavoriteCHC:" .. fullType
+	return text
+end
+
+CHC_main.getFavoriteRecipeModDataString = function(recipe)
 	local text = "craftingFavorite:" .. recipe:getOriginalname()
 	if nil then --instanceof(recipe, "EvolvedRecipe") then
 		text = text .. ':' .. recipe:getBaseItem()
