@@ -41,7 +41,7 @@ function CHC_filter_row:create()
     self.categorySelector = ISComboBox:new(x, 0, w - dw, h)
     self.categorySelector:initialise()
 
-    self.categorySelector.editable = true
+    self.categorySelector.editable = CHC_settings.config.editable_category_selector
     self.categorySelector.font = UIFont.Small -- TODO: move to options
     self.categorySelector.onChange = fsd.onChange
     self.categorySelector.target = self

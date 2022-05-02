@@ -1,6 +1,6 @@
 # CraftHelper updates
 
-## 1.6.1 ()
+## 1.6.1 (02.05.2022)
 
 ### New features
 
@@ -13,10 +13,10 @@
 ### Improvements
 
 - Added Korean translation (thanks to [척현](https://steamcommunity.com/profiles/76561198379317304))
-- TIL ISComboBox can be editable (TODO: create option for that)
+- Added Brazilian Portuguese translation (thanks to [Não é o Gui](https://steamcommunity.com/profiles/76561199131666750))
+- Option to enable editable category selector (by default OFF)
 - Refactored bunch of files
 - Changed name saved in recipesByItem and recipesForItem (name -> fulltype)
-- Added Brazilian Portuguese translation (thanks to [Não é o Gui](https://steamcommunity.com/profiles/76561199131666750))
 - Added onCreate, onTest, onCanPerform, onGiveXP processing (actual parsing is WIP)
 - Added caching of lua functions
 - Changed default subview when clicking on "Open in new tab" to Craft

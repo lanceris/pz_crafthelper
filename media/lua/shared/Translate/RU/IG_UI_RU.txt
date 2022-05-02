@@ -31,4 +31,6 @@ IGUI_RU = {
     IGUI_no_recipes = "Рецептов не найдено"
     IGUI_ShowFavItemsInventory = "Показывать иконки избранных предметов"
     IGUI_ShowFavItemsInventoryTooltip = "Показывает контур синей звезды на предмете в инвентаре (предмет должен быть в избранном)"
+    IGUI_EditableCategorySelector = "Включить ввод текста в селекторе категорий"
+    IGUI_EditableCategorySelectorTooltip = "Измените вкладку, чтобы применить"
 }

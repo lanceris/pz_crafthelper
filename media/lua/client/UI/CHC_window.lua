@@ -446,6 +446,13 @@ function CHC_window:onActivateView(target)
     if sub.view.ui_type == 'fav_recipes' or sub.view.ui_type == 'fav_items' then
         sub.view.needUpdateObjects = true
     end
+    if sub.view.filterRow then
+        local oldval = sub.view.filterRow.categorySelector.editable
+        local newval = CHC_settings.config.editable_category_selector
+        if oldval ~= newval then
+            sub.view.filterRow.categorySelector:setEditable(newval)
+        end
+    end
 end
 
 function CHC_window:onActivateSubView(target)
