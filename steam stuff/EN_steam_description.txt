@@ -5,12 +5,12 @@ This is an updated version of [url=https://steamcommunity.com/sharedfiles/filede
 This mod will add a "Craft Helper 41" context menu option when right-clicking on any item with associated recipes.
 Selecting that will bring up a UI with list of recipes that this item is part of, as well as ways to craft this item.
 Selecting a recipe will show information about it (required items, skills etc). Result icon and required items are right-clickable.
-Detailed information about interface can be found under ⓘ (info) symbol next to close button.
+Detailed information about interface can be found under (info) symbol next to close button.
 
 Apart from item tab, there is also two new tabs:
 [list]
 [*] Search tab, where you can find all items and recipes (might be laggy with alot of mods)
-[*] Favorite tab, where you can find all favorite [strike]items[/strike](WIP) and recipes
+[*] Favorite tab, where you can find all favorite items and recipes
 [/list]
 
 Safe to add/remove to/from existing saves
@@ -24,18 +24,18 @@ Does not support evolved recipes currently (soup, stew, salads etc.)
 [*]Window position saved to config. No more hassle with resizing/moving!
 [*]Search bar. Supports custom rules (click on magnifier)
 [*]Buttons to order list by name or type
-[*]Ability to favorite recipes [strike]and items[/strike]. Even unknown ones!
+[*]Ability to favorite recipes and items. Even unknown ones!
 [/list]
 
 [h2]Options ([url=https://steamcommunity.com/workshop/filedetails/?id=2169435993]Mod Options[/url] required to change):[/h2]
 [list]
 [*] Enable custom rules support (by default ON)
-[*] Show icons of items in list (by default ON)
-[*] Show hidden items/recipes (by default OFF)
-[*] Close all tabs on close (by default OFF)
-[*] Select font size for items in list (by default Large)
-[*] Modifier keys (Shift, Ctrl) for some keybinds (by default all None)
-[*] Show recipe origin (Mod) (by default ON)
+[*] Show icons of items in list (ON)
+[*] Show hidden items/recipes (OFF)
+[*] Close all tabs on close (OFF)
+[*] Select font size for items in list (Large)
+[*] Modifier keys (Shift, Ctrl) for some keybinds (all None)
+[*] Show recipe origin (Mod) (ON)
 [/list]
 Also, with "Mod Options" you can set keybinds (Key bindings -> Craft Helper) for some actions.
 
@@ -45,6 +45,8 @@ Also, with "Mod Options" you can set keybinds (Key bindings -> Craft Helper) for
 [*]Russian
 [*]Spanish (partial)
 [*]Thai (partial)
+[*]Korean
+[*]Brazilian Portuguese
 [/list]
 
 [h3]Thanks to everyone who made this mod better![/h3]
@@ -62,7 +64,7 @@ Also, with "Mod Options" you can set keybinds (Key bindings -> Craft Helper) for
 This mod can only be added to and extended with the express permission from the original creator. Having received permission, credit must be given to the original creator, both within the files of the mod and wherever the mod roams online.
 If no permission is received you may not alter the mod, and it must be treated as a mod that is 'On Lockdown'.
 
-This item is not authorized for posting on Steam, except under the Steam account named Lanceris, or with the copyright holder explicit permission.
+This item is not authorized for posting on Steam, except under the Steam account [url=https://steamcommunity.com/id/lanceris]Lanceris[/url], or with the copyright holder explicit permission.
 
 One exception for the above rule is redistribution of this mod (and/or modified versions) as part of the server modpack (collection of multiple mods bundled and configured together as one workshop item). 
 Support will NOT be provided for users, while they are using such modpacks.
