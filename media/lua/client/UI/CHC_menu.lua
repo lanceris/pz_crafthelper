@@ -51,7 +51,9 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
 		context:addOption(getText("IGUI_chc_context_onclick"), itemsUsedInRecipes, CHC_menu.onCraftHelper, player);
 	end
 	if isShiftKeyDown() and CHC_menu.CHC_window ~= nil then
-		local optName = getText("UI_servers_addToFavorite") .. " (" .. getText("IGUI_chc_context_onclick") .. ")"
+		local isFav = CHC_main.playerModData[CHC_main.getFavItemModDataStr(item)] == true
+		local favStr = isFav and getText("ContextMenu_Unfavorite") or getText("IGUI_CraftUI_Favorite")
+		local optName = favStr .. " (" .. getText("IGUI_chc_context_onclick") .. ")"
 		context:addOption(optName, items, CHC_menu.toggleItemFavorite)
 	end
 end

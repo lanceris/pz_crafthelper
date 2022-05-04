@@ -19,6 +19,8 @@ local fhSmall = texMan:getFontHeight(UIFont.Small) -- smallFontHeight
 function CHC_uses_recipepanel:createChildren()
     ISPanel.createChildren(self);
 
+    local listBorderColor = { r = 0.4, g = 0.4, b = 0.4, a = 0.4 }
+
     self.mainInfoImg = ISButton:new(1, 1, 42, 42, "", self, nil)
     self.mainInfoImg.backgroundColorMouseOver.a = 0
     self.mainInfoImg.backgroundColor.a = 0
@@ -28,18 +30,22 @@ function CHC_uses_recipepanel:createChildren()
 
     self:addChild(self.mainInfoImg)
 
-    self.ingredientPanel = ISScrollingListBox:new(1, 30, self.width, self.height - 40);
+    -- region ingredients
+    self.ingredientPanel = ISScrollingListBox:new(1, 30, self.width, 50)
     self.ingredientPanel:initialise()
     self.ingredientPanel:instantiate()
     self.ingredientPanel.onRightMouseDown = self.onRMBDownIngrPanel
     self.ingredientPanel:setOnMouseDownFunction(self, self.onIngredientMouseDown)
-    self.ingredientPanel.itemheight = math.max(fhSmall, 22)
+    self.ingredientPanel.itemheight = fhSmall + 2 * self.itemMargin
     self.ingredientPanel.font = UIFont.NewSmall
     self.ingredientPanel.doDrawItem = self.drawIngredient
     self.ingredientPanel.drawBorder = true
+    self.ingredientPanel.borderColor = listBorderColor
+    self.ingredientPanel.vscroll.borderColor = listBorderColor
     self.ingredientPanel:setVisible(false)
-    self:addChild(self.ingredientPanel)
+    -- endregion
 
+    -- region buttons
     local btnInfo = {
         x = 0,
         y = self.height / 2,
@@ -55,19 +61,66 @@ function CHC_uses_recipepanel:createChildren()
     self.craftOneButton:setWidth(5 + getTextManager():MeasureStringX(UIFont.Small, self.craftOneButton.title))
     self.craftOneButton:setVisible(false)
 
-    self:addChild(self.craftOneButton);
-
     self.craftAllButton = ISButton:new(btnInfo.x, btnInfo.y, btnInfo.w, btnInfo.h, nil, btnInfo.clicktgt, self.craftAll);
     self.craftAllButton:initialise()
     self.craftAllButton.title = getText("IGUI_CraftUI_ButtonCraftOne")
     self.craftAllButton:setWidth(5 + getTextManager():MeasureStringX(UIFont.Small, self.craftAllButton.title))
     self.craftAllButton:setVisible(false)
 
-    self:addChild(self.craftAllButton);
-
     -- self.debugGiveIngredientsButton = ISButton:new(0, 0, 50, 25, "DBG: Give Ingredients", self, ISCraftingUI.debugGiveIngredients);
     -- self.debugGiveIngredientsButton:initialise();
     -- self:addChild(self.debugGiveIngredientsButton);
+
+    -- endregion
+
+    -- region skills
+    self.skillPanel = ISScrollingListBox:new(1, 1, self.width, 30)
+    self.skillPanel:initialise()
+    self.skillPanel:instantiate()
+    -- self.skillPanel.onRightMouseDown = self.onRMBDownIngrPanel
+    -- self.skillPanel:setOnMouseDownFunction(self, self.onIngredientMouseDown)
+    self.skillPanel.itemheight = fhSmall + 2 * self.itemMargin
+    self.skillPanel.doDrawItem = self.drawSkill
+    self.skillPanel.drawBorder = true
+    self.skillPanel.borderColor = listBorderColor
+    self.skillPanel.vscroll.borderColor = listBorderColor
+    self.skillPanel:setVisible(false)
+    -- endregion
+
+    -- region books
+    self.booksPanel = ISScrollingListBox:new(1, 1, self.width, 30)
+    self.booksPanel:initialise()
+    self.booksPanel:instantiate()
+    self.booksPanel.onRightMouseDown = self.onRMBDownIngrPanel
+    self.booksPanel:setOnMouseDownFunction(self, self.onIngredientMouseDown)
+    self.booksPanel.itemheight = fhSmall + 2 * self.itemMargin
+    self.booksPanel.doDrawItem = self.drawBook
+    self.booksPanel.drawBorder = true
+    self.booksPanel.borderColor = listBorderColor
+    self.booksPanel.vscroll.borderColor = listBorderColor
+    self.booksPanel:setVisible(false)
+    -- endregion
+
+    -- region equipment
+    self.equipmentPanel = ISScrollingListBox:new(1, 1, self.width, 30)
+    self.equipmentPanel:initialise()
+    self.equipmentPanel:instantiate()
+    self.equipmentPanel.onRightMouseDown = self.onRMBDownIngrPanel
+    self.equipmentPanel:setOnMouseDownFunction(self, self.onIngredientMouseDown)
+    self.equipmentPanel.itemheight = fhSmall + 2 * self.itemMargin
+    self.equipmentPanel.doDrawItem = self.drawBook
+    self.equipmentPanel.drawBorder = true
+    self.equipmentPanel.borderColor = listBorderColor
+    self.equipmentPanel.vscroll.borderColor = listBorderColor
+    self.equipmentPanel:setVisible(false)
+    -- endregion
+
+    self:addChild(self.ingredientPanel)
+    self:addChild(self.craftOneButton)
+    self:addChild(self.craftAllButton)
+    self:addChild(self.skillPanel)
+    self:addChild(self.booksPanel)
+    self:addChild(self.equipmentPanel)
 end
 
 function CHC_uses_recipepanel:setItemNameInSource(item, itemInList, isDestroy, uses)
@@ -177,6 +230,7 @@ function CHC_uses_recipepanel:setObj(recipe)
     newItem.nearItem = recipe.recipeData.nearItem
     newItem.timeToMake = recipe.recipe:getTimeToMake()
     newItem.howManyCanCraft = RecipeManager.getNumberOfTimesRecipeCanBeDone(newItem.recipe, self.player, self.containerList, nil)
+    newItem.needToBeLearn = recipe.recipe:needToBeLearn()
 
     self.recipe = recipe.recipe;
     self.newItem = newItem;
@@ -186,6 +240,11 @@ function CHC_uses_recipepanel:setObj(recipe)
         self.manualsSize = #self.manualsEntries
     end
     self:refreshIngredientPanel()
+    self:refreshSkillPanel()
+    self:refreshBooksPanel()
+    self:refreshEquipmentPanel()
+
+    self.bh = self:getBottomHeight(newItem)
 end
 
 -- endregion
@@ -195,12 +254,11 @@ end
 function CHC_uses_recipepanel:refreshIngredientPanel()
     self.ingredientPanel:setVisible(false)
 
-    local selectedItem = self.newItem;
+    local selectedItem = self.newItem
     if not selectedItem then return end
 
     selectedItem.typesAvailable = self:getAvailableItemsType()
 
-    self.ingredientPanel:setVisible(true)
     self.ingredientPanel:clear()
 
     -- Display single-item sources before multi-item sources
@@ -282,7 +340,11 @@ function CHC_uses_recipepanel:refreshIngredientPanel()
 
     self.refreshTypesAvailableMS = getTimestampMs()
 
+    local h = math.min(10, #self.ingredientPanel.items) * self.ingredientPanel.itemheight
+    self.ingredientPanel.origH = h
+    self.ingredientPanel:setHeight(h)
     self.ingredientPanel.doDrawItem = CHC_uses_recipepanel.drawIngredient
+    self.ingredientPanel:setVisible(true)
 end
 
 function CHC_uses_recipepanel:getAvailableItemsType()
@@ -317,14 +379,108 @@ function CHC_uses_recipepanel:getAvailableItemsType()
     return result;
 end
 
+function CHC_uses_recipepanel:refreshSkillPanel()
+    self.skillPanel:setVisible(false)
+
+    local recipe = self.newItem
+    if not recipe then return end
+    if recipe.requiredSkillCount <= 0 then return end
+
+    self.skillPanel:clear()
+
+    for i = 1, recipe.requiredSkillCount do
+        local skill = recipe.recipe:getRequiredSkill(i - 1)
+        local perk = PerkFactory.getPerk(skill:getPerk())
+        local playerLevel = self.player and self.player:getPerkLevel(skill:getPerk()) or 0
+        local perkName = perk and perk:getName() or skill:getPerk():name()
+
+        self.skillPanel:addItem(perkName, { name = perkName, pLevel = playerLevel, rLevel = skill:getLevel() })
+    end
+
+    self.skillPanel:setHeight(math.min(3, recipe.requiredSkillCount) * self.skillPanel.itemheight)
+    self.skillPanel.doDrawItem = self.drawSkill
+    self.skillPanel:setVisible(true)
+end
+
+function CHC_uses_recipepanel:refreshBooksPanel()
+    self.booksPanel:setVisible(false)
+
+    local recipe = self.newItem
+    if not recipe then return end
+    if not self.manualsEntries then return end
+    if not recipe.needToBeLearn then return end
+
+    self.booksPanel:clear()
+
+    for i = 1, #self.manualsEntries do
+        local item = self.manualsEntries[i]
+        item.isKnown = recipe.isKnown
+        self.booksPanel:addItem(item.displayName, item)
+    end
+    self.booksPanel:setHeight(math.min(3, #self.manualsEntries) * self.booksPanel.itemheight)
+    self.booksPanel.doDrawItem = self.drawBook
+    self.booksPanel:setVisible(true)
+end
+
+function CHC_uses_recipepanel:refreshEquipmentPanel()
+    self.equipmentPanel:setVisible(false)
+
+    local recipe = self.newItem
+    if not recipe then return end
+
+    local hydro = recipe.hydrocraftEquipment
+    local near = recipe.nearItem
+    if not hydro and not near then return end
+
+    self.equipmentPanel:clear()
+
+    if hydro then
+        local obj = hydro.obj
+        obj.luaTest = hydro.luaTest
+        self.equipmentPanel:addItem(obj.name, obj)
+    end
+
+    if near then
+        self.equipmentPanel:addItem(near, near)
+    end
+
+    self.equipmentPanel:setHeight(math.min(1, #self.equipmentPanel.items) * self.equipmentPanel.itemheight)
+    self.equipmentPanel.doDrawItem = self.drawEquipment
+    self.equipmentPanel:setVisible(true)
+
+end
+
 -- endregion
 
 -- region render
 
-function CHC_uses_recipepanel:drawIngredient(y, item, alt)
+function CHC_uses_recipepanel:drawFavoriteStar(y, item)
+    local favoriteStar = nil
+    local favoriteAlpha = 0.9
+    local favYPos = self.width - 30
+    local parent = self.parent
+    local isFav = CHC_main.playerModData[CHC_main.getFavItemModDataStr(item.item)] == true
 
-    if y + self:getYScroll() >= self.height then return y + self.itemheight end
-    if y + self.itemheight + self:getYScroll() <= 0 then return y + self.itemheight end
+    if item.index == self.mouseoverselected then
+        if self:getMouseX() >= favYPos - 20 then
+            favoriteStar = isFav and parent.itemFavCheckedTex or parent.itemFavNotCheckedTex
+            favoriteAlpha = 0.9
+        else
+            favoriteStar = isFav and parent.itemFavoriteStar or parent.itemFavNotCheckedTex
+            favoriteAlpha = isFav and 0.9 or 0.5
+        end
+    elseif isFav then
+        favoriteStar = parent.itemFavoriteStar
+    end
+    if favoriteStar then
+        self:drawTexture(favoriteStar, favYPos, y + (item.height / 2 - favoriteStar:getHeight() / 2), favoriteAlpha, 1, 1, 1);
+    end
+end
+
+-- region doDrawItem
+
+function CHC_uses_recipepanel:drawIngredient(y, item, alt)
+    if self.parent.fastListReturn(self, y) then return y + self.itemheight end
 
     if item.item.multipleHeader then
         local r, g, b = 1, 1, 1
@@ -367,27 +523,16 @@ function CHC_uses_recipepanel:drawIngredient(y, item, alt)
         end
 
         --region favorite handler
-        local favoriteStar = nil
-        local favoriteAlpha = 0.9
-        local favYPos = self.width - 30
-        local parent = self.parent
-        local isFav = CHC_main.playerModData[CHC_main.getFavItemModDataStr(item.item)] == true
+        self.parent.drawFavoriteStar(self, y, item)
+        --endregion
 
         if item.index == self.mouseoverselected then
-            if self:getMouseX() >= favYPos - 20 then
-                favoriteStar = isFav and parent.itemFavCheckedTex or parent.itemFavNotCheckedTex
-                favoriteAlpha = 0.9
-            else
-                favoriteStar = isFav and parent.itemFavoriteStar or parent.itemFavNotCheckedTex
-                favoriteAlpha = isFav and 0.9 or 0.3
+            local fr, fg, fb, fa = 0.1, 0.1, 0.5, 0.1
+            if item.item.multiple then
+                fr, fb = 0.5, 0.1
             end
-        elseif isFav then
-            favoriteStar = parent.itemFavoriteStar
+            self:drawRect(1, y, self:getWidth() - 2, self.itemheight, fa, fr, fg, fb)
         end
-        if favoriteStar then
-            self:drawTexture(favoriteStar, favYPos, y + (item.height / 2 - favoriteStar:getHeight() / 2), favoriteAlpha, 1, 1, 1);
-        end
-        --endregion
 
     end
     local ab, rb, gb, bb = 1, 0.1, 0.1, 0.1
@@ -399,6 +544,87 @@ function CHC_uses_recipepanel:drawIngredient(y, item, alt)
 
     return y + self.itemheight;
 end
+
+function CHC_uses_recipepanel:drawSkill(y, item, alt)
+    if self.parent.fastListReturn(self, y) then return y + self.itemheight end
+
+    local text = " - " .. item.text .. ": " .. tostring(item.item.pLevel) .. " / " .. tostring(item.item.rLevel);
+    local r, g, b, a = 1, 1, 1, 0.9
+    local rb, gb, bb, ab = 0.1, 0.1, 0.1, 1
+
+    if item.item.pLevel < item.item.rLevel then
+        g, b = 0, 0
+    else
+        a = 0.7
+    end
+    self:drawText(text, 15, y, r, g, b, a, UIFont.Small)
+    self:drawRectBorder(0, y, self:getWidth() - 2, self.itemheight, ab, rb, gb, bb)
+    return y + self.itemheight
+end
+
+function CHC_uses_recipepanel:drawBook(y, item, alt)
+    if self.parent.fastListReturn(self, y) then return y + self.itemheight end
+    local x = 0
+
+    local r, g, b, a = 1, 1, 1, 1
+    local rb, gb, bb, ab = 0.1, 0.1, 0.1, 1
+    if not item.item.isKnown then
+        g, b, a = 0, 0, 0.9
+    end
+    local tX = x
+    local tY = y + 2
+    -- self:drawText(" - ", tX, tY, r, g, b, a, UIFont.Small)
+    if item.item.texture then
+        tX = tX + 15
+        self:drawTextureScaledAspect(item.item.texture, tX, tY, 16, 16, 1, 1, 1, 1)
+        tX = tX + 20
+    end
+    self:drawText(item.item.displayName, tX, tY, r, g, b, a, UIFont.Small)
+
+    --region favorite handler
+    self.parent.drawFavoriteStar(self, y, item)
+    --endregion
+
+    self:drawRectBorder(0, y, self:getWidth() - 2, self.itemheight, ab, rb, gb, bb)
+
+    return y + self.itemheight
+end
+
+function CHC_uses_recipepanel:drawEquipment(y, item, alt)
+    if self.parent.fastListReturn(self, y) then return y + self.itemheight end
+
+    local isComplex = item.item.luaTest and true or false
+
+    local x = 0
+    local a = 0.9
+    if isComplex then
+        local r, g, b = 1, 1, 1
+        local tX = x
+        local tY = y + 2
+        if not item.item.luaTest(self.player) then
+            g, b = 0, 0
+            a = 0.75
+        end
+        if item.item.texture then
+            tX = tX + 15
+            self:drawTextureScaledAspect(item.item.texture, tX, tY, 20, 20, a, 1, 1, 1)
+            tX = tX + 25
+        end
+        self:drawText(item.item.name, tX, tY, r, g, b, a, UIFont.Small)
+    end
+
+    if not isComplex then
+        self:drawText(" - " .. item.item.nearItem, x + 15, y, 1, 1, 1, a, UIFont.Small)
+    end
+
+    --region favorite handler
+    self.parent.drawFavoriteStar(self, y, item)
+    --endregion
+
+    return y + self.itemheight
+end
+
+-- endregion
 
 function CHC_uses_recipepanel:render()
     ISPanel.render(self);
@@ -438,27 +664,13 @@ function CHC_uses_recipepanel:render()
     -- endregion
 
     y = y + self:drawMainInfo(x, y, selectedItem) + 5
-
-    -- region required items
-    self:drawText(getText("IGUI_CraftUI_RequiredItems"), x, y, 1, 1, 1, 1, UIFont.Small);
-    y = y + fhSmall + 5
-
-
-    local bh = self:getBottomHeight(selectedItem) + 25
-    self.ingredientPanel:setX(x + 5)
-    self.ingredientPanel:setY(y)
-    self.ingredientPanel:setWidth(self.width - 25)
-    self.ingredientPanel:setHeight(self.height - y - bh)
-    y = self.ingredientPanel:getBottom()
-    y = y + 4
-    -- endregion
-
+    y = y + self:drawIngredients(x, y, selectedItem)
     y = y + self:drawCraftButtons(x, y, selectedItem)
     y = y + self:drawRequiredSkills(x, y, selectedItem)
     y = y + self:drawRequiredBooks(x, y, selectedItem)
     y = y + self:drawNearItem(x, y, selectedItem)
     local reqTime = getText("IGUI_CraftUI_RequiredTime", selectedItem.timeToMake)
-    self:drawText(reqTime, x, y, 1, 1, 1, 1, UIFont.Medium)
+    self:drawText(reqTime, x, y, 1, 1, 1, 0.9, UIFont.Medium)
 end
 
 function CHC_uses_recipepanel:getBottomHeight(item)
@@ -471,14 +683,14 @@ function CHC_uses_recipepanel:getBottomHeight(item)
 
     --skills
     if item.requiredSkillCount > 0 then
-        bh = bh + fhMedium
-        bh = bh + (item.requiredSkillCount) * fhSmall + 4
+        bh = bh + fhMedium + self.blockMargin
+        bh = bh + self.skillPanel.height
     end
 
     -- books
     if self.manualsEntries then
-        bh = bh + (self.manualsSize + 1) * fhSmall + 4
-        -- print(self.manualsSize)
+        bh = bh + fhMedium + self.blockMargin
+        bh = bh + self.booksPanel.height
     end
 
     -- near item
@@ -494,15 +706,16 @@ function CHC_uses_recipepanel:getBottomHeight(item)
         end
     end
 
-    bh = bh + fhMedium
+    bh = bh + fhMedium + self.blockMargin
     return bh
 end
 
 function CHC_uses_recipepanel:drawMainInfo(x, y, item)
     local sy = y
+    local a = 0.9
     -- region main recipe info + output
     local catName = getTextOrNull("IGUI_CraftCategory_" .. item.category) or item.category
-    self:drawText(getText("IGUI_invpanel_Category") .. ": " .. catName, x, y, 1, 1, 1, 1, UIFont.Medium);
+    self:drawText(getText("IGUI_invpanel_Category") .. ": " .. catName, x, y, 1, 1, 1, a, UIFont.Medium);
     y = y + fhMedium + 3;
 
     -- self:drawRectBorder(x, y, 32 + 10, 32 + 10, 1.0, 1.0, 1.0, 1.0);
@@ -518,9 +731,9 @@ function CHC_uses_recipepanel:drawMainInfo(x, y, item)
     end
     local lx = x + 32 + 15
     local ly = y
-    self:drawText(item.recipe:getName(), lx, ly, 1, 1, 1, 1, UIFont.Small)
+    self:drawText(item.recipe:getName(), lx, ly, 1, 1, 1, a, UIFont.Small)
     ly = ly + fhSmall
-    self:drawText(item.itemName, lx, ly, 1, 1, 1, 1, UIFont.Small)
+    self:drawText(item.itemName, lx, ly, 1, 1, 1, a, UIFont.Small)
     ly = ly + fhSmall
     if item.itemDisplayCategory then
         self:drawText(getText("IGUI_invpanel_Category") .. ": " .. item.itemDisplayCategory, lx, ly, 0.8, 0.8, 0.8, 0.8, UIFont.Small)
@@ -529,11 +742,31 @@ function CHC_uses_recipepanel:drawMainInfo(x, y, item)
     if item.isVanilla ~= nil or item.module ~= nil then
         if item.isVanilla == false then
             local clr = { r = 0.392, g = 0.584, b = 0.929 } -- CornFlowerBlue
-            self:drawText("Mod: " .. item.module, lx, ly, clr.r, clr.g, clr.b, 1, UIFont.Small)
+            self:drawText("Mod: " .. item.module, lx, ly, clr.r, clr.g, clr.b, a, UIFont.Small)
         end
     end
     y = y + ly - 20
     -- endregion
+    return y - sy
+end
+
+function CHC_uses_recipepanel:drawIngredients(x, y, item)
+
+    local sy = y
+    local a = 0.9
+    self:drawText(getText("IGUI_CraftUI_RequiredItems"), x, y, 1, 1, 1, a, UIFont.Medium)
+    y = y + fhMedium + 5
+
+
+    self.ingredientPanel:setX(x + 5)
+    self.ingredientPanel:setY(y)
+    self.ingredientPanel:setWidth(self.width - 25)
+    local m1 = self.height - y - self.bh
+    local ipH = math.min(m1, self.ingredientPanel.origH)
+
+    self.ingredientPanel:setHeight(ipH)
+    y = y + self.ingredientPanel.height + self.blockMargin
+
     return y - sy
 end
 
@@ -546,9 +779,11 @@ function CHC_uses_recipepanel:drawCraftButtons(x, y, item)
         return 0
     end
 
+    self.craftOneButton:setY(y)
+    self.craftAllButton:setY(y)
     if not self.craftOneButton:isVisible() then
         self.craftOneButton:setX(x)
-        self.craftOneButton:setY(y)
+
         self.craftOneButton:setVisible(true)
     end
 
@@ -567,7 +802,6 @@ function CHC_uses_recipepanel:drawCraftButtons(x, y, item)
 
     if not self.craftAllButton:isVisible() and count > 1 then
         self.craftAllButton:setX(self.craftOneButton:getX() + 5 + self.craftOneButton:getWidth())
-        self.craftAllButton:setY(y)
         self.craftAllButton:setVisible(true)
     end
     --endregion
@@ -590,44 +824,31 @@ end
 
 function CHC_uses_recipepanel:drawRequiredSkills(x, y, item)
     local sy = y
+    local a = 0.9
     local requiredSkillCount = item.requiredSkillCount
     if requiredSkillCount <= 0 then return 0 end
-    self:drawText(getText("IGUI_CraftUI_RequiredSkills"), x, y, 1, 1, 1, 1, UIFont.Medium)
+    self:drawText(getText("IGUI_CraftUI_RequiredSkills"), x, y, 1, 1, 1, a, UIFont.Medium)
     y = y + fhMedium
-    for i = 1, requiredSkillCount do
-        local skill = item.recipe:getRequiredSkill(i - 1);
-        local perk = PerkFactory.getPerk(skill:getPerk());
-        local playerLevel = self.player and self.player:getPerkLevel(skill:getPerk()) or 0
-        local perkName = perk and perk:getName() or skill:getPerk():name()
-
-        local text = " - " .. perkName .. ": " .. tostring(playerLevel) .. " / " .. tostring(skill:getLevel());
-        local r, g, b = 1, 1, 1
-
-        if playerLevel < skill:getLevel() then
-            g, b = 0, 0
-        end
-        self:drawText(text, x + 15, y, r, g, b, 1, UIFont.Small)
-        y = y + fhSmall
-    end
-    y = y + 4
+    self.skillPanel:setX(x + 5)
+    self.skillPanel:setY(y)
+    self.skillPanel:setWidth(self.width - 25)
+    y = y + self.skillPanel.height
     return y - sy
 end
 
 function CHC_uses_recipepanel:drawRequiredBooks(x, y, item)
     if not self.manualsEntries then return 0 end
     -- if self.manualsEntries and not isKnown then
+    if not item.needToBeLearn then return 0 end
     local sy = y
-    self:drawText(getText("UI_recipe_panel_required_book") .. ":", x, y, 1, 1, 1, 1, UIFont.Medium)
+    local a = 0.9
+    self:drawText(getText("UI_recipe_panel_required_book") .. ":", x, y, 1, 1, 1, a, UIFont.Medium)
     y = y + fhMedium
-    local r, g, b = 1, 1, 1
-    for i = 1, #self.manualsEntries do
-        if not item.isKnown then
-            g, b = 0, 0
-        end
-        self:drawText(" - " .. self.manualsEntries[i], x + 15, y, r, g, b, 1, UIFont.Small);
-        y = y + fhSmall
-    end
-    y = y + 4
+    self.booksPanel:setX(x + 5)
+    self.booksPanel:setY(y)
+    self.booksPanel:setWidth(self.width - 25)
+
+    y = y + self.booksPanel.height
     return y - sy
 end
 
@@ -636,32 +857,15 @@ function CHC_uses_recipepanel:drawNearItem(x, y, item)
     local nearItem = item.nearItem
     if not nearItem and not hydroFurniture then return 0 end
     local sy = y
+    local a = 0.9
 
-    self:drawText(getText("UI_recipe_panel_near_item") .. ": ", x, y, 1, 1, 1, 1, UIFont.Medium);
+    self:drawText(getText("UI_recipe_panel_near_item") .. ": ", x, y, 1, 1, 1, a, UIFont.Medium);
     y = y + fhMedium
 
-    if hydroFurniture then
-        local hydroX = x + 15
-        local r, g, b = 1, 1, 1
-        local a = 1
-        if not hydroFurniture.luaTest(self.player) then
-            g, b = 0, 0
-            a = 0.75
-        end
-        self:drawText(" - ", hydroX, y, r, g, b, a, UIFont.Small)
-        if hydroFurniture.obj.texture then
-            hydroX = hydroX + 15
-            self:drawTextureScaledAspect(hydroFurniture.obj.texture, hydroX, y, 20, 20, a, 1, 1, 1)
-            hydroX = hydroX + 25
-        end
-        self:drawText(hydroFurniture.obj.name, hydroX, y, r, g, b, a, UIFont.Small)
-        y = y + 25
-    end
-
-    if nearItem then
-        self:drawText(" - " .. item.nearItem, x + 15, y, 1, 1, 1, 1, UIFont.Small);
-        y = y + fhSmall
-    end
+    self.equipmentPanel:setX(x + 5)
+    self.equipmentPanel:setY(y)
+    self.equipmentPanel:setWidth(self.width - 25)
+    y = y + self.equipmentPanel.height
     return y - sy
 end
 
@@ -723,6 +927,12 @@ function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y, item)
         -- @@@ TODO
     end
 
+    if getDebug() then
+        local pInv = self.parent.player:getInventory()
+        context:addOption("Add item", self.parent, function() pInv:AddItem(item.fullType) end)
+        context:addOption("Add item 2x", self.parent, function() for _ = 1, 2 do pInv:AddItem(item.fullType) end end)
+        context:addOption("Add item 5x", self.parent, function() for _ = 1, 5 do pInv:AddItem(item.fullType) end end)
+    end
     context:addOption(getText("IGUI_find_item"), backref, findItem)
 
     local newTabOption = context:addOption(getText("IGUI_new_tab"), backref, backref.addItemView, item.item, true, 2)
@@ -844,6 +1054,13 @@ end
 
 -- endregion
 
+
+function CHC_uses_recipepanel:fastListReturn(y)
+    if y + self:getYScroll() >= self.height then return true end
+    if y + self.itemheight + self:getYScroll() <= 0 then return true end
+    return false
+end
+
 -- endregion
 
 function CHC_uses_recipepanel:new(x, y, width, height)
@@ -854,7 +1071,8 @@ function CHC_uses_recipepanel:new(x, y, width, height)
 
     o.backgroundColor = { r = 0, g = 0, b = 0, a = 1 }
     o.borderColor = { r = 0.4, g = 0.4, b = 0.4, a = 0.9 }
-    -- o:noBackground();
+    o.itemMargin = 2
+    o.blockMargin = 4
     o.anchorTop = true;
     o.anchorBottom = true;
     local player = getPlayer()
@@ -867,6 +1085,8 @@ function CHC_uses_recipepanel:new(x, y, width, height)
     o.manualsSize = 0
     o.manualsEntries = nil
     o.modData = CHC_main.playerModData
+
+    o.bh = nil
 
     o.itemFavoriteStar = getTexture("media/textures/itemFavoriteStar.png")
     o.itemFavCheckedTex = getTexture("media/textures/itemFavoriteStarChecked.png")

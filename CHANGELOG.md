@@ -1,6 +1,14 @@
 # CraftHelper updates
 
-## 1.6.1 (02.05.2022)
+## 1.6.2 (04.05.2022)
+
+### Improvements
+
+- Interactive panels (recipe details)
+- Updated string shown when favoriting item form inventory
+- Minor UI improvements
+
+# 1.6.1 (02.05.2022, workshop release)
 
 ### New features
 

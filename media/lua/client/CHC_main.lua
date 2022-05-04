@@ -4,7 +4,7 @@ CHC_main = {}
 CHC_main.author = "lanceris"
 CHC_main.previousAuthors = { "Peanut", "ddraigcymraeg", "b1n0m" }
 CHC_main.modName = "CraftHelperContinued"
-CHC_main.version = "1.6.1"
+CHC_main.version = "1.6.2"
 CHC_main.allRecipes = {}
 CHC_main.recipesByItem = {}
 CHC_main.recipesForItem = {}
@@ -21,6 +21,7 @@ local utils = require('CHC_utils')
 local print = utils.chcprint
 
 local cacheFileName = "CraftHelperLuaCache.json"
+local loadLua = false
 
 local showTime = function(start, st)
 	print(string.format("Loaded %s in %s seconds", st, tostring((getTimestampMs() - start) / 1000)))
@@ -39,6 +40,20 @@ CHC_main.handleItems = function(itemString)
 end
 
 -- region lua stuff
+CHC_main.loadLuaCache = function()
+	local luaCache = utils.jsonutil.Load(cacheFileName)
+	if not luaCache then
+		print('Lua cache is empty, will init new one...')
+		CHC_main.luaRecipeCache = {}
+	else
+		CHC_main.luaRecipeCache = luaCache
+	end
+end
+
+CHC_main.saveLuaCache = function()
+	utils.jsonutil.Save(cacheFileName, CHC_main.luaRecipeCache)
+end
+
 CHC_main.handleRecipeLua = function(luaClosure)
 	local luafunc = _G[luaClosure]
 	if luafunc then
@@ -119,19 +134,11 @@ CHC_main.loadDatas = function()
 	CHC_main.playerModData = getPlayer():getModData()
 
 	CHC_main.loadAllItems()
-	local luaCache = utils.jsonutil.Load(cacheFileName)
-	if not luaCache then
-		print('Lua cache is empty, will init new one...')
-		CHC_main.luaRecipeCache = {}
-	else
-		CHC_main.luaRecipeCache = luaCache
-	end
+	if loadLua then CHC_main.loadLuaCache() end
+
 	CHC_main.loadAllRecipes()
 
-	-- if not luaCache then
-	utils.jsonutil.Save(cacheFileName, CHC_main.luaRecipeCache)
-	-- end
-
+	if loadLua then CHC_main.saveLuaCache() end
 	CHC_menu.createCraftHelper()
 end
 
@@ -161,6 +168,11 @@ CHC_main.processOneItem = function(item)
 		CHC_main.items[toinsert.fullType] = toinsert
 		insert(CHC_main.itemsForSearch, toinsert)
 		-- CHC_main.items[fullType] = invItem
+
+		-- if not CHC_main.hydroDuplicates[string.lower(toinsert.displayName)] then
+		-- 	CHC_main.hydroDuplicates[string.lower(toinsert.displayName)] = {}
+		-- end
+		-- insert(CHC_main.hydroDuplicates[string.lower(toinsert.displayName)], { ft = toinsert.fullType, modname = toinsert.modname })
 	else
 		error(string.format('Duplicate invItem fullType! (%s)', tostring(invItem.getFullType())))
 	end
@@ -174,18 +186,18 @@ CHC_main.processOneItem = function(item)
 				if CHC_main.itemsManuals[recipeString] == nil then
 					CHC_main.itemsManuals[recipeString] = {}
 				end
-				insert(CHC_main.itemsManuals[recipeString], item:getDisplayName())
+				insert(CHC_main.itemsManuals[recipeString], CHC_main.items[fullType])
 			end
 		end
 	end
 end
 
--- CHC_main.loadAllBooks = function()
--- 	local allItems = getAllItems()
--- 	local nbBooks = 0
+CHC_main.loadAllBooks = function()
+	local allItems = getAllItems()
+	local nbBooks = 0
 
--- 	print('Loading books')
--- end
+	print('Loading books')
+end
 
 CHC_main.loadAllItems = function(am)
 	local allItems = getAllItems()
@@ -201,6 +213,12 @@ CHC_main.loadAllItems = function(am)
 			nbItems = nbItems + 1
 		end
 	end
+	-- for k, v in pairs(CHC_main.hydroDuplicates) do
+	-- 	if #v == 2 and v[1].modname ~= v[2].modname then
+	-- 		insert(CHC_main.hd, k)
+	-- 	end
+	-- end
+	-- utils.jsonutil.Save('temp.json', CHC_main.hd)
 	showTime(now, "All Items")
 	print(nbItems .. ' items loaded.')
 end
@@ -228,28 +246,30 @@ CHC_main.loadAllRecipes = function()
 		newItem.recipeData.name = recipe:getName()
 		newItem.recipeData.nearItem = recipe:getNearItem()
 
-		-- local onCreate = recipe:getLuaCreate()
-		-- local onTest = recipe:getLuaTest()
-		-- local onCanPerform = recipe:getCanPerform()
-		-- local onGiveXP = recipe:getLuaGiveXP()
-		-- if onCreate or onTest or onCanPerform or onGiveXP then
-		-- 	newItem.recipeData.lua = {}
-		-- 	if onCreate then
-		-- 		newItem.recipeData.lua.onCreate = CHC_main.handleRecipeLua(onCreate)
-		-- 	end
-		-- 	if onTest then
-		-- 		newItem.recipeData.lua.onTest = CHC_main.handleRecipeLua(onTest)
-		-- 	end
-		-- 	if onCanPerform then
-		-- 		newItem.recipeData.lua.onCanPerform = CHC_main.handleRecipeLua(onCanPerform)
-		-- 	end
-		-- 	if onGiveXP then
-		-- 		newItem.recipeData.lua.onGiveXP = CHC_main.handleRecipeLua(onGiveXP)
-		-- 	end
-		-- end
-		-- if newItem.recipeData.lua then
-		-- 	CHC_main.recipesWithLua[newItem.recipeData.name] = newItem.recipeData.lua
-		-- end
+		if loadLua then
+			local onCreate = recipe:getLuaCreate()
+			local onTest = recipe:getLuaTest()
+			local onCanPerform = recipe:getCanPerform()
+			local onGiveXP = recipe:getLuaGiveXP()
+			if onCreate or onTest or onCanPerform or onGiveXP then
+				newItem.recipeData.lua = {}
+				if onCreate then
+					newItem.recipeData.lua.onCreate = CHC_main.handleRecipeLua(onCreate)
+				end
+				if onTest then
+					newItem.recipeData.lua.onTest = CHC_main.handleRecipeLua(onTest)
+				end
+				if onCanPerform then
+					newItem.recipeData.lua.onCanPerform = CHC_main.handleRecipeLua(onCanPerform)
+				end
+				if onGiveXP then
+					newItem.recipeData.lua.onGiveXP = CHC_main.handleRecipeLua(onGiveXP)
+				end
+			end
+			if newItem.recipeData.lua then
+				CHC_main.recipesWithLua[newItem.recipeData.name] = newItem.recipeData.lua
+			end
+		end
 
 		--check for hydrocraft furniture
 		local hydrocraftFurniture = CHC_main.processHydrocraft(recipe)
