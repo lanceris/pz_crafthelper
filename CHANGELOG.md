@@ -4,7 +4,8 @@
 
 ### New features
 
-- Added interactive books panel (in recipe details)
+- Interactive books panel (in recipe details)
+- Interactive skills panel (in recipe details)
 
 ### Improvements
 
