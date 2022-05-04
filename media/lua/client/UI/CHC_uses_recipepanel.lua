@@ -33,13 +33,13 @@ function CHC_uses_recipepanel:createChildren()
     self.ingredientPanel:instantiate()
     self.ingredientPanel.onRightMouseDown = self.onRMBDownIngrPanel
     self.ingredientPanel:setOnMouseDownFunction(self, self.onIngredientMouseDown)
-    self.ingredientPanel.itemheight = math.max(fhSmall, 22)
+    self.ingredientPanel.itemheight = fhSmall + 2 * self.itemMargin
     self.ingredientPanel.font = UIFont.NewSmall
     self.ingredientPanel.doDrawItem = self.drawIngredient
     self.ingredientPanel.drawBorder = true
     self.ingredientPanel:setVisible(false)
-    self:addChild(self.ingredientPanel)
 
+    -- region buttons
     local btnInfo = {
         x = 0,
         y = self.height / 2,
@@ -55,19 +55,33 @@ function CHC_uses_recipepanel:createChildren()
     self.craftOneButton:setWidth(5 + getTextManager():MeasureStringX(UIFont.Small, self.craftOneButton.title))
     self.craftOneButton:setVisible(false)
 
-    self:addChild(self.craftOneButton);
-
     self.craftAllButton = ISButton:new(btnInfo.x, btnInfo.y, btnInfo.w, btnInfo.h, nil, btnInfo.clicktgt, self.craftAll);
     self.craftAllButton:initialise()
     self.craftAllButton.title = getText("IGUI_CraftUI_ButtonCraftOne")
     self.craftAllButton:setWidth(5 + getTextManager():MeasureStringX(UIFont.Small, self.craftAllButton.title))
     self.craftAllButton:setVisible(false)
 
-    self:addChild(self.craftAllButton);
-
     -- self.debugGiveIngredientsButton = ISButton:new(0, 0, 50, 25, "DBG: Give Ingredients", self, ISCraftingUI.debugGiveIngredients);
     -- self.debugGiveIngredientsButton:initialise();
     -- self:addChild(self.debugGiveIngredientsButton);
+
+    -- endregion
+
+    self.booksPanel = ISScrollingListBox:new(1, 1, self.width, self.height)
+    self.booksPanel:initialise()
+    self.booksPanel:instantiate()
+    self.booksPanel.onRightMouseDown = self.onRMBDownIngrPanel
+    self.booksPanel:setOnMouseDownFunction(self, self.onIngredientMouseDown)
+    self.booksPanel.itemheight = fhSmall + 2 * self.itemMargin
+    self.booksPanel.doDrawItem = self.drawBook
+    self.booksPanel.drawBorder = true
+    self.booksPanel:setVisible(false)
+
+
+    self:addChild(self.ingredientPanel)
+    self:addChild(self.craftOneButton)
+    self:addChild(self.craftAllButton)
+    self:addChild(self.booksPanel)
 end
 
 function CHC_uses_recipepanel:setItemNameInSource(item, itemInList, isDestroy, uses)
@@ -177,6 +191,7 @@ function CHC_uses_recipepanel:setObj(recipe)
     newItem.nearItem = recipe.recipeData.nearItem
     newItem.timeToMake = recipe.recipe:getTimeToMake()
     newItem.howManyCanCraft = RecipeManager.getNumberOfTimesRecipeCanBeDone(newItem.recipe, self.player, self.containerList, nil)
+    newItem.needToBeLearn = recipe.recipe:needToBeLearn()
 
     self.recipe = recipe.recipe;
     self.newItem = newItem;
@@ -186,6 +201,7 @@ function CHC_uses_recipepanel:setObj(recipe)
         self.manualsSize = #self.manualsEntries
     end
     self:refreshIngredientPanel()
+    self:refreshBooksPanel()
 end
 
 -- endregion
@@ -195,7 +211,7 @@ end
 function CHC_uses_recipepanel:refreshIngredientPanel()
     self.ingredientPanel:setVisible(false)
 
-    local selectedItem = self.newItem;
+    local selectedItem = self.newItem
     if not selectedItem then return end
 
     selectedItem.typesAvailable = self:getAvailableItemsType()
@@ -317,9 +333,52 @@ function CHC_uses_recipepanel:getAvailableItemsType()
     return result;
 end
 
+function CHC_uses_recipepanel:refreshBooksPanel()
+    self.booksPanel:setVisible(false)
+
+    local recipe = self.newItem
+    if not recipe then return end
+    if not self.manualsEntries then return end
+    if not recipe.needToBeLearn then return end
+
+    self.booksPanel:clear()
+
+    for i = 1, #self.manualsEntries do
+        local item = self.manualsEntries[i]
+        item.isKnown = recipe.isKnown
+        self.booksPanel:addItem(item.displayName, item)
+    end
+    self.booksPanel:setHeight(math.min(3, #self.manualsEntries) * self.booksPanel.itemheight)
+    self.booksPanel.doDrawItem = self.drawBook
+    self.booksPanel:setVisible(true)
+end
+
 -- endregion
 
 -- region render
+
+function CHC_uses_recipepanel:drawFavoriteStar(y, item)
+    local favoriteStar = nil
+    local favoriteAlpha = 0.9
+    local favYPos = self.width - 30
+    local parent = self.parent
+    local isFav = CHC_main.playerModData[CHC_main.getFavItemModDataStr(item.item)] == true
+
+    if item.index == self.mouseoverselected then
+        if self:getMouseX() >= favYPos - 20 then
+            favoriteStar = isFav and parent.itemFavCheckedTex or parent.itemFavNotCheckedTex
+            favoriteAlpha = 0.9
+        else
+            favoriteStar = isFav and parent.itemFavoriteStar or parent.itemFavNotCheckedTex
+            favoriteAlpha = isFav and 0.9 or 0.5
+        end
+    elseif isFav then
+        favoriteStar = parent.itemFavoriteStar
+    end
+    if favoriteStar then
+        self:drawTexture(favoriteStar, favYPos, y + (item.height / 2 - favoriteStar:getHeight() / 2), favoriteAlpha, 1, 1, 1);
+    end
+end
 
 function CHC_uses_recipepanel:drawIngredient(y, item, alt)
 
@@ -367,27 +426,16 @@ function CHC_uses_recipepanel:drawIngredient(y, item, alt)
         end
 
         --region favorite handler
-        local favoriteStar = nil
-        local favoriteAlpha = 0.9
-        local favYPos = self.width - 30
-        local parent = self.parent
-        local isFav = CHC_main.playerModData[CHC_main.getFavItemModDataStr(item.item)] == true
+        self.parent.drawFavoriteStar(self, y, item)
+        --endregion
 
         if item.index == self.mouseoverselected then
-            if self:getMouseX() >= favYPos - 20 then
-                favoriteStar = isFav and parent.itemFavCheckedTex or parent.itemFavNotCheckedTex
-                favoriteAlpha = 0.9
-            else
-                favoriteStar = isFav and parent.itemFavoriteStar or parent.itemFavNotCheckedTex
-                favoriteAlpha = isFav and 0.9 or 0.3
+            local fr, fg, fb, fa = 0.1, 0.1, 0.5, 0.1
+            if item.item.multiple then
+                fr, fb = 0.5, 0.1
             end
-        elseif isFav then
-            favoriteStar = parent.itemFavoriteStar
+            self:drawRect(1, y, self:getWidth() - 2, self.itemheight, fa, fr, fg, fb)
         end
-        if favoriteStar then
-            self:drawTexture(favoriteStar, favYPos, y + (item.height / 2 - favoriteStar:getHeight() / 2), favoriteAlpha, 1, 1, 1);
-        end
-        --endregion
 
     end
     local ab, rb, gb, bb = 1, 0.1, 0.1, 0.1
@@ -398,6 +446,35 @@ function CHC_uses_recipepanel:drawIngredient(y, item, alt)
     -- ISUIElement:drawRectBorder( x, y, w, h, a, r, g, b)
 
     return y + self.itemheight;
+end
+
+function CHC_uses_recipepanel:drawBook(y, item, alt)
+    if y + self:getYScroll() >= self.height then return y + self.itemheight end
+    if y + self.itemheight + self:getYScroll() <= 0 then return y + self.itemheight end
+    local x = 0
+
+    local r, g, b, a = 1, 1, 1, 1
+    local rb, gb, bb, ab = 0.1, 0.1, 0.1, 1
+    if not item.item.isKnown then
+        g, b, a = 0, 0, 0.9
+    end
+    local tX = x
+    local tY = y + 2
+    -- self:drawText(" - ", tX, tY, r, g, b, a, UIFont.Small)
+    if item.item.texture then
+        tX = tX + 15
+        self:drawTextureScaledAspect(item.item.texture, tX, tY, 16, 16, 1, 1, 1, 1)
+        tX = tX + 20
+    end
+    self:drawText(item.item.displayName, tX, tY, r, g, b, a, UIFont.Small)
+
+    --region favorite handler
+    self.parent.drawFavoriteStar(self, y, item)
+    --endregion
+
+    self:drawRectBorder(0, y, self:getWidth() - 2, self.itemheight, ab, rb, gb, bb)
+
+    return y + self.itemheight
 end
 
 function CHC_uses_recipepanel:render()
@@ -440,11 +517,11 @@ function CHC_uses_recipepanel:render()
     y = y + self:drawMainInfo(x, y, selectedItem) + 5
 
     -- region required items
-    self:drawText(getText("IGUI_CraftUI_RequiredItems"), x, y, 1, 1, 1, 1, UIFont.Small);
-    y = y + fhSmall + 5
+    self:drawText(getText("IGUI_CraftUI_RequiredItems"), x, y, 1, 1, 1, 1, UIFont.Medium);
+    y = y + fhMedium + 5
 
 
-    local bh = self:getBottomHeight(selectedItem) + 25
+    local bh = self:getBottomHeight(selectedItem)
     self.ingredientPanel:setX(x + 5)
     self.ingredientPanel:setY(y)
     self.ingredientPanel:setWidth(self.width - 25)
@@ -477,7 +554,8 @@ function CHC_uses_recipepanel:getBottomHeight(item)
 
     -- books
     if self.manualsEntries then
-        bh = bh + (self.manualsSize + 1) * fhSmall + 4
+        bh = bh + fhMedium + self.blockMargin
+        bh = bh + self.booksPanel.height
         -- print(self.manualsSize)
     end
 
@@ -494,7 +572,7 @@ function CHC_uses_recipepanel:getBottomHeight(item)
         end
     end
 
-    bh = bh + fhMedium
+    bh = bh + fhMedium + self.blockMargin
     return bh
 end
 
@@ -616,18 +694,15 @@ end
 function CHC_uses_recipepanel:drawRequiredBooks(x, y, item)
     if not self.manualsEntries then return 0 end
     -- if self.manualsEntries and not isKnown then
+    if not item.needToBeLearn then return 0 end
     local sy = y
     self:drawText(getText("UI_recipe_panel_required_book") .. ":", x, y, 1, 1, 1, 1, UIFont.Medium)
     y = y + fhMedium
-    local r, g, b = 1, 1, 1
-    for i = 1, #self.manualsEntries do
-        if not item.isKnown then
-            g, b = 0, 0
-        end
-        self:drawText(" - " .. self.manualsEntries[i], x + 15, y, r, g, b, 1, UIFont.Small);
-        y = y + fhSmall
-    end
-    y = y + 4
+    self.booksPanel:setX(x + 5)
+    self.booksPanel:setY(y)
+    self.booksPanel:setWidth(self.width - 25)
+
+    y = y + self.booksPanel.height
     return y - sy
 end
 
@@ -723,6 +798,12 @@ function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y, item)
         -- @@@ TODO
     end
 
+    if getDebug() then
+        local pInv = self.parent.player:getInventory()
+        context:addOption("Add item", self.parent, function() pInv:AddItem(item.fullType) end)
+        context:addOption("Add item 2x", self.parent, function() for _ = 1, 2 do pInv:AddItem(item.fullType) end end)
+        context:addOption("Add item 5x", self.parent, function() for _ = 1, 5 do pInv:AddItem(item.fullType) end end)
+    end
     context:addOption(getText("IGUI_find_item"), backref, findItem)
 
     local newTabOption = context:addOption(getText("IGUI_new_tab"), backref, backref.addItemView, item.item, true, 2)
@@ -854,7 +935,8 @@ function CHC_uses_recipepanel:new(x, y, width, height)
 
     o.backgroundColor = { r = 0, g = 0, b = 0, a = 1 }
     o.borderColor = { r = 0.4, g = 0.4, b = 0.4, a = 0.9 }
-    -- o:noBackground();
+    o.itemMargin = 2
+    o.blockMargin = 4
     o.anchorTop = true;
     o.anchorBottom = true;
     local player = getPlayer()
