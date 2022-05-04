@@ -101,11 +101,26 @@ function CHC_uses_recipepanel:createChildren()
     self.booksPanel:setVisible(false)
     -- endregion
 
+    -- region equipment
+    self.equipmentPanel = ISScrollingListBox:new(1, 1, self.width, 30)
+    self.equipmentPanel:initialise()
+    self.equipmentPanel:instantiate()
+    self.equipmentPanel.onRightMouseDown = self.onRMBDownIngrPanel
+    self.equipmentPanel:setOnMouseDownFunction(self, self.onIngredientMouseDown)
+    self.equipmentPanel.itemheight = fhSmall + 2 * self.itemMargin
+    self.equipmentPanel.doDrawItem = self.drawBook
+    self.equipmentPanel.drawBorder = true
+    self.equipmentPanel.borderColor = listBorderColor
+    self.equipmentPanel.vscroll.borderColor = listBorderColor
+    self.equipmentPanel:setVisible(false)
+    -- endregion
+
     self:addChild(self.ingredientPanel)
     self:addChild(self.craftOneButton)
     self:addChild(self.craftAllButton)
     self:addChild(self.skillPanel)
     self:addChild(self.booksPanel)
+    self:addChild(self.equipmentPanel)
 end
 
 function CHC_uses_recipepanel:setItemNameInSource(item, itemInList, isDestroy, uses)
@@ -227,6 +242,7 @@ function CHC_uses_recipepanel:setObj(recipe)
     self:refreshIngredientPanel()
     self:refreshSkillPanel()
     self:refreshBooksPanel()
+    self:refreshEquipmentPanel()
 
     self.bh = self:getBottomHeight(newItem)
 end
@@ -406,6 +422,34 @@ function CHC_uses_recipepanel:refreshBooksPanel()
     self.booksPanel:setVisible(true)
 end
 
+function CHC_uses_recipepanel:refreshEquipmentPanel()
+    self.equipmentPanel:setVisible(false)
+
+    local recipe = self.newItem
+    if not recipe then return end
+
+    local hydro = recipe.hydrocraftEquipment
+    local near = recipe.nearItem
+    if not hydro and not near then return end
+
+    self.equipmentPanel:clear()
+
+    if hydro then
+        local obj = hydro.obj
+        obj.luaTest = hydro.luaTest
+        self.equipmentPanel:addItem(obj.name, obj)
+    end
+
+    if near then
+        self.equipmentPanel:addItem(near, near)
+    end
+
+    self.equipmentPanel:setHeight(math.min(1, #self.equipmentPanel.items) * self.equipmentPanel.itemheight)
+    self.equipmentPanel.doDrawItem = self.drawEquipment
+    self.equipmentPanel:setVisible(true)
+
+end
+
 -- endregion
 
 -- region render
@@ -505,13 +549,15 @@ function CHC_uses_recipepanel:drawSkill(y, item, alt)
     if self.parent.fastListReturn(self, y) then return y + self.itemheight end
 
     local text = " - " .. item.text .. ": " .. tostring(item.item.pLevel) .. " / " .. tostring(item.item.rLevel);
-    local r, g, b = 1, 1, 1
+    local r, g, b, a = 1, 1, 1, 0.9
     local rb, gb, bb, ab = 0.1, 0.1, 0.1, 1
 
     if item.item.pLevel < item.item.rLevel then
         g, b = 0, 0
+    else
+        a = 0.7
     end
-    self:drawText(text, 15, y, r, g, b, 1, UIFont.Small)
+    self:drawText(text, 15, y, r, g, b, a, UIFont.Small)
     self:drawRectBorder(0, y, self:getWidth() - 2, self.itemheight, ab, rb, gb, bb)
     return y + self.itemheight
 end
@@ -540,6 +586,40 @@ function CHC_uses_recipepanel:drawBook(y, item, alt)
     --endregion
 
     self:drawRectBorder(0, y, self:getWidth() - 2, self.itemheight, ab, rb, gb, bb)
+
+    return y + self.itemheight
+end
+
+function CHC_uses_recipepanel:drawEquipment(y, item, alt)
+    if self.parent.fastListReturn(self, y) then return y + self.itemheight end
+
+    local isComplex = item.item.luaTest and true or false
+
+    local x = 0
+    local a = 0.9
+    if isComplex then
+        local r, g, b = 1, 1, 1
+        local tX = x
+        local tY = y + 2
+        if not item.item.luaTest(self.player) then
+            g, b = 0, 0
+            a = 0.75
+        end
+        if item.item.texture then
+            tX = tX + 15
+            self:drawTextureScaledAspect(item.item.texture, tX, tY, 20, 20, a, 1, 1, 1)
+            tX = tX + 25
+        end
+        self:drawText(item.item.name, tX, tY, r, g, b, a, UIFont.Small)
+    end
+
+    if not isComplex then
+        self:drawText(" - " .. item.item.nearItem, x + 15, y, 1, 1, 1, a, UIFont.Small)
+    end
+
+    --region favorite handler
+    self.parent.drawFavoriteStar(self, y, item)
+    --endregion
 
     return y + self.itemheight
 end
@@ -782,27 +862,10 @@ function CHC_uses_recipepanel:drawNearItem(x, y, item)
     self:drawText(getText("UI_recipe_panel_near_item") .. ": ", x, y, 1, 1, 1, a, UIFont.Medium);
     y = y + fhMedium
 
-    if hydroFurniture then
-        local hydroX = x + 15
-        local r, g, b = 1, 1, 1
-        if not hydroFurniture.luaTest(self.player) then
-            g, b = 0, 0
-            a = 0.75
-        end
-        self:drawText(" - ", hydroX, y, r, g, b, a, UIFont.Small)
-        if hydroFurniture.obj.texture then
-            hydroX = hydroX + 15
-            self:drawTextureScaledAspect(hydroFurniture.obj.texture, hydroX, y, 20, 20, a, 1, 1, 1)
-            hydroX = hydroX + 25
-        end
-        self:drawText(hydroFurniture.obj.name, hydroX, y, r, g, b, a, UIFont.Small)
-        y = y + 25
-    end
-
-    if nearItem then
-        self:drawText(" - " .. item.nearItem, x + 15, y, 1, 1, 1, a, UIFont.Small);
-        y = y + fhSmall
-    end
+    self.equipmentPanel:setX(x + 5)
+    self.equipmentPanel:setY(y)
+    self.equipmentPanel:setWidth(self.width - 25)
+    y = y + self.equipmentPanel.height
     return y - sy
 end
 
