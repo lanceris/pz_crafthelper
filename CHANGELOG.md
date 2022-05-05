@@ -2,6 +2,10 @@
 
 ## 1.6.2 (04.05.2022)
 
+### New features
+
+- Item distributions (WIP)
+
 ### Improvements
 
 - Interactive panels (recipe details)

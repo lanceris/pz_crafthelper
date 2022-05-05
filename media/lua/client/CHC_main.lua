@@ -19,6 +19,7 @@ CHC_main.luaRecipeCache = {}
 local insert = table.insert
 local utils = require('CHC_utils')
 local print = utils.chcprint
+local pairs = pairs
 
 local cacheFileName = "CraftHelperLuaCache.json"
 local loadLua = false
@@ -135,6 +136,7 @@ CHC_main.loadDatas = function()
 
 	CHC_main.loadAllItems()
 	if loadLua then CHC_main.loadLuaCache() end
+	CHC_main.loadAllDistributions()
 
 	CHC_main.loadAllRecipes()
 
@@ -310,6 +312,70 @@ CHC_main.loadAllRecipes = function()
 	print(nbRecipes .. ' recipes loaded.')
 end
 
+CHC_main.processNonProceduralDistrib = function(zone, d, data)
+	local n = d.rolls
+	-- local uniqueItems = {}
+	for i = 1, #d.items, 2 do
+		local itemName = d.items[i]
+		if not string.contains(itemName, ".") then
+			itemName = "Base." .. itemName
+		end
+		local itemNumber = d.items[i + 1]
+
+		local lootModifier = ItemPickerJava.getLootModifier(itemName)
+		local chance = (itemNumber * lootModifier) / 100.0
+		local actualChance = (1 - (1 - chance) ^ n)
+		-- TODO lucky/unlucky modifier
+
+		-- if not uniqueItems[itemName] then -- to check for items w/o distrib later
+		-- 	uniqueItems[itemName] = true
+		-- end
+
+		if data[itemName] == nil then
+			data[itemName] = {}
+		end
+
+		if data[itemName][zone] == nil then
+			data[itemName][zone] = actualChance
+		else
+			data[itemName][zone] = data[itemName][zone] + actualChance
+		end
+	end
+end
+
+CHC_main.loadAllDistributions = function()
+	-- first check SuburbsDistributions (for non-procedural items and procedural refs)
+	-- then ProceduralDistributions
+	-- TODO add junk items
+	local function norm(val, min, max)
+		return (val - min) / (max - min) * 100
+	end
+
+	local suburbs = SuburbsDistributions
+	local data = {}
+
+	for zone, d in pairs(suburbs) do
+		if d.rolls and d.rolls > 0 and d.items then
+			CHC_main.processNonProceduralDistrib(zone, d, data)
+		end
+		if not d.rolls then
+			for subzone, dd in pairs(d) do
+				if type(dd) == "table" and dd.rolls and dd.rolls > 0 and dd.items then
+					local zName = string.format("%s.%s", zone, subzone)
+					CHC_main.processNonProceduralDistrib(zName, dd, data)
+				end
+			end
+		end
+	end
+	for iN, t in pairs(data) do
+		for zN, _ in pairs(t) do
+			data[iN][zN] = round(data[iN][zN] * 100, 5) -- to percents (0-100) and round
+		end
+
+	end
+	CHC_main.item_distrib = data
+end
+
 CHC_main.setRecipeForItem = function(tbl, itemName, recipe)
 	tbl[itemName] = tbl[itemName] or {}
 	insert(tbl[itemName], recipe)
@@ -363,7 +429,7 @@ function CHC_main.reloadMod(key)
 	if key == Keyboard.KEY_O then
 		CHC_main.loadDatas()
 		local all = CHC_main
-		-- error('debug')
+		error('debug')
 	end
 end
 
