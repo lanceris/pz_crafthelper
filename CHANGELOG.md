@@ -1,15 +1,22 @@
 # CraftHelper updates
 
-## 1.6.2 (04.05.2022)
+## 1.6.3 (28.06.2022, workshop release)
 
 ### New features
 
-- Item distributions (WIP)
+- Item distributions (UI WIP)
+
+### Improvements
+
+- Small fixes
+- Fixed compatibility with Customizable Containers (recipes without result now ignored)
+
+## 1.6.2 (04.05.2022)
 
 ### Improvements
 
 - Interactive panels (recipe details)
-- Updated string shown when favoriting item form inventory
+- Updated string shown when favoriting item from inventory
 - Minor UI improvements
 
 # 1.6.1 (02.05.2022, workshop release)

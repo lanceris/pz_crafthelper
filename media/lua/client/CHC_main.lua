@@ -4,7 +4,7 @@ CHC_main = {}
 CHC_main.author = "lanceris"
 CHC_main.previousAuthors = { "Peanut", "ddraigcymraeg", "b1n0m" }
 CHC_main.modName = "CraftHelperContinued"
-CHC_main.version = "1.6.2"
+CHC_main.version = "1.6.3"
 CHC_main.allRecipes = {}
 CHC_main.recipesByItem = {}
 CHC_main.recipesForItem = {}
@@ -15,6 +15,7 @@ CHC_main.isDebug = false or getDebug()
 CHC_main.recipesWithoutItem = {}
 CHC_main.recipesWithLua = {}
 CHC_main.luaRecipeCache = {}
+CHC_main.notAProcZone = {} -- zones from Distributions.lua without corresponding zones in ProceduralDistributions.lua
 
 local insert = table.insert
 local utils = require('CHC_utils')
@@ -136,7 +137,7 @@ CHC_main.loadDatas = function()
 
 	CHC_main.loadAllItems()
 	if loadLua then CHC_main.loadLuaCache() end
-	CHC_main.loadAllDistributions()
+	--CHC_main.loadAllDistributions()
 
 	CHC_main.loadAllRecipes()
 
@@ -163,7 +164,8 @@ CHC_main.processOneItem = function(item)
 			hidden = item:isHidden(),
 			count = invItem:getCount() or 1,
 			category = item:getTypeString(),
-			displayCategory = itemDisplayCategory and getTextOrNull("IGUI_ItemCat_" .. itemDisplayCategory) or getText("IGUI_ItemCat_Item"),
+			displayCategory = itemDisplayCategory and getTextOrNull("IGUI_ItemCat_" .. itemDisplayCategory) or
+				getText("IGUI_ItemCat_Item"),
 			texture = invItem:getTex()
 		}
 		-- toinsert.favorite = CHC_main.playerModData[CHC_main.getFavItemModDataStr(toinsert)] or false
@@ -176,7 +178,7 @@ CHC_main.processOneItem = function(item)
 		-- end
 		-- insert(CHC_main.hydroDuplicates[string.lower(toinsert.displayName)], { ft = toinsert.fullType, modname = toinsert.modname })
 	else
-		error(string.format('Duplicate invItem fullType! (%s)', tostring(invItem.getFullType())))
+		error(string.format('Duplicate invItem fullType! (%s)', tostring(invItem:getFullType())))
 	end
 
 
@@ -280,39 +282,43 @@ CHC_main.loadAllRecipes = function()
 		end
 
 		local resultItem = recipe:getResult()
-		local resultFullType = resultItem:getFullType()
-		local itemres = CHC_main.handleItems(resultFullType)
+		if resultItem then
+			local resultFullType = resultItem:getFullType()
+			local itemres = CHC_main.handleItems(resultFullType)
 
-		insert(CHC_main.allRecipes, newItem)
-		if itemres then
-			newItem.recipeData.result = itemres
-			CHC_main.setRecipeForItem(CHC_main.recipesForItem, itemres.fullType, newItem)
-		else
-			insert(CHC_main.recipesWithoutItem, resultItem:getFullType())
-		end
-		local rSources = recipe:getSource()
+			insert(CHC_main.allRecipes, newItem)
+			if itemres then
+				newItem.recipeData.result = itemres
+				CHC_main.setRecipeForItem(CHC_main.recipesForItem, itemres.fullType, newItem)
+			else
+				insert(CHC_main.recipesWithoutItem, resultItem:getFullType())
+			end
+			local rSources = recipe:getSource()
 
-		-- Go through items needed by the recipe
-		for n = 0, rSources:size() - 1 do
-			-- Get the item name (not the display name)
-			local rSource = rSources:get(n)
-			local items = rSource:getItems()
-			for k = 0, rSource:getItems():size() - 1 do
-				local itemString = items:get(k)
-				local item = CHC_main.handleItems(itemString)
+			-- Go through items needed by the recipe
+			for n = 0, rSources:size() - 1 do
+				-- Get the item name (not the display name)
+				local rSource = rSources:get(n)
+				local items = rSource:getItems()
+				for k = 0, rSource:getItems():size() - 1 do
+					local itemString = items:get(k)
+					local item = CHC_main.handleItems(itemString)
 
-				if item then
-					CHC_main.setRecipeForItem(CHC_main.recipesByItem, item.fullType, newItem)
+					if item then
+						CHC_main.setRecipeForItem(CHC_main.recipesByItem, item.fullType, newItem)
+					end
 				end
 			end
+			nbRecipes = nbRecipes + 1
+		else
+			-- omg no "continue" in lua and goto not working :(
 		end
-		nbRecipes = nbRecipes + 1
 	end
 	showTime(now, "All Recipes")
 	print(nbRecipes .. ' recipes loaded.')
 end
 
-CHC_main.processNonProceduralDistrib = function(zone, d, data)
+CHC_main.processDistrib = function(zone, d, data, isJunk, isProcedural)
 	local n = d.rolls
 	-- local uniqueItems = {}
 	for i = 1, #d.items, 2 do
@@ -322,23 +328,34 @@ CHC_main.processNonProceduralDistrib = function(zone, d, data)
 		end
 		local itemNumber = d.items[i + 1]
 
-		local lootModifier = ItemPickerJava.getLootModifier(itemName)
+		-- if lucky then
+		--     itemNumber = itemNumber * 1.1
+		-- end
+		-- if unlucky then
+		--     itemNumber = itemNumber * 0.9
+		-- end
+
+		local lootModifier
+		if isJunk then
+			lootModifier = 1.0
+			itemNumber = itemNumber * 1.4
+		else
+			lootModifier = ItemPickerJava.getLootModifier(itemName)
+		end
 		local chance = (itemNumber * lootModifier) / 100.0
 		local actualChance = (1 - (1 - chance) ^ n)
-		-- TODO lucky/unlucky modifier
-
-		-- if not uniqueItems[itemName] then -- to check for items w/o distrib later
-		-- 	uniqueItems[itemName] = true
-		-- end
 
 		if data[itemName] == nil then
 			data[itemName] = {}
 		end
 
 		if data[itemName][zone] == nil then
+			-- data[itemName][zone] = { chance = actualChance, rolls = n, count = 1 }
 			data[itemName][zone] = actualChance
 		else
+			-- data[itemName][zone].chance = data[itemName][zone].chance + actualChance
 			data[itemName][zone] = data[itemName][zone] + actualChance
+			-- data[itemName][zone].count = data[itemName][zone].count + 1
 		end
 	end
 end
@@ -352,25 +369,65 @@ CHC_main.loadAllDistributions = function()
 	end
 
 	local suburbs = SuburbsDistributions
+	local procedural = ProceduralDistributions.list
 	local data = {}
 
 	for zone, d in pairs(suburbs) do
 		if d.rolls and d.rolls > 0 and d.items then
-			CHC_main.processNonProceduralDistrib(zone, d, data)
+			CHC_main.processDistrib(zone, d, data)
 		end
-		if not d.rolls then
+		if not d.rolls then --check second level
 			for subzone, dd in pairs(d) do
-				if type(dd) == "table" and dd.rolls and dd.rolls > 0 and dd.items then
-					local zName = string.format("%s.%s", zone, subzone)
-					CHC_main.processNonProceduralDistrib(zName, dd, data)
+				if type(dd) == "table" then
+					if dd.rolls and dd.rolls > 0 and dd.items then
+						local zName = string.format("%s.%s", zone, subzone)
+						CHC_main.processDistrib(zName, dd, data)
+					end
+					if dd.junk and dd.junk.rolls and dd.junk.rolls > 0 and not utils.empty(dd.junk.items) then
+						local zName = string.format("%s.%s.junk", zone, subzone)
+						CHC_main.processDistrib(zName, dd.junk, data, true)
+					end
 				end
 			end
 		end
 	end
+
+	-- procedural from suburbs
+	for zone, d in pairs(suburbs) do
+		if d.procedural then
+			print(string.format("smth is wrong, should not trigger (zone: %s)", zone))
+		end
+		for subzone, dd in pairs(d) do
+			if type(dd) == "table" then
+				if dd.procedural and dd.procList then
+					for _, procEntry in pairs(dd.procList) do
+						-- weightChance and forceforX not accounted for
+						local pd = procedural[procEntry.name]
+						if pd ~= nil then
+							if pd.rolls and pd.rolls > 0 and pd.items then
+								local zName = string.format("%s.%s", zone, subzone)
+								CHC_main.processDistrib(zName, pd, data, nil, true)
+							end
+							if pd.junk and pd.junk.rolls and pd.junk.rolls > 0 and not utils.empty(pd.junk.items) then
+								local zName = string.format("%s.%s.junk", zone, subzone)
+								CHC_main.processDistrib(zName, pd, data, true, true)
+							end
+						else
+							insert(CHC_main.notAProcZone, { zone = zone, subzone = subzone, procZone = procEntry.name })
+							-- error(string.format("Procedural entry is nil (zone: %s, proc: %s)", zone .. "-" .. subzone, procEntry.name))
+						end
+					end
+				end
+			end
+		end
+	end
+
 	for iN, t in pairs(data) do
 		for zN, _ in pairs(t) do
-			data[iN][zN] = round(data[iN][zN] * 100, 5) -- to percents (0-100) and round
+			-- data[iN][zN].chance = round(data[iN][zN].chance * 100, 5) -- to percents (0-100) and round
+			data[iN][zN] = round(data[iN][zN] * 100, 5)
 		end
+		table.sort(data[iN])
 
 	end
 	CHC_main.item_distrib = data

@@ -27,7 +27,8 @@ function CHC_items_panel:createChildren()
     local fntm = getTextManager():getFontHeight(UIFont.Medium)
     local fntl = getTextManager():getFontHeight(UIFont.Large)
     -- region search bar
-    self.panelSearchRow = CHC_search_bar:new(0, 0, self.width - self.margin, 24, "search by attributes", self.onTextChange, self.searchRowHelpText)
+    self.panelSearchRow = CHC_search_bar:new(0, 0, self.width - self.margin, 24, "search by attributes",
+        self.onTextChange, self.searchRowHelpText)
     self.panelSearchRow:initialise()
     self.panelSearchRow:setVisible(false)
     y = y + 24 + self.padY
@@ -90,7 +91,12 @@ function CHC_items_panel:createChildren()
     -- endregion
 
     -- region attributes
-    self.attrList = nil -- endregion
+    self.attrList = nil
+    -- endregion
+
+    -- region distributions
+    -- item distributions UI
+    -- endregion
 
 
 
@@ -200,6 +206,13 @@ function CHC_items_panel:setObj(item)
     self.mainInfo:setHeight(math.max(74, maxY))
     self.mainInfo:setVisible(true)
     -- self.mainImg.blinkImage = true
+
+    -- self.itemDistribData = CHC_main.item_distrib[item.fullType]
+    -- if self.itemDistribData then
+    --     -- item distribution assign
+    -- else
+    --     self.itemDistribData = nil
+    -- end
 end
 
 -- endregion

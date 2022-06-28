@@ -1,4 +1,4 @@
-version=1.6.1
+version=1.6.3
 id=2787291513
 title=Craft Helper Continued
 description=[h1]Craft Helper for build 41.65+[/h1]
