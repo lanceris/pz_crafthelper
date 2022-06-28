@@ -1,6 +1,5 @@
 require "ISUI/ISInventoryPane"
 require "CHC_main"
-require "CHC_settings"
 
 local favTexOutline = getTexture("media/textures/itemFavoriteStarOutline.png")
 

@@ -1,0 +1,9 @@
+[h1]1.6.3[/h1]
+
+[h2]Improvements:[/h2]
+[list]
+[*]Interactive panels ("Required X" in recipe details)
+[*]Updated string shown when favoriting item from inventory
+[*]Minor UI improvements
+[*]Fixed compatibility with Customizable Containers (recipes without result now ignored)
+[/list]

@@ -614,7 +614,7 @@ function CHC_uses_recipepanel:drawEquipment(y, item, alt)
     end
 
     if not isComplex then
-        self:drawText(" - " .. item.item.nearItem, x + 15, y, 1, 1, 1, a, UIFont.Small)
+        self:drawText(" - " .. item.item, x + 15, y, 1, 1, 1, a, UIFont.Small)
     end
 
     --region favorite handler

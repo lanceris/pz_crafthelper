@@ -170,6 +170,11 @@ CHC_utils.chcprint = function(txt)
     print("[CraftHelperContinued] " .. tostring(txt))
 end
 
+function CHC_utils.empty(tab)
+    for _, _ in pairs(tab) do return false; end
+    return true
+end
+
 local JsonUtil = require("CHC_json")
 
 CHC_utils.jsonutil = {}
