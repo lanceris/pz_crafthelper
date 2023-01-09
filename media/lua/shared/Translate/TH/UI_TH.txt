@@ -1,11 +1,118 @@
-UI_TH = {
-    UI_item_uses_tab_name = "ใช้"
-    UI_item_craft_tab_name = "ลงมือทำ"
-    UI_common_left_col_name = "สูตรผสม"
-    UI_common_right_col_name = "รายละเอียด"
+UI_EN = {
+    UI_item_uses_tab_name =         "การใช้ประโยชน์"
+    UI_item_craft_tab_name =        "การประดิษฐ์"
+    UI_common_left_col_name =       "สูตรผสม"
+    UI_common_right_col_name =      "รายละเอียด"
+    UI_search_tab_name =            "ค้นหา"
+    UI_search_items_tab_name =      "ไอเท็ม"
+    UI_search_recipes_tab_name =    "สูตรผสม"
     UI_recipe_panel_required_book = "ตำราที่จำเป็น (เพียงหนึ่งเล่ม)"
-    UI_recipe_panel_near_item = "อุปกรณ์ที่จำเป็น"
-    UI_settings_av_valid = "ทำได้"
-    UI_settings_av_known = "รู้วิธีทำแล้ว"
-    UI_settings_av_invalid = "ยังทำไม่เป็น"
+    UI_recipe_panel_near_item =     "อุปกรณ์ที่จำเป็น"
+
+    UI_settings_st_title =   "เรียงลำดับ"
+    UI_settings_av_title =   "รายการที่มีอยู่"
+    UI_settings_av_valid =   "ลงมือสร้างได้"
+    UI_settings_av_known =   "เรียนรู้แล้ว"
+    UI_settings_av_invalid = "ยังสร้างไม่ได้"
+
+    UI_optionscreen_binding_chc_category_title =            "Craft Helper"
+    UI_optionscreen_binding_chc_move_up =                   "เลือกสูตรก่อนหน้า"
+    UI_optionscreen_binding_chc_move_down =                 "เลือกสูตรถัดไป"
+    UI_optionscreen_binding_chc_move_left =                 "เลือกหมวดหมู่ก่อนหน้า"
+    UI_optionscreen_binding_chc_move_right =                "เลือกหมวดหมู่ถัดไป"
+    UI_optionscreen_binding_chc_craft_one =                 "หนึ่งครั้ง"
+    UI_optionscreen_binding_chc_craft_all =                 "ทั้งหมด"
+    UI_optionscreen_binding_chc_favorite_recipe =           "ชื่นชอบสูตรผสมที่เลือก"
+    UI_optionscreen_binding_chc_close_window =              "ปิดหน้าต่าง Craft Helper"
+    UI_optionscreen_binding_chc_toggle_window =             "สลับโหมดหน้าต่าง Craft Helper"
+    UI_optionscreen_binding_chc_toggle_uses_craft =         "สลับโหมดการใช้ประโยชน์/การประดิษฐ์"
+    UI_optionscreen_binding_chc_move_tab_left =             "เลือกแท็บก่อนหน้า"
+    UI_optionscreen_binding_chc_move_tab_right =            "เลือกแท็บถัดไป"
+    UI_optionscreen_binding_chc_toggle_focus_search_bar =   "โฟกัสที่แถบค้นหา"
+
+    UI_infotext_search =    "<CENTRE><SIZE:medium> หน้าค้นหา <LINE><LINE> "..
+                            "<SIZE:small> <LEFT> คุณสามารถค้นหาไอเท็มและสูตรผสมทั้งหมดได้ที่นี่ <LINE><LINE> "
+    UI_infotext_favorites = "<CENTRE><SIZE:medium> หน้าแสดงรายการโปรด <LINE><LINE> "..
+                            "<SIZE:small> <LEFT> คุณสามารถดูรายการโปรด (WIP) และสูตรอาหารได้ที่นี <LINE><LINE> "
+    UI_infotext_itemtab =   "<CENTRE><SIZE:medium> หน้าแสดงไอเท็ม <LINE>"..
+                            "<SIZE:small> <LEFT> คุณสามารถดูข้อมูลรายละเอียดเกี่ยวกับ '%1' ได้ที่นี่<LINE> "..
+                            "แท็บแรก (%2) แสดงสูตรผสมซึ่งใช้ '%1' เป็นส่วนผสม <LINE> "..
+                            "แท็บที่สอง (%3) แสดงสูตรผสมที่ใช้สร้าง '%1'<LINE><LINE> " 
+    
+    UI_infotext_common = "<INDENT:0> คอลัมน์ด้านซ้าย (สูตรผสม) จะแสดงรายการไอเท็ม/สูตรผสมพร้อมการควบคุมเพิ่มเติม ตัวกรองจะอยู่ด้านบนบรรทัดแรก <LINE><LINE> "..
+                         "<IMAGECENTRE:media/textures/info_filter_row.png> <LINE>"..
+                         "<INDENT:8>ปุ่มหมายเลข 1 จัดเรียงไอเท็ม/สูตรผสมในปัจจุบัน คลิกปุ่มเพื่อปรับเปลี่ยนการแสดงลำดับรายการ <LINE>"..
+                         "ปุ่มหมายเลข 2 เลือกประเภทของข้อมูลที่ต้องการ: <LINE>"..
+                         "<INDENT:16> %1 <LINE>"..
+                         "<INDENT:8> ส่วนที่ 3 คือตัวเลือกหมวดหมู่ คุณสามารถระบุหมวดหมู่ที่ต้องการได้ <LINE><LINE>"..
+                         "ด้านล่างแถบตัวกรองคือแถบค้นหา คุณสามารถกรอกคำหลักเพื่อค้นหาโดยใช้ชื่อไอเท็ม/สูตรผสม หรือค้นหาด้วยกฎที่กำหนดเอง ผลลัพธ์ที่แสดงจะขึ้นอยู่กับข้อความค้นหาของคุณ <LINE>"..
+                         "คลิกที่ <IMAGE:media/textures/search_icon.png> เพื่อเรียนรู้เพิ่มเติมเกี่ยวกับกฎการค้นหาที่กำหนดเอง<LINE><LINE>"..
+                         "<INDENT:0> คอลัมน์ขวา (รายละเอียด) แสดงรายละเอียดของไอเท็ม/สูตรผสม: <LINE>"..
+                         "<INDENT:8> %2 <LINE><LINE>"..
+                         "<INDENT:0><SIZE:medium>การควบคุม: <SIZE:small><LINE><LINE>"..
+                         "<INDENT:16> - คณสามารถปรับขนาดคอลัมน์สูตรผสมและรายละเอียดได้โดยการลากเส้นระหว่างชื่อ <LINE> "..
+                         " - คลิกขวาที่ชื่อแท็บรายการเพื่อเปิดเมนูบริบท <LINE>"..
+                         "%3 <LINE>"..
+                         " - หากติดตั้ง 'Mod Options' คุณสามารถตั้งค่าปุ่มลัดสำหรับการกระทำที่ใช้งานบ่อยได้"
+                         
+    -- %1
+    UI_infotext_recipe_types = "- <IMAGE:media/textures/type_filt_all.png> <SPACE>(%1): สูตรผสมทั้งหมด <LINE> "..
+                               "- <IMAGE:media/textures/type_filt_valid.png> (%2): สูตรผสมที่ใช้สำหรับการประดิษฐ์ได้ในขณะนี้ <LINE> "..
+                               "- <IMAGE:media/textures/type_filt_known.png> (%3): สูตรผสมที่คุณเรียนรู้แล้วแต่ยังลงมือสร้างไม่ได้ (ขาดทักษะ/ไอเท็ม) <LINE> "..
+                               "- <IMAGE:media/textures/type_filt_invalid.png> (%4): สูตรผสมที่คุณยังไม่ได้เรียนรู้ จะแสดงหนังสือที่ช่วยให้คุณสามารถเรียนรู้ทักษะการประดิษฐ์ไอเท็มนั้นได้"
+    UI_infotext_item_types =   " - เสื้อผ้า <LINE> - อาหาร <LINE> - อาวุธ <LINE> - ..."
+
+    -- %2
+    UI_infotext_recipe_details = " - ข้อมูลเกี่ยวกับหมวดหมู่สูตรผสมและไอเท็มผลลัพธ์ <LINE> "..
+                                 " - ไอเท็มที่ต้องใช้ <LINE>"..
+                                 " - สิ่งจำเป็นอื่น ๆ (ทักษะ หนังสือ อุปกรณ์การประดิษฐ์ และเวลาในการประดิษฐ์)"
+    UI_infotext_item_details =   " - ข้อมูลพื้นฐานของไอเท็มและจำนวนสูตรผสม <LINE> "..
+                                 " - คุณสมบัติของไอเท็ม (WIP) <LINE> "..
+                                 " - วิธีการซ่อมไอเท็ม (หากทำได้) (WIP) <LINE>"..
+                                 " - แหล่งที่สามารถค้นพบไอเท็มนี้ (WIP)"
+
+    -- %3
+    UI_infotext_recipe_mouse = " - คลิกซ้ายที่ไอคอนรูปดาว (คอลัมน์สูตรผสม วางเมาส์เหนือองค์ประกอบ) เพื่อเพิ่มสูตรผสมเป็นรายการโปรดหรือยกเลิกรายการโปรด <LINE> "..
+                               " - คลิกขวาที่ไอคอนผลลัพธ์สูตรผสม (คอลัมน์รายละเอียด) เพื่อเปิดเมนูบริบท <LINE> "..
+                               " - คลิกขวาที่ไอเท็มใน 'ไอเท็มที่ต้องใช้' (คอลัมน์รายละเอียด) เพื่อเปิดเมนูบริบท"
+    UI_infotext_item_mouse =   " - คลิกกลางที่รายการ (คอลัมน์สูตรผสม) เพื่อเปิดไอเท็มที่คลิกไว้ในแท็บใหม่ที่เบื้องหลัง <LINE>"..
+                               " - คลิกขวาที่ไอเท็ม (คอลัมน์สูตรผสม) เพื่อเปิดเมนูบริบท <LINE>"..
+                               " - คลิกขวาที่ไอคอนของไอเท็ม (คอลัมน์รายละเอียด) เพื่อเปิดเมนูบริบท <LINE>"..
+                               " - กดปุ่ม Shift + คลิกขวาที่องค์ประกอบบางอย่าง (ดูด้านบน) จะแสดงตัวเลือกเพิ่มเติม"
+
+
+    UI_searchrow_info = "<CENTRE><SIZE:medium> เครื่องมือช่วยค้นหา <LINE><LINE> "..
+                        "<LEFT><SIZE:small> แถบค้นหานี้รองรับกฎที่กำหนดเอง ข้อความค้นหาแต่ละรายการ (คำ) เรียกว่าโทเค็น <LINE>"..
+                        "คุณสามารถค้นหาด้วยข้อความค้นหาหลายรายการพร้อมกันได้โดยใช้เครื่องหมายตัวคั่น <LINE>"..
+                        "คุณสามารถต่อท้ายโทเค็นแต่ละรายการด้วยสัญลักษณ์พิเศษเพื่อกำหนดกฎการค้นหาสำหรับโทเค็นนั้น <LINE>"..
+                        "หากติดตั้ง 'Mod Options' คุณสามารถตั้งค่าปุ่มลัดเพื่อโฟกัสแถบค้นหา สามารถยกเลิกการโฟกัสได้โดยการกดปุ่ม ESC <LINE><LINE>"..
+                        "<SIZE:medium> ตัวคั่น: <LINE> <SIZE:small> "..
+                        "<INDENT:8> <SIZE:medium> , <SIZE:small> <SPACE><SPACE>(เครื่องหมายจุลภาค) - รวมผลลัพธ์ของโทเค็นทั้งหมด (ตรรกะ AND) สามารถใช้สำหรับการกรองที่เฉพาะเจาะจงมาก <LINE> "..
+                        "<SIZE:medium> | <SIZE:small> <SPACE><SPACE>(เครื่องหมายขีดตั้ง) - แยกโทเค็นทั้งหมด (ตรรกะ OR) สามารถใช้เพื่อค้นหาหลายข้อความค้นหาแยกจากกัน <LINE><LINE> "..
+                        "<INDENT:0><SIZE:medium> สัญลักษณ์พิเศษ: <LINE> <SIZE:small> "..
+                        "<INDENT:8>%1"..
+                        "<SIZE:medium> ~ <SIZE:small> <SPACE><SPACE>(เครื่องหมายตัวหนอน) - ไม่รวมโทเค็นนั้น (เช่น ค้นหาทุกอย่างยกเว้นโทเค็นนั้น ต้องอยู่หลังอักขระพิเศษเพื่อใช้งาน เช่น !~อาหาร) <LINE><LINE>"..
+                        "<INDENT:0><SIZE:medium> <LEFT> ตัวอย่าง: <LINE> <SIZE:small> "..
+                        "<INDENT:8>%2<LINE>"..
+                        "<INDENT:0><SIZE:medium> ข้อจำกัด: <LINE> <SIZE:small> "..
+                        "<INDENT:8>- ไม่สามารถใช้ทั้งตัวคั่น (',' และ '|') พร้อมกันได้ <LINE> "..
+                        "- ไม่สามารถยกเว้นส่วนผสมได้ (#~word)"
+
+    -- %1
+    UI_searchrow_info_recipes_special = "<SIZE:medium> ! <SIZE:small> <SPACE><SPACE>(เครื่องหมายอัศเจรีย์) - ค้นหาตามหมวดหมู่ของสูตรผสม <LINE>"..
+                                        "<SIZE:medium> @ <SIZE:small> <SPACE><SPACE>(เครื่องหมายแอต) - ค้นหาด้วยชื่อม็อดของไอเท็มผลลัพธ์ (ตัวเกมหลักจะแสดงชื่อม็อดเป็น 'Project Zomboid' <LINE>"..
+                                        "<SIZE:medium> # <SIZE:small> <SPACE><SPACE>(เครื่องหมายนัมเบอร์) - ค้นหาด้วยสูตรผสม <LINE>"..
+                                        "<SIZE:medium> $ <SIZE:small> <SPACE><SPACE>(เครื่องหมายดอลลาร์) - ค้นหาด้วยหมวดหมู่ของไอเท็มผลลัพธ์ แสดงที่ด้านขวาของช่องเก็บของ) <LINE>"..
+                                        "<SIZE:medium> % <SIZE:small> <SPACE><SPACE>(เครื่องหมายเปอร์เซ็นต์) - ค้นหาด้วยชื่อไอเท็มผลลัพธ์ <LINE>"..
+                                        "<SIZE:medium> ^ <SIZE:small> <SPACE><SPACE>(เครื่องหมายแคเรต) - ค้นหาด้วยสูตรผสมที่เป็นรายการโปรด <LINE>"..
+                                        "<SIZE:medium> & <SIZE:small> <SPACE><SPACE>(เครื่องหมายแอมเพอร์แซนด์) - ค้นหาด้วยชื่อม็อดของสูตรผสม (ตัวเกมหลักจะแสดงชื่อม็อดเป็น 'Base') <LINE>"
+    UI_searchrow_info_items_special =   "<SIZE:medium> ! <SIZE:small> <SPACE><SPACE>(เครื่องหมายอัศเจรีย์) - ค้นหาด้วยประเภทของไอเท็ม <LINE>"..
+                                        "<SIZE:medium> @ <SIZE:small> <SPACE><SPACE>(เครื่องหมายแอต) - ค้นหาด้วยชื่อม็อดของไอเท็ม (ตัวเกมหลักจะแสดงชื่อม็อดเป็น 'Project Zomboid') <LINE>"..
+                                        "<SIZE:medium> # <SIZE:small> <SPACE><SPACE>(เครื่องหมายนัมเบอร์) - ค้นหาด้วยหมวดหมู่ของไอเท็ม (แสดงที่ด้านขวาของช่องเก็บของ) <LINE>"
+    
+    -- %2
+    UI_searchrow_info_recipes_examples = "#hamm <SPACE><SPACE>- แสดงสูตรผสมที่มีส่วนผสมที่มีคำว่า 'hamm' อยู่ในชื่อ <LINE>"..
+                                         "@hydrocra,!งานช่าง,#เลื่อย <SPACE><SPACE>- แสดงสูตรอาหารจาก Hydrocraft (หรือที่คล้ายกัน) ในสูตรผสมหมวดหมู่ 'งานช่าง' ซึ่งมี 'เลื่อย' เป็นส่วนผสม <LINE>"..
+                                         "%ไม้กระดาน|!อาหาร <SPACE><SPACE>- แสดงสูตรผสมที่มี 'ไม้กระดาน' เป็นผลลัพธ์ หรือ สูตรผสมในหมวดหมู่ 'อาหาร' <LINE> "
+    UI_searchrow_info_items_examples =   "#เครื่องมือ,!~อาวุธ <SPACE><SPACE>: แสดงเครื่องมือที่ไม่ใช่อาวุธ (เช่น เข็ม เลื่อย แม่แรง) <LINE> "
 }
