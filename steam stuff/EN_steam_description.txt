@@ -47,13 +47,13 @@ Also, with "Mod Options" you can set keybinds (Key bindings -> Craft Helper) for
 [*]English
 [*]Russian
 [*]Spanish (partial)
-[*]Thai (partial)
+[*]Thai
 [*]Korean
 [*]Brazilian Portuguese
 [/list]
 
 [h3]Thanks to everyone who made this mod better![/h3]
-[list][*][url=https://github.com/lanceris/pz_crafthelper/blob/1.7/CONTRIBUTORS.md]List of contributors[/url][/list]
+[list][*][url=https://github.com/lanceris/pz_crafthelper/blob/main/CONTRIBUTORS.md]List of contributors[/url][/list]
 
 [h3]Future plans:[/h3]
 [list][*][url=https://trello.com/b/KmLQqo32/craft-helper-continued]Trello[/url][/list]
