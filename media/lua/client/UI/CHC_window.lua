@@ -12,6 +12,8 @@ local opacity = CHC_settings.mappings.windowOpacity[CHC_settings.config.window_o
 
 -- region create
 
+-- region create
+
 function CHC_window:initialise()
     ISCollapsableWindow.initialise(self)
     self:create()

@@ -15,6 +15,8 @@ local opacity = CHC_settings.mappings.windowOpacity[CHC_settings.config.window_o
 
 -- region create
 
+-- region create
+
 function CHC_search_bar:initialise()
     derivative.initialise(self)
     self:create()
