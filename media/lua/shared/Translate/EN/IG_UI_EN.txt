@@ -30,6 +30,10 @@ IGUI_EN = {
     IGUI_mod_chc = "Mod"
     IGUI_tab_ctx_close_others = "Close others"
     IGUI_no_recipes = "No recipes found"
+    IGUI_ShowFavItemsInventory = "Show favorite item icons"
+    IGUI_ShowFavItemsInventoryTooltip = "Shows a blue star outline on an item in inventory (item must be in favorites)"
+    IGUI_EditableCategorySelector = "Enable text input in category selector"
+    IGUI_EditableCategorySelectorTooltip = "Change tab to apply"
 
 
 }

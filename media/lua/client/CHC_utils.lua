@@ -170,5 +170,39 @@ CHC_utils.chcprint = function(txt)
     print("[CraftHelperContinued] " .. tostring(txt))
 end
 
+function CHC_utils.empty(tab)
+    for _, _ in pairs(tab) do return false; end
+    return true
+end
+
+local JsonUtil = require("CHC_json")
+
+CHC_utils.jsonutil = {}
+CHC_utils.jsonutil.Load = function(fname)
+    if not fname then error('filename not set') end
+    local res
+    local fileReaderObj = getFileReader(fname, true)
+    local json = ""
+    local line = fileReaderObj:readLine()
+    while line ~= nil do
+        json = json .. line
+        line = fileReaderObj:readLine()
+    end
+    fileReaderObj:close()
+
+    if json and json ~= "" then
+        res = JsonUtil.Decode(json)
+    end
+    return res
+end
+
+CHC_utils.jsonutil.Save = function(fname, data)
+    if not data then return end
+    local fileWriterObj = getFileWriter(fname, true, false)
+    local json = JsonUtil.Encode(data)
+    fileWriterObj:write(json)
+    fileWriterObj:close()
+end
+
 
 return CHC_utils

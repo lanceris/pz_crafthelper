@@ -27,7 +27,8 @@ function CHC_items_panel:createChildren()
     local fntm = getTextManager():getFontHeight(UIFont.Medium)
     local fntl = getTextManager():getFontHeight(UIFont.Large)
     -- region search bar
-    self.panelSearchRow = CHC_search_bar:new(0, 0, self.width - self.margin, 24, "search by attributes", self.onTextChange, self.searchRowHelpText)
+    self.panelSearchRow = CHC_search_bar:new(0, 0, self.width - self.margin, 24, "search by attributes",
+        self.onTextChange, self.searchRowHelpText)
     self.panelSearchRow:initialise()
     self.panelSearchRow:setVisible(false)
     y = y + 24 + self.padY
@@ -90,7 +91,12 @@ function CHC_items_panel:createChildren()
     -- endregion
 
     -- region attributes
-    self.attrList = nil -- endregion
+    self.attrList = nil
+    -- endregion
+
+    -- region distributions
+    -- item distributions UI
+    -- endregion
 
 
 
@@ -169,7 +175,7 @@ function CHC_items_panel:setObj(item)
     self.mainName:setName(item.name)
     self.mainName:setTooltip(string.format("%s <LINE>%s", item.name, item.fullType))
 
-    local trCat = self.parent.categoryData[item.category].tooltip
+    local trCat = self.parent.typeData[item.category].tooltip
     self.mainType:setName(getText("IGUI_invpanel_Type") .. ": " .. trCat)
     self.mainDispCat:setName(getText("IGUI_invpanel_Category") .. ": " .. item.displayCategory)
 
@@ -177,9 +183,9 @@ function CHC_items_panel:setObj(item)
     self.mainWeight:setName(getText("IGUI_invpanel_weight") .. ": " .. round(item.item:getWeight(), 2))
     local maxY = self.mainWeight.y + self.mainWeight.height + 2
 
-    local usesNum = CHC_main.recipesByItem[item.name]
+    local usesNum = CHC_main.recipesByItem[item.fullType]
     if type(usesNum) == 'table' then usesNum = #usesNum else usesNum = 0 end
-    local craftNum = CHC_main.recipesForItem[item.name]
+    local craftNum = CHC_main.recipesForItem[item.fullType]
     if type(craftNum) == 'table' then craftNum = #craftNum else craftNum = 0 end
     if usesNum + craftNum > 0 then
         self.mainNumRecipes:setName(getText("UI_search_recipes_tab_name") .. ": " .. usesNum + craftNum)
@@ -200,6 +206,13 @@ function CHC_items_panel:setObj(item)
     self.mainInfo:setHeight(math.max(74, maxY))
     self.mainInfo:setVisible(true)
     -- self.mainImg.blinkImage = true
+
+    -- self.itemDistribData = CHC_main.item_distrib[item.fullType]
+    -- if self.itemDistribData then
+    --     -- item distribution assign
+    -- else
+    --     self.itemDistribData = nil
+    -- end
 end
 
 -- endregion

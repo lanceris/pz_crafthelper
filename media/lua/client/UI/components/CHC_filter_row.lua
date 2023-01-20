@@ -40,6 +40,9 @@ function CHC_filter_row:create()
     local dw = self.filterOrderBtn.width + self.filterTypeBtn.width
     self.categorySelector = ISComboBox:new(x, 0, w - dw, h)
     self.categorySelector:initialise()
+
+    self.categorySelector.editable = CHC_settings.config.editable_category_selector
+    self.categorySelector.font = UIFont.Small -- TODO: move to options
     self.categorySelector.onChange = fsd.onChange
     self.categorySelector.target = self
     self.categorySelector.tooltip = { defaultTooltip = fsd.defaultTooltip }

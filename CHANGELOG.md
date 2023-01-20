@@ -1,5 +1,57 @@
 # CraftHelper updates
 
+## 1.6.4 (19.01.2023, workshop release)
+
+### Improvements
+
+- Updated TH translation (thanks to [rikoprushka](https://github.com/rikoprushka))
+
+## 1.6.3 (28.06.2022, workshop release)
+
+### New features
+
+- Item distributions (UI WIP)
+
+### Improvements
+
+- Small fixes
+- Fixed compatibility with Customizable Containers (recipes without result now ignored)
+
+## 1.6.2 (04.05.2022)
+
+### Improvements
+
+- Interactive panels (recipe details)
+- Updated string shown when favoriting item from inventory
+- Minor UI improvements
+
+# 1.6.1 (02.05.2022, workshop release)
+
+### New features
+
+- Show status of item(-s) in recipe (K - keep, D - destroy, nothing - consumed)
+- Item favorites
+- Show favorite items in inventories
+- Option to show favorite items in inventories (by default OFF)
+- Context menu option to toggle favorite status of item when Shift + RMB on item in inventory
+
+### Improvements
+
+- Added Korean translation (thanks to [척현](https://steamcommunity.com/profiles/76561198379317304))
+- Added Brazilian Portuguese translation (thanks to [Não é o Gui](https://steamcommunity.com/profiles/76561199131666750))
+- Option to enable editable category selector (by default OFF)
+- Refactored bunch of files
+- Changed name saved in recipesByItem and recipesForItem (name -> fulltype)
+- Added onCreate, onTest, onCanPerform, onGiveXP processing (actual parsing is WIP)
+- Added caching of lua functions
+- Changed default subview when clicking on "Open in new tab" to Craft
+- Ability to favorite items from recipe ingredients
+
+### Bugfixes
+
+- Fixed type/category filters synchronization for items
+- Fixed Water (Base.WaterDrop) having no recipes
+
 ## 1.6.0.1 (23.04.2022, hotfix)
 
 ### Bugfixes

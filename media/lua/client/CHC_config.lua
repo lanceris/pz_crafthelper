@@ -36,6 +36,8 @@ CHC_settings = {
 
 local init_cfg = {
     show_recipe_module = true,
+    show_fav_items_inventory = false,
+    editable_category_selector = false,
     recipe_selector_modifier = 1, -- none
     category_selector_modifier = 1,
     tab_selector_modifier = 1,
@@ -59,6 +61,8 @@ local init_cfg = {
 
 local function onModOptionsApply(values)
     CHC_settings.config.show_recipe_module = values.settings.options.show_recipe_module
+    CHC_settings.config.show_fav_items_inventory = values.settings.options.show_fav_items_inventory
+    CHC_settings.config.editable_category_selector = values.settings.options.editable_category_selector
     CHC_settings.config.recipe_selector_modifier = values.settings.options.recipe_selector_modifier
     CHC_settings.config.category_selector_modifier = values.settings.options.category_selector_modifier
     CHC_settings.config.tab_selector_modifier = values.settings.options.tab_selector_modifier
@@ -148,6 +152,20 @@ if ModOptions and ModOptions.getInstance then
                 default = true,
                 OnApplyMainMenu = onModOptionsApply,
                 OnApplyInGame = onModOptionsApply
+            },
+            show_fav_items_inventory = {
+                name = "IGUI_ShowFavItemsInventory",
+                tooltip = "IGUI_ShowFavItemsInventoryTooltip",
+                default = false,
+                OnApplyMainMenu = onModOptionsApply,
+                OnApplyInGame = onModOptionsApply
+            },
+            editable_category_selector = {
+                name = "IGUI_EditableCategorySelector",
+                tooltip = "IGUI_EditableCategorySelectorTooltip",
+                default = false,
+                OnApplyMainMenu = onModOptionsApply,
+                OnApplyInGame = onModOptionsApply
             }
         },
         mod_id = "CraftHelperContinued",
@@ -165,6 +183,8 @@ if ModOptions and ModOptions.getInstance then
 else
     -- defaults in case "Mod Options" not installed
     CHC_settings.config.show_recipe_module = true
+    CHC_settings.config.show_fav_items_inventory = false
+    CHC_settings.config.editable_category_selector = false
     CHC_settings.config.recipe_selector_modifier = 1
     CHC_settings.config.category_selector_modifier = 1
     CHC_settings.config.tab_selector_modifier = 1
