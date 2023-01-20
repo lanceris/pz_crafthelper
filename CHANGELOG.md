@@ -1,5 +1,11 @@
 # CraftHelper updates
 
+## 1.6.4 (19.01.2023, workshop release)
+
+### Improvements
+
+- Updated TH translation (thanks to [rikoprushka](https://github.com/rikoprushka))
+
 ## 1.6.3 (28.06.2022, workshop release)
 
 ### New features

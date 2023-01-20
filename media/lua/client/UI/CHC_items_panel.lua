@@ -1,10 +1,13 @@
 require 'ISUI/ISPanel'
+require 'UI/components/CHC_collapsible_table'
 
 local utils = require('CHC_utils')
 
 CHC_items_panel = ISPanel:derive("CHC_items_panel")
 
 -- region create
+local opacity = CHC_settings.mappings.windowOpacity[CHC_settings.config.window_opacity] or 0.75
+
 function CHC_items_panel:initialise()
     ISPanel.initialise(self)
 end
@@ -30,6 +33,7 @@ function CHC_items_panel:createChildren()
     self.panelSearchRow = CHC_search_bar:new(0, 0, self.width - self.margin, 24, "search by attributes",
         self.onTextChange, self.searchRowHelpText)
     self.panelSearchRow:initialise()
+    self.panelSearchRow.backgroundColor.a = opacity
     self.panelSearchRow:setVisible(false)
     y = y + 24 + self.padY
     -- endregion
@@ -37,6 +41,7 @@ function CHC_items_panel:createChildren()
     -- region general info
     self.mainInfo = ISPanel:new(self.margin, y, self.width - 2 * self.margin, 74)
     self.mainInfo.borderColor = { r = 1, g = 0.53, b = 0.53, a = 0.2 }
+    self.mainInfo.backgroundColor.a = opacity
     self.mainInfo:initialise()
     self.mainInfo:setVisible(false)
 
@@ -57,27 +62,33 @@ function CHC_items_panel:createChildren()
     local mr, mg, mb, ma = 1, 1, 1, 1
     self.mainName = ISLabel:new(mainX, mainPadY, fntm, nil, mr, mg, mb, ma, mainPriFont, true)
     self.mainName:initialise()
+    -- self.mainName.backgroundColor.a = opacity
     self.mainName.maxWidth = self.mainInfo.width - mainX - self.margin
     mainY = mainY + mainPadY + self.mainName.height
 
     self.mainType = ISLabel:new(mainX, mainY, fnts, nil, mr, mg, mb, ma, mainSecFont, true)
     self.mainType:initialise()
+    -- self.mainType.backgroundColor.a = opacity
     mainY = mainY + mainPadY + self.mainType.height
 
     self.mainDispCat = ISLabel:new(mainX, mainY, fnts, nil, mr, mg, mb, ma, mainSecFont, true)
     self.mainDispCat:initialise()
+    -- self.mainDispCat.backgroundColor.a = opacity
     mainY = mainY + mainPadY + self.mainDispCat.height
 
     self.mainMod = ISLabel:new(mainX, mainY, fnts, nil, mr, mg, mb, ma, mainSecFont, true)
     self.mainMod:initialise()
+    -- self.mainMod.backgroundColor.a = opacity
     mainY = mainY + mainPadY + self.mainMod.height
 
     self.mainWeight = ISLabel:new(mainX, mainY, fnts, nil, mr, mg, mb, ma, mainSecFont, true)
     self.mainWeight:initialise()
+    -- self.mainWeight.backgroundColor.a = opacity
     mainY = mainY + mainPadY + self.mainWeight.height
 
     self.mainNumRecipes = ISLabel:new(mainX, mainY, fnts, nil, mr, mg, mb, ma, mainSecFont, true)
     self.mainNumRecipes:initialise()
+    -- self.mainNumRecipes.backgroundColor.a = opacity
     self.mainX = mainX
     self.mainY = mainY
 
@@ -88,10 +99,16 @@ function CHC_items_panel:createChildren()
     self.mainInfo:addChild(self.mainMod)
     self.mainInfo:addChild(self.mainWeight)
     self.mainInfo:addChild(self.mainNumRecipes)
+
+    y = mainY + self.padY
     -- endregion
 
     -- region attributes
-    self.attrList = nil
+    self.attrList = CHC_collapsible_table:new(0, y, 50, 30)
+    self.attrList:initialise()
+    self.attrList:setVisible(false)
+
+
     -- endregion
 
     -- region distributions
@@ -102,6 +119,7 @@ function CHC_items_panel:createChildren()
 
     self:addChild(self.panelSearchRow)
     self:addChild(self.mainInfo)
+    self:addChild(self.attrList)
 
 end
 
@@ -137,34 +155,37 @@ end
 function CHC_items_panel:onTextChange()
 end
 
-function CHC_items_panel:setObj(item)
-    self.item = item
-    if false then
-        local iobj = item.itemObj
-        local invItem = item.item
-        if instanceof(invItem, "ComboItem") then
-            print('ignoring ComboItem')
-            return
-        end
-        local cl = getNumClassFields(invItem)
-        if cl == 0 then
-            print(string.format('No fields found for %s', invItem:getType()))
-        end
-        local objAttr = {}
+function CHC_items_panel:getItemObjectAttributes(item)
+    local invItem = item.item
+    local invItemAttributes = {}
 
-        for i = 0, cl - 1 do
-            local meth = getClassField(invItem, i)
-            if meth.getType then
-                local val = KahluaUtil.rawTostring2(getClassFieldVal(invItem, meth))
-                if val then
-                    objAttr[meth:getName()] = val
-                end
+    if instanceof(invItem, "ComboItem") then
+        print('ignoring ComboItem')
+        return
+    end
+    local cl = getNumClassFields(invItem)
+    if cl == 0 then
+        print(string.format('No fields found for %s', invItem:getType()))
+        return
+    end
+
+    for i = 0, cl - 1 do
+        local meth = getClassField(invItem, i)
+        if meth.getType then
+            local val = KahluaUtil.rawTostring2(getClassFieldVal(invItem, meth))
+            if val then
+                invItemAttributes[meth:getName()] = val
             end
         end
-        print(test:test())
     end
+    return invItemAttributes
+end
+
+function CHC_items_panel:setObj(item)
+    self.item = item
     self.panelSearchRow:setVisible(true)
 
+    -- region set main info
     self.mainImg:setImage(item.texture)
     if self.item.tooltip then
         self.mainImg:setTooltip(getText(self.item.tooltip))
@@ -183,6 +204,7 @@ function CHC_items_panel:setObj(item)
     self.mainWeight:setName(getText("IGUI_invpanel_weight") .. ": " .. round(item.item:getWeight(), 2))
     local maxY = self.mainWeight.y + self.mainWeight.height + 2
 
+    -- region get number of recipes
     local usesNum = CHC_main.recipesByItem[item.fullType]
     if type(usesNum) == 'table' then usesNum = #usesNum else usesNum = 0 end
     local craftNum = CHC_main.recipesForItem[item.fullType]
@@ -203,16 +225,27 @@ function CHC_items_panel:setObj(item)
         self.mainNumRecipes:setName(nil)
         self.mainNumRecipes:setTooltip(nil)
     end
+    -- endregion
+
     self.mainInfo:setHeight(math.max(74, maxY))
     self.mainInfo:setVisible(true)
     -- self.mainImg.blinkImage = true
+    -- endregion
 
+    -- region set attributes
+    -- Item attributes data
+    local itemAttributes = self:getItemObjectAttributes(item)
+    self.attrList:setVisible(true)
+    -- endregion
+
+    -- region set distributions
     -- self.itemDistribData = CHC_main.item_distrib[item.fullType]
     -- if self.itemDistribData then
     --     -- item distribution assign
     -- else
     --     self.itemDistribData = nil
     -- end
+    -- endregion
 end
 
 -- endregion
@@ -223,7 +256,7 @@ function CHC_items_panel:new(x, y, w, h)
     setmetatable(o, self)
     self.__index = self
 
-    -- o.backgroundColor = { r = 1, g = 0, b = 0, a = 1 }
+    o.backgroundColor.a = opacity
     -- o:noBackground()
     o.padY = 5
     o.margin = 5

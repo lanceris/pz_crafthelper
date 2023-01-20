@@ -11,6 +11,7 @@ CHC_search_bar = derivative:derive("CHC_search_bar")
 local contains = string.contains
 local insert = table.insert
 local concat = table.concat
+local opacity = CHC_settings.mappings.windowOpacity[CHC_settings.config.window_opacity] or 0.75
 
 -- region create
 
@@ -41,6 +42,7 @@ function CHC_search_bar:create()
     self.searchBar:setTooltip(self.searchBarTooltip)
     self.searchBar:initialise()
     self.searchBar:instantiate()
+    self.searchBar.backgroundColor.a = opacity
     self.searchBar:setText("")
     self.searchBar:setClearButton(true)
     self.searchBarLastText = self.searchBar:getInternalText()
@@ -170,6 +172,7 @@ function CHC_search_bar:new(x, y, width, height, searchBarTooltip, onTextChange,
     o.y = y
     o.w = width
     o.h = height
+    o.backgroundColor.a = opacity
     o.searchBtnOnClickText = searchBtnOnClickText
     o.onTextChangeSB = onTextChange
     -- o.onRightMouseDownSB = onRightMouseDown

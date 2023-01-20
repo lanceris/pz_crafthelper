@@ -8,7 +8,7 @@ Contributors will be shown in order of first pull request / commit:
   - Original [Craft Helper](https://steamcommunity.com/sharedfiles/filedetails/?id=2186592938) mod
 - [Dante271](https://steamcommunity.com/sharedfiles/filedetails/?id=2186592938)
   - Spanish translation
-- [radiusgreenhill](https://github.com/radiusgreenhill)
+- [rikoprushka](https://github.com/rikoprushka)
   - Thai translation
 - [척현](https://steamcommunity.com/profiles/76561198379317304)
   - Korean translation

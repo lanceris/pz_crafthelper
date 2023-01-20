@@ -47,7 +47,7 @@
 [*]English
 [*]Русский
 [*]Spanish (partial)
-[*]Thai (partial)
+[*]Thai
 [*]Korean
 [*]Brazilian Portuguese
 [/list]

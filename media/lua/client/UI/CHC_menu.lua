@@ -7,13 +7,13 @@ CHC_menu = {}
 CHC_menu.createCraftHelper = function()
 	CHC_settings.Load()
 	local options = CHC_settings.config
-
+	local opacity = CHC_settings.mappings.windowOpacity[options.window_opacity] or 0.75
 	local args = {
 		x = options.main_window.x,
 		y = options.main_window.y,
 		width = options.main_window.w,
 		height = options.main_window.h,
-		backgroundColor = { r = 0, g = 0, b = 0, a = 1 },
+		backgroundColor = { r = 0, g = 0, b = 0, a = opacity },
 		minimumWidth = 400,
 		minimumHeight = 350
 	}
@@ -88,8 +88,14 @@ CHC_menu.toggleUI = function()
 		else
 			ui:setVisible(true)
 			ui:addToUIManager()
+			local opacity = CHC_settings.mappings.windowOpacity[CHC_settings.config.window_opacity]
+			ui.backgroundColor.a = opacity
+			-- ui.panel.backgroundColor.a = opacity
+			ui.searchPanel.backgroundColor.a = opacity
+			ui.favPanel.backgroundColor.a = opacity
 		end
 	end
+	avf:kdfd()
 end
 
 CHC_menu.toggleItemFavorite = function(items)

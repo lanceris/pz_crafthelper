@@ -4,6 +4,8 @@ local derivative = ISPanel
 CHC_tabs = derivative:derive("CHC_tabs");
 
 --create
+local opacity = CHC_settings.mappings.windowOpacity[CHC_settings.config.window_opacity] or 0.75
+
 function CHC_tabs:initialise()
 	derivative.initialise(self)
 	self:create()
@@ -26,10 +28,11 @@ function CHC_tabs:create()
 	self.nameHeader = ISResizableButton:new(nha.x, nha.y, nha.w, nha.h,
 		nha.title, nha.clicktgt, nha.onclick)
 	self.nameHeader:initialise()
-	self.nameHeader.borderColor.a = 0.2;
-	self.nameHeader.minimumWidth = 100;
+	self.nameHeader.backgroundColor.a = opacity
+	self.nameHeader.borderColor.a = 0.2
+	self.nameHeader.minimumWidth = 100
 	self.nameHeader.onresize = { CHC_tabs.onResizeColumn, self, self.nameHeader }
-	self:addChild(self.nameHeader);
+	self:addChild(self.nameHeader)
 	-- endregion
 
 	-- region details
@@ -44,6 +47,7 @@ function CHC_tabs:create()
 	}
 	self.typeHeader = ISResizableButton:new(tha.x, tha.y, tha.w, tha.h,
 		tha.title, tha.clicktgt, tha.onclick)
+	self.typeHeader.backgroundColor.a = opacity
 	self.typeHeader.borderColor.a = 0.2
 	self.typeHeader.anchorRight = true
 	self.typeHeader.minimumWidth = 100

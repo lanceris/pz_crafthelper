@@ -29,7 +29,22 @@ CHC_settings = {
                 ['HCNearHerbatable'] = 'Hydrocraft.HCHerbtable',
                 ['HCNearTarkiln'] = 'Hydrocraft.HCTarkiln',
                 ['HCNearKiln'] = 'Hydrocraft.HCKiln',
-                ['HCNearGrindstone'] = 'Hydrocraft.HCGrindstone' }
+                ['HCNearGrindstone'] = 'Hydrocraft.HCGrindstone'
+            }
+        }
+    },
+    mappings = {
+        fontSizeToInternal = {
+            { font = UIFont.Small, pad = 4, icon = 10 },
+            { font = UIFont.Medium, pad = 4, icon = 18 },
+            { font = UIFont.Large, pad = 6, icon = 24 }
+        },
+        windowOpacity = {
+            [1] = 0,
+            [2] = 0.25,
+            [3] = 0.5,
+            [4] = 0.75,
+            [5] = 1
         }
     }
 }
@@ -46,6 +61,7 @@ local init_cfg = {
     allow_special_search = true,
     show_hidden = false,
     close_all_on_exit = false,
+    window_opacity = 5,
     main_window = { x = 100, y = 100, w = 1000, h = 600 },
     uses = { sep_x = 500, filter_asc = true, filter_type = "all" },
     craft = { sep_x = 500, filter_asc = true, filter_type = "all" },
@@ -71,6 +87,7 @@ local function onModOptionsApply(values)
     CHC_settings.config.show_icons = values.settings.options.show_icons
     CHC_settings.config.show_hidden = values.settings.options.show_hidden
     CHC_settings.config.close_all_on_exit = values.settings.options.close_all_on_exit
+    CHC_settings.config.window_opacity = values.settings.options.window_opacity
     if CHC_settings.config.main_window == nil then
         CHC_settings.Load()
     end
@@ -121,7 +138,8 @@ if ModOptions and ModOptions.getInstance then
                 getText("UI_optionscreen_CycleContainerKey2"),
                 getText("UI_optionscreen_CycleContainerKey3"),
                 name = "IGUI_RecipeSelectorModifier",
-                tooltip = getText("IGUI_RecipeSelectorModifierTooltip", getText("UI_optionscreen_binding_chc_move_up"), getText("UI_optionscreen_binding_chc_move_down")),
+                tooltip = getText("IGUI_RecipeSelectorModifierTooltip", getText("UI_optionscreen_binding_chc_move_up"),
+                    getText("UI_optionscreen_binding_chc_move_down")),
                 default = 1,
                 OnApplyMainMenu = onModOptionsApply,
                 OnApplyInGame = onModOptionsApply
@@ -131,7 +149,8 @@ if ModOptions and ModOptions.getInstance then
                 getText("UI_optionscreen_CycleContainerKey2"),
                 getText("UI_optionscreen_CycleContainerKey3"),
                 name = "IGUI_CategorySelectorModifier",
-                tooltip = getText("IGUI_CategorySelectorModifierTooltip", getText("UI_optionscreen_binding_chc_move_left"), getText("UI_optionscreen_binding_chc_move_right")),
+                tooltip = getText("IGUI_CategorySelectorModifierTooltip",
+                    getText("UI_optionscreen_binding_chc_move_left"), getText("UI_optionscreen_binding_chc_move_right")),
                 default = 1,
                 OnApplyMainMenu = onModOptionsApply,
                 OnApplyInGame = onModOptionsApply
@@ -141,7 +160,8 @@ if ModOptions and ModOptions.getInstance then
                 getText("UI_optionscreen_CycleContainerKey2"),
                 getText("UI_optionscreen_CycleContainerKey3"),
                 name = "IGUI_TabSelectorModifier",
-                tooltip = getText("IGUI_TabSelectorModifierTooltip", getText("UI_optionscreen_binding_chc_move_tab_left"), getText("UI_optionscreen_binding_chc_move_tab_right")),
+                tooltip = getText("IGUI_TabSelectorModifierTooltip", getText("UI_optionscreen_binding_chc_move_tab_left")
+                    , getText("UI_optionscreen_binding_chc_move_tab_right")),
                 default = 1,
                 OnApplyMainMenu = onModOptionsApply,
                 OnApplyInGame = onModOptionsApply
@@ -164,6 +184,14 @@ if ModOptions and ModOptions.getInstance then
                 name = "IGUI_EditableCategorySelector",
                 tooltip = "IGUI_EditableCategorySelectorTooltip",
                 default = false,
+                OnApplyMainMenu = onModOptionsApply,
+                OnApplyInGame = onModOptionsApply
+            },
+            window_opacity = {
+                "0%", "25%", "50%", "75%", "100%",
+                name = "IGUI_WindowOpacity",
+                tooltip = "WindowOpacityTooltip",
+                default = 5,
                 OnApplyMainMenu = onModOptionsApply,
                 OnApplyInGame = onModOptionsApply
             }
@@ -193,6 +221,7 @@ else
     CHC_settings.config.show_icons = true
     CHC_settings.config.show_hidden = false
     CHC_settings.config.close_all_on_exit = false
+    CHC_settings.config.window_opacity = 5
 end
 
 local Json = require("CHC_json")

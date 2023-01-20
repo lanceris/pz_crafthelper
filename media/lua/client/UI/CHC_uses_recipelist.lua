@@ -2,11 +2,7 @@ require "ISUI/ISScrollingListBox"
 
 CHC_uses_recipelist = ISScrollingListBox:derive("CHC_uses_recipelist")
 
-local fontSizeToInternal = {
-	{ font = UIFont.Small, pad = 4, icon = 10 },
-	{ font = UIFont.Medium, pad = 4, icon = 18 },
-	{ font = UIFont.Large, pad = 6, icon = 24 }
-}
+local fontSizeToInternal = CHC_settings.mappings.fontSizeToInternal
 
 -- region create
 function CHC_uses_recipelist:initialise()

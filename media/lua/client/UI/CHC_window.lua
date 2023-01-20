@@ -8,6 +8,7 @@ require 'UI/CHC_search'
 CHC_window = ISCollapsableWindow:derive("CHC_window")
 local utils = require('CHC_utils')
 local print = utils.chcprint
+local opacity = CHC_settings.mappings.windowOpacity[CHC_settings.config.window_opacity] or 0.75
 
 -- region create
 
@@ -28,10 +29,12 @@ function CHC_window:create()
     self.panel.onRightMouseDown = self.onMainTabRightMouseDown
     self.panel.onActivateView = CHC_window.onActivateView
     self.panel.target = self
+    self.panel.tabTransparency = self.backgroundColor.a
     self.panel:setEqualTabWidth(false)
     -- endregion
     self.panelY = self.tbh + self.panel.tabHeight
-    self.common_screen_data = { x = 0, y = self.panelY + self.panel.tabHeight, w = self.width, h = self.panel.height - self.panelY - 4 }
+    self.common_screen_data = { x = 0, y = self.panelY + self.panel.tabHeight, w = self.width,
+        h = self.panel.height - self.panelY - 4 }
 
     self:addSearchPanel()
     self:addFavoriteScreen()
@@ -64,6 +67,7 @@ function CHC_window:addSearchPanel()
     self.searchPanel.onActivateView = CHC_window.onActivateSubView
     self.searchPanel.target = self
     self.searchPanel:initialise()
+    self.searchPanel.tabTransparency = self.backgroundColor.a
     self.searchPanel:setAnchorRight(true)
     self.searchPanel:setAnchorBottom(true)
 
@@ -127,6 +131,7 @@ function CHC_window:addFavoriteScreen()
     self.favPanel.onActivateView = CHC_window.onActivateSubView
     self.favPanel.target = self
     self.favPanel:initialise()
+    self.favPanel.tabTransparency = self.backgroundColor.a
     self.favPanel:setAnchorRight(true)
     self.favPanel:setAnchorBottom(true)
 
@@ -200,12 +205,14 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
     local options = self.options
 
     -- region item screens
-    self.common_screen_data = { x = 0, y = self.panelY + self.panel.tabHeight, w = self.width - 2, h = self.panel.height - self.panelY - 4 }
+    self.common_screen_data = { x = 0, y = self.panelY + self.panel.tabHeight, w = self.width - 2,
+        h = self.panel.height - self.panelY - 4 }
 
     --region item container
     self.itemPanel = ISTabPanel:new(1, self.panelY, self.width, self.height - self.panelY)
     self.itemPanel.tabPadX = self.width / 4
     self.itemPanel:initialise()
+    self.itemPanel.tabTransparency = self.backgroundColor.a
     self.itemPanel:setAnchorRight(true)
     self.itemPanel:setAnchorBottom(true)
     self.itemPanel.item = itn
@@ -485,7 +492,8 @@ function CHC_window:onMainTabRightMouseDown(x, y)
     -- context:addOption("Pin", self, CHC_window.togglePinTab, tabIndex)
     if #self.viewList > 3 then
         context:addOption(getText("IGUI_tab_ctx_close_others"), self, CHC_window.closeOtherTabs, tabIndex)
-        context:addOption(getText("IGUI_CraftUI_Close") .. " " .. string.lower(getText("UI_All")), self, CHC_window.closeAllTabs)
+        context:addOption(getText("IGUI_CraftUI_Close") .. " " .. string.lower(getText("UI_All")), self,
+            CHC_window.closeAllTabs)
     end
     context:addOption(getText("IGUI_CraftUI_Close"), self, CHC_window.closeTab, tabIndex)
     context:setY(getMouseY() - #context.options * 35)
@@ -778,6 +786,7 @@ function CHC_window:new(args)
 
     o.searchViewName = getText("UI_search_tab_name")
     o.favViewName = getText("IGUI_CraftCategory_Favorite")
+    o.backgroundColor.a = opacity
 
     o.options = CHC_settings.config
     o.needUpdateFavorites = false

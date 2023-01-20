@@ -47,7 +47,7 @@ Also, with "Mod Options" you can set keybinds (Key bindings -> Craft Helper) for
 [*]English
 [*]Russian
 [*]Spanish (partial)
-[*]Thai (partial)
+[*]Thai
 [*]Korean
 [*]Brazilian Portuguese
 [/list]

@@ -4,7 +4,7 @@ CHC_main = {}
 CHC_main.author = "lanceris"
 CHC_main.previousAuthors = { "Peanut", "ddraigcymraeg", "b1n0m" }
 CHC_main.modName = "CraftHelperContinued"
-CHC_main.version = "1.6.3"
+CHC_main.version = "1.6.4"
 CHC_main.allRecipes = {}
 CHC_main.recipesByItem = {}
 CHC_main.recipesForItem = {}
@@ -168,15 +168,8 @@ CHC_main.processOneItem = function(item)
 				getText("IGUI_ItemCat_Item"),
 			texture = invItem:getTex()
 		}
-		-- toinsert.favorite = CHC_main.playerModData[CHC_main.getFavItemModDataStr(toinsert)] or false
 		CHC_main.items[toinsert.fullType] = toinsert
 		insert(CHC_main.itemsForSearch, toinsert)
-		-- CHC_main.items[fullType] = invItem
-
-		-- if not CHC_main.hydroDuplicates[string.lower(toinsert.displayName)] then
-		-- 	CHC_main.hydroDuplicates[string.lower(toinsert.displayName)] = {}
-		-- end
-		-- insert(CHC_main.hydroDuplicates[string.lower(toinsert.displayName)], { ft = toinsert.fullType, modname = toinsert.modname })
 	else
 		error(string.format('Duplicate invItem fullType! (%s)', tostring(invItem:getFullType())))
 	end
@@ -364,9 +357,6 @@ CHC_main.loadAllDistributions = function()
 	-- first check SuburbsDistributions (for non-procedural items and procedural refs)
 	-- then ProceduralDistributions
 	-- TODO add junk items
-	local function norm(val, min, max)
-		return (val - min) / (max - min) * 100
-	end
 
 	local suburbs = SuburbsDistributions
 	local procedural = ProceduralDistributions.list

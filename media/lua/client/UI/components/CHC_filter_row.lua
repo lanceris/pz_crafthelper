@@ -4,6 +4,7 @@ require 'ISUI/ISModalRichText'
 
 local derivative = ISPanel
 CHC_filter_row = derivative:derive("CHC_filter_row")
+local opacity = CHC_settings.mappings.windowOpacity[CHC_settings.config.window_opacity] or 0.75
 
 function CHC_filter_row:initialise()
     derivative.initialise(self)
@@ -21,6 +22,7 @@ function CHC_filter_row:create()
     self.filterOrderBtn.tooltip = foo.defaultTooltip
     self.filterOrderBtn:setImage(foo.defaultIcon)
     self.filterOrderBtn.borderColor.a = 0
+    self.filterOrderBtn.backgroundColor.a = opacity
     x = x + self.filterOrderBtn.width
     -- endregion
 
@@ -32,6 +34,7 @@ function CHC_filter_row:create()
     self.filterTypeBtn.tooltip = fto.defaultTooltip
     self.filterTypeBtn:setImage(fto.defaultIcon)
     self.filterTypeBtn.borderColor.a = 0
+    self.filterTypeBtn.backgroundColor.a = opacity
     x = x + self.filterTypeBtn.width
     -- endregion
 
@@ -40,6 +43,7 @@ function CHC_filter_row:create()
     local dw = self.filterOrderBtn.width + self.filterTypeBtn.width
     self.categorySelector = ISComboBox:new(x, 0, w - dw, h)
     self.categorySelector:initialise()
+    self.categorySelector.backgroundColor.a = opacity
 
     self.categorySelector.editable = CHC_settings.config.editable_category_selector
     self.categorySelector.font = UIFont.Small -- TODO: move to options
