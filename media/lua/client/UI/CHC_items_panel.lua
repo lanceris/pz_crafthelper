@@ -4,6 +4,8 @@ local utils = require('CHC_utils')
 
 CHC_items_panel = ISPanel:derive("CHC_items_panel")
 
+insert = table.insert
+
 -- region create
 function CHC_items_panel:initialise()
     ISPanel.initialise(self)
@@ -26,16 +28,9 @@ function CHC_items_panel:createChildren()
     local fnts = getTextManager():getFontHeight(UIFont.Small)
     local fntm = getTextManager():getFontHeight(UIFont.Medium)
     local fntl = getTextManager():getFontHeight(UIFont.Large)
-    -- region search bar
-    self.panelSearchRow = CHC_search_bar:new(0, 0, self.width - self.margin, 24, "search by attributes",
-        self.onTextChange, self.searchRowHelpText)
-    self.panelSearchRow:initialise()
-    self.panelSearchRow:setVisible(false)
-    y = y + 24 + self.padY
-    -- endregion
 
     -- region general info
-    self.mainInfo = ISPanel:new(self.margin, y, self.width - 2 * self.margin, 74)
+    self.mainInfo = ISPanel:new(self.margin, y, self.width - 2 * self.margin, 1)
     self.mainInfo.borderColor = { r = 1, g = 0.53, b = 0.53, a = 0.2 }
     self.mainInfo:initialise()
     self.mainInfo:setVisible(false)
@@ -78,8 +73,8 @@ function CHC_items_panel:createChildren()
 
     self.mainNumRecipes = ISLabel:new(mainX, mainY, fnts, nil, mr, mg, mb, ma, mainSecFont, true)
     self.mainNumRecipes:initialise()
-    self.mainX = mainX
-    self.mainY = mainY
+    mainY = mainY + mainPadY + self.mainNumRecipes.height
+    self.mainInfo:setHeight(mainY + mainPadY)
 
     self.mainInfo:addChild(self.mainImg)
     self.mainInfo:addChild(self.mainName)
@@ -88,10 +83,21 @@ function CHC_items_panel:createChildren()
     self.mainInfo:addChild(self.mainMod)
     self.mainInfo:addChild(self.mainWeight)
     self.mainInfo:addChild(self.mainNumRecipes)
+
+    y = y + self.mainInfo:getBottom()
     -- endregion
 
     -- region attributes
-    self.attrList = nil
+    local props_table_args = {
+        x = self.margin,
+        y = y,
+        w = self.width - 2 * self.margin,
+        h = self.height - self.mainInfo.height - 3 * self.padY
+    }
+    self.itemProps = CHC_props_table:new(props_table_args)
+    self.itemProps:initialise()
+    self.itemProps:setVisible(false)
+
     -- endregion
 
     -- region distributions
@@ -100,9 +106,11 @@ function CHC_items_panel:createChildren()
 
 
 
-    self:addChild(self.panelSearchRow)
     self:addChild(self.mainInfo)
+    self:addChild(self.itemProps)
 
+    self.mainX = mainX
+    self.mainY = mainY
 end
 
 -- endregion
@@ -110,7 +118,6 @@ end
 -- region render
 function CHC_items_panel:onResize()
     self:setHeight(self.parent.height - self.parent.headers.height)
-    self.panelSearchRow:setWidth(self.parent.headers.typeHeader.width - self.margin)
     self.mainInfo:setWidth(self.parent.headers.typeHeader.width - self.margin - self.mainInfo.x)
     local children = self.mainInfo.children
     for _, ch in pairs(children) do
@@ -118,6 +125,10 @@ function CHC_items_panel:onResize()
             ch:setName(ch.name)
         end
     end
+
+    self.itemProps:setWidth(self.parent.headers.typeHeader.width - self.margin - self.itemProps.x)
+    self.itemProps:setHeight(self.height - self.mainInfo.height - 3 * self.padY)
+
 end
 
 function CHC_items_panel:render()
@@ -139,31 +150,12 @@ end
 
 function CHC_items_panel:setObj(item)
     self.item = item
-    if false then
-        local iobj = item.itemObj
-        local invItem = item.item
-        if instanceof(invItem, "ComboItem") then
-            print('ignoring ComboItem')
-            return
-        end
-        local cl = getNumClassFields(invItem)
-        if cl == 0 then
-            print(string.format('No fields found for %s', invItem:getType()))
-        end
-        local objAttr = {}
-
-        for i = 0, cl - 1 do
-            local meth = getClassField(invItem, i)
-            if meth.getType then
-                local val = KahluaUtil.rawTostring2(getClassFieldVal(invItem, meth))
-                if val then
-                    objAttr[meth:getName()] = val
-                end
-            end
-        end
-        print(test:test())
+    local objProps = self:collectItemProps(item)
+    for ix, prop in ipairs(objProps) do
+        self.itemProps.props:addItem(prop.name, prop)
     end
-    self.panelSearchRow:setVisible(true)
+    -- print(al:og())
+    self.itemProps:setVisible(true)
 
     self.mainImg:setImage(item.texture)
     if self.item.tooltip then
@@ -215,6 +207,33 @@ function CHC_items_panel:setObj(item)
     -- end
 end
 
+function CHC_items_panel:collectItemProps(item)
+    local iobj = item.itemObj
+    local invItem = item.item
+    if instanceof(invItem, "ComboItem") then
+        print('ignoring ComboItem')
+        return {}
+    end
+    local cl = getNumClassFields(invItem)
+    if cl == 0 then
+        print(string.format('No fields found for %s', invItem:getType()))
+    end
+    local objAttr = {}
+
+    for i = 0, cl - 1 do
+        local meth = getClassField(invItem, i)
+        if meth.getType then
+            local val = KahluaUtil.rawTostring2(getClassFieldVal(invItem, meth))
+            if val then
+                insert(objAttr, { name = meth:getName(), value = val })
+                -- objAttr[(meth:getName())] = val
+            end
+        end
+    end
+    table.sort(objAttr, function(a, b) return a.name:upper() < b.name:upper() end)
+    return objAttr
+end
+
 -- endregion
 
 function CHC_items_panel:new(x, y, w, h)
@@ -229,8 +248,6 @@ function CHC_items_panel:new(x, y, w, h)
     o.margin = 5
     o.anchorTop = true
     o.anchorBottom = false
-    o.searchRowHelpText = "Help"
-    o:addScrollBars()
 
     o.item = nil
 

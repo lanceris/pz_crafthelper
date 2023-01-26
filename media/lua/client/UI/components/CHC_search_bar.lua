@@ -22,7 +22,7 @@ end
 function CHC_search_bar:create()
     local x, y, w, h = self.x, self.y, self.width, self.height
 
-    self.searchBtn = ISButton:new(x, 0, h, h, "", self, self.searchBtnOnClick)
+    self.searchBtn = ISButton:new(0, 0, h, h, "", self, self.searchBtnOnClick)
     self.searchBtn:initialise()
     self.searchBtn.borderColor.a = 0
     self.searchBtn:setImage(self.searchIcon)
@@ -34,7 +34,7 @@ function CHC_search_bar:create()
     self.searchBtn.modal:setVisible(false)
     -- self.searchBtn:addChild(self.searchBtn.modal)
 
-    x = x + self.searchBtn.width
+    x = self.searchBtn.width
 
     self.searchBar = ISTextEntryBox:new("", x, 0, w - self.searchBtn.width, h)
     self.searchBar.font = UIFont.Medium -- TODO: move to options
@@ -170,6 +170,7 @@ function CHC_search_bar:new(x, y, width, height, searchBarTooltip, onTextChange,
     o.y = y
     o.w = width
     o.h = height
+    o.background = false
     o.searchBtnOnClickText = searchBtnOnClickText
     o.onTextChangeSB = onTextChange
     -- o.onRightMouseDownSB = onRightMouseDown

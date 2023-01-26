@@ -1,5 +1,11 @@
 # CraftHelper updates
 
+## 1.6.5 (xx.xx.2023)
+
+### New features
+
+- Added item attributes table to item details screen
+
 ## 1.6.4 (19.01.2023, workshop release)
 
 ### Improvements
