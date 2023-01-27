@@ -3,6 +3,7 @@ require "ISUI/ISPanel"
 CHC_props_table = ISPanel:derive("CHC_props_table")
 local insert = table.insert
 local sort = table.sort
+local utils = require('CHC_utils')
 
 -- region create
 function CHC_props_table:initialise()
@@ -20,13 +21,13 @@ function CHC_props_table:createChildren()
     y = y + self.padY + self.label.height
 
     -- region search bar
-    self.panelSearchRow = CHC_search_bar:new(x, y, self.width - 2 * self.padX, 24, "search by attributes",
+    self.searchRow = CHC_search_bar:new(x, y, self.width - 2 * self.padX, 24, "search by attributes",
         self.onTextChange, self.searchRowHelpText)
-    self.panelSearchRow:initialise()
-    self.panelSearchRow.drawBorder = false
-    y = y + 2 * self.padY + self.panelSearchRow.height
+    self.searchRow:initialise()
+    self.searchRow.drawBorder = false
+    y = y + 2 * self.padY + self.searchRow.height
     -- endregion
-    local props_h = self.height - self.panelSearchRow.height - self.label.height - 4 * self.padY
+    local props_h = self.height - self.searchRow.height - self.label.height - 4 * self.padY
     self.objList = ISScrollingListBox:new(x, y, self.width - 2 * self.padX, props_h)
     self.objList:setFont(self.font)
     self.objList:initialise()
@@ -43,7 +44,7 @@ function CHC_props_table:createChildren()
     self.objList:addColumn("Value", self.width * 0.4)
 
     self:addChild(self.label)
-    self:addChild(self.panelSearchRow)
+    self:addChild(self.searchRow)
     self:addChild(self.objList)
 
 end
@@ -60,12 +61,13 @@ function CHC_props_table:update()
 end
 
 function CHC_props_table:updatePropsList()
-    local searchBar = self.panelSearchRow.searchBar
     local search_state
+    local props = self.parent.item.props
+    if not props then return end
 
     local filteredProps = {}
     for i = 1, #props do
-        search_state = self:searchTypeFilter(props[i])
+        search_state = self:searchFilter(props[i])
 
         if search_state then
             insert(filteredProps, props[i])
@@ -118,9 +120,9 @@ function CHC_props_table:render()
 end
 
 function CHC_props_table:onResize()
-    self.panelSearchRow:setWidth(self.width - 2 * self.padX)
+    self.searchRow:setWidth(self.width - 2 * self.padX)
     self.objList:setWidth(self.width - 2 * self.padX)
-    self.objList:setHeight(self.height - self.label.height - self.panelSearchRow.height - 6 * self.padY -
+    self.objList:setHeight(self.height - self.label.height - self.searchRow.height - 6 * self.padY -
         self.objList.itemheight)
     self.objList.vscroll:setHeight(self.objList.height)
 end
@@ -140,17 +142,81 @@ function CHC_props_table:refreshObjList(props)
     for i = 1, #props do
         self:processAddObjToObjList(props[i], self.modData)
     end
-    local sortFunc = function(a, b) return a.name:upper() < b.name:upper() end
+    -- TODO: add filter button
+    local sortFunc = function(a, b) return a.item.name:upper() < b.item.name:upper() end
     sort(self.objList.items, sortFunc)
 end
 
 function CHC_props_table:processAddObjToObjList(prop, modData)
-    local name = prop.recipeData.name
+    local name = prop.name
     self.objList:addItem(name, prop)
 end
 
 function CHC_props_table:onTextChange()
     self.needUpdateObjects = true
+end
+
+function CHC_props_table:searchFilter(prop)
+    local stateText = string.trim(self.searchRow.searchBar:getInternalText())
+    local tokens, isMultiSearch, queryType = CHC_search_bar:parseTokens(stateText)
+    local tokenStates = {}
+    local state = false
+
+    if not tokens then return true end
+
+    if isMultiSearch then
+        for i = 1, #tokens do
+            insert(tokenStates, self:searchProcessToken(tokens[i], prop))
+        end
+        for i = 1, #tokenStates do
+            if queryType == 'OR' then
+                if tokenStates[i] then
+                    state = true
+                    break
+                end
+            end
+            if queryType == 'AND' and i > #tokenStates - 1 then
+                local allPrev = utils.all(tokenStates, true, 1, #tokenStates)
+                if allPrev and tokenStates[i] then
+                    state = true
+                    break
+                end
+            end
+        end
+    else -- one token
+        state = self:searchProcessToken(tokens[1], prop)
+    end
+    return state
+end
+
+-- search rules
+function CHC_props_table:searchProcessToken(token, prop)
+    local state = false
+    local isAllowSpecialSearch = CHC_settings.config.allow_special_search
+    local isSpecialSearch = false
+    local char
+
+    if isAllowSpecialSearch and CHC_search_bar:isSpecialCommand(token, { "!", "@" }) then
+        isSpecialSearch = true
+        char = token:sub(1, 1)
+        token = string.sub(token, 2)
+    end
+
+    local whatCompare
+    if isAllowSpecialSearch and char == "!" then
+        -- search by name
+        whatCompare = string.lower(prop.name)
+    end
+    if isAllowSpecialSearch and char == "@" then
+        -- search by value
+        whatCompare = string.lower(prop.value)
+    end
+    if token and not isSpecialSearch then
+        whatCompare = string.lower(prop.name)
+    end
+    state = utils.compare(whatCompare, token)
+    if not token then state = true end
+    return state
 end
 
 -- endregion

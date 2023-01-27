@@ -211,6 +211,15 @@ end
 
 function CHC_items_panel:collectItemProps(item)
     local objAttrs = item.props
+    -- TODO: move to options (keep search query?)
+    if false then
+        -- will keep search quesry between item changes
+        self.itemProps.needUpdateObjects = true
+    else
+        -- will clear search bar every time item changes
+        self.itemProps.searchRow.searchBar:setText("")
+    end
+
     if objAttrs then
         sort(objAttrs, function(a, b) return a.name:upper() < b.name:upper() end)
     else

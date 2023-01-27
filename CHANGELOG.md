@@ -5,6 +5,11 @@
 ### New features
 
 - Added item attributes table to item details screen
+- Added ability to search by attributes and/or values (inside table)
+
+### Improvements
+
+- Refactored RMB click event handlers (added common actions on RMB and Shift+RMB (debug only) for item/recipe lists/detail icons and recipe ingredients)
 
 ## 1.6.4 (19.01.2023, workshop release)
 
