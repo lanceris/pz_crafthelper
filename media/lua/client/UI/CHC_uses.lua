@@ -82,6 +82,7 @@ function CHC_uses:create()
     local rlh = self.height - self.headers.height - self.filterRow.height - self.searchRow.height
     self.objList = CHC_uses_recipelist:new(x, leftY, leftW, rlh)
     self.objList.drawBorder = true
+    self.objList.onRightMouseDown = self.onRMBDownObjList
     self.objList:initialise()
     self.objList:instantiate()
     self.objList:setAnchorBottom(true)
@@ -351,6 +352,10 @@ function CHC_uses:onFilterTypeMenu(button)
             context:addOption(txt, self, CHC_uses.sortByType, data[i].arg)
         end
     end
+end
+
+function CHC_uses:onRMBDownObjList(x, y, item)
+    self.parent.backRef.onRMBDownObjList(self, x, y, item, true)
 end
 
 -- endregion

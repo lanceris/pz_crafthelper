@@ -31,7 +31,12 @@ function CHC_window:create()
     self.panel:setEqualTabWidth(false)
     -- endregion
     self.panelY = self.tbh + self.panel.tabHeight
-    self.common_screen_data = { x = 0, y = self.panelY + self.panel.tabHeight, w = self.width, h = self.panel.height - self.panelY - 4 }
+    self.common_screen_data = {
+        x = 0,
+        y = self.panelY + self.panel.tabHeight,
+        w = self.width,
+        h = self.panel.height - self.panelY - 4
+    }
 
     self:addSearchPanel()
     self:addFavoriteScreen()
@@ -200,7 +205,12 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
     local options = self.options
 
     -- region item screens
-    self.common_screen_data = { x = 0, y = self.panelY + self.panel.tabHeight, w = self.width - 2, h = self.panel.height - self.panelY - 4 }
+    self.common_screen_data = {
+        x = 0,
+        y = self.panelY + self.panel.tabHeight,
+        w = self.width - 2,
+        h = self.panel.height - self.panelY - 4
+    }
 
     --region item container
     self.itemPanel = ISTabPanel:new(1, self.panelY, self.width, self.height - self.panelY)
@@ -421,6 +431,60 @@ end
 
 -- region logic
 
+-- Common options for RMBDown + init context
+function CHC_window:onRMBDownObjList(x, y, item, isrecipe)
+    isrecipe = isrecipe and true or false
+    if not item then
+        local row = self:rowAt(x, y)
+        if row == -1 then return end
+        item = self.items[row].item
+        if not item then return end
+    end
+    if isrecipe then
+        item = item.recipeData.result
+    end
+
+    item = CHC_main.items[item.fullType]
+    local cX = getMouseX()
+    local cY = getMouseY()
+    local context = ISContextMenu.get(0, cX + 10, cY)
+
+    local function chccopy(_, param)
+        if param then
+            Clipboard.setClipboard(param)
+        end
+    end
+
+    if isShiftKeyDown() then
+        local name = context:addOption("Copy to clipboard", nil, nil)
+        local subMenuName = ISContextMenu:getNew(context)
+        context:addSubMenu(name, subMenuName)
+        local itemType = self.parent.typeData and self.parent.typeData[item.category].tooltip or item.category
+
+        subMenuName:addOption("FullType", self, chccopy, item.fullType)
+        subMenuName:addOption("Name", self, chccopy, item.name)
+        subMenuName:addOption("!Type", self, chccopy, "!" .. itemType)
+        subMenuName:addOption("#Category", self, chccopy, "#" .. item.displayCategory)
+        subMenuName:addOption("@Mod", self, chccopy, "@" .. item.modname)
+    end
+
+    if getDebug() then
+        if item.fullType then
+            local pInv = self.parent.player:getInventory()
+            local name = context:addOption("Add item", nil, nil)
+            local subMenuName = ISContextMenu:getNew(context)
+            context:addSubMenu(name, subMenuName)
+
+            subMenuName:addOption("1x", self.parent, function() pInv:AddItem(item.fullType) end)
+            subMenuName:addOption("2x", self.parent, function() for _ = 1, 2 do pInv:AddItem(item.fullType) end end)
+            subMenuName:addOption("5x", self.parent, function() for _ = 1, 5 do pInv:AddItem(item.fullType) end end)
+            subMenuName:addOption("10x", self.parent, function() for _ = 1, 10 do pInv:AddItem(item.fullType) end end)
+        end
+    end
+    return context
+
+end
+
 --region tabs
 
 function CHC_window:getActiveSubView()
@@ -485,7 +549,8 @@ function CHC_window:onMainTabRightMouseDown(x, y)
     -- context:addOption("Pin", self, CHC_window.togglePinTab, tabIndex)
     if #self.viewList > 3 then
         context:addOption(getText("IGUI_tab_ctx_close_others"), self, CHC_window.closeOtherTabs, tabIndex)
-        context:addOption(getText("IGUI_CraftUI_Close") .. " " .. string.lower(getText("UI_All")), self, CHC_window.closeAllTabs)
+        context:addOption(getText("IGUI_CraftUI_Close") .. " " .. string.lower(getText("UI_All")),
+            self, CHC_window.closeAllTabs)
     end
     context:addOption(getText("IGUI_CraftUI_Close"), self, CHC_window.closeTab, tabIndex)
     context:setY(getMouseY() - #context.options * 35)

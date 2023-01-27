@@ -379,38 +379,19 @@ function CHC_search:onTextChange()
 end
 
 function CHC_search:onRMBDownObjList(x, y, item)
+    local backref = self.parent.backRef
+    local context = backref.onRMBDownObjList(self, x, y, item)
+
     if not item then
         local row = self:rowAt(x, y)
         if row == -1 then return end
         item = self.items[row].item
         if not item then return end
     end
-    local backref = self.parent.backRef
-    -- check if there is recipes for item
-    -- if true then return end
     item = CHC_main.items[item.fullType]
     local cond1 = type(CHC_main.recipesByItem[item.fullType]) == 'table'
     local cond2 = type(CHC_main.recipesForItem[item.fullType]) == 'table'
-    local cX = getMouseX()
-    local cY = getMouseY()
-    local context = ISContextMenu.get(0, cX + 10, cY)
 
-    local function chccopy(_, param)
-        if param then
-            Clipboard.setClipboard(param)
-        end
-    end
-
-    if isShiftKeyDown() then
-        local name = context:addOption("Copy to clipboard", nil, nil)
-        local subMenuName = ISContextMenu:getNew(context)
-        context:addSubMenu(name, subMenuName)
-        subMenuName:addOption("FullType", self, chccopy, item.fullType)
-        subMenuName:addOption("Name", self, chccopy, item.name)
-        subMenuName:addOption("!Type", self, chccopy, "!" .. self.parent.typeData[item.category].tooltip or item.category)
-        subMenuName:addOption("#Category", self, chccopy, "#" .. item.displayCategory)
-        subMenuName:addOption("@Mod", self, chccopy, "@" .. item.modname)
-    end
     if cond1 or cond2 then
         context:addOption(getText("IGUI_new_tab"), backref, backref.addItemView, item.item, true, 2)
         -- backref:addItemView(item, true)

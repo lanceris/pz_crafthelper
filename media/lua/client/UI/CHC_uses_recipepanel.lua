@@ -229,7 +229,10 @@ function CHC_uses_recipepanel:setObj(recipe)
     newItem.isKnown = self.player:isRecipeKnown(recipe.recipe)
     newItem.nearItem = recipe.recipeData.nearItem
     newItem.timeToMake = recipe.recipe:getTimeToMake()
-    newItem.howManyCanCraft = RecipeManager.getNumberOfTimesRecipeCanBeDone(newItem.recipe, self.player, self.containerList, nil)
+    newItem.howManyCanCraft = RecipeManager.getNumberOfTimesRecipeCanBeDone(
+        newItem.recipe, self.player,
+        self.containerList, nil
+    )
     newItem.needToBeLearn = recipe.recipe:needToBeLearn()
 
     self.recipe = recipe.recipe;
@@ -283,7 +286,8 @@ function CHC_uses_recipepanel:refreshIngredientPanel()
             data.count = item.count
             data.recipe = selectedItem.recipe
             data.multiple = #source.items > 1
-            if selectedItem.typesAvailable and (not selectedItem.typesAvailable[item.fullType] or selectedItem.typesAvailable[item.fullType] < item.count) then
+            local numTypes = selectedItem.typesAvailable[item.fullType]
+            if selectedItem.typesAvailable and (not numTypes or numTypes < item.count) then
                 table.insert(unavailable, data)
             else
                 table.insert(available, data)
@@ -473,7 +477,9 @@ function CHC_uses_recipepanel:drawFavoriteStar(y, item)
         favoriteStar = parent.itemFavoriteStar
     end
     if favoriteStar then
-        self:drawTexture(favoriteStar, favYPos, y + (item.height / 2 - favoriteStar:getHeight() / 2), favoriteAlpha, 1, 1, 1);
+        self:drawTexture(favoriteStar, favYPos,
+            y + (item.height / 2 - favoriteStar:getHeight() / 2),
+            favoriteAlpha, 1, 1, 1)
     end
 end
 
@@ -493,7 +499,9 @@ function CHC_uses_recipepanel:drawIngredient(y, item, alt)
         local r, g, b
         local r2, g2, b2, a2
         local typesAvailable = item.item.selectedItem.typesAvailable
-        local itemNotAvailable = (not typesAvailable[item.item.fullType] or typesAvailable[item.item.fullType] < item.item.count)
+        local numTypes = typesAvailable[item.item.fullType]
+        local itemNotAvailable = (
+            not numTypes or numTypes < item.item.count)
         if typesAvailable and itemNotAvailable then
             r, g, b = 0.54, 0.54, 0.54;
             r2, g2, b2, a2 = 1, 1, 1, 1;
@@ -651,7 +659,10 @@ function CHC_uses_recipepanel:render()
         selectedItem.typesAvailable = typesAvailable
         CHC_uses_recipelist.getContainers(self)
         selectedItem.available = RecipeManager.IsRecipeValid(selectedItem.recipe, self.player, nil, self.containerList)
-        selectedItem.howManyCanCraft = RecipeManager.getNumberOfTimesRecipeCanBeDone(selectedItem.recipe, self.player, self.containerList, nil)
+        selectedItem.howManyCanCraft = RecipeManager.getNumberOfTimesRecipeCanBeDone(
+            selectedItem.recipe, self.player,
+            self.containerList, nil
+        )
         self.refreshTypesAvailableMS = now
         self.needRefreshIngredientPanel = false
     end
@@ -736,7 +747,9 @@ function CHC_uses_recipepanel:drawMainInfo(x, y, item)
     self:drawText(item.itemName, lx, ly, 1, 1, 1, a, UIFont.Small)
     ly = ly + fhSmall
     if item.itemDisplayCategory then
-        self:drawText(getText("IGUI_invpanel_Category") .. ": " .. item.itemDisplayCategory, lx, ly, 0.8, 0.8, 0.8, 0.8, UIFont.Small)
+        self:drawText(getText("IGUI_invpanel_Category") .. ": " .. item.itemDisplayCategory,
+            lx, ly, 0.8, 0.8, 0.8, 0.8, UIFont.Small
+        )
         ly = ly + fhSmall
     end
     if item.isVanilla ~= nil or item.module ~= nil then
@@ -877,6 +890,7 @@ end
 
 
 function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y, item)
+    local context = self.parent.parent.backRef.onRMBDownObjList(self, x, y, item)
     if not item then
         local row = self:rowAt(x, y)
         if row == -1 or not row then return end
@@ -887,9 +901,6 @@ function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y, item)
     if not item.fullType then return end
     local backref = self.parent.parent.backRef
     -- -- check if there is recipes for item
-    local cX = getMouseX()
-    local cY = getMouseY()
-    local context = ISContextMenu.get(0, cX + 10, cY)
 
     item = CHC_main.items[item.fullType]
     if not item then return end
@@ -927,12 +938,6 @@ function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y, item)
         -- @@@ TODO
     end
 
-    if getDebug() then
-        local pInv = self.parent.player:getInventory()
-        context:addOption("Add item", self.parent, function() pInv:AddItem(item.fullType) end)
-        context:addOption("Add item 2x", self.parent, function() for _ = 1, 2 do pInv:AddItem(item.fullType) end end)
-        context:addOption("Add item 5x", self.parent, function() for _ = 1, 5 do pInv:AddItem(item.fullType) end end)
-    end
     context:addOption(getText("IGUI_find_item"), backref, findItem)
 
     local newTabOption = context:addOption(getText("IGUI_new_tab"), backref, backref.addItemView, item.item, true, 2)
@@ -978,12 +983,18 @@ function CHC_uses_recipepanel:transferItems()
     local selectedItem = self.newItem;
     local items = RecipeManager.getAvailableItemsNeeded(selectedItem.recipe, self.player, self.containerList, nil, nil);
     if items:isEmpty() then return result end
-    ;for i = 1, items:size() do
+    for i = 1, items:size() do
         local item = items:get(i - 1)
         table.insert(result, item)
         if not selectedItem.recipe:isCanBeDoneFromFloor() then
             if item:getContainer() ~= self.player:getInventory() then
-                ISTimedActionQueue.add(ISInventoryTransferAction:new(self.player, item, item:getContainer(), self.player:getInventory(), nil));
+                ISTimedActionQueue.add(
+                    ISInventoryTransferAction:new(
+                        self.player, item,
+                        item:getContainer(),
+                        self.player:getInventory(), nil
+                    )
+                )
             end
         end
     end
@@ -1000,7 +1011,10 @@ function CHC_uses_recipepanel:onCraftComplete(completedAction, recipe, container
         for i = 1, items:size() do
             local item = items:get(i - 1)
             if item:getContainer() ~= self.player:getInventory() then
-                local action = ISInventoryTransferAction:new(self.player, item, item:getContainer(), self.player:getInventory(), nil)
+                local action = ISInventoryTransferAction:new(
+                    self.player, item,
+                    item:getContainer(),
+                    self.player:getInventory(), nil)
                 ISTimedActionQueue.addAfter(previousAction, action)
                 previousAction = action
                 table.insert(returnToContainer, item)
