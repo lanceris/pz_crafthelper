@@ -132,6 +132,30 @@ CHC_main.parseOnGiveXP = function(recipeLua)
 end
 -- endregion
 
+CHC_main.getItemProps = function(item)
+	local function processProp(props, propIdx)
+		local meth = getClassField(item, propIdx)
+
+		if meth.getType then
+			local strVal = KahluaUtil.rawTostring2(getClassFieldVal(item, meth))
+			local methName = meth:getName()
+			if strVal and CHC_settings.mappings.ignoredItemProps[methName:lower()] == nil then
+				insert(props, { name = methName, value = strVal })
+			end
+		end
+	end
+
+	if instanceof(item, "ComboItem") then return end
+	local cl = getNumClassFields(item)
+	if cl == 0 then return end
+
+	local objAttrs = {}
+	for i = 0, cl - 1 do
+		processProp(objAttrs, i)
+	end
+	return objAttrs
+end
+
 CHC_main.loadDatas = function()
 	CHC_main.playerModData = getPlayer():getModData()
 
@@ -166,17 +190,11 @@ CHC_main.processOneItem = function(item)
 			category = item:getTypeString(),
 			displayCategory = itemDisplayCategory and getTextOrNull("IGUI_ItemCat_" .. itemDisplayCategory) or
 				getText("IGUI_ItemCat_Item"),
-			texture = invItem:getTex()
+			texture = invItem:getTex(),
+			props = CHC_main.getItemProps(invItem)
 		}
-		-- toinsert.favorite = CHC_main.playerModData[CHC_main.getFavItemModDataStr(toinsert)] or false
 		CHC_main.items[toinsert.fullType] = toinsert
 		insert(CHC_main.itemsForSearch, toinsert)
-		-- CHC_main.items[fullType] = invItem
-
-		-- if not CHC_main.hydroDuplicates[string.lower(toinsert.displayName)] then
-		-- 	CHC_main.hydroDuplicates[string.lower(toinsert.displayName)] = {}
-		-- end
-		-- insert(CHC_main.hydroDuplicates[string.lower(toinsert.displayName)], { ft = toinsert.fullType, modname = toinsert.modname })
 	else
 		error(string.format('Duplicate invItem fullType! (%s)', tostring(invItem:getFullType())))
 	end
@@ -486,7 +504,7 @@ function CHC_main.reloadMod(key)
 	if key == Keyboard.KEY_O then
 		CHC_main.loadDatas()
 		local all = CHC_main
-		error('debug')
+		-- error('debug')
 	end
 end
 

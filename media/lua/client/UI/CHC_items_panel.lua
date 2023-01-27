@@ -4,7 +4,8 @@ local utils = require('CHC_utils')
 
 CHC_items_panel = ISPanel:derive("CHC_items_panel")
 
-insert = table.insert
+local insert = table.insert
+local sort = table.sort
 
 -- region create
 function CHC_items_panel:initialise()
@@ -145,16 +146,13 @@ function CHC_items_panel:onRMBDownItemIcon(x, y)
     items_panel.parent.onRMBDownObjList(items_panel, nil, nil, items_panel.item)
 end
 
-function CHC_items_panel:onTextChange()
-end
-
 function CHC_items_panel:setObj(item)
     self.item = item
-    self.itemProps.props:clear()
+    self.itemProps.objList:clear()
     local objProps = self:collectItemProps(item)
     if not utils.empty(objProps) then
         for _, prop in ipairs(objProps) do
-            self.itemProps.props:addItem(prop.name, prop)
+            self.itemProps.objList:addItem(prop.name, prop)
         end
         self.itemProps:setVisible(true)
     else
@@ -212,41 +210,12 @@ function CHC_items_panel:setObj(item)
 end
 
 function CHC_items_panel:collectItemProps(item)
-    local invItem = item.item
-
-    local function processProp(props, propIdx)
-        local meth = getClassField(invItem, propIdx)
-
-        if meth.getType then
-            local val = KahluaUtil.rawTostring2(getClassFieldVal(invItem, meth))
-            local val2 = CHC_settings.mappings.ignoredItemProps
-            local methName = meth:getName()
-            if val == nil then
-                --     print(meth, " not found!!!")
-            else
-                if val2[methName:lower()] ~= nil then
-                    print(meth, " skipped!")
-                else
-                    insert(props, { name = methName, value = val })
-                end
-            end
-        end
+    local objAttrs = item.props
+    if objAttrs then
+        sort(objAttrs, function(a, b) return a.name:upper() < b.name:upper() end)
+    else
+        objAttrs = {}
     end
-
-    if instanceof(invItem, "ComboItem") then
-        print('ignoring ComboItem')
-        return {}
-    end
-    local cl = getNumClassFields(invItem)
-    if cl == 0 then
-        print(string.format('No fields found for %s', invItem:getType()))
-    end
-
-    local objAttrs = {}
-    for i = 0, cl - 1 do
-        processProp(objAttrs, i)
-    end
-    table.sort(objAttrs, function(a, b) return a.name:upper() < b.name:upper() end)
     return objAttrs
 end
 

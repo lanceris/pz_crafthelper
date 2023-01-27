@@ -1,7 +1,8 @@
 require "ISUI/ISPanel"
 
 CHC_props_table = ISPanel:derive("CHC_props_table")
-
+local insert = table.insert
+local sort = table.sort
 
 -- region create
 function CHC_props_table:initialise()
@@ -26,24 +27,24 @@ function CHC_props_table:createChildren()
     y = y + 2 * self.padY + self.panelSearchRow.height
     -- endregion
     local props_h = self.height - self.panelSearchRow.height - self.label.height - 4 * self.padY
-    self.props = ISScrollingListBox:new(x, y, self.width - 2 * self.padX, props_h)
-    self.props:setFont(self.font)
-    self.props:initialise()
-    self.props:instantiate()
+    self.objList = ISScrollingListBox:new(x, y, self.width - 2 * self.padX, props_h)
+    self.objList:setFont(self.font)
+    self.objList:initialise()
+    self.objList:instantiate()
 
-    self.props:setY(self.props.y + self.props.itemheight)
-    self.props:setHeight(self.props.height - self.props.itemheight)
-    self.props.vscroll:setHeight(self.props.height)
-    self.props.drawBorder = true
-    self.props.doDrawItem = self.drawProps
+    self.objList:setY(self.objList.y + self.objList.itemheight)
+    self.objList:setHeight(self.objList.height - self.objList.itemheight)
+    self.objList.vscroll:setHeight(self.objList.height)
+    self.objList.drawBorder = true
+    self.objList.doDrawItem = self.drawProps
 
     -- TODO: add translation
-    self.props:addColumn("Name", 0)
-    self.props:addColumn("Value", self.width * 0.4)
+    self.objList:addColumn("Name", 0)
+    self.objList:addColumn("Value", self.width * 0.4)
 
     self:addChild(self.label)
     self:addChild(self.panelSearchRow)
-    self:addChild(self.props)
+    self:addChild(self.objList)
 
 end
 
@@ -51,6 +52,27 @@ end
 
 
 -- region update
+function CHC_props_table:update()
+    if self.needUpdateObjects == true then
+        self:updatePropsList()
+        self.needUpdateObjects = false
+    end
+end
+
+function CHC_props_table:updatePropsList()
+    local searchBar = self.panelSearchRow.searchBar
+    local search_state
+
+    local filteredProps = {}
+    for i = 1, #props do
+        search_state = self:searchTypeFilter(props[i])
+
+        if search_state then
+            insert(filteredProps, props[i])
+        end
+    end
+    self:refreshObjList(filteredProps)
+end
 
 -- endregion
 
@@ -97,10 +119,10 @@ end
 
 function CHC_props_table:onResize()
     self.panelSearchRow:setWidth(self.width - 2 * self.padX)
-    self.props:setWidth(self.width - 2 * self.padX)
-    self.props:setHeight(self.height - self.label.height - self.panelSearchRow.height - 6 * self.padY -
-        self.props.itemheight)
-    self.props.vscroll:setHeight(self.props.height)
+    self.objList:setWidth(self.width - 2 * self.padX)
+    self.objList:setHeight(self.height - self.label.height - self.panelSearchRow.height - 6 * self.padY -
+        self.objList.itemheight)
+    self.objList.vscroll:setHeight(self.objList.height)
 end
 
 -- endregion
@@ -111,8 +133,24 @@ end
 
 -- end
 
-function CHC_props_table:onTextChange()
+function CHC_props_table:refreshObjList(props)
+    self.objList:clear()
+    self.objList:setScrollHeight(0)
 
+    for i = 1, #props do
+        self:processAddObjToObjList(props[i], self.modData)
+    end
+    local sortFunc = function(a, b) return a.name:upper() < b.name:upper() end
+    sort(self.objList.items, sortFunc)
+end
+
+function CHC_props_table:processAddObjToObjList(prop, modData)
+    local name = prop.recipeData.name
+    self.objList:addItem(name, prop)
+end
+
+function CHC_props_table:onTextChange()
+    self.needUpdateObjects = true
 end
 
 -- endregion
@@ -131,6 +169,9 @@ function CHC_props_table:new(args)
     o.padX = 5
 
     o.searchRowHelpText = "Help"
+    o.modData = CHC_main.playerModData
+
+    o.needUpdateObjects = false
 
     return o
 end
