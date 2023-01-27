@@ -29,7 +29,13 @@ CHC_settings = {
                 ['HCNearHerbatable'] = 'Hydrocraft.HCHerbtable',
                 ['HCNearTarkiln'] = 'Hydrocraft.HCTarkiln',
                 ['HCNearKiln'] = 'Hydrocraft.HCKiln',
-                ['HCNearGrindstone'] = 'Hydrocraft.HCGrindstone' }
+                ['HCNearGrindstone'] = 'Hydrocraft.HCGrindstone'
+            }
+        }
+    },
+    mappings = {
+        ignoredItemProps = {
+            modelweaponpart = true,
         }
     }
 }
@@ -121,7 +127,10 @@ if ModOptions and ModOptions.getInstance then
                 getText("UI_optionscreen_CycleContainerKey2"),
                 getText("UI_optionscreen_CycleContainerKey3"),
                 name = "IGUI_RecipeSelectorModifier",
-                tooltip = getText("IGUI_RecipeSelectorModifierTooltip", getText("UI_optionscreen_binding_chc_move_up"), getText("UI_optionscreen_binding_chc_move_down")),
+                tooltip = getText("IGUI_RecipeSelectorModifierTooltip",
+                    getText("UI_optionscreen_binding_chc_move_up"),
+                    getText("UI_optionscreen_binding_chc_move_down")
+                ),
                 default = 1,
                 OnApplyMainMenu = onModOptionsApply,
                 OnApplyInGame = onModOptionsApply
@@ -131,7 +140,10 @@ if ModOptions and ModOptions.getInstance then
                 getText("UI_optionscreen_CycleContainerKey2"),
                 getText("UI_optionscreen_CycleContainerKey3"),
                 name = "IGUI_CategorySelectorModifier",
-                tooltip = getText("IGUI_CategorySelectorModifierTooltip", getText("UI_optionscreen_binding_chc_move_left"), getText("UI_optionscreen_binding_chc_move_right")),
+                tooltip = getText("IGUI_CategorySelectorModifierTooltip",
+                    getText("UI_optionscreen_binding_chc_move_left"),
+                    getText("UI_optionscreen_binding_chc_move_right")
+                ),
                 default = 1,
                 OnApplyMainMenu = onModOptionsApply,
                 OnApplyInGame = onModOptionsApply
@@ -141,7 +153,10 @@ if ModOptions and ModOptions.getInstance then
                 getText("UI_optionscreen_CycleContainerKey2"),
                 getText("UI_optionscreen_CycleContainerKey3"),
                 name = "IGUI_TabSelectorModifier",
-                tooltip = getText("IGUI_TabSelectorModifierTooltip", getText("UI_optionscreen_binding_chc_move_tab_left"), getText("UI_optionscreen_binding_chc_move_tab_right")),
+                tooltip = getText("IGUI_TabSelectorModifierTooltip",
+                    getText("UI_optionscreen_binding_chc_move_tab_left"),
+                    getText("UI_optionscreen_binding_chc_move_tab_right")
+                ),
                 default = 1,
                 OnApplyMainMenu = onModOptionsApply,
                 OnApplyInGame = onModOptionsApply

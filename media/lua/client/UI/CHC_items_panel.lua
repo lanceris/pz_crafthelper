@@ -150,12 +150,16 @@ end
 
 function CHC_items_panel:setObj(item)
     self.item = item
+    self.itemProps.props:clear()
     local objProps = self:collectItemProps(item)
-    for ix, prop in ipairs(objProps) do
-        self.itemProps.props:addItem(prop.name, prop)
+    if not utils.empty(objProps) then
+        for _, prop in ipairs(objProps) do
+            self.itemProps.props:addItem(prop.name, prop)
+        end
+        self.itemProps:setVisible(true)
+    else
+        self.itemProps:setVisible(false)
     end
-    -- print(al:og())
-    self.itemProps:setVisible(true)
 
     self.mainImg:setImage(item.texture)
     if self.item.tooltip then
@@ -208,8 +212,27 @@ function CHC_items_panel:setObj(item)
 end
 
 function CHC_items_panel:collectItemProps(item)
-    local iobj = item.itemObj
     local invItem = item.item
+
+    local function processProp(props, propIdx)
+        local meth = getClassField(invItem, propIdx)
+
+        if meth.getType then
+            local val = KahluaUtil.rawTostring2(getClassFieldVal(invItem, meth))
+            local val2 = CHC_settings.mappings.ignoredItemProps
+            local methName = meth:getName()
+            if val == nil then
+                --     print(meth, " not found!!!")
+            else
+                if val2[methName:lower()] ~= nil then
+                    print(meth, " skipped!")
+                else
+                    insert(props, { name = methName, value = val })
+                end
+            end
+        end
+    end
+
     if instanceof(invItem, "ComboItem") then
         print('ignoring ComboItem')
         return {}
@@ -218,20 +241,13 @@ function CHC_items_panel:collectItemProps(item)
     if cl == 0 then
         print(string.format('No fields found for %s', invItem:getType()))
     end
-    local objAttr = {}
 
+    local objAttrs = {}
     for i = 0, cl - 1 do
-        local meth = getClassField(invItem, i)
-        if meth.getType then
-            local val = KahluaUtil.rawTostring2(getClassFieldVal(invItem, meth))
-            if val then
-                insert(objAttr, { name = meth:getName(), value = val })
-                -- objAttr[(meth:getName())] = val
-            end
-        end
+        processProp(objAttrs, i)
     end
-    table.sort(objAttr, function(a, b) return a.name:upper() < b.name:upper() end)
-    return objAttr
+    table.sort(objAttrs, function(a, b) return a.name:upper() < b.name:upper() end)
+    return objAttrs
 end
 
 -- endregion
