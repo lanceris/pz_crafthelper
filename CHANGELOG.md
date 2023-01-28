@@ -4,12 +4,14 @@
 
 ### New features
 
-- Added item attributes table to item details screen
-- Added ability to search by attributes and/or values (inside table)
+- Item attributes table to item details screen
+- Ability to search by attributes and/or values (inside table)
+- New search mode for item list ($) - search by attributes
 
 ### Improvements
 
 - Refactored RMB click event handlers (added common actions on RMB and Shift+RMB (debug only) for item/recipe lists/detail icons and recipe ingredients)
+- Inline search with comparison operators ("damage>20", "ranged=true")
 
 ## 1.6.4 (19.01.2023, workshop release)
 

@@ -100,50 +100,48 @@ CHC_utils.compare = function(what, to, passAll)
 
     local state = false
 
-    if isOperand then
-        if (not tonumber(what) or
-            not tonumber(to) or
-            to == "") then
-            return true
-        end
-        if operand == ">" then
-            state = tonumber(what) > tonumber(to)
-        elseif operand == "<" then
-            state = tonumber(what) < tonumber(to)
-        elseif operand == "=" then
-            if isNegate then
-                state = tonumber(what) ~= tonumber(to)
-            else
-                state = tonumber(what) == tonumber(to)
-            end
-        end
+    if not isList then
+        what = lower(what)
+    end
+    to = lower(to)
 
+    if isOperand then
+        if not what or not to or to == "" then return true end
+        if type(what) == "string" and tonumber(what) then what = tonumber(what) end
+        if type(to) == "string" and tonumber(to) then to = tonumber(to) end
+
+        if type(what) == "string" and type(to) ~= "string" then return false end
+        if type(what) ~= "string" and type(to) == "string" then return false end
+
+        if operand == "=" then
+            if isNegate then
+                state = not contains(what, to)
+            else
+                state = contains(what, to)
+            end
+        elseif operand == ">" then
+            state = what > to
+        elseif operand == "<" then
+            state = what < to
+        end
     else
         to = lower(tostring(to))
         if not isList then
             what = lower(tostring(what))
             if isNegate then
-                if not contains(what, to) then
-                    state = true
-                end
+                state = not contains(what, to)
             else
-                if contains(what, to) then
-                    state = true
-                end
+                state = contains(what, to)
             end
         else
             for i = 1, #what do
                 local wh = lower(tostring(what[i]))
                 if isNegate then -- this is not working atm (so '#~smth' will not work)
-                    if not contains(wh, to) then
-                        state = true
-                        break
-                    end
+                    state = not contains(wh, to)
+                    break
                 else
-                    if contains(wh, to) then
-                        state = true
-                        break
-                    end
+                    state = contains(wh, to)
+                    break
                 end
             end
         end
@@ -182,8 +180,20 @@ CHC_utils.any = function(t, val, start, stop, step)
     start = start or 1
     stop = stop or #t
     step = step or 1
-    for i = start, stop, step do
-        if t[i] == val then return true end
+    if type(val) == "table" then
+        for j = 1, #val do
+            for i = start, stop, step do
+                if t[i] == val[j] then
+                    return true
+                end
+            end
+        end
+    else
+        for i = start, stop, step do
+            if t[i] == val then
+                return true
+            end
+        end
     end
     return false
 end

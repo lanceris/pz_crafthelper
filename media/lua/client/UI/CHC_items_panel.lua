@@ -6,6 +6,7 @@ CHC_items_panel = ISPanel:derive('CHC_items_panel')
 
 local insert = table.insert
 local sort = table.sort
+local sub = string.sub
 
 -- region create
 function CHC_items_panel:initialise()
@@ -207,6 +208,12 @@ function CHC_items_panel:setObj(item)
     -- else
     --     self.itemDistribData = nil
     -- end
+
+    local list_search_txt = self.parent.searchRow.searchBar:getInternalText()
+    if utils.startswith(list_search_txt, '$') then
+        self.itemProps.searchRow.searchBar:setText(list_search_txt:gsub("%$", ""))
+        self.itemProps.needUpdateObjects = true
+    end
 end
 
 function CHC_items_panel:collectItemProps(item)

@@ -3,6 +3,8 @@ require 'ISUI/ISPanel'
 CHC_props_table = ISPanel:derive('CHC_props_table')
 local insert = table.insert
 local sort = table.sort
+local find = string.find
+local sub = string.sub
 local utils = require('CHC_utils')
 
 -- region create
@@ -170,6 +172,23 @@ function CHC_props_table:searchProcessToken(token, prop)
     end
 
     local whatCompare
+    if not isSpecialSearch then
+        local opIx = find(token, "[><=]")
+        if opIx then
+            opIx = find(token, "[~><=]")
+            local whatCompName = prop.name
+            local toCompName = sub(token, 1, opIx - 1)
+            local stateName = utils.compare(whatCompName, toCompName)
+
+            local whatCompVal = prop.value
+            local toCompVal = sub(token, opIx, #token)
+            local stateVal = utils.compare(whatCompVal, toCompVal)
+
+            if stateName and stateVal then return true end
+            return false
+        end
+    end
+
     if isAllowSpecialSearch and char == '!' then
         -- search by name
         whatCompare = string.lower(prop.name)
