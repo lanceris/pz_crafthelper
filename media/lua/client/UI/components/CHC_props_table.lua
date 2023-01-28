@@ -32,6 +32,8 @@ function CHC_props_table:createChildren()
     local props_h = self.height - self.searchRow.height - self.label.height - 4 * self.padY
     self.objList = ISScrollingListBox:new(x, y, self.width - 2 * self.padX, props_h)
     self.objList:setFont(self.font)
+
+    self.objList.onRightMouseDown = self.onRMBDownObjList
     self.objList:initialise()
     self.objList:instantiate()
 
@@ -52,7 +54,6 @@ function CHC_props_table:createChildren()
 end
 
 -- endregion
-
 
 -- region update
 function CHC_props_table:update()
@@ -131,8 +132,32 @@ end
 
 -- endregion
 
-
 -- region logic
+
+-- region event handlers
+
+function CHC_props_table:onRMBDownObjList(x, y, item)
+    if not item then
+        local row = self:rowAt(x, y)
+        if row == -1 then return end
+        item = self.items[row].item
+        if not item then return end
+    end
+
+    -- item.name, item.value
+    local context = ISContextMenu.get(0, getMouseX() + 10, getMouseY())
+    local function chccopy(_, param)
+        if param then
+            Clipboard.setClipboard(param)
+        end
+    end
+
+    context:addOption("Copy name", self, chccopy, item.name)
+    context:addOption("Copy value", self, chccopy, item.value)
+
+end
+
+-- endregion
 -- function CHC_props_table:addItem()
 
 -- end
