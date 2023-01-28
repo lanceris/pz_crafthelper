@@ -7,7 +7,7 @@ require 'CHC_main'
 
 local utils = require('CHC_utils')
 
-CHC_uses_recipepanel = ISPanel:derive("CHC_uses_recipepanel")
+CHC_uses_recipepanel = ISPanel:derive('CHC_uses_recipepanel')
 
 -- region create
 local texMan = getTextManager()
@@ -21,7 +21,7 @@ function CHC_uses_recipepanel:createChildren()
 
     local listBorderColor = { r = 0.4, g = 0.4, b = 0.4, a = 0.4 }
 
-    self.mainInfoImg = ISButton:new(1, 1, 42, 42, "", self, nil)
+    self.mainInfoImg = ISButton:new(1, 1, 42, 42, '', self, nil)
     self.mainInfoImg.backgroundColorMouseOver.a = 0
     self.mainInfoImg.backgroundColor.a = 0
     self.mainInfoImg.onRightMouseDown = self.onRMBDownItemIcon
@@ -57,17 +57,17 @@ function CHC_uses_recipepanel:createChildren()
     self.craftOneButton:initialise()
 
     -- TODO: change to icon
-    self.craftOneButton.title = getText("IGUI_CraftUI_ButtonCraftOne")
+    self.craftOneButton.title = getText('IGUI_CraftUI_ButtonCraftOne')
     self.craftOneButton:setWidth(5 + getTextManager():MeasureStringX(UIFont.Small, self.craftOneButton.title))
     self.craftOneButton:setVisible(false)
 
     self.craftAllButton = ISButton:new(btnInfo.x, btnInfo.y, btnInfo.w, btnInfo.h, nil, btnInfo.clicktgt, self.craftAll);
     self.craftAllButton:initialise()
-    self.craftAllButton.title = getText("IGUI_CraftUI_ButtonCraftOne")
+    self.craftAllButton.title = getText('IGUI_CraftUI_ButtonCraftOne')
     self.craftAllButton:setWidth(5 + getTextManager():MeasureStringX(UIFont.Small, self.craftAllButton.title))
     self.craftAllButton:setVisible(false)
 
-    -- self.debugGiveIngredientsButton = ISButton:new(0, 0, 50, 25, "DBG: Give Ingredients", self, ISCraftingUI.debugGiveIngredients);
+    -- self.debugGiveIngredientsButton = ISButton:new(0, 0, 50, 25, 'DBG: Give Ingredients', self, ISCraftingUI.debugGiveIngredients);
     -- self.debugGiveIngredientsButton:initialise();
     -- self:addChild(self.debugGiveIngredientsButton);
 
@@ -125,18 +125,18 @@ end
 
 function CHC_uses_recipepanel:setItemNameInSource(item, itemInList, isDestroy, uses)
     local onlyOne = itemInList.count == 1
-    if itemInList.fullType == "Base.WaterDrop" then
-        local one = getText("IGUI_CraftUI_CountOneUnit", getText("ContextMenu_WaterName"))
-        local mult = getText("IGUI_CraftUI_CountUnits", getText("ContextMenu_WaterName"), itemInList.count)
+    if itemInList.fullType == 'Base.WaterDrop' then
+        local one = getText('IGUI_CraftUI_CountOneUnit', getText('ContextMenu_WaterName'))
+        local mult = getText('IGUI_CraftUI_CountUnits', getText('ContextMenu_WaterName'), itemInList.count)
         return onlyOne and one or mult
     end
     if not isDestroy and (item.IsDrainable or uses > 0) then
-        local one = getText("IGUI_CraftUI_CountOneUnit", item.displayName)
-        local mult = getText("IGUI_CraftUI_CountUnits", item.displayName, itemInList.count)
+        local one = getText('IGUI_CraftUI_CountOneUnit', item.displayName)
+        local mult = getText('IGUI_CraftUI_CountUnits', item.displayName, itemInList.count)
         return onlyOne and one or mult
     end
     if itemInList.count > 1 then
-        return getText("IGUI_CraftUI_CountNumber", item.displayName, itemInList.count)
+        return getText('IGUI_CraftUI_CountNumber', item.displayName, itemInList.count)
     end
     return item.displayName
 end
@@ -148,7 +148,7 @@ function CHC_uses_recipepanel:setObj(recipe)
     if recipe.recipe:getCategory() then
         newItem.category = recipe.recipe:getCategory();
     else
-        newItem.category = getText("IGUI_CraftCategory_General");
+        newItem.category = getText('IGUI_CraftCategory_General');
     end
 
     newItem.recipe = recipe.recipe;
@@ -172,12 +172,12 @@ function CHC_uses_recipepanel:setObj(recipe)
         newItem.itemName = resultItem.displayName
         local displayCategory = resultItem.displayCategory
         if displayCategory then
-            newItem.itemDisplayCategory = getTextOrNull("IGUI_ItemCat_" .. displayCategory)
+            newItem.itemDisplayCategory = getTextOrNull('IGUI_ItemCat_' .. displayCategory)
         end
 
         local resultCount = recipe.recipe:getResult():getCount()
         if resultCount > 1 then
-            newItem.itemName = (resultCount * resultItem.count) .. " " .. newItem.itemName;
+            newItem.itemName = (resultCount * resultItem.count) .. ' ' .. newItem.itemName;
         end
     end
 
@@ -197,11 +197,11 @@ function CHC_uses_recipepanel:setObj(recipe)
 
             local sourceFullType = sourceItems:get(k - 1)
             local item = nil
-            if sourceFullType == "Water" then
-                item = CHC_main.items["Base.WaterDrop"]
-            elseif luautils.stringStarts(sourceFullType, "[") then
+            if sourceFullType == 'Water' then
+                item = CHC_main.items['Base.WaterDrop']
+            elseif luautils.stringStarts(sourceFullType, '[') then
                 -- a Lua test function
-                item = CHC_main.items["Base.WristWatch_Right_DigitalBlack"]
+                item = CHC_main.items['Base.WristWatch_Right_DigitalBlack']
             else
                 item = CHC_main.items[sourceFullType]
             end
@@ -211,8 +211,8 @@ function CHC_uses_recipepanel:setObj(recipe)
                 itemInList.count = sourceInList.uses > 0 and sourceInList.uses or source:getCount()
                 itemInList.texture = item.texture
                 itemInList.fullType = item.fullType
-                if sourceFullType == "Water" then
-                    itemInList.fullType = "Base.WaterDrop"
+                if sourceFullType == 'Water' then
+                    itemInList.fullType = 'Base.WaterDrop'
                 end
 
                 itemInList.name = self:setItemNameInSource(item, itemInList, sourceInList.isDestroy, sourceInList.uses)
@@ -304,17 +304,17 @@ function CHC_uses_recipepanel:refreshIngredientPanel()
             data.texture = self.TreeExpanded
             data.multipleHeader = true
             data.available = #available > 0
-            local txt = getText("IGUI_CraftUI_OneOf")
+            local txt = getText('IGUI_CraftUI_OneOf')
             if data.isDestroy then
-                txt = txt .. " (D) "
+                txt = txt .. ' (D) '
             end
             if data.isKeep then
-                txt = txt .. " (K) "
+                txt = txt .. ' (K) '
             end
             self.ingredientPanel:addItem(txt, data)
         end
 
-        -- Hack for "Dismantle Digital Watch" and similar recipes.
+        -- Hack for 'Dismantle Digital Watch' and similar recipes.
         -- Recipe sources include both left-hand and right-hand versions of the same item.
         -- We only want to display one of them.
         ---[[
@@ -364,14 +364,14 @@ function CHC_uses_recipepanel:getAvailableItemsType()
         end
         for x = 0, items:size() - 1 do
             local item = items:get(x)
-            if sourceItemTypes["Water"] and ISCraftingUI:isWaterSource(item, source:getCount()) then
-                result["Base.WaterDrop"] = (result["Base.WaterDrop"] or 0) + item:getDrainableUsesInt()
+            if sourceItemTypes['Water'] and ISCraftingUI:isWaterSource(item, source:getCount()) then
+                result['Base.WaterDrop'] = (result['Base.WaterDrop'] or 0) + item:getDrainableUsesInt()
             elseif sourceItemTypes[item:getFullType()] then
                 local count = 1
                 if not source:isDestroy() and item:IsDrainable() then
                     count = item:getDrainableUsesInt()
                 end
-                if not source:isDestroy() and instanceof(item, "Food") then
+                if not source:isDestroy() and instanceof(item, 'Food') then
                     if source:getUse() > 0 then
                         count = -item:getHungerChange() * 100
                     end
@@ -513,12 +513,12 @@ function CHC_uses_recipepanel:drawIngredient(y, item, alt)
         local imgW = 20
         local imgH = 20
         local dx = 6 + 10 --(item.item.multiple and 10 or 0)
-        local txt = ""
+        local txt = ''
         if item.item.isKeep then
-            txt = txt .. "K"
+            txt = txt .. 'K'
         end
         if item.item.isDestroy then
-            txt = txt .. "D"
+            txt = txt .. 'D'
         end
         if txt and not item.item.multiple then
             self:drawText(txt, 5, y + (item.height - fhSmall) / 2, r, g, b, 1, self.font)
@@ -556,7 +556,7 @@ end
 function CHC_uses_recipepanel:drawSkill(y, item, alt)
     if self.parent.fastListReturn(self, y) then return y + self.itemheight end
 
-    local text = " - " .. item.text .. ": " .. tostring(item.item.pLevel) .. " / " .. tostring(item.item.rLevel);
+    local text = ' - ' .. item.text .. ': ' .. tostring(item.item.pLevel) .. ' / ' .. tostring(item.item.rLevel);
     local r, g, b, a = 1, 1, 1, 0.9
     local rb, gb, bb, ab = 0.1, 0.1, 0.1, 1
 
@@ -581,7 +581,7 @@ function CHC_uses_recipepanel:drawBook(y, item, alt)
     end
     local tX = x
     local tY = y + 2
-    -- self:drawText(" - ", tX, tY, r, g, b, a, UIFont.Small)
+    -- self:drawText(' - ', tX, tY, r, g, b, a, UIFont.Small)
     if item.item.texture then
         tX = tX + 15
         self:drawTextureScaledAspect(item.item.texture, tX, tY, 16, 16, 1, 1, 1, 1)
@@ -622,7 +622,7 @@ function CHC_uses_recipepanel:drawEquipment(y, item, alt)
     end
 
     if not isComplex then
-        self:drawText(" - " .. item.item, x + 15, y, 1, 1, 1, a, UIFont.Small)
+        self:drawText(' - ' .. item.item, x + 15, y, 1, 1, 1, a, UIFont.Small)
     end
 
     --region favorite handler
@@ -680,7 +680,7 @@ function CHC_uses_recipepanel:render()
     y = y + self:drawRequiredSkills(x, y, selectedItem)
     y = y + self:drawRequiredBooks(x, y, selectedItem)
     y = y + self:drawNearItem(x, y, selectedItem)
-    local reqTime = getText("IGUI_CraftUI_RequiredTime", selectedItem.timeToMake)
+    local reqTime = getText('IGUI_CraftUI_RequiredTime', selectedItem.timeToMake)
     self:drawText(reqTime, x, y, 1, 1, 1, 0.9, UIFont.Medium)
 end
 
@@ -725,8 +725,8 @@ function CHC_uses_recipepanel:drawMainInfo(x, y, item)
     local sy = y
     local a = 0.9
     -- region main recipe info + output
-    local catName = getTextOrNull("IGUI_CraftCategory_" .. item.category) or item.category
-    self:drawText(getText("IGUI_invpanel_Category") .. ": " .. catName, x, y, 1, 1, 1, a, UIFont.Medium);
+    local catName = getTextOrNull('IGUI_CraftCategory_' .. item.category) or item.category
+    self:drawText(getText('IGUI_invpanel_Category') .. ': ' .. catName, x, y, 1, 1, 1, a, UIFont.Medium);
     y = y + fhMedium + 3;
 
     -- self:drawRectBorder(x, y, 32 + 10, 32 + 10, 1.0, 1.0, 1.0, 1.0);
@@ -747,7 +747,7 @@ function CHC_uses_recipepanel:drawMainInfo(x, y, item)
     self:drawText(item.itemName, lx, ly, 1, 1, 1, a, UIFont.Small)
     ly = ly + fhSmall
     if item.itemDisplayCategory then
-        self:drawText(getText("IGUI_invpanel_Category") .. ": " .. item.itemDisplayCategory,
+        self:drawText(getText('IGUI_invpanel_Category') .. ': ' .. item.itemDisplayCategory,
             lx, ly, 0.8, 0.8, 0.8, 0.8, UIFont.Small
         )
         ly = ly + fhSmall
@@ -755,7 +755,7 @@ function CHC_uses_recipepanel:drawMainInfo(x, y, item)
     if item.isVanilla ~= nil or item.module ~= nil then
         if item.isVanilla == false then
             local clr = { r = 0.392, g = 0.584, b = 0.929 } -- CornFlowerBlue
-            self:drawText("Mod: " .. item.module, lx, ly, clr.r, clr.g, clr.b, a, UIFont.Small)
+            self:drawText('Mod: ' .. item.module, lx, ly, clr.r, clr.g, clr.b, a, UIFont.Small)
         end
     end
     y = y + ly - 20
@@ -767,7 +767,7 @@ function CHC_uses_recipepanel:drawIngredients(x, y, item)
 
     local sy = y
     local a = 0.9
-    self:drawText(getText("IGUI_CraftUI_RequiredItems"), x, y, 1, 1, 1, a, UIFont.Medium)
+    self:drawText(getText('IGUI_CraftUI_RequiredItems'), x, y, 1, 1, 1, a, UIFont.Medium)
     y = y + fhMedium + 5
 
 
@@ -801,10 +801,10 @@ function CHC_uses_recipepanel:drawCraftButtons(x, y, item)
     end
 
     --region all
-    local title = getText("IGUI_CraftUI_ButtonCraftAll")
+    local title = getText('IGUI_CraftUI_ButtonCraftAll')
     local count = item.howManyCanCraft
     if count > 1 then
-        title = getText("IGUI_CraftUI_ButtonCraftAllCount", count)
+        title = getText('IGUI_CraftUI_ButtonCraftAllCount', count)
     elseif count == 1 then
         self.craftAllButton:setVisible(false)
     end
@@ -823,9 +823,9 @@ function CHC_uses_recipepanel:drawCraftButtons(x, y, item)
 
     if self.player:isDriving() then
         self.craftOneButton.enable = false
-        self.craftOneButton.tooltip = getText("Tooltip_CantCraftDriving")
+        self.craftOneButton.tooltip = getText('Tooltip_CantCraftDriving')
         self.craftAllButton.enable = false
-        self.craftAllButton.tooltip = getText("Tooltip_CantCraftDriving")
+        self.craftAllButton.tooltip = getText('Tooltip_CantCraftDriving')
     else
         self.craftOneButton.tooltip = nil
         self.craftAllButton.tooltip = nil
@@ -840,7 +840,7 @@ function CHC_uses_recipepanel:drawRequiredSkills(x, y, item)
     local a = 0.9
     local requiredSkillCount = item.requiredSkillCount
     if requiredSkillCount <= 0 then return 0 end
-    self:drawText(getText("IGUI_CraftUI_RequiredSkills"), x, y, 1, 1, 1, a, UIFont.Medium)
+    self:drawText(getText('IGUI_CraftUI_RequiredSkills'), x, y, 1, 1, 1, a, UIFont.Medium)
     y = y + fhMedium
     self.skillPanel:setX(x + 5)
     self.skillPanel:setY(y)
@@ -855,7 +855,7 @@ function CHC_uses_recipepanel:drawRequiredBooks(x, y, item)
     if not item.needToBeLearn then return 0 end
     local sy = y
     local a = 0.9
-    self:drawText(getText("UI_recipe_panel_required_book") .. ":", x, y, 1, 1, 1, a, UIFont.Medium)
+    self:drawText(getText('UI_recipe_panel_required_book') .. ':', x, y, 1, 1, 1, a, UIFont.Medium)
     y = y + fhMedium
     self.booksPanel:setX(x + 5)
     self.booksPanel:setY(y)
@@ -872,7 +872,7 @@ function CHC_uses_recipepanel:drawNearItem(x, y, item)
     local sy = y
     local a = 0.9
 
-    self:drawText(getText("UI_recipe_panel_near_item") .. ": ", x, y, 1, 1, 1, a, UIFont.Medium);
+    self:drawText(getText('UI_recipe_panel_near_item') .. ': ', x, y, 1, 1, 1, a, UIFont.Medium);
     y = y + fhMedium
 
     self.equipmentPanel:setX(x + 5)
@@ -908,12 +908,12 @@ function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y, item)
     local cond2 = type(CHC_main.recipesForItem[item.fullType]) == 'table'
 
     local function findItem()
-        local viewName = getText("UI_search_tab_name")
+        local viewName = getText('UI_search_tab_name')
         backref:refresh(viewName) -- activate top level search view
         backref:refresh(backref.uiTypeToView['search_items'].name,
             backref.panel.activeView.view) -- activate Items subview
         local view = backref:getActiveSubView()
-        local txt = string.format("#%s,%s", item.displayCategory, item.displayName)
+        local txt = string.format('#%s,%s', item.displayCategory, item.displayName)
         txt = string.lower(txt)
         view.searchRow.searchBar:setText(txt) -- set text to Items subview search bar
         view:updateItems(view.selectedCategory)
@@ -938,21 +938,21 @@ function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y, item)
         -- @@@ TODO
     end
 
-    context:addOption(getText("IGUI_find_item"), backref, findItem)
+    context:addOption(getText('IGUI_find_item'), backref, findItem)
 
-    local newTabOption = context:addOption(getText("IGUI_new_tab"), backref, backref.addItemView, item.item, true, 2)
+    local newTabOption = context:addOption(getText('IGUI_new_tab'), backref, backref.addItemView, item.item, true, 2)
 
     if not (cond1 or cond2) then
         local tooltip = ISToolTip:new()
         tooltip:initialise()
         tooltip:setVisible(false)
-        tooltip.description = getText("IGUI_no_recipes")
+        tooltip.description = getText('IGUI_no_recipes')
         newTabOption.notAvailable = true
         newTabOption.toolTip = tooltip
         -- backref:addItemView(item, true)
     end
 
-    -- context:addOption(getText("UI_servers_addToFavorite"), )
+    -- context:addOption(getText('UI_servers_addToFavorite'), )
 end
 
 function CHC_uses_recipepanel:onRMBDownItemIcon(x, y)
@@ -1102,8 +1102,8 @@ function CHC_uses_recipepanel:new(x, y, width, height)
 
     o.bh = nil
 
-    o.itemFavoriteStar = getTexture("media/textures/itemFavoriteStar.png")
-    o.itemFavCheckedTex = getTexture("media/textures/itemFavoriteStarChecked.png")
-    o.itemFavNotCheckedTex = getTexture("media/textures/itemFavoriteStarOutline.png")
+    o.itemFavoriteStar = getTexture('media/textures/itemFavoriteStar.png')
+    o.itemFavCheckedTex = getTexture('media/textures/itemFavoriteStarChecked.png')
+    o.itemFavNotCheckedTex = getTexture('media/textures/itemFavoriteStarOutline.png')
     return o;
 end

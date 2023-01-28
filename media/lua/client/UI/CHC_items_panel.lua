@@ -2,7 +2,7 @@ require 'ISUI/ISPanel'
 
 local utils = require('CHC_utils')
 
-CHC_items_panel = ISPanel:derive("CHC_items_panel")
+CHC_items_panel = ISPanel:derive('CHC_items_panel')
 
 local insert = table.insert
 local sort = table.sort
@@ -36,7 +36,7 @@ function CHC_items_panel:createChildren()
     self.mainInfo:initialise()
     self.mainInfo:setVisible(false)
 
-    self.mainImg = ISButton:new(self.margin, 5, 64, 64, "", self, nil)
+    self.mainImg = ISButton:new(self.margin, 5, 64, 64, '', self, nil)
     self.mainImg:initialise()
     self.mainImg.backgroundColorMouseOver.a = 0
     self.mainImg.backgroundColor.a = 0
@@ -167,14 +167,14 @@ function CHC_items_panel:setObj(item)
     end
 
     self.mainName:setName(item.name)
-    self.mainName:setTooltip(string.format("%s <LINE>%s", item.name, item.fullType))
+    self.mainName:setTooltip(string.format('%s <LINE>%s', item.name, item.fullType))
 
     local trCat = self.parent.typeData[item.category].tooltip
-    self.mainType:setName(getText("IGUI_invpanel_Type") .. ": " .. trCat)
-    self.mainDispCat:setName(getText("IGUI_invpanel_Category") .. ": " .. item.displayCategory)
+    self.mainType:setName(getText('IGUI_invpanel_Type') .. ': ' .. trCat)
+    self.mainDispCat:setName(getText('IGUI_invpanel_Category') .. ': ' .. item.displayCategory)
 
-    self.mainMod:setName(getText("IGUI_mod_chc") .. ": " .. item.modname)
-    self.mainWeight:setName(getText("IGUI_invpanel_weight") .. ": " .. round(item.item:getWeight(), 2))
+    self.mainMod:setName(getText('IGUI_mod_chc') .. ': ' .. item.modname)
+    self.mainWeight:setName(getText('IGUI_invpanel_weight') .. ': ' .. round(item.item:getWeight(), 2))
     local maxY = self.mainWeight.y + self.mainWeight.height + 2
 
     local usesNum = CHC_main.recipesByItem[item.fullType]
@@ -182,14 +182,14 @@ function CHC_items_panel:setObj(item)
     local craftNum = CHC_main.recipesForItem[item.fullType]
     if type(craftNum) == 'table' then craftNum = #craftNum else craftNum = 0 end
     if usesNum + craftNum > 0 then
-        self.mainNumRecipes:setName(getText("UI_search_recipes_tab_name") .. ": " .. usesNum + craftNum)
-        local tooltip = ""
+        self.mainNumRecipes:setName(getText('UI_search_recipes_tab_name') .. ': ' .. usesNum + craftNum)
+        local tooltip = ''
         if usesNum > 0 then
-            tooltip = tooltip .. getText("UI_item_uses_tab_name") .. ": " .. usesNum
-            tooltip = tooltip .. " <LINE>"
+            tooltip = tooltip .. getText('UI_item_uses_tab_name') .. ': ' .. usesNum
+            tooltip = tooltip .. ' <LINE>'
         end
         if craftNum > 0 then
-            tooltip = tooltip .. getText("UI_item_craft_tab_name") .. ": " .. craftNum
+            tooltip = tooltip .. getText('UI_item_craft_tab_name') .. ': ' .. craftNum
         end
         self.mainNumRecipes:setTooltip(tooltip)
         maxY = self.mainNumRecipes.y + self.mainNumRecipes.height + 2
@@ -217,7 +217,7 @@ function CHC_items_panel:collectItemProps(item)
         self.itemProps.needUpdateObjects = true
     else
         -- will clear search bar every time item changes
-        self.itemProps.searchRow.searchBar:setText("")
+        self.itemProps.searchRow.searchBar:setText('')
     end
 
     if objAttrs then

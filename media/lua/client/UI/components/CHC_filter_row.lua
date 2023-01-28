@@ -3,7 +3,7 @@ require 'ISUI/ISButton'
 require 'ISUI/ISModalRichText'
 
 local derivative = ISPanel
-CHC_filter_row = derivative:derive("CHC_filter_row")
+CHC_filter_row = derivative:derive('CHC_filter_row')
 
 function CHC_filter_row:initialise()
     derivative.initialise(self)
@@ -15,7 +15,7 @@ function CHC_filter_row:create()
 
     -- region order btn
     local foo = self.filterOrderData
-    self.filterOrderBtn = ISButton:new(x, 0, foo.width or h, h, foo.title or "", self)
+    self.filterOrderBtn = ISButton:new(x, 0, foo.width or h, h, foo.title or '', self)
     self.filterOrderBtn:initialise()
     self.filterOrderBtn.onclick = foo.onclick
     self.filterOrderBtn.tooltip = foo.defaultTooltip
@@ -26,7 +26,7 @@ function CHC_filter_row:create()
 
     -- region type btn
     local fto = self.filterTypeData
-    self.filterTypeBtn = ISButton:new(x, 0, fto.width or h, h, fto.title or "", self)
+    self.filterTypeBtn = ISButton:new(x, 0, fto.width or h, h, fto.title or '', self)
     self.filterTypeBtn:initialise()
     self.filterTypeBtn.onclick = fto.onclick
     self.filterTypeBtn.tooltip = fto.defaultTooltip

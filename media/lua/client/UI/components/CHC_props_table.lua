@@ -1,6 +1,6 @@
-require "ISUI/ISPanel"
+require 'ISUI/ISPanel'
 
-CHC_props_table = ISPanel:derive("CHC_props_table")
+CHC_props_table = ISPanel:derive('CHC_props_table')
 local insert = table.insert
 local sort = table.sort
 local utils = require('CHC_utils')
@@ -16,12 +16,12 @@ function CHC_props_table:createChildren()
     local x = self.padX
     local y = self.padY
 
-    self.label = ISLabel:new(x, y, self.fonthgt, "Attributes", 1, 1, 1, 1, self.font, true)
+    self.label = ISLabel:new(x, y, self.fonthgt, 'Attributes', 1, 1, 1, 1, self.font, true)
     self.label:initialise()
     y = y + self.padY + self.label.height
 
     -- region search bar
-    self.searchRow = CHC_search_bar:new(x, y, self.width - 2 * self.padX, 24, "search by attributes",
+    self.searchRow = CHC_search_bar:new(x, y, self.width - 2 * self.padX, 24, 'search by attributes',
         self.onTextChange, self.searchRowHelpText)
     self.searchRow:initialise()
     self.searchRow.drawBorder = false
@@ -40,8 +40,8 @@ function CHC_props_table:createChildren()
     self.objList.doDrawItem = self.drawProps
 
     -- TODO: add translation
-    self.objList:addColumn("Name", 0)
-    self.objList:addColumn("Value", self.width * 0.4)
+    self.objList:addColumn('Name', 0)
+    self.objList:addColumn('Value', self.width * 0.4)
 
     self:addChild(self.label)
     self:addChild(self.searchRow)
@@ -163,18 +163,18 @@ function CHC_props_table:searchProcessToken(token, prop)
     local isSpecialSearch = false
     local char
 
-    if isAllowSpecialSearch and CHC_search_bar:isSpecialCommand(token, { "!", "@" }) then
+    if isAllowSpecialSearch and CHC_search_bar:isSpecialCommand(token, { '!', '@' }) then
         isSpecialSearch = true
         char = token:sub(1, 1)
         token = string.sub(token, 2)
     end
 
     local whatCompare
-    if isAllowSpecialSearch and char == "!" then
+    if isAllowSpecialSearch and char == '!' then
         -- search by name
         whatCompare = string.lower(prop.name)
     end
-    if isAllowSpecialSearch and char == "@" then
+    if isAllowSpecialSearch and char == '@' then
         -- search by value
         whatCompare = string.lower(prop.value)
     end
@@ -201,7 +201,7 @@ function CHC_props_table:new(args)
     o.padY = 5
     o.padX = 5
 
-    o.searchRowHelpText = "Help"
+    o.searchRowHelpText = 'Help'
     o.modData = CHC_main.playerModData
 
     o.needUpdateObjects = false

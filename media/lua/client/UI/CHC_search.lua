@@ -1,19 +1,19 @@
-require "ISUI/ISPanel"
+require 'ISUI/ISPanel'
 
-require "UI/CHC_tabs"
-require "UI/CHC_uses_recipelist"
-require "UI/CHC_uses"
+require 'UI/CHC_tabs'
+require 'UI/CHC_uses_recipelist'
+require 'UI/CHC_uses'
 
 local utils = require('CHC_utils')
 
-CHC_search = ISPanel:derive("CHC_search")
+CHC_search = ISPanel:derive('CHC_search')
 
-CHC_search.sortOrderIconAsc = getTexture("media/textures/sort_order_asc.png")
-CHC_search.sortOrderIconDesc = getTexture("media/textures/sort_order_desc.png")
-CHC_search.typeFiltIconAll = getTexture("media/textures/type_filt_all.png")
-CHC_search.typeFiltIconValid = getTexture("media/textures/type_filt_valid.png")
-CHC_search.typeFiltIconKnown = getTexture("media/textures/type_filt_known.png")
-CHC_search.typeFiltIconInvalid = getTexture("media/textures/type_filt_invalid.png")
+CHC_search.sortOrderIconAsc = getTexture('media/textures/sort_order_asc.png')
+CHC_search.sortOrderIconDesc = getTexture('media/textures/sort_order_desc.png')
+CHC_search.typeFiltIconAll = getTexture('media/textures/type_filt_all.png')
+CHC_search.typeFiltIconValid = getTexture('media/textures/type_filt_valid.png')
+CHC_search.typeFiltIconKnown = getTexture('media/textures/type_filt_known.png')
+CHC_search.typeFiltIconInvalid = getTexture('media/textures/type_filt_invalid.png')
 
 local advUpdCoCa = true
 
@@ -26,64 +26,64 @@ function CHC_search:initialise()
 
     self.typeData = { -- .count for each calculated in catSelUpdateOptions
         all = {
-            tooltip = getText("UI_All"),
-            icon = getTexture("media/textures/type_filt_all.png")
+            tooltip = getText('UI_All'),
+            icon = getTexture('media/textures/type_filt_all.png')
         },
         AlarmClock = {
-            tooltip = getText("IGUI_ItemCat_AlarmClock"),
-            icon = CHC_main.items["Base.AlarmClock2"].texture
+            tooltip = getText('IGUI_ItemCat_AlarmClock'),
+            icon = CHC_main.items['Base.AlarmClock2'].texture
         },
         AlarmClockClothing = {
-            tooltip = getText("IGUI_CHC_ItemCat_AlarmClockClothing"),
-            icon = CHC_main.items["Base.WristWatch_Right_DigitalRed"].texture
+            tooltip = getText('IGUI_CHC_ItemCat_AlarmClockClothing'),
+            icon = CHC_main.items['Base.WristWatch_Right_DigitalRed'].texture
         },
         Clothing = {
-            tooltip = getText("IGUI_ItemCat_Clothing"),
-            icon = CHC_main.items["Base.Tshirt_Scrubs"].texture
+            tooltip = getText('IGUI_ItemCat_Clothing'),
+            icon = CHC_main.items['Base.Tshirt_Scrubs'].texture
         },
         Container = {
-            tooltip = getText("IGUI_ItemCat_Container"),
-            icon = CHC_main.items["Base.Purse"].texture
+            tooltip = getText('IGUI_ItemCat_Container'),
+            icon = CHC_main.items['Base.Purse'].texture
         },
         Drainable = {
-            tooltip = getTextOrNull("IGUI_ItemCat_Drainable") or getText("IGUI_CHC_ItemCat_Drainable"),
-            icon = CHC_main.items["Base.Thread"].texture
+            tooltip = getTextOrNull('IGUI_ItemCat_Drainable') or getText('IGUI_CHC_ItemCat_Drainable'),
+            icon = CHC_main.items['Base.Thread'].texture
         },
         Food = {
-            tooltip = getText("IGUI_ItemCat_Food"),
-            icon = CHC_main.items["Base.Steak"].texture
+            tooltip = getText('IGUI_ItemCat_Food'),
+            icon = CHC_main.items['Base.Steak'].texture
         },
         Key = {
-            tooltip = getText("IGUI_CHC_ItemCat_Key"),
-            icon = CHC_main.items["Base.Key1"].texture
+            tooltip = getText('IGUI_CHC_ItemCat_Key'),
+            icon = CHC_main.items['Base.Key1'].texture
         },
         Literature = {
-            tooltip = getText("IGUI_ItemCat_Literature"),
-            icon = CHC_main.items["Base.Book"].texture
+            tooltip = getText('IGUI_ItemCat_Literature'),
+            icon = CHC_main.items['Base.Book'].texture
         },
         Map = {
-            tooltip = getText("IGUI_CHC_ItemCat_Map"),
-            icon = CHC_main.items["Base.Map"].texture
+            tooltip = getText('IGUI_CHC_ItemCat_Map'),
+            icon = CHC_main.items['Base.Map'].texture
         },
         Moveable = {
-            tooltip = getText("IGUI_CHC_ItemCat_Moveable"),
-            icon = CHC_main.items["Base.Mov_GreyComfyChair"].texture
+            tooltip = getText('IGUI_CHC_ItemCat_Moveable'),
+            icon = CHC_main.items['Base.Mov_GreyComfyChair'].texture
         },
         Normal = {
-            tooltip = getText("IGUI_CHC_ItemCat_Normal"),
-            icon = CHC_main.items["Base.Spiffo"].texture
+            tooltip = getText('IGUI_CHC_ItemCat_Normal'),
+            icon = CHC_main.items['Base.Spiffo'].texture
         },
         Radio = {
-            tooltip = getText("IGUI_CHC_ItemCat_Radio"),
-            icon = CHC_main.items["Radio.RadioRed"].texture
+            tooltip = getText('IGUI_CHC_ItemCat_Radio'),
+            icon = CHC_main.items['Radio.RadioRed'].texture
         },
         Weapon = {
-            tooltip = getText("IGUI_ItemCat_Weapon"),
-            icon = CHC_main.items["Base.Pistol"].texture
+            tooltip = getText('IGUI_ItemCat_Weapon'),
+            icon = CHC_main.items['Base.Pistol'].texture
         },
         WeaponPart = {
-            tooltip = getText("IGUI_ItemCat_WeaponPart"),
-            icon = CHC_main.items["Base.GunLight"].texture
+            tooltip = getText('IGUI_ItemCat_WeaponPart'),
+            icon = CHC_main.items['Base.GunLight'].texture
         }
     }
 
@@ -108,21 +108,21 @@ function CHC_search:create()
     local filterRowData = {
         filterOrderData = {
             width = 24,
-            title = "",
+            title = '',
             onclick = self.sortByName,
             defaultTooltip = self:filterOrderSetTooltip(),
             defaultIcon = self:filterOrderSetIcon()
         },
         filterTypeData = {
             width = 24,
-            title = "",
+            title = '',
             onclick = self.onFilterTypeMenu,
             defaultTooltip = self:filterTypeSetTooltip(),
             defaultIcon = self:filterTypeSetIcon()
         },
         filterSelectorData = {
-            defaultCategory = getText("UI_All"),
-            defaultTooltip = getText("IGUI_invpanel_Category"),
+            defaultCategory = getText('UI_All'),
+            defaultTooltip = getText('IGUI_invpanel_Category'),
             onChange = self.onChangeCategory
         }
     }
@@ -225,22 +225,22 @@ end
 
 function CHC_search:update()
     if self.needUpdateFavorites == true then
-        -- print("upd Favorites; ui: " .. self.ui_type)
+        -- print('upd Favorites; ui: ' .. self.ui_type)
         self:handleFavorites()
         self.needUpdateFavorites = false
     end
     if self.needUpdateObjects == true then
-        -- print("upd Objects; ui: " .. self.ui_type)
+        -- print('upd Objects; ui: ' .. self.ui_type)
         self:updateItems(self.selectedCategory)
         self.needUpdateObjects = false
     end
     if self.needUpdateTypes == true then
-        -- print("upd Types; ui: " .. self.ui_type)
+        -- print('upd Types; ui: ' .. self.ui_type)
         self:updateTypes()
         self.needUpdateTypes = false
     end
     if self.needUpdateCategories == true then
-        -- print("upd Categories; ui: " .. self.ui_type)
+        -- print('upd Categories; ui: ' .. self.ui_type)
         self:updateCategories()
         self.needUpdateCategories = false
     end
@@ -252,7 +252,7 @@ function CHC_search:updateItems(sl)
     local searchBar = self.searchRow.searchBar
     local items = self.ui_type == 'fav_items' and self.favrec or self.itemSource
 
-    if sl == categoryAll and self.typeFilter == "all" and searchBar:getInternalText() == "" then
+    if sl == categoryAll and self.typeFilter == 'all' and searchBar:getInternalText() == '' then
         CHC_uses.refreshObjList(self, items)
         return
     end
@@ -393,7 +393,7 @@ function CHC_search:onRMBDownObjList(x, y, item)
     local cond2 = type(CHC_main.recipesForItem[item.fullType]) == 'table'
 
     if cond1 or cond2 then
-        context:addOption(getText("IGUI_new_tab"), backref, backref.addItemView, item.item, true, 2)
+        context:addOption(getText('IGUI_new_tab'), backref, backref.addItemView, item.item, true, 2)
         -- backref:addItemView(item, true)
     end
 end
@@ -496,25 +496,25 @@ function CHC_search:searchProcessToken(token, item)
         isSpecialSearch = true
         char = token:sub(1, 1)
         token = string.sub(token, 2)
-        if token == "" and char ~= "^" then return true end
+        if token == '' and char ~= '^' then return true end
     end
 
 
     local whatCompare
-    if isAllowSpecialSearch and char == "^" then
+    if isAllowSpecialSearch and char == '^' then
         if not self.modData[CHC_main.getFavItemModDataStr(item)] then return false end
         whatCompare = string.lower(item.displayName)
     end
     if token and isSpecialSearch then
-        if char == "!" then
+        if char == '!' then
             -- search by item category
             whatCompare = self.typeData[item.category].tooltip or item.category
         end
-        if char == "@" then
+        if char == '@' then
             -- search by mod name of item
             whatCompare = item.modname
         end
-        if char == "#" then
+        if char == '#' then
             -- search by display category of item
             whatCompare = item.displayCategory
         end
@@ -545,8 +545,8 @@ end
 
 -- region filterRow setters
 function CHC_search:filterOrderSetTooltip()
-    local cursort = self.itemSortAsc and getText("IGUI_invpanel_ascending") or getText("IGUI_invpanel_descending")
-    return getText("UI_settings_st_title") .. " (" .. cursort .. ")"
+    local cursort = self.itemSortAsc and getText('IGUI_invpanel_ascending') or getText('IGUI_invpanel_descending')
+    return getText('UI_settings_st_title') .. ' (' .. cursort .. ')'
 end
 
 function CHC_search:filterOrderSetIcon()
@@ -555,7 +555,7 @@ end
 
 function CHC_search:filterTypeSetTooltip()
     local curtype = self.typeData[self.typeFilter].tooltip
-    return getText("IGUI_invpanel_Type") .. " (" .. curtype .. ")"
+    return getText('IGUI_invpanel_Type') .. ' (' .. curtype .. ')'
 end
 
 function CHC_search:filterTypeSetIcon()
@@ -581,10 +581,10 @@ function CHC_search:new(args)
     o.player = getPlayer()
     o.modData = CHC_main.playerModData
 
-    o.defaultCategory = getText("UI_All")
-    o.searchRowHelpText = getText("UI_searchrow_info",
-        getText("UI_searchrow_info_items_special"),
-        getText("UI_searchrow_info_items_examples")
+    o.defaultCategory = getText('UI_All')
+    o.searchRowHelpText = getText('UI_searchrow_info',
+        getText('UI_searchrow_info_items_special'),
+        getText('UI_searchrow_info_items_examples')
     )
 
 

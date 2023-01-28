@@ -1,7 +1,7 @@
-require "ISUI/ISPanel"
+require 'ISUI/ISPanel'
 
 local derivative = ISPanel
-CHC_tabs = derivative:derive("CHC_tabs");
+CHC_tabs = derivative:derive('CHC_tabs');
 
 --create
 function CHC_tabs:initialise()
@@ -102,8 +102,8 @@ function CHC_tabs:new(x, y, width, height, onresize, sep_x)
 
 	o.onresize = onresize
 	o.column2 = 30;
-	o.tabName1 = getText("UI_common_left_col_name")
-	o.tabName2 = getText("UI_common_right_col_name")
+	o.tabName1 = getText('UI_common_left_col_name')
+	o.tabName2 = getText('UI_common_right_col_name')
 	o.proportion = nil
 	o.sep_x = sep_x
 

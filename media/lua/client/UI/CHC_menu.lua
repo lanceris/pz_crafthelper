@@ -31,7 +31,7 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
 	for i = 1, #items do
 
 		-- allows to get ctx option when clicking on hotbar/equipped item
-		if not instanceof(items[i], "InventoryItem") then
+		if not instanceof(items[i], 'InventoryItem') then
 			item = items[i].items[1]
 		else
 			item = items[i]
@@ -48,12 +48,12 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
 	-- If one or more items tested above are used in a recipe
 	-- we effectively add an option in the contextual menu
 	if type(itemsUsedInRecipes) == 'table' and #itemsUsedInRecipes > 0 then
-		context:addOption(getText("IGUI_chc_context_onclick"), itemsUsedInRecipes, CHC_menu.onCraftHelper, player);
+		context:addOption(getText('IGUI_chc_context_onclick'), itemsUsedInRecipes, CHC_menu.onCraftHelper, player);
 	end
 	if isShiftKeyDown() and CHC_menu.CHC_window ~= nil then
 		local isFav = CHC_main.playerModData[CHC_main.getFavItemModDataStr(item)] == true
-		local favStr = isFav and getText("ContextMenu_Unfavorite") or getText("IGUI_CraftUI_Favorite")
-		local optName = favStr .. " (" .. getText("IGUI_chc_context_onclick") .. ")"
+		local favStr = isFav and getText('ContextMenu_Unfavorite') or getText('IGUI_CraftUI_Favorite')
+		local optName = favStr .. ' (' .. getText('IGUI_chc_context_onclick') .. ')'
 		context:addOption(optName, items, CHC_menu.toggleItemFavorite)
 	end
 end
@@ -67,7 +67,7 @@ CHC_menu.onCraftHelper = function(items, player)
 	-- Show craft helper window
 	for i = 1, #items do
 		local item = items[i]
-		if not instanceof(item, "InventoryItem") then
+		if not instanceof(item, 'InventoryItem') then
 			item = item.items[1]
 		end
 		inst:addItemView(item)
@@ -96,7 +96,7 @@ CHC_menu.toggleItemFavorite = function(items)
 	local modData = CHC_main.playerModData
 	for i = 1, #items do
 		local item
-		if not instanceof(items[i], "InventoryItem") then
+		if not instanceof(items[i], 'InventoryItem') then
 			item = items[i].items[1]
 		else
 			item = items[i]

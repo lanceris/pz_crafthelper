@@ -1,4 +1,4 @@
-CHC_items_list = ISScrollingListBox:derive("CHC_items_list")
+CHC_items_list = ISScrollingListBox:derive('CHC_items_list')
 
 local fontSizeToInternal = {
     { font = UIFont.Small, pad = 4, icon = 10 },
@@ -56,10 +56,12 @@ function CHC_items_list:prerender()
     local stencilX2 = self.width
     local stencilY2 = self.height
 
-    self:drawRect(0, -self:getYScroll(), self.width, self.height, self.backgroundColor.a, self.backgroundColor.r, self.backgroundColor.g, self.backgroundColor.b);
+    self:drawRect(0, -self:getYScroll(), self.width, self.height, self.backgroundColor.a, self.backgroundColor.r,
+        self.backgroundColor.g, self.backgroundColor.b);
 
     if self.drawBorder then
-        self:drawRectBorder(0, -self:getYScroll(), self.width, self.height, self.borderColor.a, self.borderColor.r, self.borderColor.g, self.borderColor.b)
+        self:drawRectBorder(0, -self:getYScroll(), self.width, self.height, self.borderColor.a, self.borderColor.r,
+            self.borderColor.g, self.borderColor.b)
         stencilX = 1
         stencilY = 1
         stencilX2 = self.width - 1
@@ -83,7 +85,7 @@ function CHC_items_list:prerender()
 
 
     self.listHeight = 0;
-    local i = 1;  --@@@
+    local i = 1
     for j = 1, #self.items do
         self.items[j].index = i;
         local y2 = self:doDrawItem(y, self.items[j], alt);
@@ -171,7 +173,11 @@ function CHC_items_list:doDrawItem(y, item, alt)
         favoriteStar = self.favoriteStar
     end
     if favoriteStar then
-        self:drawTexture(favoriteStar, favYPos, y + (item.height / 2 - favoriteStar:getHeight() / 2), favoriteAlpha, 1, 1, 1);
+        self:drawTexture(
+            favoriteStar, favYPos,
+            y + (item.height / 2 - favoriteStar:getHeight() / 2),
+            favoriteAlpha, 1, 1, 1
+        )
     end
     --endregion
 
@@ -244,9 +250,9 @@ function CHC_items_list:new(x, y, width, height, onmiddlemousedown)
     o.anchorTop = true
     o.anchorBottom = true
 
-    o.favoriteStar = getTexture("media/textures/itemFavoriteStar.png")
-    o.favCheckedTex = getTexture("media/textures/itemFavoriteStarChecked.png")
-    o.favNotCheckedTex = getTexture("media/textures/itemFavoriteStarOutline.png")
+    o.favoriteStar = getTexture('media/textures/itemFavoriteStar.png')
+    o.favCheckedTex = getTexture('media/textures/itemFavoriteStarChecked.png')
+    o.favNotCheckedTex = getTexture('media/textures/itemFavoriteStarOutline.png')
     o.onmiddlemousedown = onmiddlemousedown
     o.needmmb = false
     o.modData = CHC_main.playerModData

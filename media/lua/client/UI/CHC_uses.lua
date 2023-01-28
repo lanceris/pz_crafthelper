@@ -1,8 +1,8 @@
-require "ISUI/ISPanel"
+require 'ISUI/ISPanel'
 require 'ISUI/ISContextMenu'
-require "UI/CHC_tabs"
-require "UI/CHC_uses_recipelist"
-require "UI/CHC_uses_recipepanel"
+require 'UI/CHC_tabs'
+require 'UI/CHC_uses_recipelist'
+require 'UI/CHC_uses_recipepanel'
 
 local hh = {
     headers = 20,
@@ -11,13 +11,13 @@ local hh = {
 }
 
 local derivative = ISPanel
-CHC_uses = derivative:derive("CHC_uses")
-CHC_uses.sortOrderIconAsc = getTexture("media/textures/sort_order_asc.png")
-CHC_uses.sortOrderIconDesc = getTexture("media/textures/sort_order_desc.png")
-CHC_uses.typeFiltIconAll = getTexture("media/textures/type_filt_all.png")
-CHC_uses.typeFiltIconValid = getTexture("media/textures/type_filt_valid.png")
-CHC_uses.typeFiltIconKnown = getTexture("media/textures/type_filt_known.png")
-CHC_uses.typeFiltIconInvalid = getTexture("media/textures/type_filt_invalid.png")
+CHC_uses = derivative:derive('CHC_uses')
+CHC_uses.sortOrderIconAsc = getTexture('media/textures/sort_order_asc.png')
+CHC_uses.sortOrderIconDesc = getTexture('media/textures/sort_order_desc.png')
+CHC_uses.typeFiltIconAll = getTexture('media/textures/type_filt_all.png')
+CHC_uses.typeFiltIconValid = getTexture('media/textures/type_filt_valid.png')
+CHC_uses.typeFiltIconKnown = getTexture('media/textures/type_filt_known.png')
+CHC_uses.typeFiltIconInvalid = getTexture('media/textures/type_filt_invalid.png')
 
 local utils = require('CHC_utils')
 
@@ -49,20 +49,20 @@ function CHC_uses:create()
     local filterRowData = {
         filterOrderData = {
             width = hh.filter_row,
-            title = "",
+            title = '',
             onclick = self.sortByName,
             defaultTooltip = self:filterOrderSetTooltip(),
             defaultIcon = self:filterOrderSetIcon()
         },
         filterTypeData = {
             width = hh.filter_row,
-            title = "",
+            title = '',
             onclick = self.onFilterTypeMenu,
             defaultTooltip = self:filterTypeSetTooltip(),
             defaultIcon = self:filterTypeSetIcon()
         },
         filterSelectorData = {
-            defaultTooltip = getText("IGUI_invpanel_Category"),
+            defaultTooltip = getText('IGUI_invpanel_Category'),
             onChange = self.onChangeCategory
         }
     }
@@ -136,12 +136,12 @@ function CHC_uses:update()
 end
 
 function CHC_uses:updateRecipes(sl)
-    if type(sl) == "table" then sl = sl.text end
+    if type(sl) == 'table' then sl = sl.text end
     local categoryAll = self.categorySelectorDefaultOption
     local searchBar = self.searchRow.searchBar
     local recipes = self.ui_type == 'fav_recipes' and self.favrec or self.recipeSource
 
-    if sl == categoryAll and self.typeFilter == "all" and searchBar:getInternalText() == "" then
+    if sl == categoryAll and self.typeFilter == 'all' and searchBar:getInternalText() == '' then
         self:refreshObjList(recipes)
         return
     end
@@ -153,12 +153,12 @@ function CHC_uses:updateRecipes(sl)
     local filteredRecipes = {}
     for i = 1, #recipes do
         local rc = recipes[i].category
-        local rc_tr = getTextOrNull("IGUI_CraftCategory_" .. rc) or rc
+        local rc_tr = getTextOrNull('IGUI_CraftCategory_' .. rc) or rc
 
         local fav_cat_state = false
         local type_filter_state = false
         local search_state = false
-        local condFav1 = sl == "* " .. getText("IGUI_CraftCategory_Favorite")
+        local condFav1 = sl == '* ' .. getText('IGUI_CraftCategory_Favorite')
         local condFav2 = recipes[i].favorite
         if condFav1 and condFav2 then
             fav_cat_state = true
@@ -218,7 +218,7 @@ function CHC_uses:updateCategories(current)
         local curList = self.objList.items
         for i = 1, #curList do
             local cat = curList[i].item.recipeData.category
-            local catT = getTextOrNull("IGUI_CraftCategory_" .. cat) or cat
+            local catT = getTextOrNull('IGUI_CraftCategory_' .. cat) or cat
             if not curCats then curCats = {} end
             curCats[catT] = true
         end
@@ -230,7 +230,7 @@ function CHC_uses:updateCategories(current)
             self.favRecNum = self.favRecNum + 1
         end
         local rc = allrec[i].recipeData.category
-        rc = getTextOrNull("IGUI_CraftCategory_" .. rc) or rc
+        rc = getTextOrNull('IGUI_CraftCategory_' .. rc) or rc
         if (not current) or (current and (c1 or curCats[rc])) then
             if not utils.any(uniqueCategories, rc) then
                 uniqueCategories[c] = rc
@@ -339,10 +339,10 @@ function CHC_uses:onFilterTypeMenu(button)
     local context = ISContextMenu.get(0, x + 10, y)
 
     local data = {
-        { txt = "UI_All", num = self.numRecipesAll, arg = 'all' },
-        { txt = "UI_settings_av_valid", num = self.numRecipesValid, arg = 'valid' },
-        { txt = "UI_settings_av_known", num = self.numRecipesKnown, arg = 'known' },
-        { txt = "UI_settings_av_invalid", num = self.numRecipesInvalid, arg = 'invalid' }
+        { txt = 'UI_All', num = self.numRecipesAll, arg = 'all' },
+        { txt = 'UI_settings_av_valid', num = self.numRecipesValid, arg = 'valid' },
+        { txt = 'UI_settings_av_known', num = self.numRecipesKnown, arg = 'known' },
+        { txt = 'UI_settings_av_invalid', num = self.numRecipesInvalid, arg = 'invalid' }
     }
 
     local txt = nil
@@ -402,8 +402,8 @@ end
 
 -- region filterRow setters
 function CHC_uses:filterOrderSetTooltip()
-    local cursort = self.itemSortAsc and getText("IGUI_invpanel_ascending") or getText("IGUI_invpanel_descending")
-    return getText("UI_settings_st_title") .. " (" .. cursort .. ")"
+    local cursort = self.itemSortAsc and getText('IGUI_invpanel_ascending') or getText('IGUI_invpanel_descending')
+    return getText('UI_settings_st_title') .. ' (' .. cursort .. ')'
 end
 
 function CHC_uses:filterOrderSetIcon()
@@ -413,12 +413,12 @@ end
 function CHC_uses:filterTypeSetTooltip()
     local typeFilterToTxt = {
         all = self.categorySelectorDefaultOption,
-        valid = getText("UI_settings_av_valid"),
-        known = getText("UI_settings_av_known"),
-        invalid = getText("UI_settings_av_invalid")
+        valid = getText('UI_settings_av_valid'),
+        known = getText('UI_settings_av_known'),
+        invalid = getText('UI_settings_av_invalid')
     }
     local curtype = typeFilterToTxt[self.typeFilter]
-    return getText("UI_settings_av_title") .. " (" .. curtype .. ")"
+    return getText('UI_settings_av_title') .. ' (' .. curtype .. ')'
 end
 
 function CHC_uses:filterTypeSetIcon()
@@ -437,7 +437,7 @@ end
 function CHC_uses:filterSortMenuGetText(textStr, value)
     local txt = getTextOrNull(textStr) or textStr
     if value then
-        txt = txt .. " (" .. tostring(value) .. ")"
+        txt = txt .. ' (' .. tostring(value) .. ')'
     end
     return txt
 end
@@ -473,40 +473,40 @@ function CHC_uses:searchProcessToken(token, recipe)
         isSpecialSearch = true
         char = token:sub(1, 1)
         token = string.sub(token, 2)
-        if token == "" and char ~= "^" then return true end
+        if token == '' and char ~= '^' then return true end
     end
 
     local whatCompare
-    if isAllowSpecialSearch and char == "^" then
+    if isAllowSpecialSearch and char == '^' then
         -- show favorited reciped and search by them
         if not recipe.favorite then return false end
         whatCompare = string.lower(recipe.recipeData.name)
     end
-    if isAllowSpecialSearch and char == "&" then
+    if isAllowSpecialSearch and char == '&' then
         -- search by mod(ule) name of recipe
         whatCompare = string.lower(recipe.module)
     end
     if token and isSpecialSearch then
-        if char == "!" then
+        if char == '!' then
             -- search by recipe category
-            local catName = getTextOrNull("IGUI_CraftCategory_" .. recipe.category) or recipe.category
+            local catName = getTextOrNull('IGUI_CraftCategory_' .. recipe.category) or recipe.category
             whatCompare = catName
         end
         local resultItem = recipe.recipeData.result
         if resultItem and resultItem.fullType then
-            if char == "@" then
+            if char == '@' then
                 -- search by mod name of resulting item
                 whatCompare = resultItem.modname
-            elseif char == "$" then
+            elseif char == '$' then
                 -- search by DisplayCategory of resulting item
-                local displayCat = resultItem.displayCategory or ""
-                whatCompare = getText("IGUI_ItemCat_" .. displayCat) or "None"
-            elseif char == "%" then
+                local displayCat = resultItem.displayCategory or ''
+                whatCompare = getText('IGUI_ItemCat_' .. displayCat) or 'None'
+            elseif char == '%' then
                 -- search by name of resulting item
                 whatCompare = resultItem.displayName
             end
         end
-        if char == "#" then
+        if char == '#' then
             -- search by ingredients
             local rSources = recipe.recipe:getSource()
 
@@ -581,11 +581,11 @@ function CHC_uses:new(args)
     o.sep_x = args.sep_x
     o.itemSortFunc = o.itemSortAsc == true and CHC_uses.sortByNameAsc or CHC_uses.sortByNameDesc
     o.player = getPlayer()
-    o.favCatName = "* " .. getText("IGUI_CraftCategory_Favorite")
-    o.categorySelectorDefaultOption = getText("UI_All")
-    o.searchRowHelpText = getText("UI_searchrow_info",
-        getText("UI_searchrow_info_recipes_special"),
-        getText("UI_searchrow_info_recipes_examples")
+    o.favCatName = '* ' .. getText('IGUI_CraftCategory_Favorite')
+    o.categorySelectorDefaultOption = getText('UI_All')
+    o.searchRowHelpText = getText('UI_searchrow_info',
+        getText('UI_searchrow_info_recipes_special'),
+        getText('UI_searchrow_info_recipes_examples')
     )
 
     o.needUpdateFavorites = true
