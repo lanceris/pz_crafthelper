@@ -167,7 +167,7 @@ function CHC_uses:updateRecipes(sl)
         if (rc_tr == sl or sl == categoryAll) then
             type_filter_state = self:recipeTypeFilter(recipes[i])
         end
-        search_state = self:searchTypeFilter(recipes[i])
+        search_state = CHC_main.common.searchFilter(self, recipes[i], self.searchProcessToken)
 
         if (type_filter_state or fav_cat_state) and search_state then
             insert(filteredRecipes, recipes[i])
@@ -543,39 +543,6 @@ function CHC_uses:searchProcessToken(token, recipe)
     end
     state = utils.compare(whatCompare, token)
     if not token then state = true end
-    return state
-end
-
-function CHC_uses:searchTypeFilter(recipe)
-    local stateText = string.trim(self.searchRow.searchBar:getInternalText())
-    local tokens, isMultiSearch, queryType = CHC_search_bar:parseTokens(stateText)
-    local tokenStates = {}
-    local state = false
-
-    if not tokens then return true end
-
-    if isMultiSearch then
-        for i = 1, #tokens do
-            insert(tokenStates, self:searchProcessToken(tokens[i], recipe))
-        end
-        for i = 1, #tokenStates do
-            if queryType == 'OR' then
-                if tokenStates[i] then
-                    state = true
-                    break
-                end
-            end
-            if queryType == 'AND' and i > #tokenStates - 1 then
-                local allPrev = utils.all(tokenStates, true, 1, #tokenStates)
-                if allPrev and tokenStates[i] then
-                    state = true
-                    break
-                end
-            end
-        end
-    else -- one token
-        state = self:searchProcessToken(tokens[1], recipe)
-    end
     return state
 end
 

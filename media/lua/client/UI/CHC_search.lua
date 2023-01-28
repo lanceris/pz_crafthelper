@@ -269,7 +269,7 @@ function CHC_search:updateItems(sl)
         if (rc == sl or sl == categoryAll) then
             type_filter_state = self:itemTypeFilter(items[i])
         end
-        search_state = CHC_uses.searchTypeFilter(self, items[i])
+        search_state = CHC_main.common.searchFilter(self, items[i], self.searchProcessToken)
 
         if type_filter_state and search_state then
             insert(filteredItems, items[i])

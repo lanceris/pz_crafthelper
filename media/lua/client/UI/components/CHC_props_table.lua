@@ -67,7 +67,7 @@ function CHC_props_table:updatePropsList()
 
     local filteredProps = {}
     for i = 1, #props do
-        search_state = self:searchFilter(props[i])
+        search_state = CHC_main.common.searchFilter(self, props[i], self.searchProcessToken)
 
         if search_state then
             insert(filteredProps, props[i])
@@ -154,39 +154,6 @@ end
 
 function CHC_props_table:onTextChange()
     self.needUpdateObjects = true
-end
-
-function CHC_props_table:searchFilter(prop)
-    local stateText = string.trim(self.searchRow.searchBar:getInternalText())
-    local tokens, isMultiSearch, queryType = CHC_search_bar:parseTokens(stateText)
-    local tokenStates = {}
-    local state = false
-
-    if not tokens then return true end
-
-    if isMultiSearch then
-        for i = 1, #tokens do
-            insert(tokenStates, self:searchProcessToken(tokens[i], prop))
-        end
-        for i = 1, #tokenStates do
-            if queryType == 'OR' then
-                if tokenStates[i] then
-                    state = true
-                    break
-                end
-            end
-            if queryType == 'AND' and i > #tokenStates - 1 then
-                local allPrev = utils.all(tokenStates, true, 1, #tokenStates)
-                if allPrev and tokenStates[i] then
-                    state = true
-                    break
-                end
-            end
-        end
-    else -- one token
-        state = self:searchProcessToken(tokens[1], prop)
-    end
-    return state
 end
 
 -- search rules
