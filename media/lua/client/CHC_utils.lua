@@ -4,6 +4,7 @@ local lower = string.lower
 local tostring = tostring
 local len = string.len
 local sub = string.sub
+local contains = string.contains
 
 
 CHC_utils.Deque = {}
@@ -85,41 +86,70 @@ end
 ---@param passAll? boolean return true if true without checks
 ---@return boolean #result of comparison
 CHC_utils.compare = function(what, to, passAll)
-    local contains = string.contains
     local isNegate = sub(to, 1, 1) == "~"
     if isNegate then to = sub(to, 2) end -- remove ~ from token
     if to == "" then return true end
     if passAll then return true end
     local isList = type(what) == "table"
-    to = lower(tostring(to))
+    local isOperand = CHC_utils.any({ ">", "<", "=" }, sub(to, 1, 1))
+    local operand
+    if isOperand then
+        operand = sub(to, 1, 1)
+        to = sub(to, 2)
+    end
+
     local state = false
-    if not isList then
-        what = lower(tostring(what))
-        if isNegate then
-            if not contains(what, to) then
-                state = true
-            end
-        else
-            if contains(what, to) then
-                state = true
+
+    if isOperand then
+        if (not tonumber(what) or
+            not tonumber(to) or
+            to == "") then
+            return true
+        end
+        if operand == ">" then
+            state = tonumber(what) > tonumber(to)
+        elseif operand == "<" then
+            state = tonumber(what) < tonumber(to)
+        elseif operand == "=" then
+            if isNegate then
+                state = tonumber(what) ~= tonumber(to)
+            else
+                state = tonumber(what) == tonumber(to)
             end
         end
+
     else
-        for i = 1, #what do
-            local wh = lower(tostring(what[i]))
-            if isNegate then -- this is not working atm (so '#~smth' will not work)
-                if not contains(wh, to) then
+        to = lower(tostring(to))
+        if not isList then
+            what = lower(tostring(what))
+            if isNegate then
+                if not contains(what, to) then
                     state = true
-                    break
                 end
             else
-                if contains(wh, to) then
+                if contains(what, to) then
                     state = true
-                    break
+                end
+            end
+        else
+            for i = 1, #what do
+                local wh = lower(tostring(what[i]))
+                if isNegate then -- this is not working atm (so '#~smth' will not work)
+                    if not contains(wh, to) then
+                        state = true
+                        break
+                    end
+                else
+                    if contains(wh, to) then
+                        state = true
+                        break
+                    end
                 end
             end
         end
     end
+
+
     return state
 end
 

@@ -140,7 +140,8 @@ CHC_main.getItemProps = function(item)
 			local strVal = KahluaUtil.rawTostring2(getClassFieldVal(item, meth))
 			local methName = meth:getName()
 			if strVal and CHC_settings.mappings.ignoredItemProps[methName:lower()] == nil then
-				insert(props, { name = methName, value = strVal })
+				local val = tonumber(strVal)
+				insert(props, { name = methName, value = val and val or strVal })
 			end
 		end
 	end
