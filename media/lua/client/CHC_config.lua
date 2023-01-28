@@ -1,7 +1,10 @@
 require 'luautils'
 require 'UI/CHC_menu'
 
+local utils = require('CHC_utils')
 
+local config_name = 'craft_helper_config.json'
+local mappings_name = 'CHC_mappings.json'
 
 CHC_settings = {
     config = {},
@@ -33,11 +36,7 @@ CHC_settings = {
             }
         }
     },
-    mappings = {
-        ignoredItemProps = {
-            modelweaponpart = true,
-        }
-    }
+    mappings = {}
 }
 
 local init_cfg = {
@@ -63,6 +62,11 @@ local init_cfg = {
         items = { sep_x = 500, filter_asc = true, filter_type = 'all' },
         recipes = { sep_x = 500, filter_asc = true, filter_type = 'all' }
     }
+}
+
+local init_mappings = {
+    ignoredItemProps = {},
+    pinnedItemProps = {}
 }
 
 local function onModOptionsApply(values)
@@ -210,45 +214,46 @@ else
     CHC_settings.config.close_all_on_exit = false
 end
 
-local Json = require('CHC_json')
-local cfg_name = 'craft_helper_config.json'
 
 CHC_settings.Save = function()
-    local fileWriterObj = getFileWriter(cfg_name, true, false)
-    local json = Json.Encode(CHC_settings.config)
-    fileWriterObj:write(json)
-    fileWriterObj:close()
+    utils.jsonutil.Save(config_name, CHC_settings.config)
 end
 
 CHC_settings.Load = function()
-    local fileReaderObj = getFileReader(cfg_name, true)
-    local json = ''
-    local line = fileReaderObj:readLine()
-    while line ~= nil do
-        json = json .. line
-        line = fileReaderObj:readLine()
-    end
-    fileReaderObj:close()
+    local config = utils.jsonutil.Load(config_name)
 
-    if json and json ~= '' then
-        CHC_settings.config = Json.Decode(json)
-    else
-        CHC_settings.config = init_cfg
+    if not config then
+        config = init_cfg
         CHC_settings.Save()
     end
-    CHC_settings.checkConfig()
+    CHC_settings.checkConfig(config)
+    CHC_settings.config = config
 end
 
-
-CHC_settings.checkConfig = function()
+CHC_settings.checkConfig = function(config)
     local shouldReSave = false
     for name, _ in pairs(init_cfg) do
-        if CHC_settings.config[name] == nil then
-            CHC_settings.config[name] = init_cfg[name]
+        if config[name] == nil then
+            config[name] = init_cfg[name]
             shouldReSave = true
         end
     end
     if shouldReSave == true then
         CHC_settings.Save()
     end
+end
+
+
+CHC_settings.SavePropsData = function()
+    utils.jsonutil.Save(mappings_name, CHC_settings.mappings)
+    print("Saved props data")
+end
+
+CHC_settings.LoadPropsData = function()
+    local config = utils.jsonutil.Load(mappings_name)
+    if not config then
+        config = init_mappings
+        CHC_settings.SavePropsData()
+    end
+    CHC_settings.mappings = config
 end

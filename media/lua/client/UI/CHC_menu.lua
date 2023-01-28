@@ -6,6 +6,7 @@ CHC_menu = {}
 --- loads config and creates window instance
 CHC_menu.createCraftHelper = function()
 	CHC_settings.Load()
+	CHC_settings.LoadPropsData()
 	local options = CHC_settings.config
 
 	local args = {

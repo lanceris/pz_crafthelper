@@ -369,6 +369,7 @@ function CHC_window:close()
     CHC_menu.toggleUI()
     self:serializeWindowData()
     CHC_settings.Save()
+    CHC_settings.SavePropsData()
 
 end
 

@@ -139,9 +139,9 @@ CHC_main.getItemProps = function(item)
 		if meth.getType then
 			local strVal = KahluaUtil.rawTostring2(getClassFieldVal(item, meth))
 			local methName = meth:getName()
-			if strVal and CHC_settings.mappings.ignoredItemProps[methName:lower()] == nil then
+			if strVal then
 				local val = tonumber(strVal)
-				insert(props, { name = methName, value = val and val or strVal })
+				insert(props, { name = methName, value = val and math.floor(val * 10000) / 10000 or strVal })
 			end
 		end
 	end
@@ -236,12 +236,6 @@ CHC_main.loadAllItems = function(am)
 			nbItems = nbItems + 1
 		end
 	end
-	-- for k, v in pairs(CHC_main.hydroDuplicates) do
-	-- 	if #v == 2 and v[1].modname ~= v[2].modname then
-	-- 		insert(CHC_main.hd, k)
-	-- 	end
-	-- end
-	-- utils.jsonutil.Save('temp.json', CHC_main.hd)
 	showTime(now, 'All Items')
 	print(nbItems .. ' items loaded.')
 end

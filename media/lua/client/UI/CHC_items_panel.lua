@@ -154,7 +154,9 @@ function CHC_items_panel:setObj(item)
     if not utils.empty(objProps) then
         for _, prop in ipairs(objProps) do
             self.itemProps.objList:addItem(prop.name, prop)
+
         end
+        self.itemProps.needUpdateObjects = true
         self.itemProps:setVisible(true)
     else
         self.itemProps:setVisible(false)
