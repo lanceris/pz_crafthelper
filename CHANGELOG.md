@@ -7,12 +7,14 @@
 - Item attributes table to item details screen
 - Ability to search by attributes and/or values (inside table)
 - New search mode for item list ($) - search by attributes
+- Added pinned/blacklisted item attributes
 
 ### Improvements
 
 - Refactored RMB click event handlers (added common actions on RMB and Shift+RMB (debug only) for item/recipe lists/detail icons and recipe ingredients)
 - Inline search with comparison operators ("damage>20", "ranged=true")
 - Attribute names/values are copyable by RMB
+- Added onRMB click actions for attribute list (copy, pin, blacklist)
 
 ## 1.6.4 (19.01.2023, workshop release)
 

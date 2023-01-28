@@ -77,6 +77,10 @@ function CHC_props_table:updatePropsList()
         end
     end
     self:refreshObjList(filteredProps)
+    if self.savedPos ~= -1 then
+        self.objList:ensureVisible(self.savedPos >= #self.objList.items and #self.objList.items or self.savedPos)
+        self.savedPos = -1
+    end
 end
 
 -- endregion
@@ -90,13 +94,21 @@ function CHC_props_table:drawProps(y, item, alt)
     local a = 0.9
     local xoffset = 10
 
-    if self.selected == item.index then
-        self:drawRect(0, (y), self:getWidth(), self.itemheight, 0.3, 0.7, 0.35, 0.15);
-    end
+    local rectP = { r = 0.3, g = 0.6, b = 0.35, a = 0 }
 
     if alt then
-        self:drawRect(0, (y), self:getWidth(), self.itemheight, 0.3, 0.6, 0.5, 0.5);
+        rectP = { r = 0.3, g = 0.6, b = 0.5, a = 0.5 }
     end
+
+    if self.selected == item.index then
+        rectP = { r = 0.3, g = 1, b = 0.35, a = 0.7 }
+    end
+
+    if CHC_settings.mappings.pinnedItemProps[item.item.name:lower()] then
+        rectP = { r = 1, g = 0.1, b = 0.35, a = 1 }
+    end
+
+    self:drawRect(0, (y), self:getWidth(), self.itemheight, rectP.r, rectP.g, rectP.b, rectP.a)
 
     self:drawRectBorder(0, (y), self:getWidth(), self.itemheight, a, self.borderColor.r, self.borderColor.g,
         self.borderColor.b)
@@ -146,14 +158,61 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
 
     -- item.name, item.value
     local context = ISContextMenu.get(0, getMouseX() + 10, getMouseY())
+    local pinned = CHC_settings.mappings.pinnedItemProps
+    local blacklisted = CHC_settings.mappings.ignoredItemProps
+
     local function chccopy(_, param)
         if param then
             Clipboard.setClipboard(param)
         end
     end
 
-    context:addOption("Copy name", self, chccopy, item.name)
-    context:addOption("Copy value", self, chccopy, item.value)
+    local function triggerUpdate()
+        self.parent.savedPos = self:rowAt(x, y)
+        self.parent.needUpdateObjects = true
+    end
+
+    local function pin(_, val, reverse)
+        if reverse then
+            pinned[val] = nil
+        else
+            pinned[val] = true
+        end
+        triggerUpdate()
+    end
+
+    local function unpinAll(_)
+        CHC_settings.mappings.pinnedItemProps = {}
+        triggerUpdate()
+    end
+
+    local function blacklist(_, val, reverse)
+        if reverse then
+            blacklisted[val] = nil
+        else
+            blacklisted[val] = true
+        end
+        triggerUpdate()
+    end
+
+    context:addOption("Copy name (" .. item.name .. ")", self, chccopy, item.name)
+    context:addOption("Copy value (" .. tostring(item.value) .. ")", self, chccopy, item.value)
+
+    local name = tostring(item.name:lower())
+    if pinned[name] then
+        context:addOption("Unpin", self, pin, name, true)
+    else
+        context:addOption("Pin", self, pin, name, false)
+    end
+    if blacklisted[name] then
+        context:addOption("Unblacklist", self, blacklist, name, true)
+    else
+        context:addOption("Blacklist", self, blacklist, name, false)
+    end
+
+    if isShiftKeyDown() then
+        context:addOption("Unpin all", self, unpinAll)
+    end
 
 end
 
@@ -166,16 +225,41 @@ function CHC_props_table:refreshObjList(props)
     self.objList:clear()
     self.objList:setScrollHeight(0)
 
+    local blacklisted = CHC_settings.mappings.ignoredItemProps
+    local pinned = CHC_settings.mappings.pinnedItemProps
+
+    local pinnedItems = {}
+    local nonPinnedItems = {}
     for i = 1, #props do
-        self:processAddObjToObjList(props[i], self.modData)
+        if pinned[props[i].name:lower()] then
+            insert(pinnedItems, props[i])
+        else
+            insert(nonPinnedItems, props[i])
+        end
+    end
+
+    local function tableConcat(t1, t2)
+        for i = 1, #t2 do
+            t1[#t1 + 1] = t2[i]
+        end
+        return t1
+    end
+
+    local sortFunc = function(a, b) return a.name:upper() < b.name:upper() end
+    sort(pinnedItems, sortFunc)
+    sort(nonPinnedItems, sortFunc)
+
+    local items = tableConcat(pinnedItems, nonPinnedItems)
+
+    for i = 1, #items do
+        self:processAddObjToObjList(pinnedItems[i], blacklisted)
     end
     -- TODO: add filter button
-    local sortFunc = function(a, b) return a.item.name:upper() < b.item.name:upper() end
-    sort(self.objList.items, sortFunc)
 end
 
-function CHC_props_table:processAddObjToObjList(prop, modData)
+function CHC_props_table:processAddObjToObjList(prop, bl)
     local name = prop.name
+    if bl[name:lower()] then return end
     self.objList:addItem(name, prop)
 end
 
@@ -249,6 +333,7 @@ function CHC_props_table:new(args)
     o.modData = CHC_main.playerModData
 
     o.needUpdateObjects = false
+    o.savedPos = -1
 
     return o
 end
