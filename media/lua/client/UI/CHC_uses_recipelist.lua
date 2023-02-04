@@ -205,16 +205,17 @@ end
 -- endregion
 
 
-function CHC_uses_recipelist:new(x, y, width, height)
+function CHC_uses_recipelist:new(args)
 	local o = {}
 
-	o = ISScrollingListBox:new(x, y, width, height)
+	o = ISScrollingListBox:new(args.x, args.y, args.w, args.h)
 	setmetatable(o, self)
 	self.__index = self
 	o.backgroundColor = { r = 0, g = 0, b = 0, a = 0 }
 	o.borderColor = { r = 0.4, g = 0.4, b = 0.4, a = 0.9 }
 	o.anchorTop = true
 	o.anchorBottom = true
+	o.backRef = args.backRef
 	local player = getPlayer()
 	o.player = player
 	o.character = player

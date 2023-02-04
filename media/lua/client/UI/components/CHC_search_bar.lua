@@ -37,7 +37,7 @@ function CHC_search_bar:create()
     x = self.searchBtn.width
 
     self.searchBar = ISTextEntryBox:new('', x, 0, w - self.searchBtn.width, h)
-    self.searchBar.font = UIFont.Medium -- TODO: move to options
+    self.searchBar.font = UIFont.Small -- TODO: move to options
     self.searchBar:setTooltip(self.searchBarTooltip)
     self.searchBar:initialise()
     self.searchBar:instantiate()
@@ -159,17 +159,14 @@ end
 
 -- endregion
 
-function CHC_search_bar:new(x, y, width, height, searchBarTooltip, onTextChange, searchBtnOnClickText)
+function CHC_search_bar:new(args, searchBarTooltip, onTextChange, searchBtnOnClickText)
     local o = {};
-    o = derivative:new(x, y, width, height)
+    o = derivative:new(args.x, args.y, args.w, args.h)
 
     setmetatable(o, self)
     self.__index = self
 
-    o.x = x
-    o.y = y
-    o.w = width
-    o.h = height
+    o.backRef = args.backRef
     o.background = false
     o.searchBtnOnClickText = searchBtnOnClickText
     o.onTextChangeSB = onTextChange

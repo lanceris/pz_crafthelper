@@ -67,20 +67,22 @@ function CHC_uses:create()
         }
     }
 
-    self.filterRow = CHC_filter_row:new(x, y, leftW, hh.filter_row, filterRowData)
+    self.filterRow = CHC_filter_row:new({ x = x, y = y, w = leftW, h = hh.filter_row, backRef = self.backRef },
+        filterRowData)
     self.filterRow:initialise()
     local leftY = y + hh.filter_row
     -- endregion
 
     -- region search bar
-    self.searchRow = CHC_search_bar:new(x, leftY, leftW, hh.search_row, nil, self.onTextChange, self.searchRowHelpText)
+    self.searchRow = CHC_search_bar:new({ x = x, y = leftY, w = leftW, h = hh.search_row, backRef = self.backRef }, nil,
+        self.onTextChange, self.searchRowHelpText)
     self.searchRow:initialise()
     leftY = leftY + hh.search_row
     -- endregion
 
     -- region recipe list
     local rlh = self.height - self.headers.height - self.filterRow.height - self.searchRow.height
-    self.objList = CHC_uses_recipelist:new(x, leftY, leftW, rlh)
+    self.objList = CHC_uses_recipelist:new({ x = x, y = leftY, w = leftW, h = rlh, backRef = self.backRef })
     self.objList.drawBorder = true
     self.objList.onRightMouseDown = self.onRMBDownObjList
     self.objList:initialise()
@@ -91,7 +93,7 @@ function CHC_uses:create()
 
     -- region recipe details windows
     local rph = self.height - self.headers.height
-    self.objPanel = CHC_uses_recipepanel:new(rightX, y, rightW, rph)
+    self.objPanel = CHC_uses_recipepanel:new({ x = rightX, y = y, w = rightW, h = rph, backRef = self.backRef })
     self.objPanel.drawBorder = true
     self.objPanel:initialise()
     self.objPanel:instantiate()

@@ -57,17 +57,18 @@ function CHC_filter_row:onResize()
     self.categorySelector:setWidth(self.width - self.filterOrderBtn.width - self.filterTypeBtn.width)
 end
 
-function CHC_filter_row:new(x, y, width, height, filtersData)
-    local o = {};
-    o = derivative:new(x, y, width, height)
+function CHC_filter_row:new(args, filtersData)
+    local x = args.x
+    local y = args.y
+    local w = args.w
+    local h = args.h
+    local o = {}
+    o = derivative:new(x, y, w, h)
 
     setmetatable(o, self)
     self.__index = self
 
-    o.x = x
-    o.y = y
-    o.w = width
-    o.h = height
+    o.backRef = args.backRef
     o.filterOrderData = filtersData.filterOrderData
     o.filterTypeData = filtersData.filterTypeData
     o.filterSelectorData = filtersData.filterSelectorData

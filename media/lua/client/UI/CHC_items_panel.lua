@@ -94,7 +94,8 @@ function CHC_items_panel:createChildren()
         x = self.margin,
         y = y,
         w = self.width - 2 * self.margin,
-        h = self.height - self.mainInfo.height - 3 * self.padY
+        h = self.height - self.mainInfo.height - 3 * self.padY,
+        backRef = self.backRef
     }
     self.itemProps = CHC_props_table:new(props_table_args)
     self.itemProps:initialise()
@@ -239,9 +240,9 @@ end
 
 -- endregion
 
-function CHC_items_panel:new(x, y, w, h)
+function CHC_items_panel:new(args)
     local o = {}
-    o = ISPanel:new(x, y, w, h)
+    o = ISPanel:new(args.x, args.y, args.w, args.h)
     setmetatable(o, self)
     self.__index = self
 
@@ -252,6 +253,7 @@ function CHC_items_panel:new(x, y, w, h)
     o.anchorTop = true
     o.anchorBottom = false
 
+    o.backRef = args.backRef
     o.item = nil
 
     return o

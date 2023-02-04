@@ -129,20 +129,22 @@ function CHC_search:create()
         }
     }
 
-    self.filterRow = CHC_filter_row:new(x, y, leftW, 24, filterRowData)
+    self.filterRow = CHC_filter_row:new({ x = x, y = y, w = leftW, h = 24, backRef = self.backRef }, filterRowData)
     self.filterRow:initialise()
     local leftY = y + 24
     --endregion
 
     -- region search bar
-    self.searchRow = CHC_search_bar:new(x, leftY, leftW, 24, nil, self.onTextChange, self.searchRowHelpText)
+    self.searchRow = CHC_search_bar:new({ x = x, y = leftY, w = leftW, h = 24, backRef = self.backRef }, nil,
+        self.onTextChange, self.searchRowHelpText)
     self.searchRow:initialise()
     leftY = leftY + 24
     -- endregion
 
     -- region recipe list
     local rlh = self.height - self.headers.height - self.filterRow.height - self.searchRow.height
-    self.objList = CHC_items_list:new(x, leftY, leftW, rlh, self.onMMBDownObjList)
+    self.objList = CHC_items_list:new({ x = x, y = leftY, w = leftW, h = rlh, backRef = self.backRef },
+        self.onMMBDownObjList)
 
     self.objList.drawBorder = true
     self.objList.onRightMouseDown = self.onRMBDownObjList
@@ -154,7 +156,7 @@ function CHC_search:create()
     -- Add entries to recipeList
     -- self:cacheFullRecipeCount(self.itemSource)
     local iph = self.height - self.headers.height
-    self.objPanel = CHC_items_panel:new(rightX, y, rightW, iph)
+    self.objPanel = CHC_items_panel:new({ x = rightX, y = y, w = rightW, h = iph, backRef = self.backRef })
     self.objPanel:initialise()
     self.objPanel:instantiate()
     self.objPanel:setAnchorLeft(true)
@@ -381,8 +383,8 @@ function CHC_search:onTextChange()
 end
 
 function CHC_search:onRMBDownObjList(x, y, item)
-    local backref = self.parent.backRef
-    local context = backref.onRMBDownObjList(self, x, y, item)
+    local backRef = self.parent.backRef
+    local context = backRef.onRMBDownObjList(self, x, y, item)
 
     if not item then
         local row = self:rowAt(x, y)
@@ -395,8 +397,7 @@ function CHC_search:onRMBDownObjList(x, y, item)
     local cond2 = type(CHC_main.recipesForItem[item.fullType]) == 'table'
 
     if cond1 or cond2 then
-        context:addOption(getText('IGUI_new_tab'), backref, backref.addItemView, item.item, true, 2)
-        -- backref:addItemView(item, true)
+        context:addOption(getText('IGUI_new_tab'), backRef, backRef.addItemView, item.item, true, 2)
     end
 end
 
@@ -405,13 +406,12 @@ function CHC_search:onMMBDownObjList()
     local y = self:getMouseY()
     local row = self:rowAt(x, y)
     if row == -1 then return end
-    local backref = self.parent.backRef
     local item = self.items[row].item.item
     -- check if there is recipes for item
     local cond1 = type(CHC_main.recipesByItem[item:getFullType()]) == 'table'
     local cond2 = type(CHC_main.recipesForItem[item:getFullType()]) == 'table'
     if cond1 or cond2 then
-        backref:addItemView(item, false)
+        self.backRef:addItemView(item, false)
     end
 end
 

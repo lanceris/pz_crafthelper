@@ -239,10 +239,10 @@ end
 
 -- endregion
 
-function CHC_items_list:new(x, y, width, height, onmiddlemousedown)
+function CHC_items_list:new(args, onmiddlemousedown)
     local o = {}
 
-    o = ISScrollingListBox:new(x, y, width, height)
+    o = ISScrollingListBox:new(args.x, args.y, args.w, args.h)
     setmetatable(o, self)
     self.__index = self
     o.backgroundColor = { r = 0, g = 0, b = 0, a = 0 }

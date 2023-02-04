@@ -22,8 +22,9 @@ function CHC_props_table:createChildren()
     self.label:initialise()
     y = y + self.padY + self.label.height
 
-    -- region search bar
-    self.searchRow = CHC_search_bar:new(x, y, self.width - 2 * self.padX, 24, 'search by attributes',
+    self.searchRow = CHC_search_bar:new({ x = x + h, y = y, w = self.width - h - 2 * self.padX, h = h,
+        backRef = self.backRef },
+        'search by attributes',
         self.onTextChange, self.searchRowHelpText)
     self.searchRow:initialise()
     self.searchRow.drawBorder = false
@@ -238,13 +239,6 @@ function CHC_props_table:refreshObjList(props)
         end
     end
 
-    local function tableConcat(t1, t2)
-        for i = 1, #t2 do
-            t1[#t1 + 1] = t2[i]
-        end
-        return t1
-    end
-
     local sortFunc = function(a, b) return a.name:upper() < b.name:upper() end
     sort(pinnedItems, sortFunc)
     sort(nonPinnedItems, sortFunc)
@@ -331,6 +325,8 @@ function CHC_props_table:new(args)
     o.fonthgt = getTextManager():getFontHeight(o.font)
     o.padY = 5
     o.padX = 5
+
+    o.backRef = args.backRef
 
     o.searchRowHelpText = 'Help'
     o.modData = CHC_main.playerModData

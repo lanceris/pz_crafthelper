@@ -890,7 +890,8 @@ end
 
 
 function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y, item)
-    local context = self.parent.parent.backRef.onRMBDownObjList(self, x, y, item)
+    local backRef = self.parent.backRef
+    local context = backRef.onRMBDownObjList(self, x, y, item)
     if not item then
         local row = self:rowAt(x, y)
         if row == -1 or not row then return end
@@ -899,7 +900,6 @@ function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y, item)
         item = item.item
     end
     if not item.fullType then return end
-    local backref = self.parent.parent.backRef
     -- -- check if there is recipes for item
 
     item = CHC_main.items[item.fullType]
@@ -909,10 +909,10 @@ function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y, item)
 
     local function findItem()
         local viewName = getText('UI_search_tab_name')
-        backref:refresh(viewName) -- activate top level search view
-        backref:refresh(backref.uiTypeToView['search_items'].name,
-            backref.panel.activeView.view) -- activate Items subview
-        local view = backref:getActiveSubView()
+        backRef:refresh(viewName) -- activate top level search view
+        backRef:refresh(backRef.uiTypeToView['search_items'].name,
+            backRef.panel.activeView.view) -- activate Items subview
+        local view = backRef:getActiveSubView()
         local txt = string.format('#%s,%s', item.displayCategory, item.displayName)
         txt = string.lower(txt)
         view.searchRow.searchBar:setText(txt) -- set text to Items subview search bar
@@ -938,9 +938,10 @@ function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y, item)
         -- @@@ TODO
     end
 
-    context:addOption(getText('IGUI_find_item'), backref, findItem)
+    context:addOption(getText('IGUI_find_item'), backRef, findItem)
 
-    local newTabOption = context:addOption(getText('IGUI_new_tab'), backref, backref.addItemView, item.item, true, 2)
+    local newTabOption = context:addOption(getText('IGUI_new_tab'), backRef, backRef.addItemView, item.item,
+        true, 2)
 
     if not (cond1 or cond2) then
         local tooltip = ISToolTip:new()
@@ -968,7 +969,7 @@ function CHC_uses_recipepanel:onIngredientMouseDown(item)
         local isFav = self.modData[CHC_main.getFavItemModDataStr(item)] == true
         isFav = not isFav
         self.modData[CHC_main.getFavItemModDataStr(item)] = isFav or nil
-        self.parent.backRef.updateQueue:push({
+        self.backRef.updateQueue:push({
             targetView = 'fav_items',
             actions = { 'needUpdateFavorites', 'needUpdateObjects', 'needUpdateTypes', 'needUpdateCategories' }
         })
@@ -1077,9 +1078,9 @@ end
 
 -- endregion
 
-function CHC_uses_recipepanel:new(x, y, width, height)
+function CHC_uses_recipepanel:new(args)
     local o = {};
-    o = ISPanel:new(x, y, width, height);
+    o = ISPanel:new(args.x, args.y, args.w, args.h);
     setmetatable(o, self);
     self.__index = self;
 
@@ -1089,6 +1090,7 @@ function CHC_uses_recipepanel:new(x, y, width, height)
     o.blockMargin = 4
     o.anchorTop = true;
     o.anchorBottom = true;
+    o.backRef = args.backRef
     local player = getPlayer()
     o.player = player
     o.character = player
