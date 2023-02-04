@@ -197,7 +197,28 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
     end
 
     context:addOption("Copy name (" .. item.name .. ")", self, chccopy, item.name)
-    context:addOption("Copy value (" .. tostring(item.value) .. ")", self, chccopy, item.value)
+    local value = tostring(item.value)
+    if sub(value, 1, 1) == "[" then
+        value = "[list]"
+        if isShiftKeyDown() then
+            local val = tostring(item.value)
+            val = val:gsub("[%[%]]", "")
+            val = val:gsub(",", "|")
+            context:addOption("Copy value for search", self, chccopy, val)
+        end
+    end
+    if sub(value, 1, 1) == '"' then
+        -- try to interpret as an item
+        value = value:gsub('"', "")
+        if isShiftKeyDown() then
+            local itemFromStr = CHC_main.items[value]
+            if itemFromStr then
+                context = self.parent.backRef.onRMBDownObjList(self, nil, nil, itemFromStr, nil, context)
+            end
+        end
+    end
+    context:addOption("Copy value (" .. value .. ")", self, chccopy, item.value)
+
 
     local name = tostring(item.name:lower())
     if pinned[name] then
