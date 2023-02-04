@@ -163,7 +163,7 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
 
     local function chccopy(_, param)
         if param then
-            Clipboard.setClipboard(param)
+            Clipboard.setClipboard(tostring(param))
         end
     end
 
@@ -249,7 +249,10 @@ function CHC_props_table:refreshObjList(props)
     sort(pinnedItems, sortFunc)
     sort(nonPinnedItems, sortFunc)
 
-    local items = tableConcat(pinnedItems, nonPinnedItems)
+    local items = {}
+
+    for i = 1, #pinnedItems do insert(items, pinnedItems[i]) end
+    for i = 1, #nonPinnedItems do insert(items, nonPinnedItems[i]) end
 
     for i = 1, #items do
         self:processAddObjToObjList(pinnedItems[i], blacklisted)

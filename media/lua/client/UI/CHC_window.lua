@@ -392,7 +392,7 @@ function CHC_window:resizeHeaders(headers)
 end
 
 function CHC_window:onResize()
-    ISPanel.onResize(self)
+    ISCollapsableWindow.onResize(self)
 
     local ui = self
     if not ui.panel or not ui.panel.activeView then return end
@@ -433,7 +433,7 @@ end
 -- region logic
 
 -- Common options for RMBDown + init context
-function CHC_window:onRMBDownObjList(x, y, item, isrecipe)
+function CHC_window:onRMBDownObjList(x, y, item, isrecipe, context)
     isrecipe = isrecipe and true or false
     if not item then
         local row = self:rowAt(x, y)
@@ -448,11 +448,11 @@ function CHC_window:onRMBDownObjList(x, y, item, isrecipe)
     item = CHC_main.items[item.fullType]
     local cX = getMouseX()
     local cY = getMouseY()
-    local context = ISContextMenu.get(0, cX + 10, cY)
+    local context = context or ISContextMenu.get(0, cX + 10, cY)
 
     local function chccopy(_, param)
         if param then
-            Clipboard.setClipboard(param)
+            Clipboard.setClipboard(tostring(param))
         end
     end
 
@@ -471,15 +471,18 @@ function CHC_window:onRMBDownObjList(x, y, item, isrecipe)
 
     if getDebug() then
         if item.fullType then
-            local pInv = self.parent.player:getInventory()
-            local name = context:addOption('Add item', nil, nil)
-            local subMenuName = ISContextMenu:getNew(context)
-            context:addSubMenu(name, subMenuName)
+            local pInv = self.parent.player
+            if pInv then
+                pInv = pInv:getInventory()
+                local name = context:addOption('Add item', nil, nil)
+                local subMenuName = ISContextMenu:getNew(context)
+                context:addSubMenu(name, subMenuName)
 
-            subMenuName:addOption('1x', self.parent, function() pInv:AddItem(item.fullType) end)
-            subMenuName:addOption('2x', self.parent, function() for _ = 1, 2 do pInv:AddItem(item.fullType) end end)
-            subMenuName:addOption('5x', self.parent, function() for _ = 1, 5 do pInv:AddItem(item.fullType) end end)
-            subMenuName:addOption('10x', self.parent, function() for _ = 1, 10 do pInv:AddItem(item.fullType) end end)
+                subMenuName:addOption('1x', self.parent, function() pInv:AddItem(item.fullType) end)
+                subMenuName:addOption('2x', self.parent, function() for _ = 1, 2 do pInv:AddItem(item.fullType) end end)
+                subMenuName:addOption('5x', self.parent, function() for _ = 1, 5 do pInv:AddItem(item.fullType) end end)
+                subMenuName:addOption('10x', self.parent, function() for _ = 1, 10 do pInv:AddItem(item.fullType) end end)
+            end
         end
     end
     return context
@@ -883,5 +886,5 @@ function CHC_window:new(args)
     )
     o:setWantKeyEvents(true)
 
-    return o;
+    return o
 end

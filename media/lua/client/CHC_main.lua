@@ -21,6 +21,9 @@ local insert = table.insert
 local utils = require('CHC_utils')
 local print = utils.chcprint
 local pairs = pairs
+local sub = string.sub
+local rawToStr = KahluaUtil.rawTostring2
+local tonumber = tonumber
 
 local cacheFileName = 'CraftHelperLuaCache.json'
 local loadLua = false
@@ -132,13 +135,19 @@ CHC_main.parseOnGiveXP = function(recipeLua)
 end
 -- endregion
 
-CHC_main.getItemProps = function(item)
+CHC_main.getItemPropsDebug = function(item)
+	-- works only in debug mode as getClassField (Field) not exposed
 	local function processProp(props, propIdx)
 		local meth = getClassField(item, propIdx)
 
 		if meth.getType then
-			local strVal = KahluaUtil.rawTostring2(getClassFieldVal(item, meth))
+			local strVal = rawToStr(getClassFieldVal(item, meth))
 			local methName = meth:getName()
+			-- if methName then
+			-- 	if not CHC_main.itemProps[methName:lower()] then
+			-- 		CHC_main.itemProps[methName:lower()] = true
+			-- 	end
+			-- end
 			if strVal then
 				local val = tonumber(strVal)
 				insert(props, { name = methName, value = val and math.floor(val * 10000) / 10000 or strVal })
@@ -155,6 +164,112 @@ CHC_main.getItemProps = function(item)
 		processProp(objAttrs, i)
 	end
 	return objAttrs
+end
+
+CHC_main.getItemProps = function(item, itemType)
+	local map = CHC_settings.itemPropsByType
+	local typePropData = map[itemType]
+	local commonPropData = map["Common"]
+
+	local function formatOutput(propName, propVal)
+
+		if propName then
+			if sub(propName, 1, 3) == "get" then
+				propName = sub(propName, 4)
+			elseif sub(propName, 1, 2) == "is" then
+				propName = sub(propName, 3)
+			end
+		end
+		if propVal then
+			if type(propVal) ~= "string" then
+				propVal = math.floor(propVal * 10000) / 10000
+			end
+		end
+		return propName, propVal
+	end
+
+	local function processProp(item, prop, isTypeSpecific)
+		local propVal
+		local propName = prop.name
+		local mul = prop.mul
+		local defVal = prop.default
+		local isIgnoreDefVal = prop.ignoreDefault
+		propVal = item[propName](item)
+		if propVal then
+			propVal = rawToStr(propVal)
+			local val = tonumber(propVal)
+			if val then propVal = val end
+
+			if mul then propVal = propVal * mul end
+			if isIgnoreDefVal and propVal == defVal then
+				return
+			end -- ignore default values
+			propName, propVal = formatOutput(propName, propVal)
+			return { name = propName, value = propVal, isTypeSpecific = isTypeSpecific }
+		end
+	end
+
+	local function processPropGroup(item, propData, isTypeSpecific)
+
+		local props = {}
+		if not propData then return props end
+		for i = 1, #propData do
+			local _propData = processProp(item, propData[i], isTypeSpecific)
+			if propData[i].name == "getUseDelta" then
+				local _name, _val = formatOutput("UseDeltaTotal*", 1 / _propData.value)
+				insert(props, { name = _name, value = _val, isTypeSpecific = isTypeSpecific })
+			end
+			if _propData then
+				insert(props, _propData)
+			end
+		end
+		return props
+	end
+
+	local function postProcess(props)
+		local uniqueProps = {}
+		local dupedProps = {}
+		local result = {}
+		for i = 1, #props do
+			local prop = props[i]
+			if not uniqueProps[prop.name] then
+				uniqueProps[prop.name] = prop
+			else
+				dupedProps[prop.name] = true
+			end
+		end
+		if uniqueProps["Weight"].value == uniqueProps["ActualWeight"].value then
+			uniqueProps["ActualWeight"] = nil
+		end
+
+		for _, prop in pairs(uniqueProps) do
+			insert(result, prop)
+		end
+
+		return result, dupedProps
+	end
+
+	local props = {}
+	local typeProps
+	local dupedProps
+
+	local commonProps = processPropGroup(item, commonPropData, false)
+	if itemType == "Radio" then
+		typeProps = processPropGroup(item:getDeviceData(), typePropData, true)
+	else
+		typeProps = processPropGroup(item, typePropData, true)
+	end
+
+	for i = 1, #commonProps do insert(props, commonProps[i]) end
+	for i = 1, #typeProps do insert(props, typeProps[i]) end
+
+	props, dupedProps = postProcess(props)
+	-- if not utils.empty(dupedProps) then
+	-- 	CHC_main.dupedProps.items[item:getDisplayName()] = dupedProps
+	-- 	CHC_main.dupedProps.size = CHC_main.dupedProps.size + 1
+	-- end
+
+	return props
 end
 
 CHC_main.loadDatas = function()
@@ -191,9 +306,9 @@ CHC_main.processOneItem = function(item)
 			category = item:getTypeString(),
 			displayCategory = itemDisplayCategory and getTextOrNull('IGUI_ItemCat_' .. itemDisplayCategory) or
 				getText('IGUI_ItemCat_Item'),
-			texture = invItem:getTex(),
-			props = CHC_main.getItemProps(invItem)
+			texture = invItem:getTex()
 		}
+		toinsert.props = CHC_main.getItemProps(invItem, toinsert.category)
 		CHC_main.items[toinsert.fullType] = toinsert
 		insert(CHC_main.itemsForSearch, toinsert)
 	else
