@@ -15,16 +15,6 @@ end
 
 function CHC_items_panel:createChildren()
     ISPanel.createChildren(self)
-    -- common item properties
-    -- - fullType
-    -- - name
-    -- - weight
-    -- - category
-    -- - display category
-    -- - modname
-    -- - count (?)
-    -- - texture
-    -- - tooltip (?)
 
     local x, y = 5, 5
     local fnts = getTextManager():getFontHeight(UIFont.Small)
@@ -89,6 +79,21 @@ function CHC_items_panel:createChildren()
     y = y + self.mainInfo:getBottom()
     -- endregion
 
+    -- region stats list
+    local stats_args = {
+        x = self.margin,
+        y = y,
+        w = self.width - 2 * self.margin,
+        h = self.height - self.mainInfo.height - 3 * self.padY,
+        backRef = self.backRef
+    }
+
+    self.statsList = CHC_sectioned_panel:new(stats_args)
+    self.statsList.anchorBottom = true
+    self.statsList.maintainHeight = false
+    self.statsList:setVisible(false)
+    -- endregion
+
     -- region attributes
     local props_table_args = {
         x = self.margin,
@@ -98,19 +103,23 @@ function CHC_items_panel:createChildren()
         backRef = self.backRef
     }
     self.itemProps = CHC_props_table:new(props_table_args)
-    self.itemProps:initialise()
-    self.itemProps:setVisible(false)
-
+    self.itemProps:instantiate()
     -- endregion
 
     -- region distributions
-    -- item distributions UI
+    self.itemDistrib = CHC_props_table:new(props_table_args)
+    self.itemDistrib:instantiate()
     -- endregion
 
-
+    -- region fixing
+    self.itemFixing = CHC_props_table:new(props_table_args)
+    self.itemFixing:instantiate()
+    -- endregion
 
     self:addChild(self.mainInfo)
-    self:addChild(self.itemProps)
+    self:addChild(self.statsList)
+    self.statsList:setScrollChildren(true)
+    self.statsList:addScrollBars()
 
     self.mainX = mainX
     self.mainY = mainY
@@ -129,8 +138,8 @@ function CHC_items_panel:onResize()
         end
     end
 
-    self.itemProps:setWidth(self.parent.headers.typeHeader.width - self.margin - self.itemProps.x)
-    self.itemProps:setHeight(self.height - self.mainInfo.height - 3 * self.padY)
+    self.statsList:setWidth(self.parent.headers.typeHeader.width - self.margin - self.statsList.x)
+    self.statsList:setHeight(self.height - self.mainInfo.height - 4 * self.padY)
 
 end
 
@@ -150,19 +159,8 @@ end
 
 function CHC_items_panel:setObj(item)
     self.item = item
-    self.itemProps.objList:clear()
-    local objProps = self:collectItemProps(item)
-    if not utils.empty(objProps) then
-        for _, prop in ipairs(objProps) do
-            self.itemProps.objList:addItem(prop.name, prop)
 
-        end
-        self.itemProps.needUpdateObjects = true
-        self.itemProps:setVisible(true)
-    else
-        self.itemProps:setVisible(false)
-    end
-
+    -- region build main info
     self.mainImg:setImage(item.texture)
     if self.item.tooltip then
         self.mainImg:setTooltip(getText(self.item.tooltip))
@@ -204,6 +202,7 @@ function CHC_items_panel:setObj(item)
     self.mainInfo:setHeight(math.max(74, maxY))
     self.mainInfo:setVisible(true)
     -- self.mainImg.blinkImage = true
+    -- endregion
 
     -- self.itemDistribData = CHC_main.item_distrib[item.fullType]
     -- if self.itemDistribData then
@@ -211,6 +210,28 @@ function CHC_items_panel:setObj(item)
     -- else
     --     self.itemDistribData = nil
     -- end
+
+    -- region build props table
+    self.itemProps.objList:clear()
+    local objProps = self:collectItemProps(item)
+    if not utils.empty(objProps) then
+        for _, prop in ipairs(objProps) do
+            self.itemProps.objList:addItem(prop.name, prop)
+
+        end
+        self.itemProps.needUpdateObjects = true
+    end
+    -- endregion
+
+
+    self.statsList:clear()
+    self.statsList:setY(self.mainInfo.y + self.mainInfo:getBottom() + self.padY)
+
+    self.statsList:addSection(self.itemProps, "Attributes")
+    self.statsList:addSection(self.itemDistrib, "Distributions")
+    self.statsList:addSection(self.itemFixing, "Fixing")
+
+    self.statsList:setVisible(true)
 
     local list_search_txt = self.parent.searchRow.searchBar:getInternalText()
     if utils.startswith(list_search_txt, '$') then

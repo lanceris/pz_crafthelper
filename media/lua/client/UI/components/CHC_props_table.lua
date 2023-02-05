@@ -18,9 +18,25 @@ function CHC_props_table:createChildren()
     local x = self.padX
     local y = self.padY
 
-    self.label = ISLabel:new(x, y, self.fonthgt, 'Attributes', 1, 1, 1, 1, self.font, true)
-    self.label:initialise()
-    y = y + self.padY + self.label.height
+    self.optionsUI = CHC_options_ui:new({ x = self.backRef.x + self.backRef.width, y = self.backRef.y, w = 100, h = 150,
+        backRef = self.backRef })
+    self.optionsUI:initialise()
+    self.optionsUI:setTitle("Temp title")
+    self.optionsUI:setResizable(false)
+    self.optionsUI:setVisible(false)
+
+    -- self.label = ISLabel:new(x, y, self.fonthgt, 'Attributes', 1, 1, 1, 1, self.font, true)
+    -- self.label:initialise()
+    -- y = y + self.padY + self.label.height
+
+    -- region search bar row
+    local h = 20
+    self.optionsBtn = ISButton:new(x, y, h, h, "", self, self.onOptionsMouseDown)
+    self.optionsBtn:initialise()
+    self.optionsBtn.borderColor.a = 0
+    self.optionsBtn:setImage(self.optionsBtnIcon)
+    self.optionsBtn:setTooltip("testTooltip")
+
 
     self.searchRow = CHC_search_bar:new({ x = x + h, y = y, w = self.width - h - 2 * self.padX, h = h,
         backRef = self.backRef },
@@ -28,9 +44,9 @@ function CHC_props_table:createChildren()
         self.onTextChange, self.searchRowHelpText)
     self.searchRow:initialise()
     self.searchRow.drawBorder = false
-    y = y + 2 * self.padY + self.searchRow.height
+    y = y + self.padY + self.searchRow.height
     -- endregion
-    local props_h = self.height - self.searchRow.height - self.label.height - 4 * self.padY
+    local props_h = self.height - self.searchRow.height - 4 * self.padY -- - self.label.height
     self.objList = ISScrollingListBox:new(x, y, self.width - 2 * self.padX, props_h)
     self.objList:setFont(self.font)
 
@@ -41,14 +57,14 @@ function CHC_props_table:createChildren()
     self.objList:setY(self.objList.y + self.objList.itemheight)
     self.objList:setHeight(self.objList.height - self.objList.itemheight)
     self.objList.vscroll:setHeight(self.objList.height)
-    self.objList.drawBorder = true
+    self.objList.drawBorder = false
     self.objList.doDrawItem = self.drawProps
 
     -- TODO: add translation
     self.objList:addColumn('Name', 0)
     self.objList:addColumn('Value', self.width * 0.4)
 
-    self:addChild(self.label)
+    self:addChild(self.optionsBtn)
     self:addChild(self.searchRow)
     self:addChild(self.objList)
 
@@ -66,7 +82,7 @@ end
 
 function CHC_props_table:updatePropsList()
     local search_state
-    local props = self.parent.item.props
+    local props = self.parent.parent.parent.item.props
     if not props then return end
 
     local filteredProps = {}
@@ -88,9 +104,10 @@ end
 
 -- region render
 function CHC_props_table:drawProps(y, item, alt)
-    if y + self:getYScroll() + self.itemheight < 0 or y + self:getYScroll() >= self.height then
-        return y + self.itemheight
-    end
+    if y + self:getYScroll() >= self.height then return y + self.itemheight end
+    if y + self.itemheight + self:getYScroll() <= 0 then return y + self.itemheight end
+    if y < -self:getYScroll() - 1 then return y + self.itemheight; end
+    if y > self:getHeight() - self:getYScroll() + 1 then return y + self.itemheight; end
 
     local a = 0.9
     local xoffset = 10
@@ -136,11 +153,18 @@ function CHC_props_table:render()
 end
 
 function CHC_props_table:onResize()
-    self.searchRow:setWidth(self.width - 2 * self.padX)
+    -- ISPanel.onResize(self)
+    self.searchRow:setWidth(self.width - self.optionsBtn.width - 2 * self.padX)
     self.objList:setWidth(self.width - 2 * self.padX)
-    self.objList:setHeight(self.height - self.label.height - self.searchRow.height - 6 * self.padY -
-        self.objList.itemheight)
-    self.objList.vscroll:setHeight(self.objList.height)
+    self.objList.columns[2].size = self.objList.width * 0.4
+    -- self.objList:setHeight(self.searchRow.height + 2 * self.padY + (#self.objList.items + 1) * self.objList.itemheight)
+    -- local cmn = self.searchRow.height + self.padY
+    -- local objListHeight1 = cmn + (#self.objList.items + 1) * self.objList.itemheight
+    -- local objListHeight2 = self.height - (cmn + self.objList.itemheight)
+    -- local objListHeight = math.min(objListHeight1, objListHeight2)
+
+    -- self.objList:setHeight(objListHeight)
+    -- self:setHeight(cmn + self.objList.height)
 end
 
 -- endregion
@@ -169,8 +193,8 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
     end
 
     local function triggerUpdate()
-        self.parent.savedPos = self:rowAt(x, y)
-        self.parent.needUpdateObjects = true
+        self.parent.parent.parent.savedPos = self:rowAt(x, y)
+        self.parent.parent.parent.needUpdateObjects = true
     end
 
     local function pin(_, val, reverse)
@@ -238,6 +262,11 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
 
 end
 
+function CHC_props_table:onOptionsMouseDown(x, y)
+    CHC_menu.toggleUI(self.optionsUI)
+    self.optionsUI:setPosition()
+end
+
 -- endregion
 -- function CHC_props_table:addItem()
 
@@ -270,7 +299,7 @@ function CHC_props_table:refreshObjList(props)
     for i = 1, #nonPinnedItems do insert(items, nonPinnedItems[i]) end
 
     for i = 1, #items do
-        self:processAddObjToObjList(pinnedItems[i], blacklisted)
+        self:processAddObjToObjList(items[i], blacklisted)
     end
     -- TODO: add filter button
 end
@@ -351,6 +380,9 @@ function CHC_props_table:new(args)
 
     o.searchRowHelpText = 'Help'
     o.modData = CHC_main.playerModData
+    o.optionsBtnIcon = getTexture('media/textures/options_icon.png')
+
+    o.isOptionsOpen = false
 
     o.needUpdateObjects = false
     o.savedPos = -1
