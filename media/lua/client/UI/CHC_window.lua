@@ -457,7 +457,7 @@ function CHC_window:onRMBDownObjList(x, y, item, isrecipe, context)
     end
 
     if isShiftKeyDown() then
-        local name = context:addOption('Copy to clipboard', nil, nil)
+        local name = context:addOption(getText('IGUI_chc_Copy'), nil, nil)
         local subMenuName = ISContextMenu:getNew(context)
         context:addSubMenu(name, subMenuName)
         local itemType = self.parent.typeData and self.parent.typeData[item.category].tooltip or item.category
@@ -550,7 +550,6 @@ function CHC_window:onMainTabRightMouseDown(x, y)
     local tabIndex = self:getTabIndexAtX(x)
     if tabIndex <= 2 then return end -- dont interact with search and favorites
     local context = ISContextMenu.get(0, getMouseX() - 50, getMouseY() - 105)
-    -- context:addOption('Pin', self, CHC_window.togglePinTab, tabIndex)
     if #self.viewList > 3 then
         context:addOption(getText('IGUI_tab_ctx_close_others'), self, CHC_window.closeOtherTabs, tabIndex)
         context:addOption(getText('IGUI_CraftUI_Close') .. ' ' .. string.lower(getText('UI_All')),

@@ -37,6 +37,14 @@ IGUI_EN = {
     IGUI_ShowFavItemsInventoryTooltip = "Shows a blue star outline on an item in inventory (item must be in favorites)"
     IGUI_EditableCategorySelector = "Enable text input in category selector"
     IGUI_EditableCategorySelectorTooltip = "Change tab to apply"
+    IGUI_chc_Copy = "Copy"
+    IGUI_CopyNameProps_ctx = "Copy name"
+    IGUI_CopyValueProps_ctx = "Copy value"
+    IGUI_CopyValueSearchProps_ctx = "Copy value for search"
+    IGUI_PinProps_ctx = "Pin"
+    IGUI_UnpinProps_ctx = "Unpin"
+    IGUI_BlacklistProps_ctx = "Blacklist"
+    IGUI_UnblacklistProps_ctx = "Unblacklist"
 
 
 }

@@ -211,6 +211,11 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
         triggerUpdate()
     end
 
+    local function unblacklistAll(_)
+        CHC_settings.mappings.ignoredItemProps = {}
+        triggerUpdate()
+    end
+
     local function blacklist(_, val, reverse)
         if reverse then
             blacklisted[val] = nil
@@ -220,7 +225,7 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
         triggerUpdate()
     end
 
-    context:addOption("Copy name (" .. item.name .. ")", self, chccopy, item.name)
+    context:addOption(getText("IGUI_CopyNameProps_ctx") .. " (" .. item.name .. ")", self, chccopy, item.name)
     local value = tostring(item.value)
     if sub(value, 1, 1) == "[" then
         value = "[list]"
@@ -228,7 +233,7 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
             local val = tostring(item.value)
             val = val:gsub("[%[%]]", "")
             val = val:gsub(",", "|")
-            context:addOption("Copy value for search", self, chccopy, val)
+            context:addOption(getText("IGUI_CopyValueSearchProps_ctx"), self, chccopy, val)
         end
     end
     if sub(value, 1, 1) == '"' then
@@ -241,23 +246,26 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
             end
         end
     end
-    context:addOption("Copy value (" .. value .. ")", self, chccopy, item.value)
+    context:addOption(getText("IGUI_CopyValueProps_ctx") .. " (" .. value .. ")", self, chccopy, item.value)
 
 
     local name = tostring(item.name:lower())
     if pinned[name] then
-        context:addOption("Unpin", self, pin, name, true)
+        context:addOption(getText("IGUI_UnpinProps_ctx"), self, pin, name, true)
     else
-        context:addOption("Pin", self, pin, name, false)
+        context:addOption(getText("IGUI_PinProps_ctx"), self, pin, name, false)
     end
     if blacklisted[name] then
-        context:addOption("Unblacklist", self, blacklist, name, true)
+        context:addOption(getText("IGUI_UnblacklistProps_ctx"), self, blacklist, name, true)
     else
-        context:addOption("Blacklist", self, blacklist, name, false)
+        context:addOption(getText("IGUI_BlacklistProps_ctx"), self, blacklist, name, false)
     end
 
     if isShiftKeyDown() then
-        context:addOption("Unpin all", self, unpinAll)
+        context:addOption(getText("IGUI_UnpinProps_ctx") .. " " .. string.lower(getText("ContextMenu_All")), self,
+            unpinAll)
+        context:addOption(getText("IGUI_UnblacklistProps_ctx") .. " " .. string.lower(getText("ContextMenu_All")), self,
+            unblacklistAll)
     end
 
 end
