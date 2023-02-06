@@ -190,6 +190,7 @@ CHC_main.getItemProps = function(item, itemType)
 
 	local function processProp(item, prop, isTypeSpecific)
 		local propVal
+		local data
 		local propName = prop.name
 		local mul = prop.mul
 		local defVal = prop.default
@@ -201,11 +202,13 @@ CHC_main.getItemProps = function(item, itemType)
 			if val then propVal = val end
 
 			if mul then propVal = propVal * mul end
-			if isIgnoreDefVal and propVal == defVal then
-				return
-			end -- ignore default values
+
 			propName, propVal = formatOutput(propName, propVal)
-			return { name = propName, value = propVal, isTypeSpecific = isTypeSpecific }
+			data = { name = propName, value = propVal, isTypeSpecific = isTypeSpecific }
+			if isIgnoreDefVal and propVal == defVal then
+				data.ignore = true
+			end -- ignore default values
+			return data
 		end
 	end
 

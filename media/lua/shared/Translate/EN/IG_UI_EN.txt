@@ -18,6 +18,9 @@ IGUI_EN = {
     IGUI_TabSelectorModifierTooltip = "Modifier key(s) held down while selecting tabs ('%1' and '%2' keybinds)"
     IGUI_ShowRecipeModule = "Show recipe origin"
     IGUI_ShowRecipeModuleTooltip = "Display mod, where recipe came from. <LINE> Note: recipe 'mod' is just module, where this recipe was defined (in .txt file), some mods use default module ('Base')"
+    IGUI_ShowAllItemProps = "Show all item attributes"
+    IGUI_ShowAllItemPropsTooltip = "Most of item attributes with default values are hidden by default. If selected, all attributes will be shown"
+
     IGUI_CHC_ItemCat_AlarmClockClothing = "Wrist watch"
     IGUI_CHC_ItemCat_Drainable = "Drainable"
     IGUI_CHC_ItemCat_Map = "Map"

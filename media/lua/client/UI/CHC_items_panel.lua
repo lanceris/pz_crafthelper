@@ -213,12 +213,13 @@ function CHC_items_panel:setObj(item)
 
     -- region build props table
     self.itemProps.objList:clear()
+    self.itemProps.propData = nil
     local objProps = self:collectItemProps(item)
     if not utils.empty(objProps) then
-        for _, prop in ipairs(objProps) do
-            self.itemProps.objList:addItem(prop.name, prop)
-
+        for i = 1, #objProps do
+            self.itemProps.objList:addItem(objProps[i].name, objProps[i])
         end
+        self.itemProps.propData = objProps
         self.itemProps.needUpdateObjects = true
     end
     -- endregion
@@ -227,21 +228,32 @@ function CHC_items_panel:setObj(item)
     self.statsList:clear()
     self.statsList:setY(self.mainInfo.y + self.mainInfo:getBottom() + self.padY)
 
-    self.statsList:addSection(self.itemProps, "Attributes")
-    self.statsList:addSection(self.itemDistrib, "Distributions")
-    self.statsList:addSection(self.itemFixing, "Fixing")
+    self.statsList:addSection(self.itemProps, 'Attributes')
+    self.statsList:addSection(self.itemDistrib, 'Distributions')
+    self.statsList:addSection(self.itemFixing, 'Fixing')
 
     self.statsList:setVisible(true)
 
     local list_search_txt = self.parent.searchRow.searchBar:getInternalText()
     if utils.startswith(list_search_txt, '$') then
-        self.itemProps.searchRow.searchBar:setText(list_search_txt:gsub("%$", ""))
+        self.itemProps.searchRow.searchBar:setText(list_search_txt:gsub('%$', ''))
         self.itemProps.needUpdateObjects = true
     end
 end
 
 function CHC_items_panel:collectItemProps(item)
-    local objAttrs = item.props
+    local objAttrs = {}
+    if CHC_settings.config.show_all_props == true then
+        objAttrs = item.props
+    else
+        for i = 1, #item.props do
+            local prop = item.props[i]
+            if prop.ignore ~= true then
+                insert(objAttrs, prop)
+            end
+        end
+    end
+
     -- TODO: move to options (keep search query?)
     if false then
         -- will keep search quesry between item changes
@@ -253,8 +265,6 @@ function CHC_items_panel:collectItemProps(item)
 
     if objAttrs then
         sort(objAttrs, function(a, b) return a.name:upper() < b.name:upper() end)
-    else
-        objAttrs = {}
     end
     return objAttrs
 end

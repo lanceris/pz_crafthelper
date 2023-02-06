@@ -6,9 +6,10 @@
 
 - Item attributes table to item details screen
 - Ability to search by attributes and/or values (inside table)
-- New search mode for item list ($) - search by attributes
+- New search mode for items ($) - search by attributes
 - Pinned/blacklisted item attributes
 - Ability to search items from inventory (Shift + RMB on item in inventory)
+- Option to show all item attributes (by default OFF)
 
 ### Improvements
 

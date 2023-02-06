@@ -51,6 +51,7 @@ local init_cfg = {
     allow_special_search = true,
     show_hidden = false,
     close_all_on_exit = false,
+    show_all_props = false,
     main_window = { x = 100, y = 100, w = 1000, h = 600 },
     uses = { sep_x = 500, filter_asc = true, filter_type = 'all' },
     craft = { sep_x = 500, filter_asc = true, filter_type = 'all' },
@@ -81,6 +82,7 @@ local function onModOptionsApply(values)
     CHC_settings.config.show_icons = values.settings.options.show_icons
     CHC_settings.config.show_hidden = values.settings.options.show_hidden
     CHC_settings.config.close_all_on_exit = values.settings.options.close_all_on_exit
+    CHC_settings.config.show_all_props = values.settings.options.show_all_props
     if CHC_settings.config.main_window == nil then
         CHC_settings.Load()
     end
@@ -185,6 +187,13 @@ if ModOptions and ModOptions.getInstance then
                 default = false,
                 OnApplyMainMenu = onModOptionsApply,
                 OnApplyInGame = onModOptionsApply
+            },
+            show_all_props = {
+                name = 'IGUI_ShowAllItemProps',
+                tooltip = 'IGUI_ShowAllItemPropsTooltip',
+                default = false,
+                OnApplyMainMenu = onModOptionsApply,
+                OnApplyInGame = onModOptionsApply
             }
         },
         mod_id = 'CraftHelperContinued',
@@ -212,6 +221,7 @@ else
     CHC_settings.config.show_icons = true
     CHC_settings.config.show_hidden = false
     CHC_settings.config.close_all_on_exit = false
+    CHC_settings.config.show_all_props = false
 end
 
 

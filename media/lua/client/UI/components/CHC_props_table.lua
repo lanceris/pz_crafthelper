@@ -82,7 +82,7 @@ end
 
 function CHC_props_table:updatePropsList()
     local search_state
-    local props = self.parent.parent.parent.item.props
+    local props = self.propData
     if not props then return end
 
     local filteredProps = {}
@@ -385,6 +385,7 @@ function CHC_props_table:new(args)
     o.isOptionsOpen = false
 
     o.needUpdateObjects = false
+    o.propData = nil
     o.savedPos = -1
 
     return o
