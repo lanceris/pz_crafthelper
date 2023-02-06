@@ -56,10 +56,14 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
 		local favStr = isFav and getText('ContextMenu_Unfavorite') or getText('IGUI_CraftUI_Favorite')
 		local optName = favStr .. ' (' .. getText('IGUI_chc_context_onclick') .. ')'
 		context:addOption(optName, items, CHC_menu.toggleItemFavorite)
+
+		context:addOption(getText('IGUI_find_item') .. ' (' .. getText('IGUI_chc_context_onclick') .. ')', items,
+			CHC_menu.onCraftHelper, player, true)
 	end
 end
 
-CHC_menu.onCraftHelper = function(items, player)
+CHC_menu.onCraftHelper = function(items, player, itemMode)
+	itemMode = itemMode and true or false
 	local inst = CHC_menu.CHC_window
 	if inst == nil then
 		inst = CHC_menu.createCraftHelper()
@@ -71,11 +75,50 @@ CHC_menu.onCraftHelper = function(items, player)
 		if not instanceof(item, 'InventoryItem') then
 			item = item.items[1]
 		end
-		inst:addItemView(item)
+		if not itemMode then
+			inst:addItemView(item)
+		end
 	end
+	if itemMode then
+		local item = items[#items]
+		if not instanceof(item, 'InventoryItem') then item = item.items[1] end
+		item = CHC_main.items[item:getFullType()]
+		if item then
+			CHC_menu.onCraftHelperItem(inst, item)
+		end
+	end
+
 	if not inst:getIsVisible() then
 		inst:setVisible(true)
 		inst:addToUIManager()
+	end
+end
+
+CHC_menu.onCraftHelperItem = function(window_inst, item)
+	local backRef = window_inst
+	local viewName = getText('UI_search_tab_name')
+	backRef:refresh(viewName) -- activate top level search view
+	backRef:refresh(backRef.uiTypeToView['search_items'].name,
+		backRef.panel.activeView.view) -- activate Items subview
+	local view = backRef:getActiveSubView()
+	local txt = string.format('#%s,%s', item.displayCategory, item.displayName)
+	txt = string.lower(txt)
+	view.searchRow.searchBar:setText(txt) -- set text to Items subview search bar
+	view:updateItems(view.selectedCategory)
+	-- trigger wont do here because we need to wait until objList actually updated and im too lazy to implement event listener
+	-- view.needUpdateObjects = true
+	if #view.objList.items ~= 0 then
+		local it = view.objList.items
+		local c = 1
+		for i = 1, #it do
+			if string.lower(it[i].text) == string.lower(item.displayName) then c = i break end
+		end
+		view.objList.selected = c
+		view.objList:ensureVisible(c)
+		if view.objPanel then
+			view.objPanel:setObj(it[c].item)
+			-- view.needSyncFilters = true
+		end
 	end
 end
 

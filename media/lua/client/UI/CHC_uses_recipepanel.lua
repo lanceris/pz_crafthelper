@@ -907,38 +907,11 @@ function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y, item)
     local cond1 = type(CHC_main.recipesByItem[item.fullType]) == 'table'
     local cond2 = type(CHC_main.recipesForItem[item.fullType]) == 'table'
 
-    local function findItem()
-        local viewName = getText('UI_search_tab_name')
-        backRef:refresh(viewName) -- activate top level search view
-        backRef:refresh(backRef.uiTypeToView['search_items'].name,
-            backRef.panel.activeView.view) -- activate Items subview
-        local view = backRef:getActiveSubView()
-        local txt = string.format('#%s,%s', item.displayCategory, item.displayName)
-        txt = string.lower(txt)
-        view.searchRow.searchBar:setText(txt) -- set text to Items subview search bar
-        view:updateItems(view.selectedCategory)
-        -- trigger wont do here because we need to wait until objList actually updated and im too lazy to implement event listener
-        -- view.needUpdateObjects = true
-        if #view.objList.items ~= 0 then
-            local it = view.objList.items
-            local c = 1
-            for i = 1, #it do
-                if string.lower(it[i].text) == string.lower(item.displayName) then c = i break end
-            end
-            view.objList.selected = c
-            view.objList:ensureVisible(c)
-            if view.objPanel then
-                view.objPanel:setObj(it[c].item)
-                -- view.needSyncFilters = true
-            end
-        end
-    end
-
     local function addToFav()
         -- @@@ TODO
     end
 
-    context:addOption(getText('IGUI_find_item'), backRef, findItem)
+    context:addOption(getText('IGUI_find_item'), backRef, CHC_menu.onCraftHelperItem, item)
 
     local newTabOption = context:addOption(getText('IGUI_new_tab'), backRef, backRef.addItemView, item.item,
         true, 2)

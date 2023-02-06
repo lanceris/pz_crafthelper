@@ -246,7 +246,6 @@ end
 
 CHC_settings.SavePropsData = function()
     utils.jsonutil.Save(mappings_name, CHC_settings.mappings)
-    print("Saved props data")
 end
 
 CHC_settings.LoadPropsData = function()
