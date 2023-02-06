@@ -229,6 +229,16 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
         triggerUpdate()
     end
 
+    local function handleLongText(option, value, limit, tooltipDesc)
+        if value > limit then
+            local tooltip = ISToolTip:new()
+            tooltip:initialise()
+            tooltip:setVisible(false)
+            tooltip.description = tooltipDesc
+            option.toolTip = tooltip
+        end
+    end
+
     context:addOption(getText("IGUI_CopyNameProps_ctx") .. " (" .. item.name .. ")", self, chccopy, item.name)
     local value = tostring(item.value)
     if sub(value, 1, 1) == "[" then
@@ -237,7 +247,8 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
             local val = tostring(item.value)
             val = val:gsub("[%[%]]", "")
             val = val:gsub(",", "|")
-            context:addOption(getText("IGUI_CopyValueSearchProps_ctx"), self, chccopy, val)
+            local newOpt = context:addOption(getText("IGUI_CopyValueSearchProps_ctx"), self, chccopy, val)
+            handleLongText(newOpt, #val, 100, "Too long!") -- FIXME
         end
     end
     if sub(value, 1, 1) == '"' then
@@ -250,8 +261,9 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
             end
         end
     end
-    context:addOption(getText("IGUI_CopyValueProps_ctx") .. " (" .. value .. ")", self, chccopy, item.value)
-
+    local newOpt = context:addOption(getText("IGUI_CopyValueProps_ctx") .. " (" .. value .. ")", self, chccopy,
+        item.value)
+    handleLongText(newOpt, #value, 100, "Too long!")
 
     local name = tostring(item.name:lower())
     if pinned[name] then

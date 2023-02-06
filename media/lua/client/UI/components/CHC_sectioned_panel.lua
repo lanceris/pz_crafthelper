@@ -19,11 +19,16 @@ function Section:createChildren()
 
     if self.panel then
         self.panel:setY(self.headerButton:getBottom())
-        self.panel:setWidth(self.width)
+        self.panel:setWidth(self.width - 20)
         -- self.panel:setHeight(self.maxH)
         self.panel:setVisible(self.expanded)
         self.panel:setScrollChildren(true)
         self:addChild(self.panel)
+        if self.panel.objList then
+            self.panel.objList:setHeight(150) -- FIXME
+            -- self.panel.objList.vscroll:setHeight(150)
+            self.panel:setHeight(200)
+        end
     end
 
     self:calculateHeights()
@@ -42,7 +47,6 @@ function Section:onHeaderClick()
         end
     end
 
-
     self:calculateHeights()
 end
 
@@ -54,10 +58,6 @@ function Section:calculateHeights()
             height = height + self.panel:getHeight()
             -- height = math.min(height, self.maxHeight)
         end
-        if self.panel.objList then
-            self.panel.objList:setHeight(100)
-            self.panel:setHeight(300)
-        end
     end
     self:setHeight(height)
 end
@@ -65,7 +65,7 @@ end
 function Section:onResize()
     self:setWidth(self.parent.width)
     self.headerButton:setWidth(self.parent.width)
-    self.panel:setWidth(self.parent.width)
+    self.panel:setWidth(self.parent.width - 10)
     self:calculateHeights()
 end
 

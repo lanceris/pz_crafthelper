@@ -139,7 +139,7 @@ function CHC_items_panel:onResize()
     end
 
     self.statsList:setWidth(self.parent.headers.typeHeader.width - self.margin - self.statsList.x)
-    self.statsList:setHeight(self.height - self.mainInfo.height - 4 * self.padY)
+    -- self.statsList:setHeight(self.height - self.mainInfo.height - 4 * self.padY)
 
 end
 

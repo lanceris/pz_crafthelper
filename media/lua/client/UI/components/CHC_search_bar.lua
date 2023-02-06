@@ -130,6 +130,14 @@ function CHC_search_bar:searchBtnOnClick()
     end
 end
 
+function CHC_search_bar:setTooltip(text)
+    if not self.origTooltip then
+        self.origTooltip = self.searchBarTooltip
+    end
+    self.searchBarTooltip = text
+    self.searchBar:setTooltip(self.searchBarTooltip)
+end
+
 -- region event handlers
 
 function CHC_search_bar:onTextChange()
