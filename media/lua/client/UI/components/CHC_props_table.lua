@@ -18,12 +18,12 @@ function CHC_props_table:createChildren()
     local x = self.padX
     local y = self.padY
 
-    self.optionsUI = CHC_options_ui:new({ x = self.backRef.x + self.backRef.width, y = self.backRef.y, w = 100, h = 150,
-        backRef = self.backRef })
-    self.optionsUI:initialise()
-    self.optionsUI:setTitle("Temp title")
-    self.optionsUI:setResizable(false)
-    self.optionsUI:setVisible(false)
+    -- self.optionsUI = CHC_options_ui:new({ x = self.backRef.x + self.backRef.width, y = self.backRef.y, w = 100, h = 150,
+    --     backRef = self.backRef })
+    -- self.optionsUI:initialise()
+    -- self.optionsUI:setTitle("Temp title")
+    -- self.optionsUI:setResizable(false)
+    -- self.optionsUI:setVisible(false)
 
     -- self.label = ISLabel:new(x, y, self.fonthgt, 'Attributes', 1, 1, 1, 1, self.font, true)
     -- self.label:initialise()
@@ -31,14 +31,14 @@ function CHC_props_table:createChildren()
 
     -- region search bar row
     local h = 20
-    self.optionsBtn = ISButton:new(x, y, h, h, "", self, self.onOptionsMouseDown)
-    self.optionsBtn:initialise()
-    self.optionsBtn.borderColor.a = 0
-    self.optionsBtn:setImage(self.optionsBtnIcon)
-    self.optionsBtn:setTooltip("testTooltip")
+    -- self.optionsBtn = ISButton:new(x, y, h, h, "", self, self.onOptionsMouseDown)
+    -- self.optionsBtn:initialise()
+    -- self.optionsBtn.borderColor.a = 0
+    -- self.optionsBtn:setImage(self.optionsBtnIcon)
+    -- self.optionsBtn:setTooltip("testTooltip")
 
 
-    self.searchRow = CHC_search_bar:new({ x = x + h, y = y, w = self.width - h - 2 * self.padX, h = h,
+    self.searchRow = CHC_search_bar:new({ x = x, y = y, w = self.width - 2 * self.padX, h = h,
         backRef = self.backRef },
         'search by attributes',
         self.onTextChange, self.searchRowHelpText)
@@ -64,7 +64,7 @@ function CHC_props_table:createChildren()
     self.objList:addColumn('Name', 0)
     self.objList:addColumn('Value', self.width * 0.4)
 
-    self:addChild(self.optionsBtn)
+    -- self:addChild(self.optionsBtn)
     self:addChild(self.searchRow)
     self:addChild(self.objList)
 
@@ -125,6 +125,9 @@ function CHC_props_table:drawProps(y, item, alt)
     if CHC_settings.mappings.pinnedItemProps[item.item.name:lower()] then
         rectP = { r = 1, g = 0.1, b = 0.35, a = 1 }
     end
+    if CHC_settings.mappings.ignoredItemProps[item.item.name:lower()] then
+        rectP = { r = 0.15, g = 0.15, b = 0.15, a = 1 }
+    end
 
     self:drawRect(0, (y), self:getWidth(), self.itemheight, rectP.r, rectP.g, rectP.b, rectP.a)
 
@@ -154,7 +157,8 @@ end
 
 function CHC_props_table:onResize()
     -- ISPanel.onResize(self)
-    self.searchRow:setWidth(self.width - self.optionsBtn.width - 2 * self.padX)
+    self.searchRow:setWidth(self.width - 2 * self.padX)
+    -- self.searchRow:setWidth(self.width - self.optionsBtn.width - 2 * self.padX)
     self.objList:setWidth(self.width - 2 * self.padX)
     self.objList.columns[2].size = self.objList.width * 0.4
     -- self.objList:setHeight(self.searchRow.height + 2 * self.padY + (#self.objList.items + 1) * self.objList.itemheight)
@@ -193,8 +197,8 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
     end
 
     local function triggerUpdate()
-        self.parent.parent.parent.savedPos = self:rowAt(x, y)
-        self.parent.parent.parent.needUpdateObjects = true
+        self.parent.savedPos = self:rowAt(x, y)
+        self.parent.needUpdateObjects = true
     end
 
     local function pin(_, val, reverse)
@@ -270,10 +274,10 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
 
 end
 
-function CHC_props_table:onOptionsMouseDown(x, y)
-    CHC_menu.toggleUI(self.optionsUI)
-    self.optionsUI:setPosition()
-end
+-- function CHC_props_table:onOptionsMouseDown(x, y)
+--     CHC_menu.toggleUI(self.optionsUI)
+--     self.optionsUI:setPosition()
+-- end
 
 -- endregion
 -- function CHC_props_table:addItem()
@@ -288,33 +292,38 @@ function CHC_props_table:refreshObjList(props)
     local pinned = CHC_settings.mappings.pinnedItemProps
 
     local pinnedItems = {}
-    local nonPinnedItems = {}
+    local blacklistedItems = {}
+    local usualItems = {}
     for i = 1, #props do
         if pinned[props[i].name:lower()] then
             insert(pinnedItems, props[i])
+        elseif blacklisted[props[i].name:lower()] then
+            insert(blacklistedItems, props[i])
         else
-            insert(nonPinnedItems, props[i])
+            insert(usualItems, props[i])
         end
     end
 
     local sortFunc = function(a, b) return a.name:upper() < b.name:upper() end
     sort(pinnedItems, sortFunc)
-    sort(nonPinnedItems, sortFunc)
+    sort(usualItems, sortFunc)
+    sort(blacklistedItems, sortFunc)
 
     local items = {}
 
     for i = 1, #pinnedItems do insert(items, pinnedItems[i]) end
-    for i = 1, #nonPinnedItems do insert(items, nonPinnedItems[i]) end
+    for i = 1, #usualItems do insert(items, usualItems[i]) end
+    for i = 1, #blacklistedItems do insert(items, blacklistedItems[i]) end
 
     for i = 1, #items do
-        self:processAddObjToObjList(items[i], blacklisted)
+        self:processAddObjToObjList(items[i])
     end
     -- TODO: add filter button
 end
 
-function CHC_props_table:processAddObjToObjList(prop, bl)
+function CHC_props_table:processAddObjToObjList(prop)
     local name = prop.name
-    if bl[name:lower()] then return end
+    -- if bl[name:lower()] then return end
     self.objList:addItem(name, prop)
 end
 
@@ -388,7 +397,7 @@ function CHC_props_table:new(args)
 
     o.searchRowHelpText = 'Help'
     o.modData = CHC_main.playerModData
-    o.optionsBtnIcon = getTexture('media/textures/options_icon.png')
+    -- o.optionsBtnIcon = getTexture('media/textures/options_icon.png')
 
     o.isOptionsOpen = false
 
