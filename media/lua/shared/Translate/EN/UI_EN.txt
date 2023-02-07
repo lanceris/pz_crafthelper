@@ -108,11 +108,18 @@ UI_EN = {
                                         "<SIZE:medium> & <SIZE:small> <SPACE><SPACE>(ampersand) - search by mod name of recipe ('Base' for vanilla 'mod') <LINE>"
     UI_searchrow_info_items_special =   "<SIZE:medium> ! <SIZE:small> <SPACE><SPACE>(exclamation mark) - search by item type <LINE>"..
                                         "<SIZE:medium> @ <SIZE:small> <SPACE><SPACE>(at sign) - search by mod name of item ('Project Zomboid' for vanilla 'mod') <LINE>"..
-                                        "<SIZE:medium> # <SIZE:small> <SPACE><SPACE>(number sign) - search by item category (shown in right side of inventory panel) <LINE>"
-    
+                                        "<SIZE:medium> # <SIZE:small> <SPACE><SPACE>(number sign) - search by item category (shown in right side of inventory panel) <LINE>"..
+                                        "<SIZE:medium> $ <SIZE:small> <SPACE><SPACE>(dollar sign) - search by item attributes <LINE>"
+    UI_searchrow_info_item_attributes_special = "<SIZE:medium> ! <SIZE:small> <SPACE><SPACE>(exclamation mark) - search by attribute name <LINE>"..
+                                                "<SIZE:medium> @ <SIZE:small> <SPACE><SPACE>(at sign) - search by attribute value <LINE>"
+
     -- %2
     UI_searchrow_info_recipes_examples = "#hamm <SPACE><SPACE>- show recipes which ingredients include something with 'hamm' in name <LINE>"..
                                          "@hydrocra,!engineer,#saw <SPACE><SPACE>- show recipes from Hydrocraft (or similar) in 'engineer' recipe category, which have 'saw' as ingredient <LINE>"..
                                          "%plank|!food <SPACE><SPACE>- show recipes where 'plank' is the result, OR recipes in 'food' category <LINE> "
-    UI_searchrow_info_items_examples =   "#tool,!~weapon <SPACE><SPACE>: show tools which is not a weapon (e.g needle, saw, tongs) <LINE> "
+    UI_searchrow_info_items_examples =   "#tool,!~weapon <SPACE><SPACE>: show tools which is not a weapon (e.g needle, saw, tongs) <LINE> "..
+                                        "$maxdamage>4,$maxdamage<5 <SPACE><SPACE>- show items with MaxDamage attribute between 4 and 5 <LINE> "
+
+    UI_searchrow_info_item_attributes_examples = "!>a,!<c <SPACE><SPACE>: show attributes which name starts from a or b <LINE> "
+
 }

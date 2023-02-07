@@ -457,7 +457,7 @@ function CHC_window:onRMBDownObjList(x, y, item, isrecipe, context)
     end
 
     if isShiftKeyDown() then
-        local name = context:addOption(getText('IGUI_chc_Copy'), nil, nil)
+        local name = context:addOption(getText('IGUI_chc_Copy') .. ' (' .. item.displayName .. ')', nil, nil)
         local subMenuName = ISContextMenu:getNew(context)
         context:addSubMenu(name, subMenuName)
         local itemType = self.parent.typeData and self.parent.typeData[item.category].tooltip or item.category

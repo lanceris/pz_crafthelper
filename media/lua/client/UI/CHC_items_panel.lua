@@ -84,13 +84,15 @@ function CHC_items_panel:createChildren()
         x = self.margin,
         y = y,
         w = self.width - 2 * self.margin,
-        h = self.height - self.mainInfo.height - 3 * self.padY,
+        h = self.height - self.mainInfo.height - 4 * self.padY,
         backRef = self.backRef
     }
 
     self.statsList = CHC_sectioned_panel:new(stats_args)
-    self.statsList.anchorBottom = true
+    self.statsList:initialise()
     self.statsList.maintainHeight = false
+    self.statsList:addScrollBars()
+    self.statsList:setScrollChildren(true)
     self.statsList:setVisible(false)
     -- endregion
 
@@ -99,10 +101,11 @@ function CHC_items_panel:createChildren()
         x = self.margin,
         y = y,
         w = self.width - 2 * self.margin,
-        h = self.height - self.mainInfo.height - 3 * self.padY,
+        h = 1, --self.height - self.mainInfo.height - self.padY,
         backRef = self.backRef
     }
     self.itemProps = CHC_props_table:new(props_table_args)
+    self.itemProps.borderColor.a = 0
     self.itemProps:instantiate()
     -- endregion
 
@@ -118,8 +121,6 @@ function CHC_items_panel:createChildren()
 
     self:addChild(self.mainInfo)
     self:addChild(self.statsList)
-    self.statsList:setScrollChildren(true)
-    self.statsList:addScrollBars()
 
     self.mainX = mainX
     self.mainY = mainY
@@ -139,7 +140,7 @@ function CHC_items_panel:onResize()
     end
 
     self.statsList:setWidth(self.parent.headers.typeHeader.width - self.margin - self.statsList.x)
-    -- self.statsList:setHeight(self.height - self.mainInfo.height - 4 * self.padY)
+    self.statsList:setHeight(self.height - self.mainInfo.height - 4 * self.padY)
 
 end
 
@@ -224,13 +225,17 @@ function CHC_items_panel:setObj(item)
     end
     -- endregion
 
-
+    local statsListOpenedSections = self.statsList.expandedSections
     self.statsList:clear()
     self.statsList:setY(self.mainInfo.y + self.mainInfo:getBottom() + self.padY)
 
-    self.statsList:addSection(self.itemProps, 'Attributes')
-    self.statsList:addSection(self.itemDistrib, 'Distributions')
-    self.statsList:addSection(self.itemFixing, 'Fixing')
+    self.statsList:addSection(self.itemProps, getText('IGUI_ItemDetails_Attributes_tab'))
+    -- self.statsList:addSection(self.itemDistrib, 'Distributions')
+    -- self.statsList:addSection(self.itemFixing, 'Fixing')
+
+    for section, _ in pairs(statsListOpenedSections) do
+        self.statsList:expandSection(section)
+    end
 
     self.statsList:setVisible(true)
 

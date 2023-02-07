@@ -77,21 +77,21 @@ CHC_utils.areTablesDifferent = function(table1, table2)
     return false
 end
 
----Compares "what" to "to" via string.contains.
+---Compares 'what' to 'to' via string.contains.
 ---
----In case "what" is table, comparison is done for each element (break after first hit)
----If "~" is first symbol of "to", then negate logic is applied (i.e return true if "what" NOT in "to")
+---In case 'what' is table, comparison is done for each element (break after first hit)
+---If '~' is first symbol of 'to', then negate logic is applied (i.e return true if 'what' NOT in 'to')
 ---@param what string|table left part of comparison
 ---@param to string right part of comparison
 ---@param passAll? boolean return true if true without checks
 ---@return boolean #result of comparison
 CHC_utils.compare = function(what, to, passAll)
-    local isNegate = sub(to, 1, 1) == "~"
+    local isNegate = sub(to, 1, 1) == '~'
     if isNegate then to = sub(to, 2) end -- remove ~ from token
-    if to == "" then return true end
+    if to == '' then return true end
     if passAll then return true end
-    local isList = type(what) == "table"
-    local isOperand = CHC_utils.any({ ">", "<", "=" }, sub(to, 1, 1))
+    local isList = type(what) == 'table'
+    local isOperand = CHC_utils.any({ '>', '<', '=' }, sub(to, 1, 1))
     local operand
     if isOperand then
         operand = sub(to, 1, 1)
@@ -106,22 +106,22 @@ CHC_utils.compare = function(what, to, passAll)
     to = lower(to)
 
     if isOperand then
-        if not what or not to or to == "" then return true end
-        if type(what) == "string" and tonumber(what) then what = tonumber(what) end
-        if type(to) == "string" and tonumber(to) then to = tonumber(to) end
+        if not what or not to or to == '' then return true end
+        if type(what) == 'string' and tonumber(what) then what = tonumber(what) end
+        if type(to) == 'string' and tonumber(to) then to = tonumber(to) end
 
-        if type(what) == "string" and type(to) ~= "string" then return false end
-        if type(what) ~= "string" and type(to) == "string" then return false end
+        if type(what) == 'string' and type(to) ~= 'string' then return false end
+        if type(what) ~= 'string' and type(to) == 'string' then return false end
 
-        if operand == "=" then
+        if operand == '=' then
             if isNegate then
                 state = not contains(what, to)
             else
                 state = contains(what, to)
             end
-        elseif operand == ">" then
+        elseif operand == '>' then
             state = what > to
-        elseif operand == "<" then
+        elseif operand == '<' then
             state = what < to
         end
     else
@@ -151,7 +151,7 @@ CHC_utils.compare = function(what, to, passAll)
     return state
 end
 
----Return true if all values of "t" == "val"
+---Return true if all values of 't' == 'val'
 --
 ---@param t table Table to check, numerical keys only
 ---@param val any Value to check
@@ -169,7 +169,7 @@ CHC_utils.all = function(t, val, start, stop, step)
     return true
 end
 
---- Return true if any value of "t" == "val"
+--- Return true if any value of 't' == 'val'
 --
 ---@param t table Table to check, numerical keys only
 ---@param val any Value to check
@@ -180,7 +180,7 @@ CHC_utils.any = function(t, val, start, stop, step)
     start = start or 1
     stop = stop or #t
     step = step or 1
-    if type(val) == "table" then
+    if type(val) == 'table' then
         for j = 1, #val do
             for i = start, stop, step do
                 if t[i] == val[j] then
@@ -207,7 +207,7 @@ CHC_utils.startswith = function(txt, start)
 end
 
 CHC_utils.chcprint = function(txt)
-    print("[CraftHelperContinued] " .. tostring(txt))
+    print('[CraftHelperContinued] ' .. tostring(txt))
 end
 
 function CHC_utils.empty(tab)
@@ -215,14 +215,14 @@ function CHC_utils.empty(tab)
     return true
 end
 
-local JsonUtil = require("CHC_json")
+local JsonUtil = require('CHC_json')
 
 CHC_utils.jsonutil = {}
 CHC_utils.jsonutil.Load = function(fname)
     if not fname then error('filename not set') end
     local res
     local fileReaderObj = getFileReader(fname, true)
-    local json = ""
+    local json = ''
     local line = fileReaderObj:readLine()
     while line ~= nil do
         json = json .. line
@@ -230,7 +230,7 @@ CHC_utils.jsonutil.Load = function(fname)
     end
     fileReaderObj:close()
 
-    if json and json ~= "" then
+    if json and json ~= '' then
         res = JsonUtil.Decode(json)
     end
     return res

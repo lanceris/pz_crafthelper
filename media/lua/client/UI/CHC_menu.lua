@@ -105,8 +105,6 @@ CHC_menu.onCraftHelperItem = function(window_inst, item)
 	txt = string.lower(txt)
 	view.searchRow.searchBar:setText(txt) -- set text to Items subview search bar
 	view:updateItems(view.selectedCategory)
-	-- trigger wont do here because we need to wait until objList actually updated and im too lazy to implement event listener
-	-- view.needUpdateObjects = true
 	if #view.objList.items ~= 0 then
 		local it = view.objList.items
 		local c = 1

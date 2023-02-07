@@ -4,14 +4,16 @@ CHC_main.common = {}
 
 local utils = require('CHC_utils')
 local insert = table.insert
-local globalTextLimit = 100 -- FIXME
+local globalTextLimit = 1000 -- FIXME
 
 
 -- parse tokens from search query, determine search type (single/multi) and query type (and/or), get state based on processTokenFunc
 function CHC_main.common.searchFilter(self, q, processTokenFunc)
     local stateText = string.trim(self.searchRow.searchBar:getInternalText())
     if #stateText > globalTextLimit then
-        self.searchRow:setTooltip("Text too long! (" .. #stateText .. " > " .. globalTextLimit .. ")")
+        self.searchRow:setTooltip(getText('IGUI_TextTooLongTooltip') ..
+            '! (' .. #stateText .. ' > ' .. globalTextLimit .. ')')
+        return true
     else
         self.searchRow:setTooltip(self.searchRow.origTooltip)
     end

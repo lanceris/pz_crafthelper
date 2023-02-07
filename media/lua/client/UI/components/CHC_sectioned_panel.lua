@@ -1,9 +1,9 @@
 -- ISSectionedPanel
-CHC_sectioned_panel = ISPanel:derive("CHC_sectioned_panel")
+CHC_sectioned_panel = ISPanel:derive('CHC_sectioned_panel')
 
 -----
 
-CHC_sectioned_panel_section = ISPanel:derive("CHC_sectioned_panel_section")
+CHC_sectioned_panel_section = ISPanel:derive('CHC_sectioned_panel_section')
 local Section = CHC_sectioned_panel_section
 
 --region section
@@ -25,9 +25,15 @@ function Section:createChildren()
         self.panel:setScrollChildren(true)
         self:addChild(self.panel)
         if self.panel.objList then
-            self.panel.objList:setHeight(150) -- FIXME
-            -- self.panel.objList.vscroll:setHeight(150)
-            self.panel:setHeight(200)
+            local mul = math.min(#self.panel.objList.items, 10)
+            local panelListH = self.panel.objList.itemheight * mul
+            self.panel.objList:setHeight(panelListH)
+            self.panel:setHeight(
+                3 * self.panel.padY +
+                self.panel.searchRow.height +
+                self.panel.objList.itemheight +
+                self.panel.objList.height
+            )
         end
     end
 
@@ -37,16 +43,11 @@ end
 function Section:onHeaderClick()
 
     self.expanded = not self.expanded
-
     if self.expanded then
-        self.parent.activeSection = self.title
-        for _, sect in pairs(self.parent.sections) do
-            if sect.title ~= self.title then
-                sect.expanded = false
-            end
-        end
+        self.parent.expandedSections[self.title] = true
+    else
+        self.parent.expandedSections[self.title] = nil
     end
-
     self:calculateHeights()
 end
 
@@ -56,7 +57,6 @@ function Section:calculateHeights()
         self.panel:setVisible(self.expanded)
         if self.expanded then
             height = height + self.panel:getHeight()
-            -- height = math.min(height, self.maxHeight)
         end
     end
     self:setHeight(height)
@@ -71,10 +71,6 @@ end
 
 function Section:clear()
     self.enabled = false
-end
-
-function Section:close()
-    self.expanded = false
 end
 
 function Section:prerender()
@@ -103,7 +99,7 @@ function Section:new(x, y, width, height, panel, title, maxH)
     setmetatable(o, self)
     self.__index = self
     o.panel = panel
-    o.title = title and title or "???"
+    o.title = title and title or '???'
     o.enabled = true
     o.expanded = false
     o.maxHeight = maxH and maxH or 300
@@ -138,6 +134,14 @@ function CHC_sectioned_panel:clear()
         section:clear()
     end
     self.sections = {}
+end
+
+function CHC_sectioned_panel:expandSection(sectionTitle)
+    for _, section in ipairs(self.sections) do
+        if section.title == sectionTitle then
+            section.expanded = true
+        end
+    end
 end
 
 function CHC_sectioned_panel:prerender()
@@ -178,12 +182,8 @@ function CHC_sectioned_panel:onMouseWheel(del)
         local panel = section.panel
         if panel:isMouseOver() then
             if panel.objList and panel.objList:isVScrollBarVisible() then
-                -- local scrolledToBottom = (panel:getScrollHeight() <= panel:getHeight()) or
-                --     (panel.vscroll and panel.vscroll.pos == 1)
                 panel.objList.onMouseWheel(panel.objList, del)
-                -- if not scrolledToBottom then
                 return false
-                -- end
             end
         end
     end
@@ -202,7 +202,7 @@ function CHC_sectioned_panel:new(args)
     o.backRef = args.backRef
     o.backgroundColor.a = 0.8
     o.sections = {}
-    o.opened = {}
+    o.expandedSections = {}
     o.activeSection = nil
     o.maintainHeight = true
     return o

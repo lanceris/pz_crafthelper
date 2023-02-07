@@ -169,19 +169,19 @@ end
 CHC_main.getItemProps = function(item, itemType)
 	local map = CHC_settings.itemPropsByType
 	local typePropData = map[itemType]
-	local commonPropData = map["Common"]
+	local commonPropData = map['Common']
 
 	local function formatOutput(propName, propVal)
 
 		if propName then
-			if sub(propName, 1, 3) == "get" then
+			if sub(propName, 1, 3) == 'get' then
 				propName = sub(propName, 4)
-			elseif sub(propName, 1, 2) == "is" then
+			elseif sub(propName, 1, 2) == 'is' then
 				propName = sub(propName, 3)
 			end
 		end
 		if propVal then
-			if type(propVal) ~= "string" then
+			if type(propVal) ~= 'string' then
 				propVal = math.floor(propVal * 10000) / 10000
 			end
 		end
@@ -218,8 +218,8 @@ CHC_main.getItemProps = function(item, itemType)
 		if not propData then return props end
 		for i = 1, #propData do
 			local _propData = processProp(item, propData[i], isTypeSpecific)
-			if propData[i].name == "getUseDelta" then
-				local _name, _val = formatOutput("UseDeltaTotal*", 1 / _propData.value)
+			if propData[i].name == 'getUseDelta' then
+				local _name, _val = formatOutput('UseDeltaTotal*', 1 / _propData.value)
 				insert(props, { name = _name, value = _val, isTypeSpecific = isTypeSpecific })
 			end
 			if _propData then
@@ -241,8 +241,8 @@ CHC_main.getItemProps = function(item, itemType)
 				dupedProps[prop.name] = true
 			end
 		end
-		if uniqueProps["Weight"].value == uniqueProps["ActualWeight"].value then
-			uniqueProps["ActualWeight"] = nil
+		if uniqueProps['Weight'].value == uniqueProps['ActualWeight'].value then
+			uniqueProps['ActualWeight'] = nil
 		end
 
 		for _, prop in pairs(uniqueProps) do
@@ -257,7 +257,7 @@ CHC_main.getItemProps = function(item, itemType)
 	local dupedProps
 
 	local commonProps = processPropGroup(item, commonPropData, false)
-	if itemType == "Radio" then
+	if itemType == 'Radio' then
 		typeProps = processPropGroup(item:getDeviceData(), typePropData, true)
 	else
 		typeProps = processPropGroup(item, typePropData, true)

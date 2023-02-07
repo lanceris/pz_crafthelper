@@ -21,7 +21,7 @@ function CHC_props_table:createChildren()
     -- self.optionsUI = CHC_options_ui:new({ x = self.backRef.x + self.backRef.width, y = self.backRef.y, w = 100, h = 150,
     --     backRef = self.backRef })
     -- self.optionsUI:initialise()
-    -- self.optionsUI:setTitle("Temp title")
+    -- self.optionsUI:setTitle('Temp title')
     -- self.optionsUI:setResizable(false)
     -- self.optionsUI:setVisible(false)
 
@@ -31,16 +31,15 @@ function CHC_props_table:createChildren()
 
     -- region search bar row
     local h = 20
-    -- self.optionsBtn = ISButton:new(x, y, h, h, "", self, self.onOptionsMouseDown)
+    -- self.optionsBtn = ISButton:new(x, y, h, h, '', self, self.onOptionsMouseDown)
     -- self.optionsBtn:initialise()
     -- self.optionsBtn.borderColor.a = 0
     -- self.optionsBtn:setImage(self.optionsBtnIcon)
-    -- self.optionsBtn:setTooltip("testTooltip")
+    -- self.optionsBtn:setTooltip('testTooltip')
 
 
     self.searchRow = CHC_search_bar:new({ x = x, y = y, w = self.width - 2 * self.padX, h = h,
-        backRef = self.backRef },
-        'search by attributes',
+        backRef = self.backRef }, nil,
         self.onTextChange, self.searchRowHelpText)
     self.searchRow:initialise()
     self.searchRow.drawBorder = false
@@ -59,10 +58,11 @@ function CHC_props_table:createChildren()
     self.objList.vscroll:setHeight(self.objList.height)
     self.objList.drawBorder = false
     self.objList.doDrawItem = self.drawProps
+    self.objList.doRepaintStencil = true
 
     -- TODO: add translation
-    self.objList:addColumn('Name', 0)
-    self.objList:addColumn('Value', self.width * 0.4)
+    self.objList:addColumn(getText('IGUI_CopyNameProps_ctx'), 0)
+    self.objList:addColumn(getText('IGUI_CopyValueProps_ctx'), self.width * 0.4)
 
     -- self:addChild(self.optionsBtn)
     self:addChild(self.searchRow)
@@ -112,24 +112,24 @@ function CHC_props_table:drawProps(y, item, alt)
     local a = 0.9
     local xoffset = 10
 
-    local rectP = { r = 0.3, g = 0.6, b = 0.35, a = 0 }
+    local rectP = { r = 0.3, g = 0.3, b = 0.3, a = 0 }
 
     if alt then
-        rectP = { r = 0.3, g = 0.6, b = 0.5, a = 0.5 }
+        rectP = { r = 0.3, g = 0.3, b = 0.3, a = 0.3 }
     end
 
     if self.selected == item.index then
-        rectP = { r = 0.3, g = 1, b = 0.35, a = 0.7 }
+        rectP = { r = 0.3, g = 0.3, b = 0.3, a = 0.3 }
     end
 
     if CHC_settings.mappings.pinnedItemProps[item.item.name:lower()] then
-        rectP = { r = 1, g = 0.1, b = 0.35, a = 1 }
+        rectP = { r = 1, g = 0.75, b = 0.25, a = 0.3 }
     end
     if CHC_settings.mappings.ignoredItemProps[item.item.name:lower()] then
-        rectP = { r = 0.15, g = 0.15, b = 0.15, a = 1 }
+        rectP = { r = 0.27, g = 0.15, b = 0, a = 0.75 }
     end
 
-    self:drawRect(0, (y), self:getWidth(), self.itemheight, rectP.r, rectP.g, rectP.b, rectP.a)
+    self:drawRect(0, (y), self:getWidth(), self.itemheight, rectP.a, rectP.r, rectP.g, rectP.b)
 
     self:drawRectBorder(0, (y), self:getWidth(), self.itemheight, a, self.borderColor.r, self.borderColor.g,
         self.borderColor.b)
@@ -139,13 +139,11 @@ function CHC_props_table:drawProps(y, item, alt)
     local clipY = math.max(0, y + self:getYScroll())
     local clipY2 = math.min(self.height, y + self:getYScroll() + self.itemheight)
 
-    self:setStencilRect(clipX, clipY, clipX2 - clipX, clipY2 - clipY)
+    self:clampStencilRectToParent(clipX, clipY, clipX2 - clipX, clipY2 - clipY)
     self:drawText(item.item.name, self.columns[1].size + 5, y, 1, 1, 1, a, self.font)
     self:clearStencilRect()
 
     self:drawText(tostring(item.item.value), self.columns[2].size + 5, y, 1, 1, 1, a, self.font)
-
-    -- self:repaintStencilRect(0, clipY, self.width, clipY2 - clipY)
 
     return y + self.itemheight
 
@@ -158,17 +156,8 @@ end
 function CHC_props_table:onResize()
     -- ISPanel.onResize(self)
     self.searchRow:setWidth(self.width - 2 * self.padX)
-    -- self.searchRow:setWidth(self.width - self.optionsBtn.width - 2 * self.padX)
     self.objList:setWidth(self.width - 2 * self.padX)
     self.objList.columns[2].size = self.objList.width * 0.4
-    -- self.objList:setHeight(self.searchRow.height + 2 * self.padY + (#self.objList.items + 1) * self.objList.itemheight)
-    -- local cmn = self.searchRow.height + self.padY
-    -- local objListHeight1 = cmn + (#self.objList.items + 1) * self.objList.itemheight
-    -- local objListHeight2 = self.height - (cmn + self.objList.itemheight)
-    -- local objListHeight = math.min(objListHeight1, objListHeight2)
-
-    -- self.objList:setHeight(objListHeight)
-    -- self:setHeight(cmn + self.objList.height)
 end
 
 -- endregion
@@ -229,31 +218,47 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
         triggerUpdate()
     end
 
-    local function handleLongText(option, value, limit, tooltipDesc)
+    local function _setTooltip(option, tooltip, _add)
+        local _tooltip
+        if _add then
+            _tooltip = option.toolTip
+            tooltip = string.sub(_tooltip.description, 1, 100) .. ' ... ' .. '<LINE>' .. tooltip
+        else
+            _tooltip = ISToolTip:new()
+            _tooltip:initialise()
+            _tooltip:setVisible(false)
+        end
+        _tooltip.description = tooltip
+        option.toolTip = _tooltip
+    end
+
+    local function handleLongText(option, value, limit, tooltipDesc, _add)
         if value > limit then
-            local tooltip = ISToolTip:new()
-            tooltip:initialise()
-            tooltip:setVisible(false)
-            tooltip.description = tooltipDesc
-            option.toolTip = tooltip
+            _setTooltip(option, tooltipDesc, _add)
         end
     end
 
-    context:addOption(getText("IGUI_CopyNameProps_ctx") .. " (" .. item.name .. ")", self, chccopy, item.name)
+    -- region copy submenu
+    local name = context:addOption(getText('IGUI_chc_Copy') .. ' (' .. getText('UI_chat_local_chat_title_id') .. ')', nil
+        , nil)
+    local subMenuName = ISContextMenu:getNew(context)
+    context:addSubMenu(name, subMenuName)
+
+    subMenuName:addOption(getText('IGUI_CopyNameProps_ctx') .. ' (' .. item.name .. ')', self, chccopy, item.name)
     local value = tostring(item.value)
-    if sub(value, 1, 1) == "[" then
-        value = "[list]"
+    if sub(value, 1, 1) == '[' then
+        value = '[list]'
         if isShiftKeyDown() then
             local val = tostring(item.value)
-            val = val:gsub("[%[%]]", "")
-            val = val:gsub(",", "|")
-            local newOpt = context:addOption(getText("IGUI_CopyValueSearchProps_ctx"), self, chccopy, val)
-            handleLongText(newOpt, #val, 100, "Too long!") -- FIXME
+            val = val:gsub('[%[%]]', '')
+            val = val:gsub(',', '|')
+            local newOpt = subMenuName:addOption(getText('IGUI_CopyValueSearchProps_ctx'), self, chccopy, val)
+            handleLongText(newOpt, #val, 100, getText('IGUI_TextTooLongTooltip') .. '! (' .. #val .. ' > ' .. 100 .. ')')
         end
     end
     if sub(value, 1, 1) == '"' then
         -- try to interpret as an item
-        value = value:gsub('"', "")
+        value = value:gsub('"', '')
         if isShiftKeyDown() then
             local itemFromStr = CHC_main.items[value]
             if itemFromStr then
@@ -261,26 +266,52 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
             end
         end
     end
-    local newOpt = context:addOption(getText("IGUI_CopyValueProps_ctx") .. " (" .. value .. ")", self, chccopy,
+    local newOpt = subMenuName:addOption(getText('IGUI_CopyValueProps_ctx') .. ' (' .. value .. ')', self, chccopy,
         item.value)
-    handleLongText(newOpt, #value, 100, "Too long!")
+    handleLongText(newOpt, #value, 100, getText('IGUI_TextTooLongTooltip') .. '! (' .. #value .. ' > ' .. 100 .. ')')
+
+    -- region comparison
+    local newOptFull = subMenuName:addOption(getText('IGUI_CopyNameProps_ctx') ..
+        ' + ' .. getText('IGUI_CopyValueProps_ctx'), nil, nil)
+    local subMenuName2 = ISContextMenu:getNew(subMenuName)
+    subMenuName:addSubMenu(newOptFull, subMenuName2)
+    local eq = subMenuName2:addOption('=', self, chccopy, item.name .. '=' .. item.value)
+    local ne = subMenuName2:addOption('~=', self, chccopy, item.name .. '~=' .. item.value)
+    local gt = subMenuName2:addOption('>', self, chccopy, item.name .. '>' .. item.value)
+    local lt = subMenuName2:addOption('<', self, chccopy, item.name .. '<' .. item.value)
+
+    for _, opt in ipairs({ eq, ne, gt, lt }) do
+        _setTooltip(opt, opt.param1)
+        handleLongText(opt, #opt.param1, 100,
+            getText('IGUI_TextTooLongTooltip') .. '! (' .. #opt.param1 .. ' > ' .. 100 .. ')', true)
+    end
+
+    --endregion
+
+
+
+    -- endregion
 
     local name = tostring(item.name:lower())
-    if pinned[name] then
-        context:addOption(getText("IGUI_UnpinProps_ctx"), self, pin, name, true)
-    else
-        context:addOption(getText("IGUI_PinProps_ctx"), self, pin, name, false)
+    if not blacklisted[name] then
+        if pinned[name] then
+            context:addOption(getText('IGUI_UnpinProps_ctx'), self, pin, name, true)
+        else
+            context:addOption(getText('IGUI_PinProps_ctx'), self, pin, name, false)
+        end
     end
-    if blacklisted[name] then
-        context:addOption(getText("IGUI_UnblacklistProps_ctx"), self, blacklist, name, true)
-    else
-        context:addOption(getText("IGUI_BlacklistProps_ctx"), self, blacklist, name, false)
+    if not pinned[name] then
+        if blacklisted[name] then
+            context:addOption(getText('IGUI_UnblacklistProps_ctx'), self, blacklist, name, true)
+        else
+            context:addOption(getText('IGUI_BlacklistProps_ctx'), self, blacklist, name, false)
+        end
     end
 
     if isShiftKeyDown() then
-        context:addOption(getText("IGUI_UnpinProps_ctx") .. " " .. string.lower(getText("ContextMenu_All")), self,
+        context:addOption(getText('IGUI_UnpinProps_ctx') .. ' ' .. string.lower(getText('ContextMenu_All')), self,
             unpinAll)
-        context:addOption(getText("IGUI_UnblacklistProps_ctx") .. " " .. string.lower(getText("ContextMenu_All")), self,
+        context:addOption(getText('IGUI_UnblacklistProps_ctx') .. ' ' .. string.lower(getText('ContextMenu_All')), self,
             unblacklistAll)
     end
 
@@ -292,9 +323,6 @@ end
 -- end
 
 -- endregion
--- function CHC_props_table:addItem()
-
--- end
 
 function CHC_props_table:refreshObjList(props)
     self.objList:clear()
@@ -358,9 +386,9 @@ function CHC_props_table:searchProcessToken(token, prop)
 
     local whatCompare
     if not isSpecialSearch then
-        local opIx = find(token, "[><=]")
+        local opIx = find(token, '[><=]')
         if opIx then
-            opIx = find(token, "[~><=]")
+            opIx = find(token, '[~><=]')
             local whatCompName = prop.name
             local toCompName = sub(token, 1, opIx - 1)
             local stateName = utils.compare(whatCompName, toCompName)
@@ -380,7 +408,7 @@ function CHC_props_table:searchProcessToken(token, prop)
     end
     if isAllowSpecialSearch and char == '@' then
         -- search by value
-        whatCompare = type(prop.value) == "number" and prop.value or string.lower(prop.value)
+        whatCompare = type(prop.value) == 'number' and prop.value or string.lower(prop.value)
     end
     if token and not isSpecialSearch then
         whatCompare = string.lower(prop.name)
@@ -407,7 +435,10 @@ function CHC_props_table:new(args)
 
     o.backRef = args.backRef
 
-    o.searchRowHelpText = 'Help'
+    o.searchRowHelpText = getText('UI_searchrow_info',
+        getText('UI_searchrow_info_item_attributes_special'),
+        getText('UI_searchrow_info_item_attributes_examples')
+    )
     o.modData = CHC_main.playerModData
     -- o.optionsBtnIcon = getTexture('media/textures/options_icon.png')
 

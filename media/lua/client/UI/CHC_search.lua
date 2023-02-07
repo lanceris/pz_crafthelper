@@ -411,7 +411,7 @@ function CHC_search:onMMBDownObjList()
     local cond1 = type(CHC_main.recipesByItem[item:getFullType()]) == 'table'
     local cond2 = type(CHC_main.recipesForItem[item:getFullType()]) == 'table'
     if cond1 or cond2 then
-        self.backRef:addItemView(item, false)
+        self.parent.backRef:addItemView(item, false)
     end
 end
 
@@ -520,13 +520,13 @@ function CHC_search:searchProcessToken(token, item)
             -- search by display category of item
             whatCompare = item.displayCategory
         end
-        if char == "$" then
+        if char == '$' then
             -- search by attributes (props)
             whatCompare = item.props
             if not whatCompare then return false end
-            local opIx = find(token, "[><=]")
+            local opIx = find(token, '[><=]')
             if opIx then
-                opIx = find(token, "[~><=]")
+                opIx = find(token, '[~><=]')
                 for i = 1, #whatCompare do
                     local prop = whatCompare[i]
                     local whatCompName = prop.name
