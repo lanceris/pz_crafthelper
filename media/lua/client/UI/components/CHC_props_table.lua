@@ -113,20 +113,29 @@ function CHC_props_table:drawProps(y, item, alt)
     local xoffset = 10
 
     local rectP = { r = 0.3, g = 0.3, b = 0.3, a = 0 }
+    local textP = { r = 1, g = 1, b = 1, a = 0.9 }
 
-    if alt then
-        rectP = { r = 0.3, g = 0.3, b = 0.3, a = 0.3 }
-    end
+    -- if alt then
+    --     rectP = { r = 0.3, g = 0.3, b = 0.3, a = 0.3 }
+    -- end
 
-    if self.selected == item.index then
-        rectP = { r = 0.3, g = 0.3, b = 0.3, a = 0.3 }
+
+    if item.index == self.mouseoverselected then
+        local sc = { x = 0, y = y, w = self:getWidth(), h = item.height - 1, a = 0.2, r = 0.75, g = 0.5, b = 0.5 }
+        self:drawRect(sc.x, sc.y, sc.w, sc.h, 0.2, 0.5, sc.g, sc.b)
     end
 
     if CHC_settings.mappings.pinnedItemProps[item.item.name:lower()] then
-        rectP = { r = 1, g = 0.75, b = 0.25, a = 0.3 }
+        rectP = { r = 1, g = 1, b = 1, a = 0.2 }
+        -- textP.a =
     end
     if CHC_settings.mappings.ignoredItemProps[item.item.name:lower()] then
-        rectP = { r = 0.27, g = 0.15, b = 0, a = 0.75 }
+        -- rectP = { r = 0.27, g = 0.15, b = 0, a = 0.75 }
+        textP = { r = 0.22, g = 0.22, b = 0.22, a = 0.9 }
+    end
+
+    if self.selected == item.index then
+        rectP = { a = 0.2, r = 0.75, g = 0.5, b = 0.5 }
     end
 
     self:drawRect(0, (y), self:getWidth(), self.itemheight, rectP.a, rectP.r, rectP.g, rectP.b)
@@ -140,10 +149,10 @@ function CHC_props_table:drawProps(y, item, alt)
     local clipY2 = math.min(self.height, y + self:getYScroll() + self.itemheight)
 
     self:clampStencilRectToParent(clipX, clipY, clipX2 - clipX, clipY2 - clipY)
-    self:drawText(item.item.name, self.columns[1].size + 5, y, 1, 1, 1, a, self.font)
+    self:drawText(item.item.name, self.columns[1].size + 5, y, textP.r, textP.g, textP.b, textP.a, self.font)
     self:clearStencilRect()
 
-    self:drawText(tostring(item.item.value), self.columns[2].size + 5, y, 1, 1, 1, a, self.font)
+    self:drawText(tostring(item.item.value), self.columns[2].size + 5, y, textP.r, textP.g, textP.b, textP.a, self.font)
 
     return y + self.itemheight
 

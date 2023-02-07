@@ -494,7 +494,6 @@ function CHC_uses_recipepanel:drawIngredient(y, item, alt)
             r, g, b = 0.54, 0.54, 0.54
         end
         self:drawText(item.text, 12, y + 2, r, g, b, 1, self.font)
-        --self:drawTexture(item.item.texture, 4, y + (item.height - item.item.texture:getHeight()) / 2 - 2, 1,1,1,1)
     else
         local r, g, b
         local r2, g2, b2, a2
@@ -535,7 +534,7 @@ function CHC_uses_recipepanel:drawIngredient(y, item, alt)
         --endregion
 
         if item.index == self.mouseoverselected then
-            local fr, fg, fb, fa = 0.1, 0.1, 0.5, 0.1
+            local fr, fg, fb, fa = 0.1, 0.1, 0.5, 0.2
             if item.item.multiple then
                 fr, fb = 0.5, 0.1
             end
@@ -545,7 +544,7 @@ function CHC_uses_recipepanel:drawIngredient(y, item, alt)
     end
     local ab, rb, gb, bb = 1, 0.1, 0.1, 0.1
     if item.item.multipleHeader then
-        self:drawRect(1, y, self:getWidth() - 2, self.itemheight, 0.2, 0.2, gb, bb)
+        self:drawRect(1, y, self:getWidth() - 2, self.itemheight, 0.2, 0.25, gb, bb)
     end
     self:drawRectBorder(0, y, self:getWidth() - 2, self.itemheight, ab, rb, gb, bb)
     -- ISUIElement:drawRectBorder( x, y, w, h, a, r, g, b)

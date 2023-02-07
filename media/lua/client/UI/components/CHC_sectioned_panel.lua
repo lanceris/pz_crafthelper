@@ -12,8 +12,8 @@ function Section:createChildren()
     self.headerButton = ISButton:new(0, 0, self.width, 24, self.title, self, self.onHeaderClick)
     self.headerButton:initialise()
     self.headerButton:setFont(UIFont.Small)
-    self.headerButton.backgroundColor = { r = 0.44, g = 0.57, b = 0.75, a = 0.5 }
-    self.headerButton.backgroundColorMouseOver = { r = 1.0, g = 1.0, b = 1.0, a = 0.1 }
+    self.headerButton.backgroundColor = { r = 0.44, g = 0.44, b = 0.79, a = 0.6 }
+    self.headerButton.backgroundColorMouseOver = { r = 0.44, g = 0.44, b = 0.79, a = 0.8 }
     self.headerButton.borderColor = { r = 1.0, g = 1.0, b = 1.0, a = 0.3 }
     self:addChild(self.headerButton)
 

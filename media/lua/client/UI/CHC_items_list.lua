@@ -190,6 +190,10 @@ function CHC_items_list:doDrawItem(y, item, alt)
     end
     -- border around entry
     self:drawRectBorder(bc.x, bc.y, bc.w, bc.h, bc.a, bc.r, bc.g, bc.b);
+
+    if item.index == self.mouseoverselected then
+        self:drawRect(sc.x, sc.y, sc.w, sc.h, 0.2, 0.5, sc.g, sc.b)
+    end
     --endregion
 
     y = y + item.height;
