@@ -58,10 +58,7 @@ end
 -- region update
 
 function CHC_search_bar:updateSearchBarLastText()
-    local txt = self.searchBar:getInternalText()
-    if txt == '' or txt ~= self.searchBarLastText then
-        self.searchBarLastText = txt
-    end
+    self.searchBarLastText = self.searchBar:getText()
 end
 
 -- endregion
@@ -155,6 +152,32 @@ function CHC_search_bar:onOtherKey(key)
         self:unfocus()
     end
 end
+
+-- function CHC_search_bar:onPressDown()
+--     local sBar = self
+--     local sBarText = sBar:getInternalText()
+--     sBarText.logIndex = sBarText.logIndex - 1
+--     if sBarText.logIndex < 0 then
+--         sBarText.logIndex = 0
+--     end
+--     if sBarText.log and sBarText.log[sBarText.logIndex] then
+--         sBar:setText(sBarText.log[sBarText.logIndex])
+--     else
+--         sBar:setText("")
+--     end
+-- end
+
+-- function CHC_search_bar:onPressUp()
+--     local sBar = self
+--     local sBarText = sBar:getInternalText()
+--     sBarText.logIndex = sBarText.logIndex + 1
+--     if sBarText.logIndex > #sBarText.log then
+--         sBarText.logIndex = #sBarText.log
+--     end
+--     if sBarText.log and sBarText.log[sBarText.logIndex] then
+--         sBar:setText(sBarText.log[sBarText.logIndex])
+--     end
+-- end
 
 -- function CHC_search_bar:onRightMouseDown()
 --     local s = self.parent

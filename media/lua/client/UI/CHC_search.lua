@@ -254,9 +254,25 @@ function CHC_search:updateItems(sl)
     if type(sl) == 'table' then sl = sl.text end
     local categoryAll = self.defaultCategory
     local searchBar = self.searchRow.searchBar
-    local items = self.ui_type == 'fav_items' and self.favrec or self.itemSource
+    local sBText = searchBar:getInternalText()
 
-    if sl == categoryAll and self.typeFilter == 'all' and searchBar:getInternalText() == '' then
+    local items
+    -- local c1 = sBText ~= ""
+    -- local c2 = #sBText - #self.searchRow.searchBarLastText >= 1
+    -- local c3 = self.selectedCategory == self.prevSelectedCategory
+    -- local c4 = not string.contains(sBText, "|")
+    -- local c5 = #self.objList.items > 0
+    -- if c1 and c2 and c3 and c4 and c5 then
+    --     items = {}
+    --     for i = 1, #self.objList.items do
+    --         insert(items, self.objList.items[i].item)
+    --     end
+    -- else
+    --     items = self.ui_type == 'fav_items' and self.favrec or self.itemSource
+    -- end
+    items = self.ui_type == 'fav_items' and self.favrec or self.itemSource
+
+    if sl == categoryAll and self.typeFilter == 'all' and sBText == '' then
         CHC_uses.refreshObjList(self, items)
         return
     end
@@ -417,6 +433,7 @@ function CHC_search:onMMBDownObjList()
 end
 
 function CHC_search:onChangeCategory(_option, sl)
+    self.parent.prevSelectedCategory = self.parent.selectedCategory
     self.parent.selectedCategory = sl or _option.options[_option.selected].text
     self.parent.needUpdateObjects = true
     if advUpdCoCa then
@@ -620,6 +637,7 @@ function CHC_search:new(args)
 
 
     o.selectedCategory = o.defaultCategory
+    o.prevSelectedCategory = o.selectedCategory
     o.backRef = args.backRef
 
     o.itemSource = args.recipeSource
