@@ -249,8 +249,9 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
             val = val:gsub('[%[%]]', '')
             val = val:gsub(',', '|')
             local newOpt = subMenuName:addOption(getText('IGUI_CopyValueSearchProps_ctx'), self, chccopy, val)
+            CHC_main.common.setTooltipToCtx(newOpt, val)
             handleLongText(newOpt, #val, maxTextLength,
-                getText('IGUI_TextTooLongTooltip') .. '! (' .. #val .. ' > ' .. maxTextLength .. ')')
+                getText('IGUI_TextTooLongTooltip') .. '! (' .. #val .. ' > ' .. maxTextLength .. ')', true)
         end
     end
     if sub(value, 1, 1) == '"' then
@@ -265,8 +266,9 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
     end
     local newOpt = subMenuName:addOption(getText('IGUI_CopyValueProps_ctx') .. ' (' .. value .. ')', self, chccopy,
         item.value)
+    CHC_main.common.setTooltipToCtx(newOpt, item.value, nil, nil, 100)
     handleLongText(newOpt, #tostring(item.value), maxTextLength,
-        getText('IGUI_TextTooLongTooltip') .. '! (' .. #tostring(item.value) .. ' > ' .. maxTextLength .. ')')
+        getText('IGUI_TextTooLongTooltip') .. '! (' .. #tostring(item.value) .. ' > ' .. maxTextLength .. ')', true)
 
     -- region comparison
     local newOptFull = subMenuName:addOption(getText('IGUI_CopyNameProps_ctx') ..
