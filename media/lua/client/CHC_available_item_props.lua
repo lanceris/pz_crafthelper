@@ -199,7 +199,7 @@ CHC_settings.itemPropsByType = {
         { name = 'isInsertAllBulletsReload' },
         { name = 'isRackAfterShoot' },
         { name = 'getJamGunChance', default = 1, ignoreDefault = true },
-        { name = 'getModelWeaponPart' },
+        { name = 'getModelWeaponPart', forceIgnore = true },
         { name = 'haveChamber' },
         { name = 'getDamageCategory' },
         { name = 'isDamageMakeHole' },

@@ -205,7 +205,7 @@ CHC_main.getItemProps = function(item, itemType)
 
 			propName, propVal = formatOutput(propName, propVal)
 			data = { name = propName, value = propVal, isTypeSpecific = isTypeSpecific }
-			if isIgnoreDefVal and propVal == defVal then
+			if isIgnoreDefVal and propVal == defVal or prop.forceIgnore then
 				data.ignore = true
 			end -- ignore default values
 			return data

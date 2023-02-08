@@ -101,7 +101,7 @@ function Section:new(x, y, width, height, panel, title, maxH)
     o.panel = panel
     o.title = title and title or '???'
     o.enabled = true
-    o.expanded = false
+    o.expanded = true
     o.maxHeight = maxH and maxH or 300
     return o
 end

@@ -227,28 +227,15 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
         triggerUpdate()
     end
 
-    local function _setTooltip(option, tooltip, _add)
-        local _tooltip
-        if _add then
-            _tooltip = option.toolTip
-            tooltip = string.sub(_tooltip.description, 1, 100) .. ' ... ' .. '<LINE>' .. tooltip
-        else
-            _tooltip = ISToolTip:new()
-            _tooltip:initialise()
-            _tooltip:setVisible(false)
-        end
-        _tooltip.description = tooltip
-        option.toolTip = _tooltip
-    end
-
     local function handleLongText(option, value, limit, tooltipDesc, _add)
         if value > limit then
-            _setTooltip(option, tooltipDesc, _add)
+            CHC_main.common.setTooltipToCtx(option, tooltipDesc, nil, _add)
         end
     end
 
+    local maxTextLength = 1000 --FIXME
     -- region copy submenu
-    local name = context:addOption(getText('IGUI_chc_Copy') .. ' (' .. getText('UI_chat_local_chat_title_id') .. ')', nil
+    local name = context:addOption(getText('IGUI_chc_Copy'), nil
         , nil)
     local subMenuName = ISContextMenu:getNew(context)
     context:addSubMenu(name, subMenuName)
@@ -262,7 +249,8 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
             val = val:gsub('[%[%]]', '')
             val = val:gsub(',', '|')
             local newOpt = subMenuName:addOption(getText('IGUI_CopyValueSearchProps_ctx'), self, chccopy, val)
-            handleLongText(newOpt, #val, 100, getText('IGUI_TextTooLongTooltip') .. '! (' .. #val .. ' > ' .. 100 .. ')')
+            handleLongText(newOpt, #val, maxTextLength,
+                getText('IGUI_TextTooLongTooltip') .. '! (' .. #val .. ' > ' .. maxTextLength .. ')')
         end
     end
     if sub(value, 1, 1) == '"' then
@@ -277,22 +265,23 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
     end
     local newOpt = subMenuName:addOption(getText('IGUI_CopyValueProps_ctx') .. ' (' .. value .. ')', self, chccopy,
         item.value)
-    handleLongText(newOpt, #value, 100, getText('IGUI_TextTooLongTooltip') .. '! (' .. #value .. ' > ' .. 100 .. ')')
+    handleLongText(newOpt, #tostring(item.value), maxTextLength,
+        getText('IGUI_TextTooLongTooltip') .. '! (' .. #tostring(item.value) .. ' > ' .. maxTextLength .. ')')
 
     -- region comparison
     local newOptFull = subMenuName:addOption(getText('IGUI_CopyNameProps_ctx') ..
         ' + ' .. getText('IGUI_CopyValueProps_ctx'), nil, nil)
     local subMenuName2 = ISContextMenu:getNew(subMenuName)
     subMenuName:addSubMenu(newOptFull, subMenuName2)
-    local eq = subMenuName2:addOption('=', self, chccopy, item.name .. '=' .. item.value)
-    local ne = subMenuName2:addOption('~=', self, chccopy, item.name .. '~=' .. item.value)
-    local gt = subMenuName2:addOption('>', self, chccopy, item.name .. '>' .. item.value)
-    local lt = subMenuName2:addOption('<', self, chccopy, item.name .. '<' .. item.value)
+    local eq = subMenuName2:addOption('=', self, chccopy, "$" .. item.name .. '=' .. item.value)
+    local ne = subMenuName2:addOption('~=', self, chccopy, "$" .. item.name .. '~=' .. item.value)
+    local gt = subMenuName2:addOption('>', self, chccopy, "$" .. item.name .. '>' .. item.value)
+    local lt = subMenuName2:addOption('<', self, chccopy, "$" .. item.name .. '<' .. item.value)
 
     for _, opt in ipairs({ eq, ne, gt, lt }) do
-        _setTooltip(opt, opt.param1)
-        handleLongText(opt, #opt.param1, 100,
-            getText('IGUI_TextTooLongTooltip') .. '! (' .. #opt.param1 .. ' > ' .. 100 .. ')', true)
+        CHC_main.common.setTooltipToCtx(opt, opt.param1)
+        handleLongText(opt, #opt.param1, maxTextLength,
+            getText('IGUI_TextTooLongTooltip') .. '! (' .. #opt.param1 .. ' > ' .. maxTextLength .. ')', true)
     end
 
     --endregion

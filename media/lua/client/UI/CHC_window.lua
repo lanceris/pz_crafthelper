@@ -462,15 +462,19 @@ function CHC_window:onRMBDownObjList(x, y, item, isrecipe, context)
         context:addSubMenu(name, subMenuName)
         local itemType = self.parent.typeData and self.parent.typeData[item.category].tooltip or item.category
 
-        subMenuName:addOption('FullType', self, chccopy, item.fullType)
-        subMenuName:addOption('Name', self, chccopy, item.name)
-        subMenuName:addOption('!Type', self, chccopy, '!' .. itemType)
-        subMenuName:addOption('#Category', self, chccopy, '#' .. item.displayCategory)
-        subMenuName:addOption('@Mod', self, chccopy, '@' .. item.modname)
+        local ft = subMenuName:addOption('FullType', self, chccopy, item.fullType)
+        local na = subMenuName:addOption('Name', self, chccopy, item.name)
+        local ty = subMenuName:addOption('!Type', self, chccopy, '!' .. itemType)
+        local ca = subMenuName:addOption('#Category', self, chccopy, '#' .. item.displayCategory)
+        local mo = subMenuName:addOption('@Mod', self, chccopy, '@' .. item.modname)
+
+        for _, opt in ipairs({ ft, na, ty, ca, mo }) do
+            CHC_main.common.setTooltipToCtx(opt, opt.param1)
+        end
     end
 
     if getDebug() then
-        if item.fullType then
+        if item and item.fullType then
             local pInv = self.parent.player
             if pInv then
                 pInv = pInv:getInventory()

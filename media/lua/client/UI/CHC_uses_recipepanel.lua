@@ -916,13 +916,14 @@ function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y, item)
         true, 2)
 
     if not (cond1 or cond2) then
-        local tooltip = ISToolTip:new()
-        tooltip:initialise()
-        tooltip:setVisible(false)
-        tooltip.description = getText('IGUI_no_recipes')
-        newTabOption.notAvailable = true
-        newTabOption.toolTip = tooltip
+        CHC_main.common.setTooltipToCtx(
+            newTabOption,
+            getText('IGUI_no_recipes'),
+            false
+        )
         -- backref:addItemView(item, true)
+    else
+        CHC_main.common.addTooltipNumRecipes(newTabOption, item)
     end
 
     -- context:addOption(getText('UI_servers_addToFavorite'), )

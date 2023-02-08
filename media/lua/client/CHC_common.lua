@@ -47,3 +47,60 @@ function CHC_main.common.searchFilter(self, q, processTokenFunc)
     end
     return state
 end
+
+---Sets provided tooltip text to context menu option
+---
+---@param option table context option (context:addOption(...))
+---@param text string text to set to option.description
+---@param isAvailable? boolean sets availability of context option (by default true)
+---@param isAdd? boolean if true - adds to existing tooltip text
+---@param maxTextLength? integer max length of tooltip existing text, if isAdd=true (by default 100)
+function CHC_main.common.setTooltipToCtx(option, text, isAvailable, isAdd, maxTextLength)
+    maxTextLength = tonumber(maxTextLength) or 100
+    isAvailable = isAvailable and true or false
+    local _tooltip
+    if isAdd then
+        _tooltip = option.toolTip
+        text = string.sub(_tooltip.description, 1, maxTextLength) .. ' ... ' .. '<LINE>' .. text
+    else
+        _tooltip = ISToolTip:new()
+        _tooltip:initialise()
+        _tooltip:setVisible(false)
+    end
+    _tooltip.notAvailable = not isAvailable
+    _tooltip.description = text
+    option.toolTip = _tooltip
+end
+
+function CHC_main.common.addTooltipNumRecipes(option, item)
+    local fullType = item.fullType or item:getFullType()
+    local recBy = CHC_main.recipesByItem[fullType]
+    local recFor = CHC_main.recipesForItem[fullType]
+    recBy = recBy and #recBy or 0
+    recFor = recFor and #recFor or 0
+    local text = ""
+    if recBy > 0 then
+        text = text .. getText('UI_item_uses_tab_name') .. ": " .. recBy .. " <LINE>"
+    end
+    if recFor > 0 then
+        text = text .. getText('UI_item_craft_tab_name') .. ": " .. recFor .. " <LINE>"
+    end
+    if text then
+        CHC_main.common.setTooltipToCtx(option, text)
+    end
+end
+
+function CHC_main.common.getItemProps(item)
+    local attrs = {}
+    if CHC_settings.config.show_all_props == true then
+        attrs = item.props
+    else
+        for i = 1, #item.props do
+            local prop = item.props[i]
+            if prop.ignore ~= true then
+                insert(attrs, prop)
+            end
+        end
+    end
+    return attrs
+end

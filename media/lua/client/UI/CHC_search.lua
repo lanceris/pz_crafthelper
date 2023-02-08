@@ -397,7 +397,8 @@ function CHC_search:onRMBDownObjList(x, y, item)
     local cond2 = type(CHC_main.recipesForItem[item.fullType]) == 'table'
 
     if cond1 or cond2 then
-        context:addOption(getText('IGUI_new_tab'), backRef, backRef.addItemView, item.item, true, 2)
+        local opt = context:addOption(getText('IGUI_new_tab'), backRef, backRef.addItemView, item.item, true, 2)
+        CHC_main.common.addTooltipNumRecipes(opt, item)
     end
 end
 
@@ -522,7 +523,7 @@ function CHC_search:searchProcessToken(token, item)
         end
         if char == '$' then
             -- search by attributes (props)
-            whatCompare = item.props
+            whatCompare = CHC_main.common.getItemProps(item)
             if not whatCompare then return false end
             local opIx = find(token, '[><=]')
             if opIx then

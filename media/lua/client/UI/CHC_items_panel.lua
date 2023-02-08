@@ -241,26 +241,16 @@ function CHC_items_panel:setObj(item)
 
     local list_search_txt = self.parent.searchRow.searchBar:getInternalText()
     if utils.startswith(list_search_txt, '$') then
-        self.itemProps.searchRow.searchBar:setText(list_search_txt:gsub('%$', ''))
+        -- self.itemProps.searchRow.searchBar:setText(list_search_txt:gsub('%$', ''))
         self.itemProps.needUpdateObjects = true
     end
 end
 
 function CHC_items_panel:collectItemProps(item)
-    local objAttrs = {}
-    if CHC_settings.config.show_all_props == true then
-        objAttrs = item.props
-    else
-        for i = 1, #item.props do
-            local prop = item.props[i]
-            if prop.ignore ~= true then
-                insert(objAttrs, prop)
-            end
-        end
-    end
+    local objAttrs = CHC_main.common.getItemProps(item)
 
     -- TODO: move to options (keep search query?)
-    if false then
+    if true then
         -- will keep search quesry between item changes
         self.itemProps.needUpdateObjects = true
     else

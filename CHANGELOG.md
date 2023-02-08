@@ -17,7 +17,8 @@
 - Inline search with comparison operators ("damage>20", "ranged=true")
 - Attribute names/values are copyable by RMB
 - New onRMB click actions for attribute list (copy, pin, blacklist)
-- Limited max length of search query (by default 100)
+- Limited max length of search query (by default 1000)
+- Tooltips to various context options
 
 ## 1.6.4 (19.01.2023, workshop release)
 
