@@ -257,10 +257,10 @@ function CHC_search:updateItems(sl)
     local sBText = searchBar:getInternalText()
 
     local items
-    -- local c1 = sBText ~= ""
+    -- local c1 = sBText ~= ''
     -- local c2 = #sBText - #self.searchRow.searchBarLastText >= 1
     -- local c3 = self.selectedCategory == self.prevSelectedCategory
-    -- local c4 = not string.contains(sBText, "|")
+    -- local c4 = not string.contains(sBText, '|')
     -- local c5 = #self.objList.items > 0
     -- if c1 and c2 and c3 and c4 and c5 then
     --     items = {}

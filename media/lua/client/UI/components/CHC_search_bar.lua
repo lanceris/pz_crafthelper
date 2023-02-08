@@ -163,7 +163,7 @@ end
 --     if sBarText.log and sBarText.log[sBarText.logIndex] then
 --         sBar:setText(sBarText.log[sBarText.logIndex])
 --     else
---         sBar:setText("")
+--         sBar:setText('')
 --     end
 -- end
 

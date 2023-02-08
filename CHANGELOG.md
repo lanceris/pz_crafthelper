@@ -1,6 +1,6 @@
 # CraftHelper updates
 
-## 1.6.5 (xx.xx.2023)
+## 1.6.5 (08.02.2023)
 
 ### New features
 

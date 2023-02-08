@@ -78,12 +78,12 @@ function CHC_main.common.addTooltipNumRecipes(option, item)
     local recFor = CHC_main.recipesForItem[fullType]
     recBy = recBy and #recBy or 0
     recFor = recFor and #recFor or 0
-    local text = ""
+    local text = ''
     if recBy > 0 then
-        text = text .. getText('UI_item_uses_tab_name') .. ": " .. recBy .. " <LINE>"
+        text = text .. getText('UI_item_uses_tab_name') .. ': ' .. recBy .. ' <LINE>'
     end
     if recFor > 0 then
-        text = text .. getText('UI_item_craft_tab_name') .. ": " .. recFor .. " <LINE>"
+        text = text .. getText('UI_item_craft_tab_name') .. ': ' .. recFor .. ' <LINE>'
     end
     if text then
         CHC_main.common.setTooltipToCtx(option, text)
