@@ -1,11 +1,11 @@
 IGUI_EN = {
-    IGUI_chc_context_onclick = "Craft Helper 41"
+    IGUI_chc_context_onclick = "Craft Helper"
     IGUI_AllowSpecialSearch = "Enable special commands"
     IGUI_AllowSpecialSearchTooltip = "Commands are used in searches (click on magnifier left of the search bar to learn more)"
     IGUI_ShowIcons = "Show icons of items"
     IGUI_ShowIconsTooltip = "Show icons of recipe results/items in the list"
     IGUI_ShowHidden = "Show hidden items/recipes"
-    IGUI_ShowHiddenTooltip = "Items without DisplayName and recipes with "IsHidden: true" in definition. <LINE> Reload save to take effect",
+    IGUI_ShowHiddenTooltip = "Items without DisplayName and recipes with "IsHidden: true" in definition. <LINE> Reload save to take effect"
     IGUI_CloseAllOnExit = "Close all tabs on close"
     IGUI_CloseAllOnExitTooltip = "Close all item tabs, when closing window (via hotkey or clicking 'x')"
     IGUI_ListFontSize = "Font size"
