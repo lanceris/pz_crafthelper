@@ -59,13 +59,9 @@ function CHC_items_panel:createChildren()
     self.mainMod:initialise()
     mainY = mainY + mainPadY + self.mainMod.height
 
-    self.mainWeight = ISLabel:new(mainX, mainY, fnts, nil, mr, mg, mb, ma, mainSecFont, true)
-    self.mainWeight:initialise()
-    mainY = mainY + mainPadY + self.mainWeight.height
-
-    self.mainNumRecipes = ISLabel:new(mainX, mainY, fnts, nil, mr, mg, mb, ma, mainSecFont, true)
-    self.mainNumRecipes:initialise()
-    mainY = mainY + mainPadY + self.mainNumRecipes.height
+    -- self.mainWeight = ISLabel:new(mainX, mainY, fnts, nil, mr, mg, mb, ma, mainSecFont, true)
+    -- self.mainWeight:initialise()
+    -- mainY = mainY + mainPadY + self.mainWeight.height
     self.mainInfo:setHeight(mainY + mainPadY)
 
     self.mainInfo:addChild(self.mainImg)
@@ -73,8 +69,7 @@ function CHC_items_panel:createChildren()
     self.mainInfo:addChild(self.mainType)
     self.mainInfo:addChild(self.mainDispCat)
     self.mainInfo:addChild(self.mainMod)
-    self.mainInfo:addChild(self.mainWeight)
-    self.mainInfo:addChild(self.mainNumRecipes)
+    -- self.mainInfo:addChild(self.mainWeight)
 
     y = y + self.mainInfo:getBottom()
     -- endregion
@@ -177,29 +172,9 @@ function CHC_items_panel:setObj(item)
     self.mainDispCat:setName(getText('IGUI_invpanel_Category') .. ': ' .. item.displayCategory)
 
     self.mainMod:setName(getText('IGUI_mod_chc') .. ': ' .. item.modname)
-    self.mainWeight:setName(getText('IGUI_invpanel_weight') .. ': ' .. round(item.item:getWeight(), 2))
-    local maxY = self.mainWeight.y + self.mainWeight.height + 2
+    -- self.mainWeight:setName(getText('IGUI_invpanel_weight') .. ': ' .. round(item.item:getWeight(), 2))
+    local maxY = self.mainMod.y + self.mainMod.height + 2
 
-    local usesNum = CHC_main.recipesByItem[item.fullType]
-    if type(usesNum) == 'table' then usesNum = #usesNum else usesNum = 0 end
-    local craftNum = CHC_main.recipesForItem[item.fullType]
-    if type(craftNum) == 'table' then craftNum = #craftNum else craftNum = 0 end
-    if usesNum + craftNum > 0 then
-        self.mainNumRecipes:setName(getText('UI_search_recipes_tab_name') .. ': ' .. usesNum + craftNum)
-        local tooltip = ''
-        if usesNum > 0 then
-            tooltip = tooltip .. getText('UI_item_uses_tab_name') .. ': ' .. usesNum
-            tooltip = tooltip .. ' <LINE>'
-        end
-        if craftNum > 0 then
-            tooltip = tooltip .. getText('UI_item_craft_tab_name') .. ': ' .. craftNum
-        end
-        self.mainNumRecipes:setTooltip(tooltip)
-        maxY = self.mainNumRecipes.y + self.mainNumRecipes.height + 2
-    else
-        self.mainNumRecipes:setName(nil)
-        self.mainNumRecipes:setTooltip(nil)
-    end
     self.mainInfo:setHeight(math.max(74, maxY))
     self.mainInfo:setVisible(true)
     -- self.mainImg.blinkImage = true

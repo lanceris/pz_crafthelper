@@ -25,7 +25,7 @@ function Section:createChildren()
         self.panel:setScrollChildren(true)
         self:addChild(self.panel)
         if self.panel.objList then
-            local mul = math.min(#self.panel.objList.items, 10)
+            local mul = math.min(#self.panel.objList.items, 8)
             local panelListH = self.panel.objList.itemheight * mul
             self.panel.objList:setHeight(panelListH)
             self.panel:setHeight(
