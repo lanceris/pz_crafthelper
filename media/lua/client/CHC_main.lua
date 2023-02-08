@@ -1,10 +1,10 @@
 require 'luautils'
 
 CHC_main = {}
-CHC_main.author = "lanceris"
-CHC_main.previousAuthors = { "Peanut", "ddraigcymraeg", "b1n0m" }
-CHC_main.modName = "CraftHelperContinued"
-CHC_main.version = "1.6.4"
+CHC_main.author = 'lanceris'
+CHC_main.previousAuthors = { 'Peanut', 'ddraigcymraeg', 'b1n0m' }
+CHC_main.modName = 'CraftHelperContinued'
+CHC_main.version = '1.6.5'
 CHC_main.allRecipes = {}
 CHC_main.recipesByItem = {}
 CHC_main.recipesForItem = {}
@@ -21,19 +21,22 @@ local insert = table.insert
 local utils = require('CHC_utils')
 local print = utils.chcprint
 local pairs = pairs
+local sub = string.sub
+local rawToStr = KahluaUtil.rawTostring2
+local tonumber = tonumber
 
-local cacheFileName = "CraftHelperLuaCache.json"
+local cacheFileName = 'CraftHelperLuaCache.json'
 local loadLua = false
 
 local showTime = function(start, st)
-	print(string.format("Loaded %s in %s seconds", st, tostring((getTimestampMs() - start) / 1000)))
+	print(string.format('Loaded %s in %s seconds', st, tostring((getTimestampMs() - start) / 1000)))
 end
 
 CHC_main.handleItems = function(itemString)
 	local item
-	if itemString == "Water" then
-		item = CHC_main.items["Base.WaterDrop"]
-	elseif (string.find(itemString, "Base%.DigitalWatch2") or string.find(itemString, "Base%.AlarmClock2")) then
+	if itemString == 'Water' then
+		item = CHC_main.items['Base.WaterDrop']
+	elseif (string.find(itemString, 'Base%.DigitalWatch2') or string.find(itemString, 'Base%.AlarmClock2')) then
 		item = nil
 	else
 		item = CHC_main.items[itemString]
@@ -64,9 +67,9 @@ CHC_main.handleRecipeLua = function(luaClosure)
 		local closureFirstLine = getFirstLineOfClosure(luafunc)
 		local code
 		local closureName = KahluaUtil.rawTostring2(luafunc)
-		closureName = string.sub(closureName, 11, string.find(closureName, " %-%-") - 1)
+		closureName = string.sub(closureName, 11, string.find(closureName, ' %-%-') - 1)
 		local funcData = CHC_main.luaRecipeCache[closureName]
-		if funcData and type(funcData.code) == "table" then
+		if funcData and type(funcData.code) == 'table' then
 			return funcData
 		end
 		if CHC_main.isDebug then
@@ -82,7 +85,7 @@ CHC_main.handleRecipeLua = function(luaClosure)
 			local line = br:readLine()
 			local firstline = line
 			while line ~= nil do
-				if line ~= firstline and utils.startswith(string.trim(line), "function") then
+				if line ~= firstline and utils.startswith(string.trim(line), 'function') then
 					break
 				end
 				if maxlines <= 0 then
@@ -90,11 +93,11 @@ CHC_main.handleRecipeLua = function(luaClosure)
 					break
 				end
 				if not code then code = {} end
-				local idx = line:find("%-%-")
+				local idx = line:find('%-%-')
 				if idx then line = line:sub(1, idx - 1) end
 				line = line:trim()
 
-				if line ~= "" then
+				if line ~= '' then
 					table.insert(code, line)
 				end
 				maxlines = maxlines - 1
@@ -132,6 +135,146 @@ CHC_main.parseOnGiveXP = function(recipeLua)
 end
 -- endregion
 
+CHC_main.getItemPropsDebug = function(item)
+	-- works only in debug mode as getClassField (Field) not exposed
+	local function processProp(props, propIdx)
+		local meth = getClassField(item, propIdx)
+
+		if meth.getType then
+			local strVal = rawToStr(getClassFieldVal(item, meth))
+			local methName = meth:getName()
+			-- if methName then
+			-- 	if not CHC_main.itemProps[methName:lower()] then
+			-- 		CHC_main.itemProps[methName:lower()] = true
+			-- 	end
+			-- end
+			if strVal then
+				local val = tonumber(strVal)
+				insert(props, { name = methName, value = val and math.floor(val * 10000) / 10000 or strVal })
+			end
+		end
+	end
+
+	if instanceof(item, 'ComboItem') then return end
+	local cl = getNumClassFields(item)
+	if cl == 0 then return end
+
+	local objAttrs = {}
+	for i = 0, cl - 1 do
+		processProp(objAttrs, i)
+	end
+	return objAttrs
+end
+
+CHC_main.getItemProps = function(item, itemType)
+	local map = CHC_settings.itemPropsByType
+	local typePropData = map[itemType]
+	local commonPropData = map['Common']
+
+	local function formatOutput(propName, propVal)
+
+		if propName then
+			if sub(propName, 1, 3) == 'get' then
+				propName = sub(propName, 4)
+			elseif sub(propName, 1, 2) == 'is' then
+				propName = sub(propName, 3)
+			end
+		end
+		if propVal then
+			if type(propVal) ~= 'string' then
+				propVal = math.floor(propVal * 10000) / 10000
+			end
+		end
+		return propName, propVal
+	end
+
+	local function processProp(item, prop, isTypeSpecific)
+		local propVal
+		local data
+		local propName = prop.name
+		local mul = prop.mul
+		local defVal = prop.default
+		local isIgnoreDefVal = prop.ignoreDefault
+		propVal = item[propName](item)
+		if propVal then
+			propVal = rawToStr(propVal)
+			local val = tonumber(propVal)
+			if val then propVal = val end
+
+			if mul then propVal = propVal * mul end
+
+			propName, propVal = formatOutput(propName, propVal)
+			data = { name = propName, value = propVal, isTypeSpecific = isTypeSpecific }
+			if isIgnoreDefVal and propVal == defVal or prop.forceIgnore then
+				data.ignore = true
+			end -- ignore default values
+			return data
+		end
+	end
+
+	local function processPropGroup(item, propData, isTypeSpecific)
+
+		local props = {}
+		if not propData then return props end
+		for i = 1, #propData do
+			local _propData = processProp(item, propData[i], isTypeSpecific)
+			if propData[i].name == 'getUseDelta' then
+				local _name, _val = formatOutput('UseDeltaTotal*', 1 / _propData.value)
+				insert(props, { name = _name, value = _val, isTypeSpecific = isTypeSpecific })
+			end
+			if _propData then
+				insert(props, _propData)
+			end
+		end
+		return props
+	end
+
+	local function postProcess(props)
+		local uniqueProps = {}
+		local dupedProps = {}
+		local result = {}
+		for i = 1, #props do
+			local prop = props[i]
+			if not uniqueProps[prop.name] then
+				uniqueProps[prop.name] = prop
+			else
+				dupedProps[prop.name] = true
+			end
+		end
+		if uniqueProps['Weight'].value == uniqueProps['ActualWeight'].value then
+			uniqueProps['ActualWeight'] = nil
+		end
+
+		for _, prop in pairs(uniqueProps) do
+			insert(result, prop)
+		end
+
+		return result, dupedProps
+	end
+
+	local props = {}
+	local typeProps
+	local dupedProps
+
+	local commonProps = processPropGroup(item, commonPropData, false)
+	if itemType == 'Radio' then
+		typeProps = processPropGroup(item:getDeviceData(), typePropData, true)
+	else
+		typeProps = processPropGroup(item, typePropData, true)
+	end
+
+	for i = 1, #commonProps do insert(props, commonProps[i]) end
+	for i = 1, #typeProps do insert(props, typeProps[i]) end
+
+	props, dupedProps = postProcess(props)
+	-- if not utils.empty(dupedProps) then
+	-- 	CHC_main.dupedProps.items[item:getDisplayName()] = dupedProps
+	-- 	CHC_main.dupedProps.size = CHC_main.dupedProps.size + 1
+	-- end
+
+	return props
+end
+
 CHC_main.loadDatas = function()
 	CHC_main.playerModData = getPlayer():getModData()
 
@@ -164,25 +307,19 @@ CHC_main.processOneItem = function(item)
 			hidden = item:isHidden(),
 			count = invItem:getCount() or 1,
 			category = item:getTypeString(),
-			displayCategory = itemDisplayCategory and getTextOrNull("IGUI_ItemCat_" .. itemDisplayCategory) or
-				getText("IGUI_ItemCat_Item"),
+			displayCategory = itemDisplayCategory and getTextOrNull('IGUI_ItemCat_' .. itemDisplayCategory) or
+				getText('IGUI_ItemCat_Item'),
 			texture = invItem:getTex()
 		}
-		-- toinsert.favorite = CHC_main.playerModData[CHC_main.getFavItemModDataStr(toinsert)] or false
+		toinsert.props = CHC_main.getItemProps(invItem, toinsert.category)
 		CHC_main.items[toinsert.fullType] = toinsert
 		insert(CHC_main.itemsForSearch, toinsert)
-		-- CHC_main.items[fullType] = invItem
-
-		-- if not CHC_main.hydroDuplicates[string.lower(toinsert.displayName)] then
-		-- 	CHC_main.hydroDuplicates[string.lower(toinsert.displayName)] = {}
-		-- end
-		-- insert(CHC_main.hydroDuplicates[string.lower(toinsert.displayName)], { ft = toinsert.fullType, modname = toinsert.modname })
 	else
 		error(string.format('Duplicate invItem fullType! (%s)', tostring(invItem:getFullType())))
 	end
 
 
-	if item:getTypeString() == "Literature" then
+	if item:getTypeString() == 'Literature' then
 		local teachedRecipes = item:getTeachedRecipes()
 		if teachedRecipes ~= nil and teachedRecipes:size() > 0 then
 			for j = 0, teachedRecipes:size() - 1 do
@@ -209,7 +346,7 @@ CHC_main.loadAllItems = function(am)
 	local now = getTimestampMs()
 	local amount = am or allItems:size() - 1
 
-	print("Loading items...")
+	print('Loading items...')
 	for i = 0, amount do
 		local item = allItems:get(i)
 		if not item:getObsolete() then
@@ -217,13 +354,7 @@ CHC_main.loadAllItems = function(am)
 			nbItems = nbItems + 1
 		end
 	end
-	-- for k, v in pairs(CHC_main.hydroDuplicates) do
-	-- 	if #v == 2 and v[1].modname ~= v[2].modname then
-	-- 		insert(CHC_main.hd, k)
-	-- 	end
-	-- end
-	-- utils.jsonutil.Save('temp.json', CHC_main.hd)
-	showTime(now, "All Items")
+	showTime(now, 'All Items')
 	print(nbItems .. ' items loaded.')
 end
 
@@ -240,13 +371,13 @@ CHC_main.loadAllRecipes = function()
 		local newItem = {}
 		local recipe = allRecipes:get(i)
 
-		newItem.category = recipe:getCategory() or getText("IGUI_CraftCategory_General")
-		newItem.displayCategory = getTextOrNull("IGUI_CraftCategory_" .. newItem.category) or newItem.category
+		newItem.category = recipe:getCategory() or getText('IGUI_CraftCategory_General')
+		newItem.displayCategory = getTextOrNull('IGUI_CraftCategory_' .. newItem.category) or newItem.category
 		newItem.recipe = recipe
 		newItem.module = recipe:getModule():getName()
 		newItem.favorite = CHC_main.playerModData[CHC_main.getFavoriteRecipeModDataString(recipe)] or false
 		newItem.recipeData = {}
-		newItem.recipeData.category = recipe:getCategory() or getText("IGUI_CraftCategory_General")
+		newItem.recipeData.category = recipe:getCategory() or getText('IGUI_CraftCategory_General')
 		newItem.recipeData.name = recipe:getName()
 		newItem.recipeData.nearItem = recipe:getNearItem()
 
@@ -311,10 +442,10 @@ CHC_main.loadAllRecipes = function()
 			end
 			nbRecipes = nbRecipes + 1
 		else
-			-- omg no "continue" in lua and goto not working :(
+			-- omg no 'continue' in lua and goto not working :(
 		end
 	end
-	showTime(now, "All Recipes")
+	showTime(now, 'All Recipes')
 	print(nbRecipes .. ' recipes loaded.')
 end
 
@@ -323,8 +454,8 @@ CHC_main.processDistrib = function(zone, d, data, isJunk, isProcedural)
 	-- local uniqueItems = {}
 	for i = 1, #d.items, 2 do
 		local itemName = d.items[i]
-		if not string.contains(itemName, ".") then
-			itemName = "Base." .. itemName
+		if not string.contains(itemName, '.') then
+			itemName = 'Base.' .. itemName
 		end
 		local itemNumber = d.items[i + 1]
 
@@ -378,13 +509,13 @@ CHC_main.loadAllDistributions = function()
 		end
 		if not d.rolls then --check second level
 			for subzone, dd in pairs(d) do
-				if type(dd) == "table" then
+				if type(dd) == 'table' then
 					if dd.rolls and dd.rolls > 0 and dd.items then
-						local zName = string.format("%s.%s", zone, subzone)
+						local zName = string.format('%s.%s', zone, subzone)
 						CHC_main.processDistrib(zName, dd, data)
 					end
 					if dd.junk and dd.junk.rolls and dd.junk.rolls > 0 and not utils.empty(dd.junk.items) then
-						local zName = string.format("%s.%s.junk", zone, subzone)
+						local zName = string.format('%s.%s.junk', zone, subzone)
 						CHC_main.processDistrib(zName, dd.junk, data, true)
 					end
 				end
@@ -395,26 +526,26 @@ CHC_main.loadAllDistributions = function()
 	-- procedural from suburbs
 	for zone, d in pairs(suburbs) do
 		if d.procedural then
-			print(string.format("smth is wrong, should not trigger (zone: %s)", zone))
+			print(string.format('smth is wrong, should not trigger (zone: %s)', zone))
 		end
 		for subzone, dd in pairs(d) do
-			if type(dd) == "table" then
+			if type(dd) == 'table' then
 				if dd.procedural and dd.procList then
 					for _, procEntry in pairs(dd.procList) do
 						-- weightChance and forceforX not accounted for
 						local pd = procedural[procEntry.name]
 						if pd ~= nil then
 							if pd.rolls and pd.rolls > 0 and pd.items then
-								local zName = string.format("%s.%s", zone, subzone)
+								local zName = string.format('%s.%s', zone, subzone)
 								CHC_main.processDistrib(zName, pd, data, nil, true)
 							end
 							if pd.junk and pd.junk.rolls and pd.junk.rolls > 0 and not utils.empty(pd.junk.items) then
-								local zName = string.format("%s.%s.junk", zone, subzone)
+								local zName = string.format('%s.%s.junk', zone, subzone)
 								CHC_main.processDistrib(zName, pd, data, true, true)
 							end
 						else
 							insert(CHC_main.notAProcZone, { zone = zone, subzone = subzone, procZone = procEntry.name })
-							-- error(string.format("Procedural entry is nil (zone: %s, proc: %s)", zone .. "-" .. subzone, procEntry.name))
+							-- error(string.format('Procedural entry is nil (zone: %s, proc: %s)', zone .. '-' .. subzone, procEntry.name))
 						end
 					end
 				end
@@ -442,18 +573,18 @@ CHC_main.getFavItemModDataStr = function(item)
 	local fullType
 	if item.fullType then
 		fullType = item.fullType
-	elseif instanceof(item, "InventoryItem") then
+	elseif instanceof(item, 'InventoryItem') then
 		fullType = item:getFullType()
-	elseif type(item) == "string" then
+	elseif type(item) == 'string' then
 		fullType = item
 	end
-	local text = "itemFavoriteCHC:" .. fullType
+	local text = 'itemFavoriteCHC:' .. fullType
 	return text
 end
 
 CHC_main.getFavoriteRecipeModDataString = function(recipe)
-	local text = "craftingFavorite:" .. recipe:getOriginalname()
-	if nil then --instanceof(recipe, "EvolvedRecipe") then
+	local text = 'craftingFavorite:' .. recipe:getOriginalname()
+	if nil then --instanceof(recipe, 'EvolvedRecipe') then
 		text = text .. ':' .. recipe:getBaseItem()
 		text = text .. ':' .. recipe:getResultItem()
 	else
@@ -468,7 +599,7 @@ CHC_main.getFavoriteRecipeModDataString = function(recipe)
 end
 
 CHC_main.processHydrocraft = function(recipe)
-	if not getActivatedMods():contains("Hydrocraft") then return end
+	if not getActivatedMods():contains('Hydrocraft') then return end
 
 	local luaTest = recipe:getLuaTest()
 	if not luaTest then return end
@@ -486,7 +617,7 @@ function CHC_main.reloadMod(key)
 	if key == Keyboard.KEY_O then
 		CHC_main.loadDatas()
 		local all = CHC_main
-		error('debug')
+		-- error('debug')
 	end
 end
 

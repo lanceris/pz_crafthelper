@@ -6,6 +6,7 @@ CHC_menu = {}
 --- loads config and creates window instance
 CHC_menu.createCraftHelper = function()
 	CHC_settings.Load()
+	CHC_settings.LoadPropsData()
 	local options = CHC_settings.config
 
 	local args = {
@@ -31,7 +32,7 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
 	for i = 1, #items do
 
 		-- allows to get ctx option when clicking on hotbar/equipped item
-		if not instanceof(items[i], "InventoryItem") then
+		if not instanceof(items[i], 'InventoryItem') then
 			item = items[i].items[1]
 		else
 			item = items[i]
@@ -48,17 +49,22 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
 	-- If one or more items tested above are used in a recipe
 	-- we effectively add an option in the contextual menu
 	if type(itemsUsedInRecipes) == 'table' and #itemsUsedInRecipes > 0 then
-		context:addOption(getText("IGUI_chc_context_onclick"), itemsUsedInRecipes, CHC_menu.onCraftHelper, player);
+		local opt = context:addOption(getText('IGUI_chc_context_onclick'), itemsUsedInRecipes, CHC_menu.onCraftHelper, player)
+		CHC_main.common.addTooltipNumRecipes(opt, item)
 	end
 	if isShiftKeyDown() and CHC_menu.CHC_window ~= nil then
 		local isFav = CHC_main.playerModData[CHC_main.getFavItemModDataStr(item)] == true
-		local favStr = isFav and getText("ContextMenu_Unfavorite") or getText("IGUI_CraftUI_Favorite")
-		local optName = favStr .. " (" .. getText("IGUI_chc_context_onclick") .. ")"
+		local favStr = isFav and getText('ContextMenu_Unfavorite') or getText('IGUI_CraftUI_Favorite')
+		local optName = favStr .. ' (' .. getText('IGUI_chc_context_onclick') .. ')'
 		context:addOption(optName, items, CHC_menu.toggleItemFavorite)
+
+		context:addOption(getText('IGUI_find_item') .. ' (' .. getText('IGUI_chc_context_onclick') .. ')', items,
+			CHC_menu.onCraftHelper, player, true)
 	end
 end
 
-CHC_menu.onCraftHelper = function(items, player)
+CHC_menu.onCraftHelper = function(items, player, itemMode)
+	itemMode = itemMode and true or false
 	local inst = CHC_menu.CHC_window
 	if inst == nil then
 		inst = CHC_menu.createCraftHelper()
@@ -67,20 +73,57 @@ CHC_menu.onCraftHelper = function(items, player)
 	-- Show craft helper window
 	for i = 1, #items do
 		local item = items[i]
-		if not instanceof(item, "InventoryItem") then
+		if not instanceof(item, 'InventoryItem') then
 			item = item.items[1]
 		end
-		inst:addItemView(item)
+		if not itemMode then
+			inst:addItemView(item)
+		end
 	end
+	if itemMode then
+		local item = items[#items]
+		if not instanceof(item, 'InventoryItem') then item = item.items[1] end
+		item = CHC_main.items[item:getFullType()]
+		if item then
+			CHC_menu.onCraftHelperItem(inst, item)
+		end
+	end
+
 	if not inst:getIsVisible() then
 		inst:setVisible(true)
 		inst:addToUIManager()
 	end
 end
 
+CHC_menu.onCraftHelperItem = function(window_inst, item)
+	local backRef = window_inst
+	local viewName = getText('UI_search_tab_name')
+	backRef:refresh(viewName) -- activate top level search view
+	backRef:refresh(backRef.uiTypeToView['search_items'].name,
+		backRef.panel.activeView.view) -- activate Items subview
+	local view = backRef:getActiveSubView()
+	local txt = string.format('#%s,%s', item.displayCategory, item.displayName)
+	txt = string.lower(txt)
+	view.searchRow.searchBar:setText(txt) -- set text to Items subview search bar
+	view:updateItems(view.selectedCategory)
+	if #view.objList.items ~= 0 then
+		local it = view.objList.items
+		local c = 1
+		for i = 1, #it do
+			if string.lower(it[i].text) == string.lower(item.displayName) then c = i break end
+		end
+		view.objList.selected = c
+		view.objList:ensureVisible(c)
+		if view.objPanel then
+			view.objPanel:setObj(it[c].item)
+			-- view.needSyncFilters = true
+		end
+	end
+end
+
 --- window toggle logic
-CHC_menu.toggleUI = function()
-	local ui = CHC_menu.CHC_window
+CHC_menu.toggleUI = function(ui)
+	local ui = ui or CHC_menu.CHC_window
 	if ui then
 		if ui:getIsVisible() then
 			ui:setVisible(false)
@@ -96,7 +139,7 @@ CHC_menu.toggleItemFavorite = function(items)
 	local modData = CHC_main.playerModData
 	for i = 1, #items do
 		local item
-		if not instanceof(items[i], "InventoryItem") then
+		if not instanceof(items[i], 'InventoryItem') then
 			item = items[i].items[1]
 		else
 			item = items[i]

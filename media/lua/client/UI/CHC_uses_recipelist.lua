@@ -1,6 +1,6 @@
-require "ISUI/ISScrollingListBox"
+require 'ISUI/ISScrollingListBox'
 
-CHC_uses_recipelist = ISScrollingListBox:derive("CHC_uses_recipelist")
+CHC_uses_recipelist = ISScrollingListBox:derive('CHC_uses_recipelist')
 
 local fontSizeToInternal = {
 	{ font = UIFont.Small, pad = 4, icon = 10 },
@@ -89,7 +89,7 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 	self:drawText(clr.txt, clr.x, clr.y, clr.r, clr.g, clr.b, clr.a, clr.font)
 	if shouldDrawMod then
 		local modY = clr.y + getTextManager():getFontHeight(self.font)
-		self:drawText("Mod: " .. item.item.module, clr.x + 5, modY, 1, 1, 1, 0.8, UIFont.Small)
+		self:drawText('Mod: ' .. item.item.module, clr.x + 5, modY, 1, 1, 1, 0.8, UIFont.Small)
 	end
 	--endregion
 
@@ -120,6 +120,10 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 	end
 	-- border around entry
 	self:drawRectBorder(bc.x, bc.y, bc.w, bc.h, bc.a, bc.r, bc.g, bc.b);
+
+	if item.index == self.mouseoverselected then
+		self:drawRect(sc.x, sc.y, sc.w, sc.h, 0.2, 0.5, sc.g, sc.b)
+	end
 	--endregion
 
 	y = y + item.height;
@@ -174,9 +178,9 @@ function CHC_uses_recipelist:addToFavorite(selectedIndex, fromKeyboard)
 	local fav_idx;
 	local parent = self.parent
 
-	--find "Favorite" category
+	--find 'Favorite' category
 	for i, v in ipairs(allr) do
-		if v.category == getText("IGUI_CraftCategory_Favorite") then
+		if v.category == getText('IGUI_CraftCategory_Favorite') then
 			fav_idx = i
 			break
 		end
@@ -205,24 +209,25 @@ end
 -- endregion
 
 
-function CHC_uses_recipelist:new(x, y, width, height)
+function CHC_uses_recipelist:new(args)
 	local o = {}
 
-	o = ISScrollingListBox:new(x, y, width, height)
+	o = ISScrollingListBox:new(args.x, args.y, args.w, args.h)
 	setmetatable(o, self)
 	self.__index = self
 	o.backgroundColor = { r = 0, g = 0, b = 0, a = 0 }
 	o.borderColor = { r = 0.4, g = 0.4, b = 0.4, a = 0.9 }
 	o.anchorTop = true
 	o.anchorBottom = true
+	o.backRef = args.backRef
 	local player = getPlayer()
 	o.player = player
 	o.character = player
 	o.playerNum = player and player:getPlayerNum() or -1
 	o.modData = CHC_main.playerModData
 
-	o.favoriteStar = getTexture("media/ui/FavoriteStar.png")
-	o.favCheckedTex = getTexture("media/ui/FavoriteStarChecked.png")
-	o.favNotCheckedTex = getTexture("media/ui/FavoriteStarUnchecked.png")
+	o.favoriteStar = getTexture('media/ui/FavoriteStar.png')
+	o.favCheckedTex = getTexture('media/ui/FavoriteStarChecked.png')
+	o.favNotCheckedTex = getTexture('media/ui/FavoriteStarUnchecked.png')
 	return o
 end

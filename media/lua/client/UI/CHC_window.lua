@@ -5,7 +5,7 @@ require 'CHC_config'
 require 'UI/CHC_uses'
 require 'UI/CHC_search'
 
-CHC_window = ISCollapsableWindow:derive("CHC_window")
+CHC_window = ISCollapsableWindow:derive('CHC_window')
 local utils = require('CHC_utils')
 local print = utils.chcprint
 
@@ -31,7 +31,12 @@ function CHC_window:create()
     self.panel:setEqualTabWidth(false)
     -- endregion
     self.panelY = self.tbh + self.panel.tabHeight
-    self.common_screen_data = { x = 0, y = self.panelY + self.panel.tabHeight, w = self.width, h = self.panel.height - self.panelY - 4 }
+    self.common_screen_data = {
+        x = 0,
+        y = self.panelY + self.panel.tabHeight,
+        w = self.width,
+        h = self.panel.height - self.panelY - 4
+    }
 
     self:addSearchPanel()
     self:addFavoriteScreen()
@@ -40,7 +45,7 @@ function CHC_window:create()
     if self.items then
         for i = 1, #self.items do
             local item = self.items[i]
-            if not instanceof(item, "InventoryItem") then
+            if not instanceof(item, 'InventoryItem') then
                 item = item.items[1]
             end
             self:addItemView(item)
@@ -55,8 +60,8 @@ end
 function CHC_window:addSearchPanel()
     local options = self.options
 
-    local itemsUIType = "search_items"
-    local recipesUIType = "search_recipes"
+    local itemsUIType = 'search_items'
+    local recipesUIType = 'search_recipes'
 
     -- region search panel
     self.searchPanel = ISTabPanel:new(1, self.panelY, self.width, self.height - self.panelY)
@@ -83,7 +88,7 @@ function CHC_window:addSearchPanel()
     self.searchItemsScreen = CHC_search:new(items_screen_init)
     if itemsData then
         self.searchItemsScreen:initialise()
-        local sivn = getText("UI_search_items_tab_name")
+        local sivn = getText('UI_search_items_tab_name')
         self.searchPanel:addView(sivn, self.searchItemsScreen)
         self.uiTypeToView[items_extra.ui_type] = { view = self.searchItemsScreen, name = sivn }
     end
@@ -106,7 +111,7 @@ function CHC_window:addSearchPanel()
 
     if recipesData then
         self.searchRecipesScreen:initialise()
-        local srvn = getText("UI_search_recipes_tab_name")
+        local srvn = getText('UI_search_recipes_tab_name')
         self.searchPanel:addView(srvn, self.searchRecipesScreen)
         self.uiTypeToView[recipes_extra.ui_type] = { view = self.searchRecipesScreen, name = srvn }
     end
@@ -138,7 +143,7 @@ function CHC_window:addFavoriteScreen()
         itemSortAsc = options.favorites.items.filter_asc,
         typeFilter = options.favorites.items.filter_type,
         showHidden = options.show_hidden,
-        ui_type = "fav_items",
+        ui_type = 'fav_items',
         backRef = self,
         sep_x = math.min(self.width / 2, options.favorites.items.sep_x)
     }
@@ -147,7 +152,7 @@ function CHC_window:addFavoriteScreen()
 
     if itemsData then
         self.favItemsScreen:initialise()
-        local fivn = getText("UI_search_items_tab_name")
+        local fivn = getText('UI_search_items_tab_name')
         self.favPanel:addView(fivn, self.favItemsScreen)
         self.uiTypeToView[items_extra.ui_type] = { view = self.favItemsScreen, name = fivn }
     end
@@ -161,7 +166,7 @@ function CHC_window:addFavoriteScreen()
         itemSortAsc = options.favorites.recipes.filter_asc,
         typeFilter = options.favorites.recipes.filter_type,
         showHidden = options.show_hidden,
-        ui_type = "fav_recipes",
+        ui_type = 'fav_recipes',
         backRef = self,
         sep_x = math.min(self.width / 2, options.favorites.recipes.sep_x)
     }
@@ -170,7 +175,7 @@ function CHC_window:addFavoriteScreen()
 
     if recipesData then
         self.favRecipesScreen:initialise()
-        local frvn = getText("UI_search_recipes_tab_name")
+        local frvn = getText('UI_search_recipes_tab_name')
         self.favPanel:addView(frvn, self.favRecipesScreen)
         self.uiTypeToView[recipes_extra.ui_type] = { view = self.favRecipesScreen, name = frvn }
     end
@@ -191,7 +196,7 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
     if existingView ~= nil then
 
         if existingView.item.fullType ~= ifn then -- same displayName, but different items
-            nameForTab = nameForTab .. string.format(" (%s)", ifn)
+            nameForTab = nameForTab .. string.format(' (%s)', ifn)
         else -- same displayName and same item
             self:refresh(nameForTab, nil, focusOnNew, focusOnTabIdx)
             return
@@ -200,7 +205,12 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
     local options = self.options
 
     -- region item screens
-    self.common_screen_data = { x = 0, y = self.panelY + self.panel.tabHeight, w = self.width - 2, h = self.panel.height - self.panelY - 4 }
+    self.common_screen_data = {
+        x = 0,
+        y = self.panelY + self.panel.tabHeight,
+        w = self.width - 2,
+        h = self.panel.height - self.panelY - 4
+    }
 
     --region item container
     self.itemPanel = ISTabPanel:new(1, self.panelY, self.width, self.height - self.panelY)
@@ -222,7 +232,7 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
         typeFilter = options.uses.filter_type,
         showHidden = options.show_hidden,
         sep_x = math.min(self.width / 2, options.uses.sep_x),
-        ui_type = "item_uses",
+        ui_type = 'item_uses',
         backRef = self,
         item = itn
     }
@@ -231,7 +241,7 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
 
     if usesData then
         self.usesScreen:initialise()
-        local iuvn = getText("UI_item_uses_tab_name")
+        local iuvn = getText('UI_item_uses_tab_name')
         self.itemPanel:addView(iuvn, self.usesScreen)
         if not self.uiTypeToView[uses_extra.ui_type] then
             self.uiTypeToView[uses_extra.ui_type] = { { view = self.usesScreen, name = iuvn } }
@@ -250,7 +260,7 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
         typeFilter = options.craft.filter_type,
         showHidden = options.show_hidden,
         sep_x = math.min(self.width / 2, options.craft.sep_x),
-        ui_type = "item_craft",
+        ui_type = 'item_craft',
         backRef = self,
         item = itn
     }
@@ -259,7 +269,7 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
 
     if craftData then
         self.craftScreen:initialise()
-        local icvn = getText("UI_item_craft_tab_name")
+        local icvn = getText('UI_item_craft_tab_name')
         self.itemPanel:addView(icvn, self.craftScreen)
         if not self.uiTypeToView[craft_extra.ui_type] then
             self.uiTypeToView[craft_extra.ui_type] = { { view = self.craftScreen, name = icvn } }
@@ -359,6 +369,7 @@ function CHC_window:close()
     CHC_menu.toggleUI()
     self:serializeWindowData()
     CHC_settings.Save()
+    CHC_settings.SavePropsData()
 
 end
 
@@ -381,7 +392,7 @@ function CHC_window:resizeHeaders(headers)
 end
 
 function CHC_window:onResize()
-    ISPanel.onResize(self)
+    ISCollapsableWindow.onResize(self)
 
     local ui = self
     if not ui.panel or not ui.panel.activeView then return end
@@ -420,6 +431,67 @@ end
 -- endregion
 
 -- region logic
+
+-- Common options for RMBDown + init context
+function CHC_window:onRMBDownObjList(x, y, item, isrecipe, context)
+    isrecipe = isrecipe and true or false
+    if not item then
+        local row = self:rowAt(x, y)
+        if row == -1 then return end
+        item = self.items[row].item
+        if not item then return end
+    end
+    if isrecipe then
+        item = item.recipeData.result
+    end
+
+    item = CHC_main.items[item.fullType]
+    local cX = getMouseX()
+    local cY = getMouseY()
+    local context = context or ISContextMenu.get(0, cX + 10, cY)
+
+    local function chccopy(_, param)
+        if param then
+            Clipboard.setClipboard(tostring(param))
+        end
+    end
+
+    if isShiftKeyDown() then
+        local name = context:addOption(getText('IGUI_chc_Copy') .. ' (' .. item.displayName .. ')', nil, nil)
+        local subMenuName = ISContextMenu:getNew(context)
+        context:addSubMenu(name, subMenuName)
+        local itemType = self.parent.typeData and self.parent.typeData[item.category].tooltip or item.category
+
+        local ft = subMenuName:addOption('FullType', self, chccopy, item.fullType)
+        local na = subMenuName:addOption('Name', self, chccopy, item.name)
+        local ty = subMenuName:addOption('!Type', self, chccopy, '!' .. itemType)
+        local ca = subMenuName:addOption('#Category', self, chccopy, '#' .. item.displayCategory)
+        local mo = subMenuName:addOption('@Mod', self, chccopy, '@' .. item.modname)
+
+        for _, opt in ipairs({ ft, na, ty, ca, mo }) do
+            CHC_main.common.setTooltipToCtx(opt, opt.param1)
+        end
+    end
+
+    if getDebug() then
+        if item and item.fullType then
+            local pInv = self.parent.player
+            if pInv then
+                pInv = pInv:getInventory()
+                local name = context:addOption('Add item', nil, nil)
+                local subMenuName = ISContextMenu:getNew(context)
+                context:addSubMenu(name, subMenuName)
+
+                subMenuName:addOption('1x', self.parent, function() pInv:AddItem(item.fullType) end)
+                subMenuName:addOption('2x', self.parent, function() for _ = 1, 2 do pInv:AddItem(item.fullType) end end)
+                subMenuName:addOption('5x', self.parent, function() for _ = 1, 5 do pInv:AddItem(item.fullType) end end)
+                subMenuName:addOption('10x', self.parent, function() for _ = 1, 10 do pInv:AddItem(item.fullType) end end)
+            end
+        end
+    end
+    return context
+
+end
 
 --region tabs
 
@@ -482,12 +554,12 @@ function CHC_window:onMainTabRightMouseDown(x, y)
     local tabIndex = self:getTabIndexAtX(x)
     if tabIndex <= 2 then return end -- dont interact with search and favorites
     local context = ISContextMenu.get(0, getMouseX() - 50, getMouseY() - 105)
-    -- context:addOption("Pin", self, CHC_window.togglePinTab, tabIndex)
     if #self.viewList > 3 then
-        context:addOption(getText("IGUI_tab_ctx_close_others"), self, CHC_window.closeOtherTabs, tabIndex)
-        context:addOption(getText("IGUI_CraftUI_Close") .. " " .. string.lower(getText("UI_All")), self, CHC_window.closeAllTabs)
+        context:addOption(getText('IGUI_tab_ctx_close_others'), self, CHC_window.closeOtherTabs, tabIndex)
+        context:addOption(getText('IGUI_CraftUI_Close') .. ' ' .. string.lower(getText('UI_All')),
+            self, CHC_window.closeAllTabs)
     end
-    context:addOption(getText("IGUI_CraftUI_Close"), self, CHC_window.closeTab, tabIndex)
+    context:addOption(getText('IGUI_CraftUI_Close'), self, CHC_window.closeTab, tabIndex)
     context:setY(getMouseY() - #context.options * 35)
 end
 
@@ -512,7 +584,7 @@ function CHC_window:closeAllTabs()
         vl:removeView(vl.viewList[i].view)
     end
     vl:activateView(vl.viewList[2].name)
-    vl.activeView.view:activateView(getText("UI_search_recipes_tab_name"))
+    vl.activeView.view:activateView(getText('UI_search_recipes_tab_name'))
     vl.scrollX = 0
 end
 
@@ -544,22 +616,22 @@ local modifierOptionToKey = {
 
 function CHC_window:isModifierKeyDown(_type)
     local modifier
-    if _type == "recipe" then
+    if _type == 'recipe' then
         modifier = modifierOptionToKey[CHC_settings.config.recipe_selector_modifier]
-    elseif _type == "category" then
+    elseif _type == 'category' then
         modifier = modifierOptionToKey[CHC_settings.config.category_selector_modifier]
-    elseif _type == "tab" then
+    elseif _type == 'tab' then
         modifier = modifierOptionToKey[CHC_settings.config.tab_selector_modifier]
     else
-        error("unknown modifier type")
+        error('unknown modifier type')
     end
 
-    if not modifier then error("no modifier found!") end
+    if not modifier then error('no modifier found!') end
 
     if modifier == 'none' then return true end
-    if modifier == "control" then return isCtrlKeyDown() end
-    if modifier == "shift" then return isShiftKeyDown() end
-    if modifier == "control+shift" then
+    if modifier == 'control' then return isCtrlKeyDown() end
+    if modifier == 'shift' then return isShiftKeyDown() end
+    if modifier == 'control+shift' then
         return isCtrlKeyDown() and isShiftKeyDown()
     end
 end
@@ -767,7 +839,7 @@ function CHC_window:new(args)
         o[k] = v
     end
 
-    o.title = getText("IGUI_chc_context_onclick")
+    o.title = getText('IGUI_chc_context_onclick')
     --o:noBackground();
     o.th = o:titleBarHeight()
     o.rh = o:resizeWidgetHeight()
@@ -776,8 +848,8 @@ function CHC_window:new(args)
     o.player = args.player or nil
     o.modData = CHC_main.playerModData
 
-    o.searchViewName = getText("UI_search_tab_name")
-    o.favViewName = getText("IGUI_CraftCategory_Favorite")
+    o.searchViewName = getText('UI_search_tab_name')
+    o.favViewName = getText('IGUI_CraftCategory_Favorite')
 
     o.options = CHC_settings.config
     o.needUpdateFavorites = false
@@ -786,18 +858,18 @@ function CHC_window:new(args)
     o.updateQueue = utils.Deque:new()
     o.uiTypeToView = {}
 
-    o.infotext_recipe_type_filter = getText("UI_infotext_recipe_types",
-        getText("UI_All"),
-        getText("UI_settings_av_valid"),
-        getText("UI_settings_av_known"),
-        getText("UI_settings_av_invalid")
+    o.infotext_recipe_type_filter = getText('UI_infotext_recipe_types',
+        getText('UI_All'),
+        getText('UI_settings_av_valid'),
+        getText('UI_settings_av_known'),
+        getText('UI_settings_av_invalid')
     )
-    o.searchPanelInfo = getText("UI_infotext_search")
-    o.favPanelInfo = getText("UI_infotext_favorites")
-    o.itemPanelInfo = getText("UI_infotext_itemtab",
-        "%1", -- item displayName
-        getText("UI_item_uses_tab_name"),
-        getText("UI_item_craft_tab_name")
+    o.searchPanelInfo = getText('UI_infotext_search')
+    o.favPanelInfo = getText('UI_infotext_favorites')
+    o.itemPanelInfo = getText('UI_infotext_itemtab',
+        '%1', -- item displayName
+        getText('UI_item_uses_tab_name'),
+        getText('UI_item_craft_tab_name')
     )
 
     o.viewNameToInfoText = {
@@ -805,17 +877,17 @@ function CHC_window:new(args)
         [o.favViewName] = o.favPanelInfo
     }
 
-    o.infotext_common_recipes = getText("UI_infotext_common",
+    o.infotext_common_recipes = getText('UI_infotext_common',
         o.infotext_recipe_type_filter,
-        getText("UI_infotext_recipe_details"),
-        getText("UI_infotext_recipe_mouse")
+        getText('UI_infotext_recipe_details'),
+        getText('UI_infotext_recipe_mouse')
     )
-    o.infotext_common_items = getText("UI_infotext_common",
-        getText("UI_infotext_item_types"),
-        getText("UI_infotext_item_details"),
-        getText("UI_infotext_item_mouse")
+    o.infotext_common_items = getText('UI_infotext_common',
+        getText('UI_infotext_item_types'),
+        getText('UI_infotext_item_details'),
+        getText('UI_infotext_item_mouse')
     )
     o:setWantKeyEvents(true)
 
-    return o;
+    return o
 end

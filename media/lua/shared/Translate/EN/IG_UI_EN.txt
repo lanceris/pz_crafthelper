@@ -1,11 +1,11 @@
 IGUI_EN = {
-    IGUI_chc_context_onclick = "Craft Helper 41"
+    IGUI_chc_context_onclick = "Craft Helper"
     IGUI_AllowSpecialSearch = "Enable special commands"
     IGUI_AllowSpecialSearchTooltip = "Commands are used in searches (click on magnifier left of the search bar to learn more)"
     IGUI_ShowIcons = "Show icons of items"
     IGUI_ShowIconsTooltip = "Show icons of recipe results/items in the list"
     IGUI_ShowHidden = "Show hidden items/recipes"
-    IGUI_ShowHiddenTooltip = "Items without DisplayName and recipes with "IsHidden: true" in definition. <LINE> Reload save to take effect",
+    IGUI_ShowHiddenTooltip = "Items without DisplayName and recipes with "IsHidden: true" in definition. <LINE> Reload save to take effect"
     IGUI_CloseAllOnExit = "Close all tabs on close"
     IGUI_CloseAllOnExitTooltip = "Close all item tabs, when closing window (via hotkey or clicking 'x')"
     IGUI_ListFontSize = "Font size"
@@ -18,6 +18,9 @@ IGUI_EN = {
     IGUI_TabSelectorModifierTooltip = "Modifier key(s) held down while selecting tabs ('%1' and '%2' keybinds)"
     IGUI_ShowRecipeModule = "Show recipe origin"
     IGUI_ShowRecipeModuleTooltip = "Display mod, where recipe came from. <LINE> Note: recipe 'mod' is just module, where this recipe was defined (in .txt file), some mods use default module ('Base')"
+    IGUI_ShowAllItemProps = "Show all item attributes"
+    IGUI_ShowAllItemPropsTooltip = "Most of item attributes with default values are hidden by default. If selected, all attributes will be shown"
+
     IGUI_CHC_ItemCat_AlarmClockClothing = "Wrist watch"
     IGUI_CHC_ItemCat_Drainable = "Drainable"
     IGUI_CHC_ItemCat_Map = "Map"
@@ -34,6 +37,16 @@ IGUI_EN = {
     IGUI_ShowFavItemsInventoryTooltip = "Shows a blue star outline on an item in inventory (item must be in favorites)"
     IGUI_EditableCategorySelector = "Enable text input in category selector"
     IGUI_EditableCategorySelectorTooltip = "Change tab to apply"
+    IGUI_TextTooLongTooltip = "<RED> Text too long <RGB:1,1,1>"
+    IGUI_chc_Copy = "Copy"
+    IGUI_CopyNameProps_ctx = "Name"
+    IGUI_CopyValueProps_ctx = "Value"
+    IGUI_CopyValueSearchProps_ctx = "Value for search"
+    IGUI_PinProps_ctx = "Pin"
+    IGUI_UnpinProps_ctx = "Unpin"
+    IGUI_BlacklistProps_ctx = "Blacklist"
+    IGUI_UnblacklistProps_ctx = "Unblacklist"
+    IGUI_ItemDetails_Attributes_tab = "Attributes"
 
 
 }

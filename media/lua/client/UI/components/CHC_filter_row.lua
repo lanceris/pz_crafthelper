@@ -3,7 +3,7 @@ require 'ISUI/ISButton'
 require 'ISUI/ISModalRichText'
 
 local derivative = ISPanel
-CHC_filter_row = derivative:derive("CHC_filter_row")
+CHC_filter_row = derivative:derive('CHC_filter_row')
 
 function CHC_filter_row:initialise()
     derivative.initialise(self)
@@ -15,7 +15,7 @@ function CHC_filter_row:create()
 
     -- region order btn
     local foo = self.filterOrderData
-    self.filterOrderBtn = ISButton:new(x, 0, foo.width or h, h, foo.title or "", self)
+    self.filterOrderBtn = ISButton:new(x, 0, foo.width or h, h, foo.title or '', self)
     self.filterOrderBtn:initialise()
     self.filterOrderBtn.onclick = foo.onclick
     self.filterOrderBtn.tooltip = foo.defaultTooltip
@@ -26,7 +26,7 @@ function CHC_filter_row:create()
 
     -- region type btn
     local fto = self.filterTypeData
-    self.filterTypeBtn = ISButton:new(x, 0, fto.width or h, h, fto.title or "", self)
+    self.filterTypeBtn = ISButton:new(x, 0, fto.width or h, h, fto.title or '', self)
     self.filterTypeBtn:initialise()
     self.filterTypeBtn.onclick = fto.onclick
     self.filterTypeBtn.tooltip = fto.defaultTooltip
@@ -57,17 +57,18 @@ function CHC_filter_row:onResize()
     self.categorySelector:setWidth(self.width - self.filterOrderBtn.width - self.filterTypeBtn.width)
 end
 
-function CHC_filter_row:new(x, y, width, height, filtersData)
-    local o = {};
-    o = derivative:new(x, y, width, height)
+function CHC_filter_row:new(args, filtersData)
+    local x = args.x
+    local y = args.y
+    local w = args.w
+    local h = args.h
+    local o = {}
+    o = derivative:new(x, y, w, h)
 
     setmetatable(o, self)
     self.__index = self
 
-    o.x = x
-    o.y = y
-    o.w = width
-    o.h = height
+    o.backRef = args.backRef
     o.filterOrderData = filtersData.filterOrderData
     o.filterTypeData = filtersData.filterTypeData
     o.filterSelectorData = filtersData.filterSelectorData

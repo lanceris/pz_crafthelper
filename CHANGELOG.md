@@ -1,5 +1,25 @@
 # CraftHelper updates
 
+## 1.6.5 (08.02.2023)
+
+### New features
+
+- Item attributes table to item details screen
+- Ability to search by attributes and/or values (inside table)
+- New search mode for items ($) - search by attributes
+- Pinned/blacklisted item attributes
+- Ability to search items from inventory (Shift + RMB on item in inventory)
+- Option to show all item attributes (by default OFF)
+
+### Improvements
+
+- Refactored RMB click event handlers (added common actions on RMB and Shift+RMB (debug only) for item/recipe lists/detail icons and recipe ingredients)
+- Inline search with comparison operators ("damage>20", "ranged=true")
+- Attribute names/values are copyable by RMB
+- New onRMB click actions for attribute list (copy, pin, blacklist)
+- Limited max length of search query (by default 1000)
+- Tooltips to various context options
+
 ## 1.6.4 (19.01.2023, workshop release)
 
 ### Improvements

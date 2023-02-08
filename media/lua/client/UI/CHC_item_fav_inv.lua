@@ -1,7 +1,7 @@
-require "ISUI/ISInventoryPane"
-require "CHC_main"
+require 'ISUI/ISInventoryPane'
+require 'CHC_main'
 
-local favTexOutline = getTexture("media/textures/itemFavoriteStarOutline.png")
+local favTexOutline = getTexture('media/textures/itemFavoriteStarOutline.png')
 
 local function renderdetailsCHC(self, doDragged)
     local y = 0

@@ -1,0 +1,35 @@
+[h1]1.6.5[/h1]
+
+[h2]New features:[/h2]
+[list]
+[*]New attributes table on item details screen
+[*]New search mode for items ($) - search by attributes
+[*]Ability to pin/blacklist item attributes
+[/list]
+
+[h2]Improvements:[/h2]
+[list]
+[*]Inline search with comparison operators ("damage>20", "ranged=true")
+[*]Limited max length of search query (by default 1000)
+[*]Tooltips to various context menus
+[*]Changed context menu option text from "Craft Helper 41" to "Craft Helper"
+[/list]
+
+[h2]Bugfixes:[/h2]
+[list]
+[*]Various UI fixes
+[/list]
+
+[h2]New options:[/h2]
+[list]
+[*]Show all item attributes (by default OFF)
+[/list]
+
+[h2]New controls:[/h2]
+[list]
+[*]Shift + RMB on item in inventory to find this item in Craft Helper
+[*]RMB on item attribute to pin/blacklist, copy attribute name/value
+[*]Shift + RMB on item attribute to unpin/unblacklist all
+[*]Shift + RMB on item/recipe to copy name/type/category/mod
+[*]Shift + RMB (debug only) on item/recipe to add item to player inventory
+[/list]
