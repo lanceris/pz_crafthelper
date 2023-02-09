@@ -26,7 +26,8 @@ local sub = string.sub
 function CHC_search:initialise()
     ISPanel.initialise(self)
 
-    self.typeData = { -- .count for each calculated in catSelUpdateOptions
+    self.typeData = {
+        -- .count for each calculated in catSelUpdateOptions
         all = {
             tooltip = getText('UI_All'),
             icon = getTexture('media/textures/type_filt_all.png')
@@ -94,7 +95,6 @@ function CHC_search:initialise()
 end
 
 function CHC_search:create()
-
     -- region draggable headers
     self.headers = CHC_tabs:new(0, 0, self.width, 20, { self.onResizeHeaders, self }, self.sep_x)
     self.headers:initialise()
@@ -136,7 +136,7 @@ function CHC_search:create()
 
     -- region search bar
     self.searchRow = CHC_search_bar:new({ x = x, y = leftY, w = leftW, h = 24, backRef = self.backRef }, nil,
-        self.onTextChange, self.searchRowHelpText)
+            self.onTextChange, self.searchRowHelpText)
     self.searchRow:initialise()
     leftY = leftY + 24
     -- endregion
@@ -144,7 +144,7 @@ function CHC_search:create()
     -- region recipe list
     local rlh = self.height - self.headers.height - self.filterRow.height - self.searchRow.height
     self.objList = CHC_items_list:new({ x = x, y = leftY, w = leftW, h = rlh, backRef = self.backRef },
-        self.onMMBDownObjList)
+            self.onMMBDownObjList)
 
     self.objList.drawBorder = true
     self.objList.onRightMouseDown = self.onRMBDownObjList
@@ -182,7 +182,6 @@ end
 -- region update
 
 function CHC_search:updateTypesCategoriesInitial()
-
     local selector = self.filterRow.categorySelector
     local uniqueCategories = {}
     local dcatCounts = {}
@@ -191,7 +190,6 @@ function CHC_search:updateTypesCategoriesInitial()
     local c = 1
 
     for i = 1, #allItems do
-
         local ic = allItems[i].category
         if not catCounts[ic] then
             catCounts[ic] = 1
@@ -305,7 +303,6 @@ function CHC_search:updateTypes()
     local isSelectorSetToAll = self.selectedCategory == self.defaultCategory
 
     for i = 1, #allItems do
-
         local ic = allItems[i].category
         local idc = allItems[i].displayCategory
         if idc == currentCategory or isSelectorSetToAll then
@@ -336,7 +333,6 @@ function CHC_search:updateCategories()
     local newCats = {}
 
     for i = 1, #allItems do
-
         local ic = allItems[i].category
         local idc = allItems[i].displayCategory
         if ic == currentType or isTypeSetToAll then
@@ -360,7 +356,6 @@ function CHC_search:updateCategories()
 end
 
 function CHC_search:handleFavorites()
-
     local cond3 = self.ui_type == 'fav_items'
 
     if cond3 then
@@ -464,7 +459,6 @@ function CHC_search:onFilterTypeMenu(button)
             context:addOption(txt, self, CHC_search.sortByType, data[i].arg)
         end
     end
-
 end
 
 -- endregion
@@ -631,9 +625,9 @@ function CHC_search:new(args)
 
     o.defaultCategory = getText('UI_All')
     o.searchRowHelpText = getText('UI_searchrow_info',
-        getText('UI_searchrow_info_items_special'),
-        getText('UI_searchrow_info_items_examples')
-    )
+            getText('UI_searchrow_info_items_special'),
+            getText('UI_searchrow_info_items_examples')
+        )
 
 
     o.selectedCategory = o.defaultCategory

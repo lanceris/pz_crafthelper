@@ -30,7 +30,6 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
 	local item
 	-- Go through the items selected (because multiple selections in inventory is possible)
 	for i = 1, #items do
-
 		-- allows to get ctx option when clicking on hotbar/equipped item
 		if not instanceof(items[i], 'InventoryItem') then
 			item = items[i].items[1]
@@ -49,7 +48,8 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
 	-- If one or more items tested above are used in a recipe
 	-- we effectively add an option in the contextual menu
 	if type(itemsUsedInRecipes) == 'table' and #itemsUsedInRecipes > 0 then
-		local opt = context:addOption(getText('IGUI_chc_context_onclick'), itemsUsedInRecipes, CHC_menu.onCraftHelper, player)
+		local opt = context:addOption(getText('IGUI_chc_context_onclick'), itemsUsedInRecipes, CHC_menu.onCraftHelper,
+				player)
 		CHC_main.common.addTooltipNumRecipes(opt, item)
 	end
 	if isShiftKeyDown() and CHC_menu.CHC_window ~= nil then
@@ -110,7 +110,10 @@ CHC_menu.onCraftHelperItem = function(window_inst, item)
 		local it = view.objList.items
 		local c = 1
 		for i = 1, #it do
-			if string.lower(it[i].text) == string.lower(item.displayName) then c = i break end
+			if string.lower(it[i].text) == string.lower(item.displayName) then
+				c = i
+				break
+			end
 		end
 		view.objList.selected = c
 		view.objList:ensureVisible(c)

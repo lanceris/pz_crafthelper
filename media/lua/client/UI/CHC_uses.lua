@@ -33,7 +33,6 @@ function CHC_uses:initialise()
 end
 
 function CHC_uses:create()
-
     -- region draggable headers
     self.headers = CHC_tabs:new(0, 0, self.width, hh.headers, { self.onResizeHeaders, self }, self.sep_x)
     self.headers:initialise()
@@ -68,14 +67,14 @@ function CHC_uses:create()
     }
 
     self.filterRow = CHC_filter_row:new({ x = x, y = y, w = leftW, h = hh.filter_row, backRef = self.backRef },
-        filterRowData)
+            filterRowData)
     self.filterRow:initialise()
     local leftY = y + hh.filter_row
     -- endregion
 
     -- region search bar
     self.searchRow = CHC_search_bar:new({ x = x, y = leftY, w = leftW, h = hh.search_row, backRef = self.backRef }, nil,
-        self.onTextChange, self.searchRowHelpText)
+            self.onTextChange, self.searchRowHelpText)
     self.searchRow:initialise()
     leftY = leftY + hh.search_row
     -- endregion
@@ -206,11 +205,9 @@ function CHC_uses:updateTypes(current)
             end
         end
     end
-
 end
 
 function CHC_uses:updateCategories(current)
-
     local selector = self.filterRow.categorySelector
     local uniqueCategories = {}
     local catCounts = {}
@@ -263,13 +260,18 @@ function CHC_uses:updateCategories(current)
 end
 
 function CHC_uses:refreshObjList(recipes)
-    self.objList:clear()
-    self.objList:setScrollHeight(0)
+    local objL = self.objList
+    objL:clear()
+    objL:setScrollHeight(0)
 
     for i = 1, #recipes do
         self:processAddObjToObjList(recipes[i], self.modData)
     end
-    sort(self.objList.items, self.itemSortFunc)
+    sort(objL.items, self.itemSortFunc)
+    local ix = 1
+    objL.selected = ix
+    objL:ensureVisible(ix)
+    self.objPanel:setObj(objL.items[ix].item)
 end
 
 function CHC_uses:handleFavCategory(current)
@@ -346,9 +348,9 @@ function CHC_uses:onFilterTypeMenu(button)
     local context = ISContextMenu.get(0, x + 10, y)
 
     local data = {
-        { txt = 'UI_All', num = self.numRecipesAll, arg = 'all' },
-        { txt = 'UI_settings_av_valid', num = self.numRecipesValid, arg = 'valid' },
-        { txt = 'UI_settings_av_known', num = self.numRecipesKnown, arg = 'known' },
+        { txt = 'UI_All',                 num = self.numRecipesAll,     arg = 'all' },
+        { txt = 'UI_settings_av_valid',   num = self.numRecipesValid,   arg = 'valid' },
+        { txt = 'UI_settings_av_known',   num = self.numRecipesKnown,   arg = 'known' },
         { txt = 'UI_settings_av_invalid', num = self.numRecipesInvalid, arg = 'invalid' }
     }
 
@@ -591,9 +593,9 @@ function CHC_uses:new(args)
     o.favCatName = '* ' .. getText('IGUI_CraftCategory_Favorite')
     o.categorySelectorDefaultOption = getText('UI_All')
     o.searchRowHelpText = getText('UI_searchrow_info',
-        getText('UI_searchrow_info_recipes_special'),
-        getText('UI_searchrow_info_recipes_examples')
-    )
+            getText('UI_searchrow_info_recipes_special'),
+            getText('UI_searchrow_info_recipes_examples')
+        )
 
     o.needUpdateFavorites = true
     o.needUpdateTypes = false

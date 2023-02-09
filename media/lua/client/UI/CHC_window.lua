@@ -120,7 +120,6 @@ function CHC_window:addSearchPanel()
     self.panel:addView(self.searchViewName, self.searchPanel)
 
     --endregion
-
 end
 
 function CHC_window:addFavoriteScreen()
@@ -184,7 +183,6 @@ function CHC_window:addFavoriteScreen()
     self.favPanel.infoText = self.favPanelInfo .. self.infotext_common_items
     self.panel:addView(self.favViewName, self.favPanel)
     -- endregion
-
 end
 
 function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
@@ -200,7 +198,6 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
     -- check if there is existing tab with same name (and same item)
     local existingView = self.panel:getView(nameForTab)
     if existingView ~= nil then
-
         if existingView.item.fullType ~= ifn then -- same displayName, but different items
             nameForTab = nameForTab .. string.format(' (%s)', ifn)
         else -- same displayName and same item
@@ -376,7 +373,6 @@ function CHC_window:close()
     self:serializeWindowData()
     CHC_settings.Save()
     CHC_settings.SavePropsData()
-
 end
 
 -- endregion
@@ -496,7 +492,6 @@ function CHC_window:onRMBDownObjList(x, y, item, isrecipe, context)
         end
     end
     return context
-
 end
 
 --region tabs
@@ -793,8 +788,10 @@ end
 function CHC_window:serializeWindowData()
     local vl = self.panel
     CHC_settings.config.main_window = {
-        x = self:getX(), y = self:getY(),
-        w = self:getWidth(), h = self:getHeight()
+        x = self:getX(),
+        y = self:getY(),
+        w = self:getWidth(),
+        h = self:getHeight()
     }
     local sref = vl.viewList[1].view -- search view
     local sref_i = sref.viewList[1].view -- search-items subview
@@ -865,18 +862,18 @@ function CHC_window:new(args)
     o.uiTypeToView = {}
 
     o.infotext_recipe_type_filter = getText('UI_infotext_recipe_types',
-        getText('UI_All'),
-        getText('UI_settings_av_valid'),
-        getText('UI_settings_av_known'),
-        getText('UI_settings_av_invalid')
-    )
+            getText('UI_All'),
+            getText('UI_settings_av_valid'),
+            getText('UI_settings_av_known'),
+            getText('UI_settings_av_invalid')
+        )
     o.searchPanelInfo = getText('UI_infotext_search')
     o.favPanelInfo = getText('UI_infotext_favorites')
     o.itemPanelInfo = getText('UI_infotext_itemtab',
-        '%1', -- item displayName
-        getText('UI_item_uses_tab_name'),
-        getText('UI_item_craft_tab_name')
-    )
+            '%1', -- item displayName
+            getText('UI_item_uses_tab_name'),
+            getText('UI_item_craft_tab_name')
+        )
 
     o.viewNameToInfoText = {
         [o.searchViewName] = o.searchPanelInfo,
@@ -884,15 +881,15 @@ function CHC_window:new(args)
     }
 
     o.infotext_common_recipes = getText('UI_infotext_common',
-        o.infotext_recipe_type_filter,
-        getText('UI_infotext_recipe_details'),
-        getText('UI_infotext_recipe_mouse')
-    )
+            o.infotext_recipe_type_filter,
+            getText('UI_infotext_recipe_details'),
+            getText('UI_infotext_recipe_mouse')
+        )
     o.infotext_common_items = getText('UI_infotext_common',
-        getText('UI_infotext_item_types'),
-        getText('UI_infotext_item_details'),
-        getText('UI_infotext_item_mouse')
-    )
+            getText('UI_infotext_item_types'),
+            getText('UI_infotext_item_details'),
+            getText('UI_infotext_item_mouse')
+        )
     o:setWantKeyEvents(true)
 
     return o

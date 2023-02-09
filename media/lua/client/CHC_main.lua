@@ -384,7 +384,7 @@ CHC_main.loadAllRecipes = function()
 	local nbRecipes = 0
 	local now = getTimestampMs()
 
-	local CECData = _G["CraftingEnhancedCore"]
+	local CECData = _G['CraftingEnhancedCore']
 	-- Get all recipes in game (vanilla recipes + any mods recipes)
 	local allRecipes = getAllRecipes()
 
@@ -616,7 +616,7 @@ CHC_main.getFavItemModDataStr = function(item)
 end
 
 CHC_main.getFavoriteRecipeModDataString = function(recipe)
-	if recipe.isSynthetic then return "testCHC" .. recipe:getOriginalname() end
+	if recipe.isSynthetic then return 'testCHC' .. recipe:getOriginalname() end
 	local text = 'craftingFavorite:' .. recipe:getOriginalname()
 	if nil then --instanceof(recipe, 'EvolvedRecipe') then
 		text = text .. ':' .. recipe:getBaseItem()
@@ -660,7 +660,7 @@ end
 CHC_main.getCECItems = function()
 	-- TODO: synthetic recipes for cec tables (tData.recipe)
 	if not getActivatedMods():contains('craftingEnhancedCore') then return end
-	local CECData = _G["CraftingEnhancedCore"]
+	local CECData = _G['CraftingEnhancedCore']
 	local map = CHC_settings.itemPropsByType.Integrations.CraftingEnhanced
 
 	for tID, tData in pairs(CECData.tables) do
@@ -668,17 +668,17 @@ CHC_main.getCECItems = function()
 		if not CHC_main.items[fullType] then
 			local toinsert = {
 				item = tData,
-				fullType = "CEC." .. fullType,
+				fullType = 'CEC.' .. fullType,
 				name = tData.nameID,
-				modname = "Crafting Enhanced Core",
+				modname = 'Crafting Enhanced Core',
 				isVanilla = false,
 				IsDrainable = false,
 				displayName = tData.displayName,
 				tooltip = tData.tooltipDescription,
 				hidden = false,
 				count = 1,
-				category = "Moveable",
-				displayCategory = getText("IGUI_CHC_ItemCat_Moveable"),
+				category = 'Moveable',
+				displayCategory = getText('IGUI_CHC_ItemCat_Moveable'),
 				texture = getTexture(tData.tooltipTexture),
 				textureMult = 2
 			}
@@ -701,16 +701,16 @@ CHC_main.getCECRecipes = function()
 	local nbRecipes = 0
 	local now = getTimestampMs()
 
-	local CECData = _G["CraftingEnhancedCore"]
+	local CECData = _G['CraftingEnhancedCore']
 	for tID, tData in pairs(CECData.tables) do
 		local newItem = {}
-		newItem.category = "CraftingEnhanced"
+		newItem.category = 'CraftingEnhanced'
 		newItem.displayCategory = newItem.category
-		newItem.module = "CraftingEnhancedCore"
+		newItem.module = 'CraftingEnhancedCore'
 		newItem.hidden = false
 		newItem.recipeData = {}
 		newItem.recipeData.category = newItem.category
-		newItem.recipeData.name = "Build " .. tData.displayName
+		newItem.recipeData.name = 'Build ' .. tData.displayName
 		newItem.recipeData.ingredients = tData.recipe
 		-- newItem.recipeData.nearItem = recipe:getNearItem()
 		newItem.recipe = {
@@ -722,7 +722,7 @@ CHC_main.getCECRecipes = function()
 		newItem.favorite = CHC_main.playerModData[CHC_main.getFavoriteRecipeModDataString(newItem.recipe)] or
 			false --FIXME
 
-		local resultItem = "CEC." .. tID
+		local resultItem = 'CEC.' .. tID
 		insert(CHC_main.allRecipes, newItem)
 
 		local itemres = CHC_main.getItemByFullType(resultItem)
@@ -742,7 +742,7 @@ CHC_main.getCECRecipes = function()
 		local tool = tData.requireTool
 		if tool then
 			if not string.contains(tool, '.') then
-				tool = "Base." .. tool
+				tool = 'Base.' .. tool
 			end
 			if CHC_main.getItemByFullType(tool) then
 				insert(newItem.recipeData.ingredients, { amount = 1, type = tool, isKeep = true }) -- required tool
@@ -765,7 +765,7 @@ CHC_main.processCEC = function(nearItem, CECData)
 	local furniItem = {}
 	for tID, table in pairs(CECData.tables) do
 		if table.nameID == nearItem then
-			furniItem.obj = CHC_main.items["CEC." .. tID]
+			furniItem.obj = CHC_main.items['CEC.' .. tID]
 			if luaTestFunc then
 				furniItem.luaTest = luaTestFunc
 				furniItem.luaTestParam = nearItem

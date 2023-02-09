@@ -3,9 +3,9 @@ require 'ISUI/ISScrollingListBox'
 CHC_uses_recipelist = ISScrollingListBox:derive('CHC_uses_recipelist')
 
 local fontSizeToInternal = {
-	{ font = UIFont.Small, pad = 4, icon = 10 },
+	{ font = UIFont.Small,  pad = 4, icon = 10 },
 	{ font = UIFont.Medium, pad = 4, icon = 18 },
-	{ font = UIFont.Large, pad = 6, icon = 24 }
+	{ font = UIFont.Large,  pad = 6, icon = 24 }
 }
 
 -- region create
@@ -117,7 +117,8 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 		favoriteStar = self.favoriteStar
 	end
 	if favoriteStar then
-		self:drawTexture(favoriteStar, favYPos, y + (item.height / 2 - favoriteStar:getHeight() / 2), favoriteAlpha, 1, 1, 1);
+		self:drawTexture(favoriteStar, favYPos, y + (item.height / 2 - favoriteStar:getHeight() / 2), favoriteAlpha, 1, 1,
+			1);
 	end
 	--endregion
 
@@ -198,7 +199,8 @@ function CHC_uses_recipelist:addToFavorite(selectedIndex, fromKeyboard)
 	if fav_idx == nil then return end
 	local fav_recipes = allr[fav_idx].recipes.items
 	selectedItem.item.favorite = not selectedItem.item.favorite;
-	self.modData[CHC_main.getFavoriteRecipeModDataString(selectedItem.item.recipe)] = selectedItem.item.favorite
+	self.modData[CHC_main.getFavoriteRecipeModDataString(selectedItem.item.recipe)] = selectedItem.item
+		.favorite
 	if selectedItem.item.favorite then
 		parent.favRecNum = parent.favRecNum + 1
 		table.insert(fav_recipes, selectedItem)
