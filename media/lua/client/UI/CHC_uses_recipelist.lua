@@ -74,17 +74,27 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 	--endregion
 
 	--region text
-	local clr = { txt = item.text, x = iconsEnabled and (curFontData.icon + 8) or 15, y = (y) + itemPadY,
-		a = 0.9, font = self.font }
-	if not self.player:isRecipeKnown(recipe.recipe) then
-		-- unknown recipe, red text
-		clr['r'], clr['g'], clr['b'] = 0.7, 0, 0
-	elseif RecipeManager.IsRecipeValid(recipe.recipe, self.player, nil, self.containerList) then
-		-- can craft, green text
-		clr['r'], clr['g'], clr['b'] = 0, 0.7, 0
-	else
+	local clr = {
+		txt = item.text,
+		x = iconsEnabled and (curFontData.icon + 8) or 15,
+		y = (y) + itemPadY,
+		a = 0.9,
+		font = self.font
+	}
+	if recipe.recipe.isSynthetic == true then
 		-- known but cant craft, white text
 		clr['r'], clr['g'], clr['b'] = 0.9, 0.9, 0.9
+	else
+		if not self.player:isRecipeKnown(recipe.recipe) then
+			-- unknown recipe, red text
+			clr['r'], clr['g'], clr['b'] = 0.7, 0, 0
+		elseif RecipeManager.IsRecipeValid(recipe.recipe, self.player, nil, self.containerList) then
+			-- can craft, green text
+			clr['r'], clr['g'], clr['b'] = 0, 0.7, 0
+		else
+			-- known but cant craft, white text
+			clr['r'], clr['g'], clr['b'] = 0.9, 0.9, 0.9
+		end
 	end
 	self:drawText(clr.txt, clr.x, clr.y, clr.r, clr.g, clr.b, clr.a, clr.font)
 	if shouldDrawMod then

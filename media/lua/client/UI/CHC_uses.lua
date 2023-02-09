@@ -189,8 +189,13 @@ function CHC_uses:updateTypes(current)
     for i = 1, #recipes do
         local c1 = recipes[i].displayCategory == self.selectedCategory
         if (not current) or (current == true and (c1 or c2 or (c3 and recipes[i].favorite))) then
-            is_valid = RecipeManager.IsRecipeValid(recipes[i].recipe, self.player, nil, self.objList.containerList)
-            is_known = self.player:isRecipeKnown(recipes[i].recipe)
+            if recipes[i].recipe.isSynthetic then
+                is_valid = false
+                is_known = true --FIXME
+            else
+                is_valid = RecipeManager.IsRecipeValid(recipes[i].recipe, self.player, nil, self.objList.containerList)
+                is_known = self.player:isRecipeKnown(recipes[i].recipe)
+            end
             self.numRecipesAll = self.numRecipesAll + 1
             if is_known and not is_valid then
                 self.numRecipesKnown = self.numRecipesKnown + 1
@@ -549,7 +554,7 @@ function CHC_uses:searchProcessToken(token, recipe)
 end
 
 function CHC_uses:processAddObjToObjList(recipe, modData)
-    if not self.showHidden and recipe.recipe:isHidden() then return end
+    if not self.showHidden and recipe.hidden then return end
     local name = recipe.recipeData.name
     recipe.favorite = modData[CHC_main.getFavoriteRecipeModDataString(recipe.recipe)] or false
 

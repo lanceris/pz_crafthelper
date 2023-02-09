@@ -188,8 +188,14 @@ function CHC_window:addFavoriteScreen()
 end
 
 function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
-    local ifn = item:getFullType()
-    local itn = CHC_main.items[ifn]
+    local itn, ifn
+    if item.displayName then
+        ifn = item.fullType
+    else
+        ifn = item:getFullType()
+    end
+    itn = CHC_main.items[ifn]
+
     local nameForTab = itn.displayName
     -- check if there is existing tab with same name (and same item)
     local existingView = self.panel:getView(nameForTab)

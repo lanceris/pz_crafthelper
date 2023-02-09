@@ -1,6 +1,7 @@
 require 'luautils'
 
-CHC_main = {}
+CraftHelperContinued = {}
+CHC_main = CraftHelperContinued
 CHC_main.author = 'lanceris'
 CHC_main.previousAuthors = { 'Peanut', 'ddraigcymraeg', 'b1n0m' }
 CHC_main.modName = 'CraftHelperContinued'
@@ -32,7 +33,7 @@ local showTime = function(start, st)
 	print(string.format('Loaded %s in %s seconds', st, tostring((getTimestampMs() - start) / 1000)))
 end
 
-CHC_main.handleItems = function(itemString)
+CHC_main.getItemByFullType = function(itemString)
 	local item
 	if itemString == 'Water' then
 		item = CHC_main.items['Base.WaterDrop']
@@ -296,10 +297,13 @@ CHC_main.loadDatas = function()
 	CHC_main.playerModData = getPlayer():getModData()
 
 	CHC_main.loadAllItems()
+	CHC_main.loadItemsIntegrations()
+
 	if loadLua then CHC_main.loadLuaCache() end
 	--CHC_main.loadAllDistributions()
 
 	CHC_main.loadAllRecipes()
+	CHC_main.loadRecipesIntegrations()
 
 	if loadLua then CHC_main.saveLuaCache() end
 	CHC_menu.createCraftHelper()
@@ -371,7 +375,6 @@ CHC_main.loadAllItems = function(am)
 			nbItems = nbItems + 1
 		end
 	end
-	CHC_main.processCECFurniture()
 	showTime(now, 'All Items')
 	print(nbItems .. ' items loaded.')
 end
@@ -395,8 +398,9 @@ CHC_main.loadAllRecipes = function()
 		newItem.recipe = recipe
 		newItem.module = recipe:getModule():getName()
 		newItem.favorite = CHC_main.playerModData[CHC_main.getFavoriteRecipeModDataString(recipe)] or false
+		newItem.hidden = recipe:isHidden()
 		newItem.recipeData = {}
-		newItem.recipeData.category = recipe:getCategory() or getText('IGUI_CraftCategory_General')
+		newItem.recipeData.category = newItem.category
 		newItem.recipeData.name = recipe:getName()
 		newItem.recipeData.nearItem = recipe:getNearItem()
 
@@ -425,6 +429,7 @@ CHC_main.loadAllRecipes = function()
 			end
 		end
 
+		--region integrations
 		--check for hydrocraft furniture
 		local hydrocraftFurniture = CHC_main.processHydrocraft(recipe)
 		if hydrocraftFurniture then
@@ -438,12 +443,13 @@ CHC_main.loadAllRecipes = function()
 				newItem.recipeData.CECFurniture = CECFurniture
 			end
 		end
+		--endregion
 
 
 		local resultItem = recipe:getResult()
 		if resultItem then
 			local resultFullType = resultItem:getFullType()
-			local itemres = CHC_main.handleItems(resultFullType)
+			local itemres = CHC_main.getItemByFullType(resultFullType)
 
 			insert(CHC_main.allRecipes, newItem)
 			if itemres then
@@ -461,7 +467,7 @@ CHC_main.loadAllRecipes = function()
 				local items = rSource:getItems()
 				for k = 0, rSource:getItems():size() - 1 do
 					local itemString = items:get(k)
-					local item = CHC_main.handleItems(itemString)
+					local item = CHC_main.getItemByFullType(itemString)
 
 					if item then
 						CHC_main.setRecipeForItem(CHC_main.recipesByItem, item.fullType, newItem)
@@ -610,6 +616,7 @@ CHC_main.getFavItemModDataStr = function(item)
 end
 
 CHC_main.getFavoriteRecipeModDataString = function(recipe)
+	if recipe.isSynthetic then return "testCHC" .. recipe:getOriginalname() end
 	local text = 'craftingFavorite:' .. recipe:getOriginalname()
 	if nil then --instanceof(recipe, 'EvolvedRecipe') then
 		text = text .. ':' .. recipe:getBaseItem()
@@ -623,6 +630,16 @@ CHC_main.getFavoriteRecipeModDataString = function(recipe)
 		end
 	end
 	return text
+end
+
+-- region integrations
+
+CHC_main.loadItemsIntegrations = function()
+	CHC_main.getCECItems()
+end
+
+CHC_main.loadRecipesIntegrations = function()
+	CHC_main.getCECRecipes()
 end
 
 CHC_main.processHydrocraft = function(recipe)
@@ -640,7 +657,7 @@ CHC_main.processHydrocraft = function(recipe)
 	return furniItem
 end
 
-CHC_main.processCECFurniture = function()
+CHC_main.getCECItems = function()
 	-- TODO: synthetic recipes for cec tables (tData.recipe)
 	if not getActivatedMods():contains('craftingEnhancedCore') then return end
 	local CECData = _G["CraftingEnhancedCore"]
@@ -651,7 +668,7 @@ CHC_main.processCECFurniture = function()
 		if not CHC_main.items[fullType] then
 			local toinsert = {
 				item = tData,
-				fullType = fullType,
+				fullType = "CEC." .. fullType,
 				name = tData.nameID,
 				modname = "Crafting Enhanced Core",
 				isVanilla = false,
@@ -665,11 +682,77 @@ CHC_main.processCECFurniture = function()
 				texture = getTexture(tData.tooltipTexture),
 				textureMult = 2
 			}
+			toinsert.item.fullType = toinsert.fullType
+			toinsert.item.getFullType = function() return toinsert.fullType end
 			toinsert.props = CHC_main.getItemProps(tData, toinsert.category, map)
 			CHC_main.items[toinsert.fullType] = toinsert
 			insert(CHC_main.itemsForSearch, toinsert)
 		end
 	end
+end
+
+CHC_main.getCECRecipes = function()
+	local function getSource()
+
+	end
+
+	if not getActivatedMods():contains('craftingEnhancedCore') then return end
+	print('Loading CraftingEnhancedCore recipes...')
+	local nbRecipes = 0
+	local now = getTimestampMs()
+
+	local CECData = _G["CraftingEnhancedCore"]
+	for tID, tData in pairs(CECData.tables) do
+		local newItem = {}
+		newItem.category = "CraftingEnhanced"
+		newItem.displayCategory = newItem.category
+		newItem.module = "CraftingEnhancedCore"
+		newItem.hidden = false
+		newItem.recipeData = {}
+		newItem.recipeData.category = newItem.category
+		newItem.recipeData.name = "Build " .. tData.displayName
+		newItem.recipeData.ingredients = tData.recipe
+		-- newItem.recipeData.nearItem = recipe:getNearItem()
+		newItem.recipe = {
+			isSynthetic = true,
+			getOriginalname = function() return newItem.recipeData.name end,
+			getSource = getSource,
+			getName = function() return newItem.recipeData.name end
+		}
+		newItem.favorite = CHC_main.playerModData[CHC_main.getFavoriteRecipeModDataString(newItem.recipe)] or
+			false --FIXME
+
+		local resultItem = "CEC." .. tID
+		insert(CHC_main.allRecipes, newItem)
+
+		local itemres = CHC_main.getItemByFullType(resultItem)
+		if itemres then
+			newItem.recipeData.result = itemres
+			CHC_main.setRecipeForItem(CHC_main.recipesForItem, itemres.fullType, newItem)
+		end
+
+		for i = 1, #tData.recipe do
+			local ingrData = tData.recipe[i]
+			local itemString = ingrData.type
+			local item = CHC_main.getItemByFullType(itemString)
+			if item then
+				CHC_main.setRecipeForItem(CHC_main.recipesByItem, item.fullType, newItem)
+			end
+		end
+		local tool = tData.requireTool
+		if tool then
+			if not string.contains(tool, '.') then
+				tool = "Base." .. tool
+			end
+			if CHC_main.getItemByFullType(tool) then
+				insert(newItem.recipeData.ingredients, { amount = 1, type = tool, isKeep = true }) -- required tool
+				CHC_main.setRecipeForItem(CHC_main.recipesByItem, tool, newItem)
+			end
+		end
+		nbRecipes = nbRecipes + 1
+	end
+	showTime(now, 'CraftingEnhancedCore Recipes')
+	print(nbRecipes .. ' recipes loaded.')
 end
 
 CHC_main.processCEC = function(nearItem, CECData)
@@ -682,7 +765,7 @@ CHC_main.processCEC = function(nearItem, CECData)
 	local furniItem = {}
 	for tID, table in pairs(CECData.tables) do
 		if table.nameID == nearItem then
-			furniItem.obj = CHC_main.items[tID]
+			furniItem.obj = CHC_main.items["CEC." .. tID]
 			if luaTestFunc then
 				furniItem.luaTest = luaTestFunc
 				furniItem.luaTestParam = nearItem
@@ -693,6 +776,8 @@ CHC_main.processCEC = function(nearItem, CECData)
 	end
 	return furniItem
 end
+
+-- endregion
 
 function CHC_main.reloadMod(key)
 	if key == Keyboard.KEY_O then
