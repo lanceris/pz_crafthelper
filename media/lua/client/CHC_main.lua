@@ -108,11 +108,13 @@ CHC_main.handleRecipeLua = function(luaClosure)
 			-- if not debug, we cant get luaclosure source code (check zombie\Lua\LuaManager.java@getGameFilesTextInput)
 			-- so we just store filename and starting line
 		end
-		local res = { code = code,
+		local res = {
+			code = code,
 			filepath = closureFileName,
 			shortname = closureShortFileName,
 			startline = closureFirstLine,
-			funcname = closureName }
+			funcname = closureName
+		}
 		CHC_main.luaRecipeCache[closureName] = res
 		return res
 	end
@@ -166,13 +168,20 @@ CHC_main.getItemPropsDebug = function(item)
 	return objAttrs
 end
 
-CHC_main.getItemProps = function(item, itemType)
-	local map = CHC_settings.itemPropsByType
-	local typePropData = map[itemType]
-	local commonPropData = map['Common']
+CHC_main.getItemProps = function(item, itemType, map)
+	map = map or CHC_settings.itemPropsByType
+	local isSpecial = map ~= CHC_settings.itemPropsByType
+
+	local typePropData, commonPropData
+	if not isSpecial then
+		typePropData = map[itemType]
+		commonPropData = map['Common']
+	else
+		typePropData = map
+	end
+
 
 	local function formatOutput(propName, propVal)
-
 		if propName then
 			if sub(propName, 1, 3) == 'get' then
 				propName = sub(propName, 4)
@@ -195,7 +204,12 @@ CHC_main.getItemProps = function(item, itemType)
 		local mul = prop.mul
 		local defVal = prop.default
 		local isIgnoreDefVal = prop.ignoreDefault
-		propVal = item[propName](item)
+		if isSpecial then
+			propVal = item[prop.path]
+			if prop.path2 then propVal = propVal[prop.path2] end
+		else
+			propVal = item[propName](item)
+		end
 		if propVal then
 			propVal = rawToStr(propVal)
 			local val = tonumber(propVal)
@@ -213,7 +227,6 @@ CHC_main.getItemProps = function(item, itemType)
 	end
 
 	local function processPropGroup(item, propData, isTypeSpecific)
-
 		local props = {}
 		if not propData then return props end
 		for i = 1, #propData do
@@ -241,7 +254,9 @@ CHC_main.getItemProps = function(item, itemType)
 				dupedProps[prop.name] = true
 			end
 		end
-		if uniqueProps['Weight'].value == uniqueProps['ActualWeight'].value then
+		if uniqueProps.Weight and
+			uniqueProps.ActualWeight and
+			uniqueProps['Weight'].value == uniqueProps['ActualWeight'].value then
 			uniqueProps['ActualWeight'] = nil
 		end
 
@@ -256,14 +271,16 @@ CHC_main.getItemProps = function(item, itemType)
 	local typeProps
 	local dupedProps
 
-	local commonProps = processPropGroup(item, commonPropData, false)
+	if not isSpecial then
+		local commonProps = processPropGroup(item, commonPropData, false)
+		for i = 1, #commonProps do insert(props, commonProps[i]) end
+	end
+
 	if itemType == 'Radio' then
 		typeProps = processPropGroup(item:getDeviceData(), typePropData, true)
 	else
 		typeProps = processPropGroup(item, typePropData, true)
 	end
-
-	for i = 1, #commonProps do insert(props, commonProps[i]) end
 	for i = 1, #typeProps do insert(props, typeProps[i]) end
 
 	props, dupedProps = postProcess(props)
@@ -308,7 +325,7 @@ CHC_main.processOneItem = function(item)
 			count = invItem:getCount() or 1,
 			category = item:getTypeString(),
 			displayCategory = itemDisplayCategory and getTextOrNull('IGUI_ItemCat_' .. itemDisplayCategory) or
-				getText('IGUI_ItemCat_Item'),
+			getText('IGUI_ItemCat_Item'),
 			texture = invItem:getTex()
 		}
 		toinsert.props = CHC_main.getItemProps(invItem, toinsert.category)
@@ -354,6 +371,7 @@ CHC_main.loadAllItems = function(am)
 			nbItems = nbItems + 1
 		end
 	end
+	CHC_main.processCECFurniture()
 	showTime(now, 'All Items')
 	print(nbItems .. ' items loaded.')
 end
@@ -363,6 +381,7 @@ CHC_main.loadAllRecipes = function()
 	local nbRecipes = 0
 	local now = getTimestampMs()
 
+	local CECData = _G["CraftingEnhancedCore"]
 	-- Get all recipes in game (vanilla recipes + any mods recipes)
 	local allRecipes = getAllRecipes()
 
@@ -411,6 +430,15 @@ CHC_main.loadAllRecipes = function()
 		if hydrocraftFurniture then
 			newItem.recipeData.hydroFurniture = hydrocraftFurniture
 		end
+
+		--check for CEC furniture
+		if newItem.recipeData.nearItem then
+			local CECFurniture = CHC_main.processCEC(newItem.recipeData.nearItem, CECData)
+			if CECFurniture and not utils.empty(CECFurniture) then
+				newItem.recipeData.CECFurniture = CECFurniture
+			end
+		end
+
 
 		local resultItem = recipe:getResult()
 		if resultItem then
@@ -559,7 +587,6 @@ CHC_main.loadAllDistributions = function()
 			data[iN][zN] = round(data[iN][zN] * 100, 5)
 		end
 		table.sort(data[iN])
-
 	end
 	CHC_main.item_distrib = data
 end
@@ -610,6 +637,60 @@ CHC_main.processHydrocraft = function(recipe)
 	local furniItemObj = CHC_main.items[itemName]
 	furniItem.obj = furniItemObj
 	furniItem.luaTest = _G[luaTest] -- calling global registry to get function obj
+	return furniItem
+end
+
+CHC_main.processCECFurniture = function()
+	-- TODO: synthetic recipes for cec tables (tData.recipe)
+	if not getActivatedMods():contains('craftingEnhancedCore') then return end
+	local CECData = _G["CraftingEnhancedCore"]
+	local map = CHC_settings.itemPropsByType.Integrations.CraftingEnhanced
+
+	for tID, tData in pairs(CECData.tables) do
+		local fullType = tID
+		if not CHC_main.items[fullType] then
+			local toinsert = {
+				item = tData,
+				fullType = fullType,
+				name = tData.nameID,
+				modname = "Crafting Enhanced Core",
+				isVanilla = false,
+				IsDrainable = false,
+				displayName = tData.displayName,
+				tooltip = tData.tooltipDescription,
+				hidden = false,
+				count = 1,
+				category = "Moveable",
+				displayCategory = getText("IGUI_CHC_ItemCat_Moveable"),
+				texture = getTexture(tData.tooltipTexture),
+				textureMult = 2
+			}
+			toinsert.props = CHC_main.getItemProps(tData, toinsert.category, map)
+			CHC_main.items[toinsert.fullType] = toinsert
+			insert(CHC_main.itemsForSearch, toinsert)
+		end
+	end
+end
+
+CHC_main.processCEC = function(nearItem, CECData)
+	if not CECData or not getActivatedMods():contains('craftingEnhancedCore') then return end
+	local luaTestFunc
+	if getActivatedMods():contains('Hydrocraft') then
+		-- get isFurnitureNearby function
+		luaTestFunc = _G['isFurnitureNearby']
+	end
+	local furniItem = {}
+	for tID, table in pairs(CECData.tables) do
+		if table.nameID == nearItem then
+			furniItem.obj = CHC_main.items[tID]
+			if luaTestFunc then
+				furniItem.luaTest = luaTestFunc
+				furniItem.luaTestParam = nearItem
+			else
+				furniItem.luaTest = {}
+			end
+		end
+	end
 	return furniItem
 end
 

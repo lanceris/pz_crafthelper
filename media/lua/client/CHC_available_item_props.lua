@@ -320,5 +320,21 @@ CHC_settings.itemPropsByType = {
         { name = 'getMaxAmmo', default = 0, ignoreDefault = true },
         { name = 'getGunType' },
         { name = 'getAttachmentType' },
+        { name = 'getTags',                    default = "[]", ignoreDefault = true }
+    },
+    Integrations = {
+        CraftingEnhanced = {
+            { name = 'Capacity',           path = 'container',         path2 = "capacity" },
+            { name = 'containerType',      path = 'container',         path2 = "type" },
+            { name = 'craftingSound',      path = 'craftingSound',     default = nil,     ignoreDefault = true },
+            { name = 'requireTool',        path = 'requireTool' },
+            { name = 'maxTime',            path = 'maxTime' },
+            { name = 'size',               path = 'size' },
+            { name = 'tooltipDescription', path = 'tooltipDescription' },
+            { name = 'tooltipTexture',     path = 'tooltipTexture' },
+            { name = 'tooltipTitle',       path = 'tooltipTitle' },
+            { name = 'icon',               path = 'icon',              default = '""',    ignoreDefault = true },
+            { name = 'recipe',             path = 'recipe',            forceIgnore = true },
+        }
     }
 }

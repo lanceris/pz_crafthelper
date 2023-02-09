@@ -182,6 +182,7 @@ function CHC_uses_recipepanel:setObj(recipe)
     end
 
     newItem.hydrocraftEquipment = recipe.recipeData.hydroFurniture
+    newItem.cecEquipment = recipe.recipeData.CECFurniture
 
     newItem.sources = {}
     local sources = recipe.recipe:getSource()
@@ -194,7 +195,6 @@ function CHC_uses_recipepanel:setObj(recipe)
         sourceInList.uses = source:getUse()
         local sourceItems = source:getItems()
         for k = 1, sourceItems:size() do
-
             local sourceFullType = sourceItems:get(k - 1)
             local item = nil
             if sourceFullType == 'Water' then
@@ -230,9 +230,9 @@ function CHC_uses_recipepanel:setObj(recipe)
     newItem.nearItem = recipe.recipeData.nearItem
     newItem.timeToMake = recipe.recipe:getTimeToMake()
     newItem.howManyCanCraft = RecipeManager.getNumberOfTimesRecipeCanBeDone(
-        newItem.recipe, self.player,
-        self.containerList, nil
-    )
+            newItem.recipe, self.player,
+            self.containerList, nil
+        )
     newItem.needToBeLearn = recipe.recipe:needToBeLearn()
 
     self.recipe = recipe.recipe;
@@ -433,8 +433,9 @@ function CHC_uses_recipepanel:refreshEquipmentPanel()
     if not recipe then return end
 
     local hydro = recipe.hydrocraftEquipment
+    local cec = recipe.cecEquipment
     local near = recipe.nearItem
-    if not hydro and not near then return end
+    if not hydro and not near and not cec then return end
 
     self.equipmentPanel:clear()
 
@@ -444,6 +445,14 @@ function CHC_uses_recipepanel:refreshEquipmentPanel()
         self.equipmentPanel:addItem(obj.name, obj)
     end
 
+    if cec then
+        local obj = cec.obj
+        obj.luaTest = cec.luaTest
+        obj.luaTestParam = cec.luaTestParam
+        self.equipmentPanel:addItem(obj.name, obj)
+        near = nil
+    end
+
     if near then
         self.equipmentPanel:addItem(near, near)
     end
@@ -451,7 +460,6 @@ function CHC_uses_recipepanel:refreshEquipmentPanel()
     self.equipmentPanel:setHeight(math.min(1, #self.equipmentPanel.items) * self.equipmentPanel.itemheight)
     self.equipmentPanel.doDrawItem = self.drawEquipment
     self.equipmentPanel:setVisible(true)
-
 end
 
 -- endregion
@@ -540,7 +548,6 @@ function CHC_uses_recipepanel:drawIngredient(y, item, alt)
             end
             self:drawRect(1, y, self:getWidth() - 2, self.itemheight, fa, fr, fg, fb)
         end
-
     end
     local ab, rb, gb, bb = 1, 0.1, 0.1, 0.1
     if item.item.multipleHeader then
@@ -608,14 +615,32 @@ function CHC_uses_recipepanel:drawEquipment(y, item, alt)
         local r, g, b = 1, 1, 1
         local tX = x
         local tY = y + 2
-        if not item.item.luaTest(self.player) then
+        local luaTestResult
+        if type(item.item.luaTest) == "function" then
+            if item.item.luaTestParam then
+                luaTestResult = item.item.luaTest(self.player, item.item.luaTestParam)
+            else
+                luaTestResult = item.item.luaTest(self.player)
+            end
+        else
+            luaTestResult = true
+        end
+        if not luaTestResult then
             g, b = 0, 0
             a = 0.75
         end
         if item.item.texture then
-            tX = tX + 15
-            self:drawTextureScaledAspect(item.item.texture, tX, tY, 20, 20, a, 1, 1, 1)
-            tX = tX + 25
+            local tW = 20
+            local tH = 20
+            local ttY = tY
+            if item.item.textureMult then
+                tW = tW * item.item.textureMult
+                tH = tH * item.item.textureMult
+                ttY = tY - tH / 4
+                tX = tX + tW / 2
+            end
+            self:drawTextureScaledAspect(item.item.texture, tX, ttY, tW, tH, a, 1, 1, 1)
+            tX = tX + tW + 5
         end
         self:drawText(item.item.name, tX, tY, r, g, b, a, UIFont.Small)
     end
@@ -659,9 +684,9 @@ function CHC_uses_recipepanel:render()
         CHC_uses_recipelist.getContainers(self)
         selectedItem.available = RecipeManager.IsRecipeValid(selectedItem.recipe, self.player, nil, self.containerList)
         selectedItem.howManyCanCraft = RecipeManager.getNumberOfTimesRecipeCanBeDone(
-            selectedItem.recipe, self.player,
-            self.containerList, nil
-        )
+                selectedItem.recipe, self.player,
+                self.containerList, nil
+            )
         self.refreshTypesAvailableMS = now
         self.needRefreshIngredientPanel = false
     end
@@ -763,7 +788,6 @@ function CHC_uses_recipepanel:drawMainInfo(x, y, item)
 end
 
 function CHC_uses_recipepanel:drawIngredients(x, y, item)
-
     local sy = y
     local a = 0.9
     self:drawText(getText('IGUI_CraftUI_RequiredItems'), x, y, 1, 1, 1, a, UIFont.Medium)
@@ -913,7 +937,7 @@ function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y, item)
     context:addOption(getText('IGUI_find_item'), backRef, CHC_menu.onCraftHelperItem, item)
 
     local newTabOption = context:addOption(getText('IGUI_new_tab'), backRef, backRef.addItemView, item.item,
-        true, 2)
+            true, 2)
 
     if not (cond1 or cond2) then
         CHC_main.common.setTooltipToCtx(
@@ -986,9 +1010,9 @@ function CHC_uses_recipepanel:onCraftComplete(completedAction, recipe, container
             local item = items:get(i - 1)
             if item:getContainer() ~= self.player:getInventory() then
                 local action = ISInventoryTransferAction:new(
-                    self.player, item,
-                    item:getContainer(),
-                    self.player:getInventory(), nil)
+                        self.player, item,
+                        item:getContainer(),
+                        self.player:getInventory(), nil)
                 ISTimedActionQueue.addAfter(previousAction, action)
                 previousAction = action
                 table.insert(returnToContainer, item)
@@ -1025,8 +1049,8 @@ function CHC_uses_recipepanel:craft(button, all)
     end
 
     local action = ISCraftAction:new(self.player, itemsUsed[1],
-        selectedItem.recipe:getTimeToMake(),
-        selectedItem.recipe, container, self.containerList)
+            selectedItem.recipe:getTimeToMake(),
+            selectedItem.recipe, container, self.containerList)
     if all then
         action:setOnComplete(self.onCraftComplete, self, action, selectedItem.recipe, container, self.containerList)
     end
