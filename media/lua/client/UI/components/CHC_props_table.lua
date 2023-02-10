@@ -119,17 +119,24 @@ function CHC_props_table:drawProps(y, item, alt)
     --     rectP = { r = 0.3, g = 0.3, b = 0.3, a = 0.3 }
     -- end
 
+    local blacklisted = CHC_settings.mappings.ignoredItemProps
+    local pinned = CHC_settings.mappings.pinnedItemProps
+    if not pinned or not blacklisted then
+        CHC_settings.LoadPropsData()
+        pinned = CHC_settings.mappings.pinnedItemProps
+        blacklisted = CHC_settings.mappings.ignoredItemProps
+    end
 
     if item.index == self.mouseoverselected then
         local sc = { x = 0, y = y, w = self:getWidth(), h = item.height - 1, a = 0.2, r = 0.75, g = 0.5, b = 0.5 }
         self:drawRect(sc.x, sc.y, sc.w, sc.h, 0.2, 0.5, sc.g, sc.b)
     end
 
-    if CHC_settings.mappings.pinnedItemProps[item.item.name:lower()] then
+    if pinned and pinned[item.item.name:lower()] then
         rectP = { r = 1, g = 1, b = 1, a = 0.2 }
         -- textP.a =
     end
-    if CHC_settings.mappings.ignoredItemProps[item.item.name:lower()] then
+    if blacklisted and blacklisted[item.item.name:lower()] then
         -- rectP = { r = 0.27, g = 0.15, b = 0, a = 0.75 }
         textP = { r = 0.22, g = 0.22, b = 0.22, a = 0.9 }
     end
@@ -187,6 +194,11 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
     local context = ISContextMenu.get(0, getMouseX() + 10, getMouseY())
     local pinned = CHC_settings.mappings.pinnedItemProps
     local blacklisted = CHC_settings.mappings.ignoredItemProps
+    if not pinned or not blacklisted then
+        CHC_settings.LoadPropsData()
+        pinned = CHC_settings.mappings.pinnedItemProps
+        blacklisted = CHC_settings.mappings.ignoredItemProps
+    end
 
     local function chccopy(_, param)
         if param then
@@ -331,13 +343,19 @@ function CHC_props_table:refreshObjList(props)
     local blacklisted = CHC_settings.mappings.ignoredItemProps
     local pinned = CHC_settings.mappings.pinnedItemProps
 
+    if not pinned or not blacklisted then
+        CHC_settings.LoadPropsData()
+        pinned = CHC_settings.mappings.pinnedItemProps
+        blacklisted = CHC_settings.mappings.ignoredItemProps
+    end
+
     local pinnedItems = {}
     local blacklistedItems = {}
     local usualItems = {}
     for i = 1, #props do
-        if pinned[props[i].name:lower()] then
+        if pinned and pinned[props[i].name:lower()] then
             insert(pinnedItems, props[i])
-        elseif blacklisted[props[i].name:lower()] then
+        elseif blacklisted and blacklisted[props[i].name:lower()] then
             insert(blacklistedItems, props[i])
         else
             insert(usualItems, props[i])

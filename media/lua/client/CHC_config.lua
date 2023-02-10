@@ -254,15 +254,16 @@ CHC_settings.checkConfig = function(config)
 end
 
 
-CHC_settings.SavePropsData = function()
-    utils.jsonutil.Save(mappings_name, CHC_settings.mappings)
+CHC_settings.SavePropsData = function(config)
+    config = config or CHC_settings.mappings
+    utils.jsonutil.Save(mappings_name, config)
 end
 
 CHC_settings.LoadPropsData = function()
     local config = utils.jsonutil.Load(mappings_name)
     if not config then
         config = init_mappings
-        CHC_settings.SavePropsData()
+        CHC_settings.SavePropsData(config)
     end
     CHC_settings.mappings = config
 end
