@@ -84,3 +84,6 @@ Support will NOT be provided for users, while they are using such modpacks.
 
 © 2022 Lanceris
 [/quote]
+
+Workshop ID: 2787291513
+Mod ID: CraftHelperContinued
