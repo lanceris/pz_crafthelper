@@ -1,4 +1,4 @@
-version=1.6.5
+version=1.6.5.1
 id=2787291513
 title=Craft Helper Continued
 tags=Build 41;Interface
@@ -89,3 +89,6 @@ description=Support will NOT be provided for users, while they are using such mo
 description=
 description=© 2022 Lanceris
 description=[/quote]
+description=
+description=Workshop ID: 2787291513
+description=Mod ID: CraftHelperContinued

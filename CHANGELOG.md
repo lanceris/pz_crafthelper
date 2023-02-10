@@ -1,5 +1,11 @@
 # CraftHelper updates
 
+## 1.6.5.1 (10.02.2023)
+
+### Bugfixes
+
+- Fixed pinned/blacklisted attributes not loading properly
+
 ## 1.6.5 (08.02.2023)
 
 ### New features

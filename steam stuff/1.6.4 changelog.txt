@@ -1,6 +1,0 @@
-[h1]1.6.4[/h1]
-
-[h2]Improvements:[/h2]
-[list]
-[*]Updated TH translation [url=https://github.com/rikoprushka]rikoprushka[/url])
-[/list]
