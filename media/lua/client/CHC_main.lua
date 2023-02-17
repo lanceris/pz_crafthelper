@@ -4,7 +4,7 @@ CHC_main = {}
 CHC_main.author = 'lanceris'
 CHC_main.previousAuthors = { 'Peanut', 'ddraigcymraeg', 'b1n0m' }
 CHC_main.modName = 'CraftHelperContinued'
-CHC_main.version = '1.6.5.1'
+CHC_main.version = '1.6.5.2'
 CHC_main.allRecipes = {}
 CHC_main.recipesByItem = {}
 CHC_main.recipesForItem = {}
@@ -108,11 +108,13 @@ CHC_main.handleRecipeLua = function(luaClosure)
 			-- if not debug, we cant get luaclosure source code (check zombie\Lua\LuaManager.java@getGameFilesTextInput)
 			-- so we just store filename and starting line
 		end
-		local res = { code = code,
+		local res = {
+			code = code,
 			filepath = closureFileName,
 			shortname = closureShortFileName,
 			startline = closureFirstLine,
-			funcname = closureName }
+			funcname = closureName
+		}
 		CHC_main.luaRecipeCache[closureName] = res
 		return res
 	end
@@ -172,7 +174,6 @@ CHC_main.getItemProps = function(item, itemType)
 	local commonPropData = map['Common']
 
 	local function formatOutput(propName, propVal)
-
 		if propName then
 			if sub(propName, 1, 3) == 'get' then
 				propName = sub(propName, 4)
@@ -195,7 +196,7 @@ CHC_main.getItemProps = function(item, itemType)
 		local mul = prop.mul
 		local defVal = prop.default
 		local isIgnoreDefVal = prop.ignoreDefault
-		propVal = item[propName](item)
+		propVal = item[propName] and item[propName](item) or nil
 		if propVal then
 			propVal = rawToStr(propVal)
 			local val = tonumber(propVal)
@@ -213,7 +214,6 @@ CHC_main.getItemProps = function(item, itemType)
 	end
 
 	local function processPropGroup(item, propData, isTypeSpecific)
-
 		local props = {}
 		if not propData then return props end
 		for i = 1, #propData do
@@ -241,7 +241,8 @@ CHC_main.getItemProps = function(item, itemType)
 				dupedProps[prop.name] = true
 			end
 		end
-		if uniqueProps['Weight'].value == uniqueProps['ActualWeight'].value then
+		if uniqueProps['ActualWeight'] and uniqueProps['Weight'] and 
+			uniqueProps['Weight'].value == uniqueProps['ActualWeight'].value then
 			uniqueProps['ActualWeight'] = nil
 		end
 
@@ -307,8 +308,9 @@ CHC_main.processOneItem = function(item)
 			hidden = item:isHidden(),
 			count = invItem:getCount() or 1,
 			category = item:getTypeString(),
-			displayCategory = itemDisplayCategory and getTextOrNull('IGUI_ItemCat_' .. itemDisplayCategory) or
-				getText('IGUI_ItemCat_Item'),
+			displayCategory = itemDisplayCategory and
+			getTextOrNull('IGUI_ItemCat_' .. itemDisplayCategory) or
+			getText('IGUI_ItemCat_Item'),
 			texture = invItem:getTex()
 		}
 		toinsert.props = CHC_main.getItemProps(invItem, toinsert.category)
@@ -559,7 +561,6 @@ CHC_main.loadAllDistributions = function()
 			data[iN][zN] = round(data[iN][zN] * 100, 5)
 		end
 		table.sort(data[iN])
-
 	end
 	CHC_main.item_distrib = data
 end

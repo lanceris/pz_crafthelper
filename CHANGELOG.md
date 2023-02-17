@@ -1,5 +1,11 @@
 # CraftHelper updates
 
+## 1.6.5.2 (17.02.2023)
+
+### Bugfixes
+
+- Fixed item attributes not loading in some cases
+
 ## 1.6.5.1 (10.02.2023)
 
 ### Bugfixes
