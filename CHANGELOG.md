@@ -12,6 +12,10 @@
 - Cross-integration CEC-Hydrocraft (`isFurnitureNearby` from Hydrocraft to check if table nearby in recipes)
 - Added item tags to attributes
 
+### Bugfixes
+
+- Fixed item attributes not loading in some cases
+
 ## 1.6.5.1 (10.02.2023)
 
 ### Bugfixes

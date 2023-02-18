@@ -209,7 +209,7 @@ CHC_main.getItemProps = function(item, itemType, map)
 			propVal = item[prop.path]
 			if prop.path2 then propVal = propVal[prop.path2] end
 		else
-			propVal = item[propName](item)
+			propVal = item[propName] and item[propName](item) or nil
 		end
 		if propVal then
 			propVal = rawToStr(propVal)
@@ -255,8 +255,7 @@ CHC_main.getItemProps = function(item, itemType, map)
 				dupedProps[prop.name] = true
 			end
 		end
-		if uniqueProps.Weight and
-			uniqueProps.ActualWeight and
+		if uniqueProps['ActualWeight'] and uniqueProps['Weight'] and
 			uniqueProps['Weight'].value == uniqueProps['ActualWeight'].value then
 			uniqueProps['ActualWeight'] = nil
 		end
@@ -329,7 +328,8 @@ CHC_main.processOneItem = function(item)
 			hidden = item:isHidden(),
 			count = invItem:getCount() or 1,
 			category = item:getTypeString(),
-			displayCategory = itemDisplayCategory and getTextOrNull('IGUI_ItemCat_' .. itemDisplayCategory) or
+			displayCategory = itemDisplayCategory and
+			getTextOrNull('IGUI_ItemCat_' .. itemDisplayCategory) or
 			getText('IGUI_ItemCat_Item'),
 			texture = invItem:getTex()
 		}
@@ -432,7 +432,7 @@ CHC_main.processOneRecipe = function(recipe)
 
 	local resultFullType = resultItem:getFullType()
 	local itemres = CHC_main.getItemByFullType(resultFullType)
-	
+
 	insert(CHC_main.allRecipes, newItem)
 	if itemres then
 		newItem.recipeData.result = itemres
