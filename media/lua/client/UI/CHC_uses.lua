@@ -268,10 +268,12 @@ function CHC_uses:refreshObjList(recipes)
         self:processAddObjToObjList(recipes[i], self.modData)
     end
     sort(objL.items, self.itemSortFunc)
-    local ix = 1
-    objL.selected = ix
-    objL:ensureVisible(ix)
-    self.objPanel:setObj(objL.items[ix].item)
+    if self.objList.items and #self.objList.items > 0 then
+        local ix = 1
+        objL.selected = ix
+        objL:ensureVisible(ix)
+        self.objPanel:setObj(objL.items[ix].item)
+    end
 end
 
 function CHC_uses:handleFavCategory(current)
@@ -453,9 +455,15 @@ end
 
 function CHC_uses:recipeTypeFilter(recipe)
     local rl = self.objList
-
-    local is_valid = RecipeManager.IsRecipeValid(recipe.recipe, rl.player, nil, rl.containerList)
-    local is_known = rl.player:isRecipeKnown(recipe.recipe)
+    local is_valid
+    local is_known
+    if recipe.recipe.isSynthetic then
+        is_valid = false
+        is_known = true
+    else
+        is_valid = RecipeManager.IsRecipeValid(recipe.recipe, rl.player, nil, rl.containerList)
+        is_known = rl.player:isRecipeKnown(recipe.recipe)
+    end
 
     local state = true
     if self.typeFilter == 'all' then state = true end

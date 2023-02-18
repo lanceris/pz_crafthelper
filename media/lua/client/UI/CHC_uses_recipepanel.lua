@@ -819,7 +819,7 @@ function CHC_uses_recipepanel:drawMainInfo(x, y, item)
         if item.tooltip then
             itemTooltip = itemTooltip .. item.tooltip
         end
-        self.mainInfoImg:setTooltip(itemTooltip)
+        self.mainInfoImg:setTooltip(itemTooltip ~= "" and itemTooltip or nil)
     end
     local lx = x + 32 + 15
     local ly = y

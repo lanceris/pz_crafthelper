@@ -5,7 +5,7 @@ CHC_main = CraftHelperContinued
 CHC_main.author = 'lanceris'
 CHC_main.previousAuthors = { 'Peanut', 'ddraigcymraeg', 'b1n0m' }
 CHC_main.modName = 'CraftHelperContinued'
-CHC_main.version = '1.6.5.1'
+CHC_main.version = '1.6.6'
 CHC_main.allRecipes = {}
 CHC_main.recipesByItem = {}
 CHC_main.recipesForItem = {}
@@ -295,6 +295,7 @@ end
 
 CHC_main.loadDatas = function()
 	CHC_main.playerModData = getPlayer():getModData()
+	CHC_main.CECData = _G['CraftingEnhancedCore']
 
 	CHC_main.loadAllItems()
 	CHC_main.loadItemsIntegrations()
@@ -354,13 +355,6 @@ CHC_main.processOneItem = function(item)
 	end
 end
 
-CHC_main.loadAllBooks = function()
-	local allItems = getAllItems()
-	local nbBooks = 0
-
-	print('Loading books')
-end
-
 CHC_main.loadAllItems = function(am)
 	local allItems = getAllItems()
 	local nbItems = 0
@@ -379,108 +373,114 @@ CHC_main.loadAllItems = function(am)
 	print(nbItems .. ' items loaded.')
 end
 
+CHC_main.processOneRecipe = function(recipe)
+	local newItem = {}
+	newItem.category = recipe:getCategory() or getText('IGUI_CraftCategory_General')
+	newItem.displayCategory = getTextOrNull('IGUI_CraftCategory_' .. newItem.category) or newItem.category
+	newItem.recipe = recipe
+	newItem.module = recipe:getModule():getName()
+	newItem.favorite = CHC_main.playerModData[CHC_main.getFavoriteRecipeModDataString(recipe)] or false
+	newItem.hidden = recipe:isHidden()
+	newItem.recipeData = {}
+	newItem.recipeData.category = newItem.category
+	newItem.recipeData.name = recipe:getName()
+	newItem.recipeData.nearItem = recipe:getNearItem()
+
+	if loadLua then
+		local onCreate = recipe:getLuaCreate()
+		local onTest = recipe:getLuaTest()
+		local onCanPerform = recipe:getCanPerform()
+		local onGiveXP = recipe:getLuaGiveXP()
+		if onCreate or onTest or onCanPerform or onGiveXP then
+			newItem.recipeData.lua = {}
+			if onCreate then
+				newItem.recipeData.lua.onCreate = CHC_main.handleRecipeLua(onCreate)
+			end
+			if onTest then
+				newItem.recipeData.lua.onTest = CHC_main.handleRecipeLua(onTest)
+			end
+			if onCanPerform then
+				newItem.recipeData.lua.onCanPerform = CHC_main.handleRecipeLua(onCanPerform)
+			end
+			if onGiveXP then
+				newItem.recipeData.lua.onGiveXP = CHC_main.handleRecipeLua(onGiveXP)
+			end
+		end
+		if newItem.recipeData.lua then
+			CHC_main.recipesWithLua[newItem.recipeData.name] = newItem.recipeData.lua
+		end
+	end
+
+	--region integrations
+	--check for hydrocraft furniture
+	local hydrocraftFurniture = CHC_main.processHydrocraft(recipe)
+	if hydrocraftFurniture then
+		newItem.recipeData.hydroFurniture = hydrocraftFurniture
+	end
+
+	--check for CEC furniture
+	if newItem.recipeData.nearItem then
+		local CECFurniture = CHC_main.processCEC(newItem.recipeData.nearItem, CHC_main.CECData)
+		if CECFurniture and not utils.empty(CECFurniture) then
+			newItem.recipeData.CECFurniture = CECFurniture
+		end
+	end
+	--endregion
+
+	local resultItem = recipe:getResult()
+	if not resultItem then return end
+
+	local resultFullType = resultItem:getFullType()
+	local itemres = CHC_main.getItemByFullType(resultFullType)
+	
+	insert(CHC_main.allRecipes, newItem)
+	if itemres then
+		newItem.recipeData.result = itemres
+		CHC_main.setRecipeForItem(CHC_main.recipesForItem, itemres.fullType, newItem)
+	else
+		insert(CHC_main.recipesWithoutItem, resultItem:getFullType())
+	end
+	local rSources = recipe:getSource()
+
+	-- Go through items needed by the recipe
+	for n = 0, rSources:size() - 1 do
+		-- Get the item name (not the display name)
+		local rSource = rSources:get(n)
+		local items = rSource:getItems()
+		for k = 0, rSource:getItems():size() - 1 do
+			local itemString = items:get(k)
+			local item = CHC_main.getItemByFullType(itemString)
+
+			if item then
+				CHC_main.setRecipeForItem(CHC_main.recipesByItem, item.fullType, newItem)
+			end
+		end
+	end
+end
+
 CHC_main.loadAllRecipes = function()
 	print('Loading recipes...')
 	local nbRecipes = 0
 	local now = getTimestampMs()
 
-	local CECData = _G['CraftingEnhancedCore']
 	-- Get all recipes in game (vanilla recipes + any mods recipes)
 	local allRecipes = getAllRecipes()
 
 	-- Go through recipes stack
 	for i = 0, allRecipes:size() - 1 do
-		local newItem = {}
 		local recipe = allRecipes:get(i)
-
-		newItem.category = recipe:getCategory() or getText('IGUI_CraftCategory_General')
-		newItem.displayCategory = getTextOrNull('IGUI_CraftCategory_' .. newItem.category) or newItem.category
-		newItem.recipe = recipe
-		newItem.module = recipe:getModule():getName()
-		newItem.favorite = CHC_main.playerModData[CHC_main.getFavoriteRecipeModDataString(recipe)] or false
-		newItem.hidden = recipe:isHidden()
-		newItem.recipeData = {}
-		newItem.recipeData.category = newItem.category
-		newItem.recipeData.name = recipe:getName()
-		newItem.recipeData.nearItem = recipe:getNearItem()
-
-		if loadLua then
-			local onCreate = recipe:getLuaCreate()
-			local onTest = recipe:getLuaTest()
-			local onCanPerform = recipe:getCanPerform()
-			local onGiveXP = recipe:getLuaGiveXP()
-			if onCreate or onTest or onCanPerform or onGiveXP then
-				newItem.recipeData.lua = {}
-				if onCreate then
-					newItem.recipeData.lua.onCreate = CHC_main.handleRecipeLua(onCreate)
-				end
-				if onTest then
-					newItem.recipeData.lua.onTest = CHC_main.handleRecipeLua(onTest)
-				end
-				if onCanPerform then
-					newItem.recipeData.lua.onCanPerform = CHC_main.handleRecipeLua(onCanPerform)
-				end
-				if onGiveXP then
-					newItem.recipeData.lua.onGiveXP = CHC_main.handleRecipeLua(onGiveXP)
-				end
-			end
-			if newItem.recipeData.lua then
-				CHC_main.recipesWithLua[newItem.recipeData.name] = newItem.recipeData.lua
-			end
-		end
-
-		--region integrations
-		--check for hydrocraft furniture
-		local hydrocraftFurniture = CHC_main.processHydrocraft(recipe)
-		if hydrocraftFurniture then
-			newItem.recipeData.hydroFurniture = hydrocraftFurniture
-		end
-
-		--check for CEC furniture
-		if newItem.recipeData.nearItem then
-			local CECFurniture = CHC_main.processCEC(newItem.recipeData.nearItem, CECData)
-			if CECFurniture and not utils.empty(CECFurniture) then
-				newItem.recipeData.CECFurniture = CECFurniture
-			end
-		end
-		--endregion
-
-
-		local resultItem = recipe:getResult()
-		if resultItem then
-			local resultFullType = resultItem:getFullType()
-			local itemres = CHC_main.getItemByFullType(resultFullType)
-
-			insert(CHC_main.allRecipes, newItem)
-			if itemres then
-				newItem.recipeData.result = itemres
-				CHC_main.setRecipeForItem(CHC_main.recipesForItem, itemres.fullType, newItem)
-			else
-				insert(CHC_main.recipesWithoutItem, resultItem:getFullType())
-			end
-			local rSources = recipe:getSource()
-
-			-- Go through items needed by the recipe
-			for n = 0, rSources:size() - 1 do
-				-- Get the item name (not the display name)
-				local rSource = rSources:get(n)
-				local items = rSource:getItems()
-				for k = 0, rSource:getItems():size() - 1 do
-					local itemString = items:get(k)
-					local item = CHC_main.getItemByFullType(itemString)
-
-					if item then
-						CHC_main.setRecipeForItem(CHC_main.recipesByItem, item.fullType, newItem)
-					end
-				end
-			end
-			nbRecipes = nbRecipes + 1
-		else
-			-- omg no 'continue' in lua and goto not working :(
-		end
+		CHC_main.processOneRecipe(recipe)
+		nbRecipes = nbRecipes + 1
 	end
 	showTime(now, 'All Recipes')
 	print(nbRecipes .. ' recipes loaded.')
+end
+
+CHC_main.loadAllBooks = function()
+	local allItems = getAllItems()
+	local nbBooks = 0
+
+	print('Loading books')
 end
 
 CHC_main.processDistrib = function(zone, d, data, isJunk, isProcedural)
@@ -660,10 +660,9 @@ end
 CHC_main.getCECItems = function()
 	-- TODO: synthetic recipes for cec tables (tData.recipe)
 	if not getActivatedMods():contains('craftingEnhancedCore') then return end
-	local CECData = _G['CraftingEnhancedCore']
 	local map = CHC_settings.itemPropsByType.Integrations.CraftingEnhanced
 
-	for tID, tData in pairs(CECData.tables) do
+	for tID, tData in pairs(CHC_main.CECData.tables) do
 		local fullType = tID
 		if not CHC_main.items[fullType] then
 			local toinsert = {
@@ -701,8 +700,7 @@ CHC_main.getCECRecipes = function()
 	local nbRecipes = 0
 	local now = getTimestampMs()
 
-	local CECData = _G['CraftingEnhancedCore']
-	for tID, tData in pairs(CECData.tables) do
+	for tID, tData in pairs(CHC_main.CECData.tables) do
 		local newItem = {}
 		newItem.category = 'CraftingEnhanced'
 		newItem.displayCategory = newItem.category
