@@ -215,8 +215,6 @@ function CHC_uses_recipepanel:setObj(recipe)
         result = math.abs(sourceObj.use / param)
         if math.floor(result) == 1 then
             displayCount = 1
-            -- elseif math.floor(result) == 0 then
-            --     displayCount = math.floor(math.abs(sourceObj.use/param)) --FIXME
         else
             local rev = math.floor(1 / result)
             if rev > 1 then
@@ -505,6 +503,7 @@ function CHC_uses_recipepanel:getAvailableItemsType()
     elseif recipe.isEvolved then
         local baseItem = CHC_main.items[recipe.recipeData.baseItem]
         local resultItem = recipe.recipeData.result
+        if not baseItem or not resultItem then return result end
         -- check if player has baseitem/resultitem nearby
         if CHC_main.common.playerHasItemNearby(baseItem, self.containerList) or
             CHC_main.common.playerHasItemNearby(resultItem, self.containerList) then
@@ -955,10 +954,10 @@ function CHC_uses_recipepanel:drawMainInfo(x, y, item)
         self.mainInfoImg:setVisible(true)
         local itemTooltip = ""
         if item.isSynthetic then
-            itemTooltip = "Build via right clicking in world <LINE>" -- FIXME
+            itemTooltip = getText("IGUI_Synthetic_Recipe_result_tooltip") .. " <LINE>"
         end
         if item.isEvolved then
-            itemTooltip = "Evolved recipe <LINE>" -- FIXME
+            itemTooltip = getText("IGUI_Evolved_Recipe_result_tooltip") .. " <LINE>"
         end
         if item.tooltip then
             itemTooltip = itemTooltip .. item.tooltip

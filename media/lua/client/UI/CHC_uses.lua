@@ -67,14 +67,14 @@ function CHC_uses:create()
     }
 
     self.filterRow = CHC_filter_row:new({ x = x, y = y, w = leftW, h = hh.filter_row, backRef = self.backRef },
-            filterRowData)
+        filterRowData)
     self.filterRow:initialise()
     local leftY = y + hh.filter_row
     -- endregion
 
     -- region search bar
     self.searchRow = CHC_search_bar:new({ x = x, y = leftY, w = leftW, h = hh.search_row, backRef = self.backRef }, nil,
-            self.onTextChange, self.searchRowHelpText)
+        self.onTextChange, self.searchRowHelpText)
     self.searchRow:initialise()
     leftY = leftY + hh.search_row
     -- endregion
@@ -191,7 +191,7 @@ function CHC_uses:updateTypes(current)
         if (not current) or (current == true and (c1 or c2 or (c3 and recipe.favorite))) then
             if recipe.isSynthetic then
                 is_valid = false
-                is_known = true --FIXME
+                is_known = true
             elseif recipe.isEvolved then
                 is_valid = CHC_main.common.isEvolvedRecipeValid(recipe, self.objList.containerList)
                 is_known = true
@@ -537,11 +537,11 @@ function CHC_uses:searchProcessToken(token, recipe)
                 for i = 1, #sources do
                     local source = sources[i]
                     local item = CHC_main.items[source.type]
-                    --FIXME
+                    if item then insert(items, item.displayName) end
                 end
             elseif recipe.isEvolved then
                 local item = CHC_main.items[recipe.recipeData.baseItem]
-                if item then insert(items, item.displayName) end -- FIXME
+                if item then insert(items, item.displayName) end
                 local sources = recipe.recipeData.possibleItems
                 for i = 1, #sources do
                     local source = sources[i]
@@ -626,9 +626,9 @@ function CHC_uses:new(args)
     o.favCatName = '* ' .. getText('IGUI_CraftCategory_Favorite')
     o.categorySelectorDefaultOption = getText('UI_All')
     o.searchRowHelpText = getText('UI_searchrow_info',
-            getText('UI_searchrow_info_recipes_special'),
-            getText('UI_searchrow_info_recipes_examples')
-        )
+        getText('UI_searchrow_info_recipes_special'),
+        getText('UI_searchrow_info_recipes_examples')
+    )
 
     o.needUpdateFavorites = true
     o.needUpdateTypes = false

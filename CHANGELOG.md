@@ -11,10 +11,12 @@
 - Integration with [Crafting Enhanced Core](https://steamcommunity.com/sharedfiles/filedetails/?id=2923979345)
 - Cross-integration CEC-Hydrocraft (`isFurnitureNearby` from Hydrocraft to check if table nearby in recipes)
 - Added item tags to attributes
+- Ensure CraftHelper loaded last in OnGameStart event to catch all lua changes to recipes/items/etc
 
 ### Bugfixes
 
 - Fixed item attributes not loading in some cases
+- Fixed incorrect ingredients search
 
 ## 1.6.5.1 (10.02.2023)
 

@@ -832,8 +832,7 @@ CHC_main.getCECRecipes = function()
 			getSource = getSource,
 			getName = function() return newItem.recipeData.name end
 		}
-		newItem.favorite = CHC_main.playerModData[CHC_main.getFavoriteRecipeModDataString(newItem)] or
-			false --FIXME
+		newItem.favorite = CHC_main.playerModData[CHC_main.getFavoriteRecipeModDataString(newItem)] or false
 
 		local resultItem = 'CEC.' .. tID
 		insert(CHC_main.allRecipes, newItem)
@@ -904,4 +903,11 @@ if CHC_main.isDebug then
 	Events.OnKeyPressed.Add(CHC_main.reloadMod)
 end
 
-Events.OnGameStart.Add(CHC_main.loadDatas)
+-- catch all lua changes to recipes/items/etc (DoParam and stuff)
+local ensureLoadedLast = function()
+	Events.OnGameStart.Add(function()
+		CHC_main.loadDatas()
+	end)
+end
+
+Events.OnGameStart.Add(ensureLoadedLast)
