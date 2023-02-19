@@ -186,14 +186,18 @@ function CHC_uses:updateTypes(current)
     local c2 = self.selectedCategory == self.categorySelectorDefaultOption
     local c3 = self.selectedCategory == self.favCatName
     for i = 1, #recipes do
-        local c1 = recipes[i].displayCategory == self.selectedCategory
-        if (not current) or (current == true and (c1 or c2 or (c3 and recipes[i].favorite))) then
-            if recipes[i].recipe.isSynthetic then
+        local recipe = recipes[i]
+        local c1 = recipe.displayCategory == self.selectedCategory
+        if (not current) or (current == true and (c1 or c2 or (c3 and recipe.favorite))) then
+            if recipe.isSynthetic then
                 is_valid = false
                 is_known = true --FIXME
+            elseif recipe.isEvolved then
+                is_valid = CHC_main.common.isEvolvedRecipeValid(recipe, self.objList.containerList)
+                is_known = true
             else
-                is_valid = RecipeManager.IsRecipeValid(recipes[i].recipe, self.player, nil, self.objList.containerList)
-                is_known = self.player:isRecipeKnown(recipes[i].recipe)
+                is_valid = RecipeManager.IsRecipeValid(recipe.recipe, self.player, nil, self.objList.containerList)
+                is_known = self.player:isRecipeKnown(recipe.recipe)
             end
             self.numRecipesAll = self.numRecipesAll + 1
             if is_known and not is_valid then
@@ -457,8 +461,11 @@ function CHC_uses:recipeTypeFilter(recipe)
     local rl = self.objList
     local is_valid
     local is_known
-    if recipe.recipe.isSynthetic then
+    if recipe.isSynthetic then
         is_valid = false
+        is_known = true
+    elseif recipe.isEvolved then
+        is_valid = CHC_main.common.isEvolvedRecipeValid(recipe, rl.containerList)
         is_known = true
     else
         is_valid = RecipeManager.IsRecipeValid(recipe.recipe, rl.player, nil, rl.containerList)
@@ -525,19 +532,37 @@ function CHC_uses:searchProcessToken(token, recipe)
         end
         if char == '#' then
             -- search by ingredients
-            local rSources = recipe.recipe:getSource()
-
-            -- Go through items needed by the recipe
-            for n = 0, rSources:size() - 1 do
-                -- Get the item name (not the display name)
-                local rSource = rSources:get(n)
-                local sItems = rSource:getItems()
-                for k = 0, sItems:size() - 1 do
-                    local itemString = sItems:get(k)
-                    local item = CHC_main.items[itemString]
+            if recipe.isSynthetic then
+                local sources = recipe.recipeData.ingredients
+                for i = 1, #sources do
+                    local source = sources[i]
+                    local item = CHC_main.items[source.type]
+                    --FIXME
+                end
+            elseif recipe.isEvolved then
+                local item = CHC_main.items[recipe.recipeData.baseItem]
+                if item then insert(items, item.displayName) end -- FIXME
+                local sources = recipe.recipeData.possibleItems
+                for i = 1, #sources do
+                    local source = sources[i]
+                    local item = CHC_main.items[source.fullType]
                     if item then insert(items, item.displayName) end
                 end
+            else
+                local rSources = recipe.recipe:getSource()
+                -- Go through items needed by the recipe
+                for n = 0, rSources:size() - 1 do
+                    -- Get the item name (not the display name)
+                    local rSource = rSources:get(n)
+                    local sItems = rSource:getItems()
+                    for k = 0, sItems:size() - 1 do
+                        local itemString = sItems:get(k)
+                        local item = CHC_main.items[itemString]
+                        if item then insert(items, item.displayName) end
+                    end
+                end
             end
+
 
             if recipe.recipeData.hydroFurniture then
                 insert(items, recipe.recipeData.hydroFurniture.obj.displayName)
@@ -566,7 +591,7 @@ end
 function CHC_uses:processAddObjToObjList(recipe, modData)
     if not self.showHidden and recipe.hidden then return end
     local name = recipe.recipeData.name
-    recipe.favorite = modData[CHC_main.getFavoriteRecipeModDataString(recipe.recipe)] or false
+    recipe.favorite = modData[CHC_main.getFavoriteRecipeModDataString(recipe)] or false
 
     self.objList:addItem(name, recipe)
 end

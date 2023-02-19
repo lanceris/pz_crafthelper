@@ -8,6 +8,7 @@ require 'UI/CHC_search'
 CHC_window = ISCollapsableWindow:derive('CHC_window')
 local utils = require('CHC_utils')
 local print = utils.chcprint
+local insert = table.insert
 
 -- region create
 
@@ -223,8 +224,24 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
     self.itemPanel:setAnchorBottom(true)
     self.itemPanel.item = itn
     -- endregion
-    local usesData = CHC_main.recipesByItem[itn.fullType]
-    local craftData = CHC_main.recipesForItem[itn.fullType]
+    local usesData = {}
+    local usesRec = CHC_main.recipesByItem[itn.fullType]
+    local usesEvoRec = CHC_main.evoRecipesByItem[itn.fullType]
+    if usesRec then
+        for i = 1, #usesRec do insert(usesData, usesRec[i]) end
+    end
+    if usesEvoRec then
+        for i = 1, #usesEvoRec do insert(usesData, usesEvoRec[i]) end
+    end
+    local craftData = {}
+    local craftRec = CHC_main.recipesForItem[itn.fullType]
+    local craftEvoRec = CHC_main.evoRecipesForItem[itn.fullType]
+    if craftRec then
+        for i = 1, #craftRec do insert(craftData, craftRec[i]) end
+    end
+    if craftEvoRec then
+        for i = 1, #craftEvoRec do insert(craftData, craftEvoRec[i]) end
+    end
     self.panel:addView(nameForTab, self.itemPanel)
 
     --region uses screen
@@ -242,14 +259,14 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
     for k, v in pairs(uses_extra) do uses_screen_init[k] = v end
     self.usesScreen = CHC_uses:new(uses_screen_init)
 
-    if usesData then
+    if usesData and not utils.empty(usesData) then
         self.usesScreen:initialise()
         local iuvn = getText('UI_item_uses_tab_name')
         self.itemPanel:addView(iuvn, self.usesScreen)
         if not self.uiTypeToView[uses_extra.ui_type] then
             self.uiTypeToView[uses_extra.ui_type] = { { view = self.usesScreen, name = iuvn } }
         else
-            table.insert(self.uiTypeToView[uses_extra.ui_type], { view = self.usesScreen, name = iuvn })
+            insert(self.uiTypeToView[uses_extra.ui_type], { view = self.usesScreen, name = iuvn })
         end
     end
     --endregion
@@ -270,14 +287,14 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
     for k, v in pairs(craft_extra) do craft_screen_init[k] = v end
     self.craftScreen = CHC_uses:new(craft_screen_init)
 
-    if craftData then
+    if craftData and not utils.empty(craftData) then
         self.craftScreen:initialise()
         local icvn = getText('UI_item_craft_tab_name')
         self.itemPanel:addView(icvn, self.craftScreen)
         if not self.uiTypeToView[craft_extra.ui_type] then
             self.uiTypeToView[craft_extra.ui_type] = { { view = self.craftScreen, name = icvn } }
         else
-            table.insert(self.uiTypeToView[craft_extra.ui_type], { view = self.craftScreen, name = icvn })
+            insert(self.uiTypeToView[craft_extra.ui_type], { view = self.craftScreen, name = icvn })
         end
     end
     -- endregion
@@ -287,7 +304,6 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
 end
 
 function CHC_window:getItems(items, max, favOnly)
-    local insert = table.insert
     local showHidden = CHC_settings.config.show_hidden
     local newItems = {}
     local to = max or #items
@@ -309,10 +325,15 @@ function CHC_window:getRecipes(favOnly)
     favOnly = favOnly or false
     local recipes = {}
     local allrec = CHC_main.allRecipes
-    local insert = table.insert
+    local allevorec = CHC_main.allEvoRecipes
     for i = 1, #allrec do
         if (favOnly and allrec[i].favorite) or (not favOnly) then
             insert(recipes, allrec[i])
+        end
+    end
+    for i = 1, #allevorec do
+        if (favOnly and allevorec[i].favorite) or (not favOnly) then
+            insert(recipes, allevorec[i])
         end
     end
     return recipes
@@ -580,13 +601,13 @@ function CHC_window:closeOtherTabs()
 end
 
 function CHC_window:closeAllTabs()
-    local vl = self.parent.panel
-    for i = #vl.viewList, 3, -1 do
-        vl:removeView(vl.viewList[i].view)
+    local vp = self.parent.panel
+    for i = #vp.viewList, 3, -1 do
+        vp:removeView(vp.viewList[i].view)
     end
-    vl:activateView(vl.viewList[2].name)
-    vl.activeView.view:activateView(getText('UI_search_recipes_tab_name'))
-    vl.scrollX = 0
+    vp:activateView(vp.viewList[2].name)
+    vp.activeView.view:activateView(getText('UI_search_recipes_tab_name'))
+    vp.scrollX = 0
 end
 
 function CHC_window:closeTab(tabIndex)
@@ -862,18 +883,18 @@ function CHC_window:new(args)
     o.uiTypeToView = {}
 
     o.infotext_recipe_type_filter = getText('UI_infotext_recipe_types',
-            getText('UI_All'),
-            getText('UI_settings_av_valid'),
-            getText('UI_settings_av_known'),
-            getText('UI_settings_av_invalid')
-        )
+        getText('UI_All'),
+        getText('UI_settings_av_valid'),
+        getText('UI_settings_av_known'),
+        getText('UI_settings_av_invalid')
+    )
     o.searchPanelInfo = getText('UI_infotext_search')
     o.favPanelInfo = getText('UI_infotext_favorites')
     o.itemPanelInfo = getText('UI_infotext_itemtab',
-            '%1', -- item displayName
-            getText('UI_item_uses_tab_name'),
-            getText('UI_item_craft_tab_name')
-        )
+        '%1', -- item displayName
+        getText('UI_item_uses_tab_name'),
+        getText('UI_item_craft_tab_name')
+    )
 
     o.viewNameToInfoText = {
         [o.searchViewName] = o.searchPanelInfo,
@@ -881,15 +902,15 @@ function CHC_window:new(args)
     }
 
     o.infotext_common_recipes = getText('UI_infotext_common',
-            o.infotext_recipe_type_filter,
-            getText('UI_infotext_recipe_details'),
-            getText('UI_infotext_recipe_mouse')
-        )
+        o.infotext_recipe_type_filter,
+        getText('UI_infotext_recipe_details'),
+        getText('UI_infotext_recipe_mouse')
+    )
     o.infotext_common_items = getText('UI_infotext_common',
-            getText('UI_infotext_item_types'),
-            getText('UI_infotext_item_details'),
-            getText('UI_infotext_item_mouse')
-        )
+        getText('UI_infotext_item_types'),
+        getText('UI_infotext_item_details'),
+        getText('UI_infotext_item_mouse')
+    )
     o:setWantKeyEvents(true)
 
     return o

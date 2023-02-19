@@ -6,6 +6,7 @@ require 'CHC_main'
 
 
 local utils = require('CHC_utils')
+local insert = table.insert
 
 CHC_uses_recipepanel = ISPanel:derive('CHC_uses_recipepanel')
 
@@ -21,7 +22,7 @@ function CHC_uses_recipepanel:createChildren()
 
     local listBorderColor = { r = 0.4, g = 0.4, b = 0.4, a = 0.4 }
 
-    self.mainInfoImg = ISButton:new(1, 1, 42, 42, '', self, nil)
+    self.mainInfoImg = ISButton:new(1, 1, 42, 42, '', self, nil) --FIXME increase to 64
     self.mainInfoImg.backgroundColorMouseOver.a = 0
     self.mainInfoImg.backgroundColor.a = 0
     self.mainInfoImg.onRightMouseDown = self.onRMBDownItemIcon
@@ -125,6 +126,12 @@ end
 
 function CHC_uses_recipepanel:setItemNameInSource(item, itemInList, isDestroy, uses)
     local onlyOne = itemInList.count == 1
+    if itemInList.displayCount then
+        if onlyOne or itemInList.displayCount == 1 then
+            return item.displayName
+        end
+        return getText('IGUI_CraftUI_CountNumber', item.displayName, itemInList.displayCount)
+    end
     if itemInList.fullType == 'Base.WaterDrop' then
         local one = getText('IGUI_CraftUI_CountOneUnit', getText('ContextMenu_WaterName'))
         local mult = getText('IGUI_CraftUI_CountUnits', getText('ContextMenu_WaterName'), itemInList.count)
@@ -143,15 +150,18 @@ end
 
 function CHC_uses_recipepanel:setObj(recipe)
     CHC_uses_recipelist.getContainers(self)
-    local newItem = {};
+    local obj = {}
 
-    newItem.category = recipe.category
+    obj.category = recipe.category
 
-    newItem.recipe = recipe.recipe;
-    if recipe.recipe.isSynthetic then
-        newItem.available = false
+    obj.recipe = recipe.recipe
+    if recipe.isSynthetic then
+        obj.available = false
+    elseif recipe.isEvolved then
+        obj.available = CHC_main.common.isEvolvedRecipeValid(recipe, self.containerList)
+        obj.maxItems = recipe.recipeData.maxItems
     else
-        newItem.available = RecipeManager.IsRecipeValid(recipe.recipe, self.player, nil, self.containerList)
+        obj.available = RecipeManager.IsRecipeValid(recipe.recipe, self.player, nil, self.containerList)
     end
 
     -- if recipe.recipeData.lua then
@@ -160,37 +170,69 @@ function CHC_uses_recipepanel:setObj(recipe)
 
     local resultItem = recipe.recipeData.result
     if resultItem then
-        newItem.module = resultItem.modname
-        newItem.isVanilla = resultItem.isVanilla
+        obj.module = resultItem.modname
+        obj.isVanilla = resultItem.isVanilla
         -- newItem.modname = resultItem:getModID()
-        newItem.texture = resultItem.texture
+        obj.texture = resultItem.texture
         self.mainInfoImg:setImage(resultItem.texture)
         self.mainInfoImg.item = resultItem
         if resultItem.tooltip then
-            newItem.tooltip = getText(resultItem.tooltip)
+            obj.tooltip = getText(resultItem.tooltip)
         end
-        newItem.itemName = resultItem.displayName
+        obj.itemName = resultItem.displayName
         local displayCategory = resultItem.displayCategory
         if displayCategory then
-            newItem.itemDisplayCategory = getTextOrNull('IGUI_ItemCat_' .. displayCategory)
+            obj.itemDisplayCategory = getTextOrNull('IGUI_ItemCat_' .. displayCategory)
         end
 
         local resultCount
-        if recipe.recipe.isSynthetic then
+        if recipe.isSynthetic then
             resultCount = 1
+        elseif recipe.isEvolved then
+            resultCount = 1 -- FIXME
         else
             resultCount = recipe.recipe:getResult():getCount()
         end
         if resultCount > 1 then
-            newItem.itemName = (resultCount * resultItem.count) .. ' ' .. newItem.itemName;
+            obj.itemName = (resultCount * resultItem.count) .. ' ' .. obj.itemName;
         end
     end
 
-    newItem.hydrocraftEquipment = recipe.recipeData.hydroFurniture
-    newItem.cecEquipment = recipe.recipeData.CECFurniture
+    obj.hydrocraftEquipment = recipe.recipeData.hydroFurniture
+    obj.cecEquipment = recipe.recipeData.CECFurniture
 
-    newItem.sources = {}
-    if recipe.recipe.isSynthetic then
+    local function getCount(item, sourceObj)
+        local param
+        local result
+        local displayCount
+        if instanceof(item.item, "Food") then
+            param = item.propsMap["HungChange"].value
+        elseif instanceof(item.item, "Drainable") then
+            param = item.propsMap["UseDeltaTotal*"].value
+        else
+            param = item.propsMap["Count"].value
+        end
+        result = math.abs(sourceObj.use / param)
+        if math.floor(result) == 1 then
+            displayCount = 1
+            -- elseif math.floor(result) == 0 then
+            --     displayCount = math.floor(math.abs(sourceObj.use/param)) --FIXME
+        else
+            local rev = math.floor(1 / result)
+            if rev > 1 then
+                displayCount = '(1/' .. rev .. ')'
+            elseif rev < 1 then
+                displayCount = round(result, 2)
+            else
+                displayCount = 1
+            end
+        end
+        --return result, displayCount
+        return sourceObj.use, displayCount
+    end
+
+    obj.sources = {}
+    if recipe.isSynthetic then
         local sources = recipe.recipeData.ingredients
         for i = 1, #sources do
             local source = sources[i]
@@ -206,9 +248,60 @@ function CHC_uses_recipepanel:setObj(recipe)
             itemInList.texture = item.texture
             itemInList.fullType = item.fullType
             itemInList.name = self:setItemNameInSource(item, itemInList, sourceInList.isDestroy,
-                    sourceInList.uses)
-            table.insert(sourceInList.items, itemInList)
-            table.insert(newItem.sources, sourceInList)
+                sourceInList.uses)
+            insert(sourceInList.items, itemInList)
+            insert(obj.sources, sourceInList)
+        end
+    elseif recipe.isEvolved then
+        local sourceBase = {
+            { fullType = recipe.recipeData.baseItem, isSpice = false, name = recipe.recipeData.baseItem, use = 1 } }
+        local sourceMain = {}
+        local sourceSpice = {}
+        for i = 1, #recipe.recipeData.possibleItems do
+            local item = recipe.recipeData.possibleItems[i]
+            if item.isSpice then
+                insert(sourceSpice, item)
+            else
+                insert(sourceMain, item)
+            end
+        end
+        for order, source in ipairs({ sourceBase, sourceMain, sourceSpice }) do
+            local sourceInList = {}
+            sourceInList.items = {}
+
+            sourceInList.isKeep = order == 1 and true or false -- keep baseItem
+            sourceInList.isDestroy = false
+            sourceInList.uses = 1
+
+            local sourceItems = source
+            for i = 1, #sourceItems do
+                local sourceObj = sourceItems[i]
+                local item
+                if sourceObj.fullType == 'Water' then
+                    item = CHC_main.items['Base.WaterDrop']
+                else
+                    item = CHC_main.items[sourceObj.fullType]
+                end
+
+                if item then
+                    local itemInList = {}
+                    if order == 1 then
+                        itemInList.count, itemInList.displayCount = 1, 1
+                    else
+                        itemInList.count, itemInList.displayCount = getCount(item, sourceObj)
+                    end
+                    itemInList.texture = item.texture
+                    itemInList.fullType = item.fullType
+                    if sourceObj.fullType == 'Water' then
+                        itemInList.fullType = 'Base.WaterDrop'
+                    end
+                    itemInList.name = self:setItemNameInSource(item, itemInList, sourceInList.isDestroy,
+                        itemInList.count)
+
+                    insert(sourceInList.items, itemInList)
+                end
+            end
+            insert(obj.sources, sourceInList)
         end
     else
         local sources = recipe.recipe:getSource()
@@ -222,10 +315,10 @@ function CHC_uses_recipepanel:setObj(recipe)
             local sourceItems = source:getItems()
             for k = 1, sourceItems:size() do
                 local sourceFullType = sourceItems:get(k - 1)
-                local item = nil
+                local item
                 if sourceFullType == 'Water' then
                     item = CHC_main.items['Base.WaterDrop']
-                elseif luautils.stringStarts(sourceFullType, '[') then
+                elseif utils.startswith(sourceFullType, '[') then
                     -- a Lua test function
                     item = CHC_main.items['Base.WristWatch_Right_DigitalBlack']
                 else
@@ -242,50 +335,58 @@ function CHC_uses_recipepanel:setObj(recipe)
                     end
 
                     itemInList.name = self:setItemNameInSource(item, itemInList, sourceInList.isDestroy,
-                            sourceInList.uses)
+                        sourceInList.uses)
 
-                    table.insert(sourceInList.items, itemInList);
+                    insert(sourceInList.items, itemInList);
                 end
             end
-            table.insert(newItem.sources, sourceInList)
+            insert(obj.sources, sourceInList)
         end
     end
 
-
-
     -- extra stuff for render
-    if recipe.recipe.isSynthetic then
-        newItem.requiredSkillCount = 0
-        newItem.isKnown = true
-        newItem.nearItem = nil
-        newItem.timeToMake = 100 -- FIXME
-        newItem.howManyCanCraft = 1 -- FIXME
-        newItem.needToBeLearn = false
+    if recipe.isSynthetic then
+        obj.requiredSkillCount = 0
+        obj.isKnown = true
+        obj.nearItem = nil
+        obj.timeToMake = 100 -- FIXME
+        obj.howManyCanCraft = 1 -- FIXME
+        obj.needToBeLearn = false
+    elseif recipe.isEvolved then
+        obj.isEvolved = true
+        obj.requiredSkillCount = 0
+        obj.isKnown = true
+        obj.nearItem = nil
+        obj.timeToMake = 0 -- FIXME
+        obj.howManyCanCraft = 0
+        obj.needToBeLearn = false
     else
-        newItem.requiredSkillCount = recipe.recipe:getRequiredSkillCount()
-        newItem.isKnown = self.player:isRecipeKnown(recipe.recipe)
-        newItem.nearItem = recipe.recipeData.nearItem
-        newItem.timeToMake = recipe.recipe:getTimeToMake()
-        newItem.howManyCanCraft = RecipeManager.getNumberOfTimesRecipeCanBeDone(
-                newItem.recipe, self.player,
-                self.containerList, nil
-            )
-        newItem.needToBeLearn = recipe.recipe:needToBeLearn()
+        obj.requiredSkillCount = recipe.recipe:getRequiredSkillCount()
+        obj.isKnown = self.player:isRecipeKnown(recipe.recipe)
+        obj.nearItem = recipe.recipeData.nearItem
+        obj.timeToMake = recipe.recipe:getTimeToMake()
+        obj.howManyCanCraft = RecipeManager.getNumberOfTimesRecipeCanBeDone(
+            obj.recipe, self.player,
+            self.containerList, nil
+        )
+        obj.needToBeLearn = recipe.recipe:needToBeLearn()
     end
 
     self.recipe = recipe
-    self.newItem = newItem
+    self.newItem = obj
 
-    self.manualsEntries = CHC_main.itemsManuals[newItem.recipe:getOriginalname()]
-    if self.manualsEntries ~= nil then
-        self.manualsSize = #self.manualsEntries
+    if not recipe.isEvolved then
+        self.manualsEntries = CHC_main.itemsManuals[obj.recipe:getOriginalname()]
+        if self.manualsEntries ~= nil then
+            self.manualsSize = #self.manualsEntries
+        end
     end
     self:refreshIngredientPanel()
     self:refreshSkillPanel()
     self:refreshBooksPanel()
     self:refreshEquipmentPanel()
 
-    self.bh = self:getBottomHeight(newItem)
+    self.bh = self:getBottomHeight(obj)
 end
 
 -- endregion
@@ -298,8 +399,10 @@ function CHC_uses_recipepanel:refreshIngredientPanel()
     local selectedItem = self.newItem
     if not selectedItem then return end
 
-    if self.recipe.recipe.isSynthetic then
+    if self.recipe.isSynthetic then
         selectedItem.typesAvailable = { true }
+    elseif self.recipe.isEvolved then
+        selectedItem.typesAvailable = self:getAvailableItemsType()
     else
         selectedItem.typesAvailable = self:getAvailableItemsType()
     end
@@ -309,7 +412,7 @@ function CHC_uses_recipepanel:refreshIngredientPanel()
     -- Display single-item sources before multi-item sources
     local sortedSources = {}
     for _, source in ipairs(selectedItem.sources) do
-        table.insert(sortedSources, source)
+        insert(sortedSources, source)
     end
     table.sort(sortedSources, function(a, b) return #a.items == 1 and #b.items > 1 end)
 
@@ -330,9 +433,9 @@ function CHC_uses_recipepanel:refreshIngredientPanel()
             data.multiple = #source.items > 1
             local numTypes = selectedItem.typesAvailable[item.fullType]
             if selectedItem.typesAvailable and (not numTypes or numTypes < item.count) then
-                table.insert(unavailable, data)
+                insert(unavailable, data)
             else
-                table.insert(available, data)
+                insert(available, data)
             end
         end
         table.sort(available, function(a, b) return not string.sort(a.name, b.name) end)
@@ -394,10 +497,47 @@ function CHC_uses_recipepanel:refreshIngredientPanel()
 end
 
 function CHC_uses_recipepanel:getAvailableItemsType()
-    local result = {};
+    local result = {}
     local recipe = self.recipe
     if not recipe then return end
-    if not recipe.recipe.isSynthetic then
+    if recipe.isSynthetic then
+        -- TODO
+    elseif recipe.isEvolved then
+        local baseItem = CHC_main.items[recipe.recipeData.baseItem]
+        local resultItem = recipe.recipeData.result
+        -- check if player has baseitem/resultitem nearby
+        if CHC_main.common.playerHasItemNearby(baseItem, self.containerList) or
+            CHC_main.common.playerHasItemNearby(resultItem, self.containerList) then
+            result[baseItem.fullType] = 1
+        end
+        -- i = 1 is baseItem (handled above)
+        local items = recipe.recipe:getItemsCanBeUse(self.player, recipe.recipeData.result.item, self.containerList)
+        for i = 2, #self.newItem.sources do
+            local source = self.newItem.sources[i]
+            local sourceItemTypes = {}
+            for k = 1, #source.items do
+                sourceItemTypes[source.items[k].fullType] = true
+            end
+            for x = 0, items:size() - 1 do
+                local item = items:get(x)
+                local itemFT = item:getFullType()
+                if sourceItemTypes['Water'] and ISCraftingUI:isWaterSource(item, source:getCount()) then
+                    result['Base.WaterDrop'] = (result['Base.WaterDrop'] or 0) + item:getDrainableUsesInt()
+                elseif sourceItemTypes[itemFT] then
+                    local count = 1
+                    if not source.isDestroy and item:IsDrainable() then
+                        count = item:getDrainableUsesInt()
+                    end
+                    if not source.isDestroy and instanceof(item, 'Food') then
+                        if source.uses > 0 then
+                            count = -item:getHungerChange() * 100
+                        end
+                    end
+                    result[itemFT] = (result[itemFT] or 0) + count
+                end
+            end
+        end
+    else
         recipe = recipe.recipe
         local items = RecipeManager.getAvailableItemsAll(recipe, self.player, self.containerList, nil, nil)
         for i = 0, recipe:getSource():size() - 1 do
@@ -425,10 +565,8 @@ function CHC_uses_recipepanel:getAvailableItemsType()
                 end
             end
         end
-    else
-        -- FIXME handle synthetic recipe available types
     end
-    return result;
+    return result
 end
 
 function CHC_uses_recipepanel:refreshSkillPanel()
@@ -543,7 +681,6 @@ end
 
 function CHC_uses_recipepanel:drawIngredient(y, item, alt)
     if self.parent.fastListReturn(self, y) then return y + self.itemheight end
-
     if item.item.multipleHeader then
         local r, g, b = 1, 1, 1
         if not item.item.available then
@@ -730,18 +867,22 @@ function CHC_uses_recipepanel:render()
         self.needRefreshRecipeCounts = utils.areTablesDifferent(selectedItem.typesAvailable, typesAvailable)
         selectedItem.typesAvailable = typesAvailable
         CHC_uses_recipelist.getContainers(self)
-        if self.recipe.recipe.isSynthetic then
+        if self.recipe.isSynthetic then
             selectedItem.available = false
             selectedItem.howManyCanCraft = 0
+        elseif self.recipe.isEvolved then
+            selectedItem.available = CHC_main.common.isEvolvedRecipeValid(self.recipe, self.containerList)
+            selectedItem.howManyCanCraft = 0 -- evolved recipes aren't craftable
         else
             selectedItem.available = RecipeManager.IsRecipeValid(selectedItem.recipe, self.player, nil,
-                    self.containerList)
+                self.containerList)
             selectedItem.howManyCanCraft = RecipeManager.getNumberOfTimesRecipeCanBeDone(
-                    selectedItem.recipe, self.player,
-                    self.containerList, nil
-                )
+                selectedItem.recipe, self.player,
+                self.containerList, nil
+            )
         end
         self.refreshTypesAvailableMS = now
+        self:refreshIngredientPanel()
         self.needRefreshIngredientPanel = false
     end
 
@@ -813,8 +954,11 @@ function CHC_uses_recipepanel:drawMainInfo(x, y, item)
         self.mainInfoImg:setY(y)
         self.mainInfoImg:setVisible(true)
         local itemTooltip = ""
-        if item.recipe.isSynthetic then
-            itemTooltip = "Build via right clicking in world <LINE>"
+        if item.isSynthetic then
+            itemTooltip = "Build via right clicking in world <LINE>" -- FIXME
+        end
+        if item.isEvolved then
+            itemTooltip = "Evolved recipe <LINE>" -- FIXME
         end
         if item.tooltip then
             itemTooltip = itemTooltip .. item.tooltip
@@ -823,7 +967,15 @@ function CHC_uses_recipepanel:drawMainInfo(x, y, item)
     end
     local lx = x + 32 + 15
     local ly = y
-    self:drawText(item.recipe:getName(), lx, ly, 1, 1, 1, a, UIFont.Small)
+    local text
+    if self.recipe.isSynthetic then
+        text = item.recipe:getName()
+    elseif self.recipe.isEvolved then
+        text = item.recipe:getName() .. ' ' .. getText('IGUI_CHC_Evolved_Max_Ingr', self.recipe.recipeData.maxItems)
+    else
+        text = item.recipe:getName()
+    end
+    self:drawText(text, lx, ly, 1, 1, 1, a, UIFont.Small)
     ly = ly + fhSmall
     self:drawText(item.itemName, lx, ly, 1, 1, 1, a, UIFont.Small)
     ly = ly + fhSmall
@@ -866,7 +1018,7 @@ end
 function CHC_uses_recipepanel:drawCraftButtons(x, y, item)
     --if not self.newItem then return 0 end
     local sy = y
-    if not item.available then
+    if not item.available or item.isEvolved then
         self.craftOneButton:setVisible(false)
         self.craftAllButton:setVisible(false)
         return 0
@@ -986,6 +1138,9 @@ function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y, item)
     if not item then return end
     local cond1 = type(CHC_main.recipesByItem[item.fullType]) == 'table'
     local cond2 = type(CHC_main.recipesForItem[item.fullType]) == 'table'
+    -- also check for evolved recipes
+    local cond3 = type(CHC_main.evoRecipesByItem[item.fullType]) == 'table'
+    local cond4 = type(CHC_main.evoRecipesForItem[item.fullType]) == 'table'
 
     local function addToFav()
         -- @@@ TODO
@@ -994,9 +1149,9 @@ function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y, item)
     context:addOption(getText('IGUI_find_item'), backRef, CHC_menu.onCraftHelperItem, item)
 
     local newTabOption = context:addOption(getText('IGUI_new_tab'), backRef, backRef.addItemView, item.item,
-            true, 2)
+        true, 2)
 
-    if not (cond1 or cond2) then
+    if not (cond1 or cond2 or cond3 or cond4) then
         CHC_main.common.setTooltipToCtx(
             newTabOption,
             getText('IGUI_no_recipes'),
@@ -1040,7 +1195,7 @@ function CHC_uses_recipepanel:transferItems()
     if items:isEmpty() then return result end
     for i = 1, items:size() do
         local item = items:get(i - 1)
-        table.insert(result, item)
+        insert(result, item)
         if not selectedItem.recipe:isCanBeDoneFromFloor() then
             if item:getContainer() ~= self.player:getInventory() then
                 ISTimedActionQueue.add(
@@ -1067,12 +1222,12 @@ function CHC_uses_recipepanel:onCraftComplete(completedAction, recipe, container
             local item = items:get(i - 1)
             if item:getContainer() ~= self.player:getInventory() then
                 local action = ISInventoryTransferAction:new(
-                        self.player, item,
-                        item:getContainer(),
-                        self.player:getInventory(), nil)
+                    self.player, item,
+                    item:getContainer(),
+                    self.player:getInventory(), nil)
                 ISTimedActionQueue.addAfter(previousAction, action)
                 previousAction = action
-                table.insert(returnToContainer, item)
+                insert(returnToContainer, item)
             end
         end
     end
@@ -1100,14 +1255,14 @@ function CHC_uses_recipepanel:craft(button, all)
         container = self.player:getInventory()
         for _, item in ipairs(itemsUsed) do
             if item:getContainer() ~= self.player:getInventory() then
-                table.insert(returnToContainer, item)
+                insert(returnToContainer, item)
             end
         end
     end
 
     local action = ISCraftAction:new(self.player, itemsUsed[1],
-            selectedItem.recipe:getTimeToMake(),
-            selectedItem.recipe, container, self.containerList)
+        selectedItem.recipe:getTimeToMake(),
+        selectedItem.recipe, container, self.containerList)
     if all then
         action:setOnComplete(self.onCraftComplete, self, action, selectedItem.recipe, container, self.containerList)
     end

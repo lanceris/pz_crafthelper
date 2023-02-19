@@ -9,6 +9,9 @@ CHC_main.version = '1.6.6'
 CHC_main.allRecipes = {}
 CHC_main.recipesByItem = {}
 CHC_main.recipesForItem = {}
+CHC_main.allEvoRecipes = {}
+CHC_main.evoRecipesByItem = {}
+CHC_main.evoRecipesForItem = {}
 CHC_main.itemsManuals = {}
 CHC_main.items = {}
 CHC_main.itemsForSearch = {}
@@ -268,6 +271,7 @@ CHC_main.getItemProps = function(item, itemType, map)
 	end
 
 	local props = {}
+	local propsMap = {}
 	local typeProps
 	local dupedProps
 
@@ -288,8 +292,13 @@ CHC_main.getItemProps = function(item, itemType, map)
 	-- 	CHC_main.dupedProps.items[item:getDisplayName()] = dupedProps
 	-- 	CHC_main.dupedProps.size = CHC_main.dupedProps.size + 1
 	-- end
+	for i = 1, #props do
+		if not propsMap[props[i].name] then
+			propsMap[props[i].name] = props[i]
+		end
+	end
 
-	return props
+	return props, propsMap
 end
 
 CHC_main.loadDatas = function()
@@ -303,6 +312,7 @@ CHC_main.loadDatas = function()
 	--CHC_main.loadAllDistributions()
 
 	CHC_main.loadAllRecipes()
+	CHC_main.loadAllEvolvedRecipes()
 	CHC_main.loadRecipesIntegrations()
 
 	if loadLua then CHC_main.saveLuaCache() end
@@ -311,34 +321,35 @@ end
 
 CHC_main.processOneItem = function(item)
 	local fullType = item:getFullName()
+
+	if CHC_main.items[fullType] then
+		-- print(string.format('Duplicate invItem fullType! (%s)', tostring(invItem:getFullType())))
+		return
+	end
 	local invItem = instanceItem(fullType)
 	local itemDisplayCategory = invItem:getDisplayCategory()
 
-	if not CHC_main.items[fullType] then
-		local toinsert = {
-			itemObj = item,
-			item = invItem,
-			fullType = invItem:getFullType(),
-			name = invItem:getName(),
-			modname = invItem:getModName(),
-			isVanilla = invItem:isVanilla(),
-			IsDrainable = invItem:IsDrainable(),
-			displayName = invItem:getDisplayName(),
-			tooltip = invItem:getTooltip(),
-			hidden = item:isHidden(),
-			count = invItem:getCount() or 1,
-			category = item:getTypeString(),
-			displayCategory = itemDisplayCategory and
-			getTextOrNull('IGUI_ItemCat_' .. itemDisplayCategory) or
-			getText('IGUI_ItemCat_Item'),
-			texture = invItem:getTex()
-		}
-		toinsert.props = CHC_main.getItemProps(invItem, toinsert.category)
-		CHC_main.items[toinsert.fullType] = toinsert
-		insert(CHC_main.itemsForSearch, toinsert)
-	else
-		error(string.format('Duplicate invItem fullType! (%s)', tostring(invItem:getFullType())))
-	end
+	local toinsert = {
+		itemObj = item,
+		item = invItem,
+		fullType = invItem:getFullType(),
+		name = invItem:getName(),
+		modname = invItem:getModName(),
+		isVanilla = invItem:isVanilla(),
+		IsDrainable = invItem:IsDrainable(),
+		displayName = invItem:getDisplayName(),
+		tooltip = invItem:getTooltip(),
+		hidden = item:isHidden(),
+		count = invItem:getCount() or 1,
+		category = item:getTypeString(),
+		displayCategory = itemDisplayCategory and
+		getTextOrNull('IGUI_ItemCat_' .. itemDisplayCategory) or
+		getText('IGUI_ItemCat_Item'),
+		texture = invItem:getTex()
+	}
+	toinsert.props, toinsert.propsMap = CHC_main.getItemProps(invItem, toinsert.category)
+	CHC_main.items[toinsert.fullType] = toinsert
+	insert(CHC_main.itemsForSearch, toinsert)
 
 
 	if item:getTypeString() == 'Literature' then
@@ -379,12 +390,13 @@ CHC_main.processOneRecipe = function(recipe)
 	newItem.displayCategory = getTextOrNull('IGUI_CraftCategory_' .. newItem.category) or newItem.category
 	newItem.recipe = recipe
 	newItem.module = recipe:getModule():getName()
-	newItem.favorite = CHC_main.playerModData[CHC_main.getFavoriteRecipeModDataString(recipe)] or false
 	newItem.hidden = recipe:isHidden()
 	newItem.recipeData = {}
 	newItem.recipeData.category = newItem.category
 	newItem.recipeData.name = recipe:getName()
 	newItem.recipeData.nearItem = recipe:getNearItem()
+
+	newItem.favorite = CHC_main.playerModData[CHC_main.getFavoriteRecipeModDataString(newItem)] or false
 
 	if loadLua then
 		local onCreate = recipe:getLuaCreate()
@@ -473,6 +485,107 @@ CHC_main.loadAllRecipes = function()
 		nbRecipes = nbRecipes + 1
 	end
 	showTime(now, 'All Recipes')
+	print(nbRecipes .. ' recipes loaded.')
+end
+
+CHC_main.processOneEvolvedRecipe = function(recipe)
+	if recipe:isHidden() then return end
+	local data = {
+		isEvolved = true,
+		recipe = recipe,
+		category = getText('IGUI_CHC_RecipeCat_Evolved'),
+		displayCategory = getText('IGUI_CHC_RecipeCat_Evolved'),
+		hidden = recipe:isHidden(),
+		module = recipe:getModule():getName(),
+	}
+
+	local recipeData = {
+		category = data.category,
+		name = recipe:getName(),
+		originalName = recipe:getOriginalname(),
+		untranslatedName = recipe:getUntranslatedName(),
+		baseItem = recipe:getBaseItem(),
+		--itemsList = recipe:getItemsList(), -- Map
+		_possibleItems = recipe:getPossibleItems(), -- ArrayList
+		resultItem = recipe:getResultItem(),
+		fullResultItem = recipe:getFullResultItem(),
+		isCookable = recipe:isCookable(),
+		maxItems = recipe:getMaxItems(),
+		addIngredientSound = recipe:getAddIngredientSound(),
+		isAllowFrozenItem = recipe:isAllowFrozenItem()
+	}
+	if not recipeData.baseItem:contains('.') then
+		recipeData.baseItem = "Base." .. recipeData.baseItem
+	end
+	if not recipeData.fullResultItem:contains('.') then
+		recipeData.fullResultItem = "Base." .. recipeData.fullResultItem
+	end
+
+	if recipeData._possibleItems then
+		recipeData.possibleItems = {}
+		for i = 0, recipeData._possibleItems:size() - 1 do
+			local item = recipeData._possibleItems:get(i)
+			local itemData = {
+				name = item:getName(),
+				use = item:getUse(),
+				fullType = item:getFullType()
+			}
+			-- check item for obsolete
+			local _item = CHC_main.getItemByFullType(itemData.fullType)
+			if _item then
+				if _item.propsMap["Spice"] and tostring(_item.propsMap["Spice"].value) == "true" then
+					itemData.isSpice = true
+				else
+					itemData.isSpice = false
+				end
+				insert(recipeData.possibleItems, itemData)
+			end
+		end
+		recipeData._possibleItems = nil
+	end
+
+	data.recipeData = recipeData
+
+	data.favorite = CHC_main.playerModData[CHC_main.getFavoriteRecipeModDataString(data)] or false
+
+	if data.recipeData.possibleItems then
+		for i = 1, #data.recipeData.possibleItems do
+			local itemData = data.recipeData.possibleItems[i]
+			local itemres = CHC_main.getItemByFullType(itemData.fullType)
+			if itemres then
+				CHC_main.setRecipeForItem(CHC_main.evoRecipesByItem, itemData.fullType, data)
+			end
+		end
+	end
+
+	local baseItemRes = CHC_main.getItemByFullType(data.recipeData.baseItem)
+	if baseItemRes then
+		CHC_main.setRecipeForItem(CHC_main.evoRecipesByItem, data.recipeData.baseItem, data)
+	end
+
+	local resultItem = CHC_main.getItemByFullType(data.recipeData.fullResultItem)
+	if resultItem then
+		data.recipeData.result = resultItem
+		CHC_main.setRecipeForItem(CHC_main.evoRecipesForItem, data.recipeData.fullResultItem, data)
+	end
+
+	insert(CHC_main.allEvoRecipes, data)
+end
+
+CHC_main.loadAllEvolvedRecipes = function()
+	print('Loading evolved recipes...')
+	local nbRecipes = 0
+	local now = getTimestampMs()
+
+	local allEvolvedRecipes = RecipeManager.getAllEvolvedRecipes()
+
+	for i = 0, allEvolvedRecipes:size() - 1 do
+		CHC_main.processOneEvolvedRecipe(allEvolvedRecipes:get(i))
+		nbRecipes = nbRecipes + 1
+	end
+
+
+	showTime(now, 'All Evolved Recipes')
 	print(nbRecipes .. ' recipes loaded.')
 end
 
@@ -616,9 +729,10 @@ CHC_main.getFavItemModDataStr = function(item)
 end
 
 CHC_main.getFavoriteRecipeModDataString = function(recipe)
-	if recipe.isSynthetic then return 'testCHC' .. recipe:getOriginalname() end
+	if recipe.recipeData.isSynthetic then return 'testCHC' .. recipe.recipe:getOriginalname() end
+	recipe = recipe.recipe
 	local text = 'craftingFavorite:' .. recipe:getOriginalname()
-	if nil then --instanceof(recipe, 'EvolvedRecipe') then
+	if instanceof(recipe, 'EvolvedRecipe') then
 		text = text .. ':' .. recipe:getBaseItem()
 		text = text .. ':' .. recipe:getResultItem()
 	else
@@ -683,7 +797,7 @@ CHC_main.getCECItems = function()
 			}
 			toinsert.item.fullType = toinsert.fullType
 			toinsert.item.getFullType = function() return toinsert.fullType end
-			toinsert.props = CHC_main.getItemProps(tData, toinsert.category, map)
+			toinsert.props, toinsert.propsMap = CHC_main.getItemProps(tData, toinsert.category, map)
 			CHC_main.items[toinsert.fullType] = toinsert
 			insert(CHC_main.itemsForSearch, toinsert)
 		end
@@ -706,18 +820,19 @@ CHC_main.getCECRecipes = function()
 		newItem.displayCategory = newItem.category
 		newItem.module = 'CraftingEnhancedCore'
 		newItem.hidden = false
+		newItem.isSynthetic = true
 		newItem.recipeData = {}
 		newItem.recipeData.category = newItem.category
 		newItem.recipeData.name = 'Build ' .. tData.displayName
 		newItem.recipeData.ingredients = tData.recipe
+		newItem.recipeData.isSynthetic = true
 		-- newItem.recipeData.nearItem = recipe:getNearItem()
 		newItem.recipe = {
-			isSynthetic = true,
 			getOriginalname = function() return newItem.recipeData.name end,
 			getSource = getSource,
 			getName = function() return newItem.recipeData.name end
 		}
-		newItem.favorite = CHC_main.playerModData[CHC_main.getFavoriteRecipeModDataString(newItem.recipe)] or
+		newItem.favorite = CHC_main.playerModData[CHC_main.getFavoriteRecipeModDataString(newItem)] or
 			false --FIXME
 
 		local resultItem = 'CEC.' .. tID

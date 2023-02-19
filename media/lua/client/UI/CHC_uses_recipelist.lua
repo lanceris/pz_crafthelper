@@ -81,9 +81,16 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 		a = 0.9,
 		font = self.font
 	}
-	if recipe.recipe.isSynthetic == true then
+	if recipe.isSynthetic == true then
 		-- known but cant craft, white text
 		clr['r'], clr['g'], clr['b'] = 0.9, 0.9, 0.9
+	elseif recipe.isEvolved then
+		if CHC_main.common.isEvolvedRecipeValid(recipe, self.containerList) then
+			-- can 'craft', green text
+			clr['r'], clr['g'], clr['b'] = 0, 0.7, 0
+		else
+			clr['r'], clr['g'], clr['b'] = 0.9, 0.9, 0.9
+		end
 	else
 		if not self.player:isRecipeKnown(recipe.recipe) then
 			-- unknown recipe, red text
@@ -199,7 +206,7 @@ function CHC_uses_recipelist:addToFavorite(selectedIndex, fromKeyboard)
 	if fav_idx == nil then return end
 	local fav_recipes = allr[fav_idx].recipes.items
 	selectedItem.item.favorite = not selectedItem.item.favorite;
-	self.modData[CHC_main.getFavoriteRecipeModDataString(selectedItem.item.recipe)] = selectedItem.item
+	self.modData[CHC_main.getFavoriteRecipeModDataString(selectedItem.item)] = selectedItem.item
 		.favorite
 	if selectedItem.item.favorite then
 		parent.favRecNum = parent.favRecNum + 1

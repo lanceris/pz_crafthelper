@@ -33,7 +33,7 @@ UI_EN = {
     UI_infotext_search =    "<CENTRE><SIZE:medium> Search Screen <LINE><LINE> "..
                             "<SIZE:small> <LEFT> Here you can find all items and recipes. <LINE><LINE> "
     UI_infotext_favorites = "<CENTRE><SIZE:medium> Favorite Screen <LINE><LINE> "..
-                            "<SIZE:small> <LEFT> Here you can find favorited items(WIP) and recipes. <LINE><LINE> "
+                            "<SIZE:small> <LEFT> Here you can find favorited items and recipes. <LINE><LINE> "
     UI_infotext_itemtab =   "<CENTRE><SIZE:medium> Item Screen <LINE>"..
                             "<SIZE:small> <LEFT> Here you can find detailed information about '%1' <LINE> "..
                             "First tab (%2) shows recipes, where '%1' is used as ingredient. <LINE> "..
@@ -67,7 +67,7 @@ UI_EN = {
                                  " - Required items <LINE>"..
                                  " - Other requirements (skills, books, crafting equipment and time to craft)"
     UI_infotext_item_details =   " - Basic info about item and number of recipes <LINE> "..
-                                 " - Item attributes (WIP) <LINE> "..
+                                 " - Item attributes <LINE> "..
                                  " - How to fix this item (if possible) (WIP) <LINE>"..
                                  " - Where to find this item (WIP)"
 

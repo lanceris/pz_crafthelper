@@ -136,7 +136,7 @@ function CHC_search:create()
 
     -- region search bar
     self.searchRow = CHC_search_bar:new({ x = x, y = leftY, w = leftW, h = 24, backRef = self.backRef }, nil,
-            self.onTextChange, self.searchRowHelpText)
+        self.onTextChange, self.searchRowHelpText)
     self.searchRow:initialise()
     leftY = leftY + 24
     -- endregion
@@ -144,7 +144,7 @@ function CHC_search:create()
     -- region recipe list
     local rlh = self.height - self.headers.height - self.filterRow.height - self.searchRow.height
     self.objList = CHC_items_list:new({ x = x, y = leftY, w = leftW, h = rlh, backRef = self.backRef },
-            self.onMMBDownObjList)
+        self.onMMBDownObjList)
 
     self.objList.drawBorder = true
     self.objList.onRightMouseDown = self.onRMBDownObjList
@@ -406,8 +406,11 @@ function CHC_search:onRMBDownObjList(x, y, item)
     item = CHC_main.items[item.fullType]
     local cond1 = type(CHC_main.recipesByItem[item.fullType]) == 'table'
     local cond2 = type(CHC_main.recipesForItem[item.fullType]) == 'table'
+    -- also check for evolved recipes
+    local cond3 = type(CHC_main.evoRecipesByItem[item.fullType]) == 'table'
+    local cond4 = type(CHC_main.evoRecipesForItem[item.fullType]) == 'table'
 
-    if cond1 or cond2 then
+    if cond1 or cond2 or cond3 or cond4 then
         local opt = context:addOption(getText('IGUI_new_tab'), backRef, backRef.addItemView, item.item, true, 2)
         CHC_main.common.addTooltipNumRecipes(opt, item)
     end
@@ -418,12 +421,15 @@ function CHC_search:onMMBDownObjList()
     local y = self:getMouseY()
     local row = self:rowAt(x, y)
     if row == -1 then return end
-    local item = self.items[row].item.item
+    local item = self.items[row].item
     -- check if there is recipes for item
-    local cond1 = type(CHC_main.recipesByItem[item:getFullType()]) == 'table'
-    local cond2 = type(CHC_main.recipesForItem[item:getFullType()]) == 'table'
-    if cond1 or cond2 then
-        self.parent.backRef:addItemView(item, false)
+    local cond1 = type(CHC_main.recipesByItem[item.fullType]) == 'table'
+    local cond2 = type(CHC_main.recipesForItem[item.fullType]) == 'table'
+    -- also check for evolved recipes
+    local cond3 = type(CHC_main.evoRecipesByItem[item.fullType]) == 'table'
+    local cond4 = type(CHC_main.evoRecipesForItem[item.fullType]) == 'table'
+    if cond1 or cond2 or cond3 or cond4 then
+        self.parent.backRef:addItemView(item.item, false)
     end
 end
 
@@ -560,6 +566,9 @@ function CHC_search:searchProcessToken(token, item)
                 return false
             end
         end
+        -- if char == "%" then
+        --     whatCompare = item.fullType
+        -- end
     end
     if token and not isSpecialSearch then
         whatCompare = string.lower(item.displayName)
@@ -625,9 +634,9 @@ function CHC_search:new(args)
 
     o.defaultCategory = getText('UI_All')
     o.searchRowHelpText = getText('UI_searchrow_info',
-            getText('UI_searchrow_info_items_special'),
-            getText('UI_searchrow_info_items_examples')
-        )
+        getText('UI_searchrow_info_items_special'),
+        getText('UI_searchrow_info_items_examples')
+    )
 
 
     o.selectedCategory = o.defaultCategory

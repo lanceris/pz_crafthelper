@@ -4,6 +4,7 @@ CHC_main.common = {}
 
 local utils = require('CHC_utils')
 local insert = table.insert
+local contains = string.contains
 local globalTextLimit = 1000 -- FIXME
 
 
@@ -12,7 +13,7 @@ function CHC_main.common.searchFilter(self, q, processTokenFunc)
     local stateText = string.trim(self.searchRow.searchBar:getInternalText())
     if #stateText > globalTextLimit then
         self.searchRow:setTooltip(getText('IGUI_TextTooLongTooltip') ..
-            '! (' .. #stateText .. ' > ' .. globalTextLimit .. ')')
+        '! (' .. #stateText .. ' > ' .. globalTextLimit .. ')')
         return true
     else
         self.searchRow:setTooltip(self.searchRow.origTooltip)
@@ -76,8 +77,13 @@ function CHC_main.common.addTooltipNumRecipes(option, item)
     local fullType = item.fullType or item:getFullType()
     local recBy = CHC_main.recipesByItem[fullType]
     local recFor = CHC_main.recipesForItem[fullType]
+    local evoRecBy = CHC_main.evoRecipesByItem[fullType]
+    local evoRecFor = CHC_main.evoRecipesForItem[fullType]
     recBy = recBy and #recBy or 0
     recFor = recFor and #recFor or 0
+    if evoRecBy then recBy = recBy + #evoRecBy end
+    if evoRecFor then recFor = recFor + #evoRecFor end
+
     local text = ''
     if recBy > 0 then
         text = text .. getText('UI_item_uses_tab_name') .. ': ' .. recBy .. ' <LINE>'
@@ -103,4 +109,35 @@ function CHC_main.common.getItemProps(item)
         end
     end
     return attrs
+end
+
+function CHC_main.common.isEvolvedRecipeValid(recipe, containerList)
+    local check = CHC_main.common.playerHasItemNearby
+    local typesAvailable = {}
+    for i = 1, #recipe.recipeData.possibleItems do
+        if check(recipe.recipeData.possibleItems[i], containerList) then
+            typesAvailable[recipe.recipeData.possibleItems[i].fullType] = true
+            break
+        end
+    end
+
+    local haveBaseOrResult = (check(CHC_main.items[recipe.recipeData.baseItem], containerList) or
+        check(recipe.recipeData.result, containerList))
+    local result = haveBaseOrResult and not utils.empty(typesAvailable)
+    return result
+end
+
+function CHC_main.common.playerHasItemNearby(item, containerList)
+    if not item then return false end
+    if type(item) == 'string' and contains(item, '.') then
+
+    else
+        item = item.fullType
+    end
+    for i = 0, containerList:size() - 1 do
+        if containerList:get(i):containsWithModule(item) then
+            return true
+        end
+    end
+    return false
 end

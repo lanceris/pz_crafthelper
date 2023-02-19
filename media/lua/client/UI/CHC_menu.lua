@@ -38,9 +38,13 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
 		end
 
 		-- if item is used in any recipe OR there is a way to create this item - mark item as valid
-		local cond1 = type(CHC_main.recipesByItem[item:getFullType()]) == 'table'
-		local cond2 = type(CHC_main.recipesForItem[item:getFullType()]) == 'table'
-		if cond1 or cond2 then
+		local fullType = item:getFullType()
+		local cond1 = type(CHC_main.recipesByItem[fullType]) == 'table'
+		local cond2 = type(CHC_main.recipesForItem[fullType]) == 'table'
+		-- also check for evolved recipes
+		local cond3 = type(CHC_main.evoRecipesByItem[fullType]) == 'table'
+		local cond4 = type(CHC_main.evoRecipesForItem[fullType]) == 'table'
+		if cond1 or cond2 or cond3 or cond4 then
 			table.insert(itemsUsedInRecipes, item)
 		end
 	end
@@ -49,7 +53,7 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
 	-- we effectively add an option in the contextual menu
 	if type(itemsUsedInRecipes) == 'table' and #itemsUsedInRecipes > 0 then
 		local opt = context:addOption(getText('IGUI_chc_context_onclick'), itemsUsedInRecipes, CHC_menu.onCraftHelper,
-				player)
+			player)
 		CHC_main.common.addTooltipNumRecipes(opt, item)
 	end
 	if isShiftKeyDown() and CHC_menu.CHC_window ~= nil then
