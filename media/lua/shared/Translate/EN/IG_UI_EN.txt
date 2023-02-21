@@ -51,7 +51,4 @@ IGUI_EN = {
     IGUI_ItemDetails_Attributes_tab = "Attributes"
     IGUI_Synthetic_Recipe_result_tooltip = "Build via right clicking in world"
     IGUI_Evolved_Recipe_result_tooltip = "Evolved recipe"
-    
-
-
 }

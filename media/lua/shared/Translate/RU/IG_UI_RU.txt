@@ -27,6 +27,8 @@ IGUI_RU = {
     IGUI_CHC_ItemCat_Normal = "Разное"
     IGUI_CHC_ItemCat_Radio = "Радио"
     IGUI_CHC_ItemCat_Key = "Ключи"
+    IGUI_CHC_RecipeCat_Evolved = "Разветвленный"
+    IGUI_CHC_Evolved_Max_Ingr = "(Макс. ингредиентов: %1)"
     IGUI_new_tab = "Открыть в новой вкладке"
     IGUI_find_item = "Найти предмет"
     IGUI_mod_chc = "Мод"
@@ -46,4 +48,6 @@ IGUI_RU = {
     IGUI_BlacklistProps_ctx = "В черный список"
     IGUI_UnblacklistProps_ctx = "Убрать из черного списка"
     IGUI_ItemDetails_Attributes_tab = "Атрибуты"
+    IGUI_Synthetic_Recipe_result_tooltip = "Постройте, щелкнув правой кнопкой мыши в мире"
+    IGUI_Evolved_Recipe_result_tooltip = "Разветвленный рецепт"
 }
