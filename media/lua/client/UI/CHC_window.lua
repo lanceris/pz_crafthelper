@@ -257,17 +257,14 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
         item = itn
     }
     for k, v in pairs(uses_extra) do uses_screen_init[k] = v end
-    self.usesScreen = CHC_uses:new(uses_screen_init)
+    local usesScreen = CHC_uses:new(uses_screen_init)
 
     if usesData and not utils.empty(usesData) then
-        self.usesScreen:initialise()
+        usesScreen:initialise()
+        usesScreen.ui_type = usesScreen.ui_type .. '|' .. usesScreen.ID
         local iuvn = getText('UI_item_uses_tab_name')
-        self.itemPanel:addView(iuvn, self.usesScreen)
-        if not self.uiTypeToView[uses_extra.ui_type] then
-            self.uiTypeToView[uses_extra.ui_type] = { { view = self.usesScreen, name = iuvn } }
-        else
-            insert(self.uiTypeToView[uses_extra.ui_type], { view = self.usesScreen, name = iuvn })
-        end
+        self.itemPanel:addView(iuvn, usesScreen)
+        self.uiTypeToView[usesScreen.ui_type] = { view = usesScreen, name = iuvn }
     end
     --endregion
 
@@ -285,17 +282,14 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
         item = itn
     }
     for k, v in pairs(craft_extra) do craft_screen_init[k] = v end
-    self.craftScreen = CHC_uses:new(craft_screen_init)
+    local craftScreen = CHC_uses:new(craft_screen_init)
 
     if craftData and not utils.empty(craftData) then
-        self.craftScreen:initialise()
+        craftScreen:initialise()
+        craftScreen.ui_type = craftScreen.ui_type .. '|' .. craftScreen.ID
         local icvn = getText('UI_item_craft_tab_name')
-        self.itemPanel:addView(icvn, self.craftScreen)
-        if not self.uiTypeToView[craft_extra.ui_type] then
-            self.uiTypeToView[craft_extra.ui_type] = { { view = self.craftScreen, name = icvn } }
-        else
-            insert(self.uiTypeToView[craft_extra.ui_type], { view = self.craftScreen, name = icvn })
-        end
+        self.itemPanel:addView(icvn, craftScreen)
+        self.uiTypeToView[craftScreen.ui_type] = { view = craftScreen, name = icvn }
     end
     -- endregion
     --endregion
@@ -346,10 +340,30 @@ end
 function CHC_window:update()
     if self.updateQueue and self.updateQueue.len > 0 then
         local toProcess = self.updateQueue:pop()
-        local targetView = self.uiTypeToView[toProcess.targetView].view
-        if not targetView or not toProcess.actions then return end
+        local targetViewObj = self.uiTypeToView[toProcess.targetView]
+        if not targetViewObj or not toProcess.actions then return end
+        local targetView = targetViewObj.view
+        local targetName = targetViewObj.name
         for i = 1, #toProcess.actions do
-            targetView[toProcess.actions[i]] = true
+            local action = toProcess.actions[i]
+            if action == 'needUpdateSubViewName' then
+                local data = toProcess.data[action]
+                local viewObject
+                for j = 1, #targetView.parent.viewList do
+                    if luautils.split(targetView.parent.viewList[j].name, ' ')[1] == targetName then
+                        viewObject = targetView.parent.viewList[j]
+                    end
+                end
+                if viewObject then
+                    if data then
+                        viewObject.name = string.format("%s (%s)", targetName, data)
+                    else
+                        viewObject.name = targetName
+                    end
+                end
+            else
+                targetView[action] = true
+            end
         end
     end
 end
@@ -535,6 +549,18 @@ function CHC_window:onActivateView(target)
     local sub = top.view.activeView
     if sub.view.isItemView == false then
         sub.view.needUpdateFavorites = true
+    end
+
+    -- update item counts for all subviews
+    for i = 1, #top.view.viewList do
+        local view = top.view.viewList[i]
+        if view.view.objList and view.view.objList.items then
+            self.updateQueue:push({
+                targetView = view.view.ui_type,
+                actions = { 'needUpdateSubViewName' },
+                data = { needUpdateSubViewName = #view.view.objList.items }
+            })
+        end
     end
 
     if sub.view.ui_type == 'fav_recipes' or sub.view.ui_type == 'fav_items' then

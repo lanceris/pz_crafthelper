@@ -122,6 +122,7 @@ end
 function CHC_uses:update()
     if self.needUpdateObjects == true then
         self:updateRecipes(self.selectedCategory)
+        self:updateTabNameWithCount()
         self.needUpdateObjects = false
     end
     if self.needUpdateFavorites == true then
@@ -278,6 +279,8 @@ function CHC_uses:refreshObjList(recipes)
         objL:ensureVisible(ix)
         self.objPanel:setObj(objL.items[ix].item)
     end
+
+    self.objListSize = #objL.items
 end
 
 function CHC_uses:handleFavCategory(current)
@@ -310,6 +313,14 @@ function CHC_uses:handleFavCategory(current)
             actions = { 'needUpdateFavorites', 'needUpdateObjects', 'needUpdateTypes' }
         })
     end
+end
+
+function CHC_uses:updateTabNameWithCount()
+    self.backRef.updateQueue:push({
+        targetView = self.ui_type,
+        actions = { 'needUpdateSubViewName' },
+        data = { needUpdateSubViewName = self.objListSize }
+    })
 end
 
 -- endregion
@@ -629,6 +640,7 @@ function CHC_uses:new(args)
         getText('UI_searchrow_info_recipes_special'),
         getText('UI_searchrow_info_recipes_examples')
     )
+    o.objListSize = 0
 
     o.needUpdateFavorites = true
     o.needUpdateTypes = false

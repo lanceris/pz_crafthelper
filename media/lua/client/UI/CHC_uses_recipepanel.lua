@@ -454,6 +454,7 @@ function CHC_uses_recipepanel:refreshIngredientPanel()
             if data.isKeep then
                 txt = txt .. ' (K) '
             end
+            txt = txt .. ' (' .. #available .. '/' .. #available + #unavailable .. ') '
             self.ingredientPanel:addItem(txt, data)
         end
 
