@@ -22,14 +22,59 @@ function CHC_uses_recipepanel:createChildren()
 
     local listBorderColor = { r = 0.4, g = 0.4, b = 0.4, a = 0.4 }
 
-    self.mainInfoImg = ISButton:new(1, 1, 42, 42, '', self, nil) --FIXME increase to 64
-    self.mainInfoImg.backgroundColorMouseOver.a = 0
-    self.mainInfoImg.backgroundColor.a = 0
-    self.mainInfoImg.onRightMouseDown = self.onRMBDownItemIcon
-    self.mainInfoImg:initialise()
-    self.mainInfoImg:setVisible(false)
+    local x, y = 5, 5
+    local fntm = getTextManager():getFontHeight(UIFont.Medium)
+    local fntl = getTextManager():getFontHeight(UIFont.Large)
 
-    self:addChild(self.mainInfoImg)
+    -- region general info
+    self.mainInfo = ISPanel:new(self.margin, y, self.width - 2 * self.margin, 1)
+    self.mainInfo.borderColor = { r = 1, g = 0.53, b = 0.53, a = 0.2 }
+    self.mainInfo:initialise()
+    self.mainInfo:setVisible(false)
+
+    self.mainImg = ISButton:new(self.margin, 5, 64, 64, '', self, nil)
+    self.mainImg:initialise()
+    self.mainImg.backgroundColorMouseOver.a = 0
+    self.mainImg.backgroundColor.a = 0
+    self.mainImg.origWI = 60
+    self.mainImg.origHI = 60
+    self.mainImg.forcedWidthImage = self.mainImg.origWI
+    self.mainImg.forcedHeightImage = self.mainImg.origHI
+    self.mainImg.onRightMouseDown = self.onRMBDownItemIcon
+
+    local mainPadY = 2
+    local mainX = self.margin + 64 + 3
+    local mainY = mainPadY
+    local mainPriFont = UIFont.Medium
+    local mainSecFont = UIFont.Small
+
+    local mr, mg, mb, ma = 1, 1, 1, 1
+    self.mainCat = ISLabel:new(mainX, mainPadY, fhSmall, nil, mr, mg, mb, ma, mainSecFont, true)
+    self.mainCat:initialise()
+    mainY = mainY + mainPadY + self.mainCat.height
+
+    self.mainName = ISLabel:new(mainX, mainY, fhSmall, nil, mr, mg, mb, ma, mainSecFont, true)
+    self.mainName:initialise()
+    mainY = mainY + mainPadY + self.mainName.height
+
+    self.mainRes = ISLabel:new(mainX, mainY, fhSmall, nil, mr, mg, mb, ma, mainSecFont, true)
+    self.mainRes:initialise()
+    mainY = mainY + mainPadY + self.mainRes.height
+
+    self.mainMod = ISLabel:new(mainX, mainY, fhSmall, nil, mr, mg, mb, ma, mainSecFont, true)
+    self.mainMod:initialise()
+    mainY = mainY + mainPadY + self.mainMod.height
+
+    self.mainInfo:setHeight(mainY + mainPadY)
+
+    self.mainInfo:addChild(self.mainImg)
+    self.mainInfo:addChild(self.mainCat)
+    self.mainInfo:addChild(self.mainName)
+    self.mainInfo:addChild(self.mainRes)
+    self.mainInfo:addChild(self.mainMod)
+
+    y = y + self.mainInfo:getBottom()
+    -- endregion
 
     -- region ingredients
     self.ingredientPanel = ISScrollingListBox:new(1, 30, self.width, 50)
@@ -116,6 +161,7 @@ function CHC_uses_recipepanel:createChildren()
     self.equipmentPanel:setVisible(false)
     -- endregion
 
+    self:addChild(self.mainInfo)
     self:addChild(self.ingredientPanel)
     self:addChild(self.craftOneButton)
     self:addChild(self.craftAllButton)
@@ -148,59 +194,7 @@ function CHC_uses_recipepanel:setItemNameInSource(item, itemInList, isDestroy, u
     return item.displayName
 end
 
-function CHC_uses_recipepanel:setObj(recipe)
-    CHC_uses_recipelist.getContainers(self)
-    local obj = {}
-
-    obj.category = recipe.category
-
-    obj.recipe = recipe.recipe
-    if recipe.isSynthetic then
-        obj.available = false
-    elseif recipe.isEvolved then
-        obj.available = CHC_main.common.isEvolvedRecipeValid(recipe, self.containerList)
-        obj.maxItems = recipe.recipeData.maxItems
-    else
-        obj.available = RecipeManager.IsRecipeValid(recipe.recipe, self.player, nil, self.containerList)
-    end
-
-    -- if recipe.recipeData.lua then
-    --     -- efg:dfg() -- testing lua parsing
-    -- end
-
-    local resultItem = recipe.recipeData.result
-    if resultItem then
-        obj.module = resultItem.modname
-        obj.isVanilla = resultItem.isVanilla
-        -- newItem.modname = resultItem:getModID()
-        obj.texture = resultItem.texture
-        self.mainInfoImg:setImage(resultItem.texture)
-        self.mainInfoImg.item = resultItem
-        if resultItem.tooltip then
-            obj.tooltip = getText(resultItem.tooltip)
-        end
-        obj.itemName = resultItem.displayName
-        local displayCategory = resultItem.displayCategory
-        if displayCategory then
-            obj.itemDisplayCategory = getTextOrNull('IGUI_ItemCat_' .. displayCategory)
-        end
-
-        local resultCount
-        if recipe.isSynthetic then
-            resultCount = 1
-        elseif recipe.isEvolved then
-            resultCount = 1 -- FIXME
-        else
-            resultCount = recipe.recipe:getResult():getCount()
-        end
-        if resultCount > 1 then
-            obj.itemName = (resultCount * resultItem.count) .. ' ' .. obj.itemName;
-        end
-    end
-
-    obj.hydrocraftEquipment = recipe.recipeData.hydroFurniture
-    obj.cecEquipment = recipe.recipeData.CECFurniture
-
+function CHC_uses_recipepanel:getSources(recipe)
     local function getCount(item, sourceObj)
         local param
         local result
@@ -229,7 +223,7 @@ function CHC_uses_recipepanel:setObj(recipe)
         return sourceObj.use, displayCount
     end
 
-    obj.sources = {}
+    local result = {}
     if recipe.isSynthetic then
         local sources = recipe.recipeData.ingredients
         for i = 1, #sources do
@@ -248,7 +242,7 @@ function CHC_uses_recipepanel:setObj(recipe)
             itemInList.name = self:setItemNameInSource(item, itemInList, sourceInList.isDestroy,
                 sourceInList.uses)
             insert(sourceInList.items, itemInList)
-            insert(obj.sources, sourceInList)
+            insert(result, sourceInList)
         end
     elseif recipe.isEvolved then
         local sourceBase = {
@@ -299,7 +293,7 @@ function CHC_uses_recipepanel:setObj(recipe)
                     insert(sourceInList.items, itemInList)
                 end
             end
-            insert(obj.sources, sourceInList)
+            insert(result, sourceInList)
         end
     else
         local sources = recipe.recipe:getSource()
@@ -338,9 +332,108 @@ function CHC_uses_recipepanel:setObj(recipe)
                     insert(sourceInList.items, itemInList);
                 end
             end
-            insert(obj.sources, sourceInList)
+            insert(result, sourceInList)
         end
     end
+    return result
+end
+
+function CHC_uses_recipepanel:setObj(recipe)
+    CHC_uses_recipelist.getContainers(self)
+    local obj = {}
+
+    obj.category = recipe.category
+
+    obj.recipe = recipe.recipe
+    if recipe.isSynthetic then
+        obj.available = false
+    elseif recipe.isEvolved then
+        obj.available = CHC_main.common.isEvolvedRecipeValid(recipe, self.containerList)
+        obj.maxItems = recipe.recipeData.maxItems
+    else
+        obj.available = RecipeManager.IsRecipeValid(recipe.recipe, self.player, nil, self.containerList)
+    end
+
+    -- if recipe.recipeData.lua then
+    --     -- efg:dfg() -- testing lua parsing
+    -- end
+
+    local resultItem = recipe.recipeData.result
+    if resultItem then
+        obj.module = resultItem.modname
+        obj.isVanilla = resultItem.isVanilla
+        -- newItem.modname = resultItem:getModID()
+        obj.texture = resultItem.texture
+        if resultItem.textureMult then
+            if not self.itemImgTextureMultApplied then
+                self.mainImg.forcedWidthImage = self.mainImg.forcedWidthImage * resultItem.textureMult
+                self.mainImg.forcedHeightImage = self.mainImg.forcedHeightImage * resultItem.textureMult
+                self.itemImgTextureMultApplied = true
+            end
+        else
+            self.mainImg.forcedWidthImage = self.mainImg.origWI
+            self.mainImg.forcedHeightImage = self.mainImg.origHI
+            self.itemImgTextureMultApplied = false
+        end
+        self.mainImg:setImage(resultItem.texture)
+        --self.mainImg.item = resultItem
+        if resultItem.tooltip then
+            obj.tooltip = getText(resultItem.tooltip) --FIXME
+            self.mainImg:setTooltip(getText(resultItem.tooltip))
+        else
+            self.mainImg:setTooltip(nil)
+        end
+        obj.itemName = resultItem.displayName
+        local displayCategory = resultItem.displayCategory
+        if displayCategory then
+            obj.itemDisplayCategory = getTextOrNull('IGUI_ItemCat_' .. displayCategory)
+        end
+
+        local resultCount
+        if recipe.isSynthetic then
+            resultCount = 1
+        elseif recipe.isEvolved then
+            resultCount = 1 -- FIXME
+        else
+            resultCount = recipe.recipe:getResult():getCount()
+        end
+        if resultCount > 1 then
+            obj.itemName = (resultCount * resultItem.count) .. ' ' .. obj.itemName
+        end
+
+        self.mainRes:setName(obj.itemName)
+        self.mainRes:setTooltip(string.format('%s <LINE>%s', resultItem.name, resultItem.fullType))
+
+        if resultItem.modname and not resultItem.isVanilla then
+            local c = { r = 0.392, g = 0.584, b = 0.929 } -- CornFlowerBlue
+            self.mainMod:setName('Mod: ' .. resultItem.modname)
+            self.mainMod:setColor(c.r, c.g, c.b)
+        else
+            self.mainMod:setName(nil)
+        end
+    end
+
+    local catName = getTextOrNull('IGUI_CraftCategory_' .. recipe.category) or recipe.category
+    self.mainCat:setName(getText('IGUI_invpanel_Category') .. ': ' .. catName)
+
+    local recipeName
+    if recipe.isEvolved then
+        recipeName = recipe.recipe:getName() .. ' ' .. getText('IGUI_CHC_Evolved_Max_Ingr', recipe.recipeData.maxItems)
+    else
+        recipeName = recipe.recipe:getName()
+    end
+    self.mainName:setName(recipeName)
+
+    local maxY = self.mainMod.y + self.mainMod.height + 2
+    self.mainInfo:setHeight(math.max(74, maxY))
+    self.mainInfo:setVisible(true)
+
+
+    obj.hydrocraftEquipment = recipe.recipeData.hydroFurniture
+    obj.cecEquipment = recipe.recipeData.CECFurniture
+
+    obj.sources = self:getSources(recipe)
+
 
     -- extra stuff for render
     if recipe.isSynthetic then
@@ -651,6 +744,10 @@ end
 -- endregion
 
 -- region render
+function CHC_uses_recipepanel:onResize()
+    ISPanel.onResize(self)
+    self.mainInfo:setWidth(self.parent.headers.typeHeader.width - self.margin - self.mainInfo.x)
+end
 
 function CHC_uses_recipepanel:drawFavoriteStar(y, item)
     local favoriteStar = nil
@@ -893,7 +990,8 @@ function CHC_uses_recipepanel:render()
 
     -- endregion
 
-    y = y + self:drawMainInfo(x, y, selectedItem) + 5
+    --y = y + self:drawMainInfo(x, y, selectedItem) + 5
+    y = y + self.mainInfo.height
     y = y + self:drawIngredients(x, y, selectedItem)
     y = y + self:drawCraftButtons(x, y, selectedItem)
     y = y + self:drawRequiredSkills(x, y, selectedItem)
@@ -913,13 +1011,13 @@ function CHC_uses_recipepanel:getBottomHeight(item)
 
     --skills
     if item.requiredSkillCount > 0 then
-        bh = bh + fhMedium + self.blockMargin
+        bh = bh + fhMedium + self.margin
         bh = bh + self.skillPanel.height
     end
 
     -- books
     if self.manualsEntries then
-        bh = bh + fhMedium + self.blockMargin
+        bh = bh + fhMedium + self.margin
         bh = bh + self.booksPanel.height
     end
 
@@ -936,64 +1034,8 @@ function CHC_uses_recipepanel:getBottomHeight(item)
         end
     end
 
-    bh = bh + fhMedium + self.blockMargin
+    bh = bh + fhMedium + self.margin
     return bh
-end
-
-function CHC_uses_recipepanel:drawMainInfo(x, y, item)
-    local sy = y
-    local a = 0.9
-    -- region main recipe info + output
-    local catName = getTextOrNull('IGUI_CraftCategory_' .. item.category) or item.category
-    self:drawText(getText('IGUI_invpanel_Category') .. ': ' .. catName, x, y, 1, 1, 1, a, UIFont.Medium);
-    y = y + fhMedium + 3;
-
-    -- self:drawRectBorder(x, y, 32 + 10, 32 + 10, 1.0, 1.0, 1.0, 1.0);
-    if item.texture then
-        self.mainInfoImg:setX(x)
-        self.mainInfoImg:setY(y)
-        self.mainInfoImg:setVisible(true)
-        local itemTooltip = ""
-        if item.isSynthetic then
-            itemTooltip = getText("IGUI_Synthetic_Recipe_result_tooltip") .. " <LINE>"
-        end
-        if item.isEvolved then
-            itemTooltip = getText("IGUI_Evolved_Recipe_result_tooltip") .. " <LINE>"
-        end
-        if item.tooltip then
-            itemTooltip = itemTooltip .. item.tooltip
-        end
-        self.mainInfoImg:setTooltip(itemTooltip ~= "" and itemTooltip or nil)
-    end
-    local lx = x + 32 + 15
-    local ly = y
-    local text
-    if self.recipe.isSynthetic then
-        text = item.recipe:getName()
-    elseif self.recipe.isEvolved then
-        text = item.recipe:getName() .. ' ' .. getText('IGUI_CHC_Evolved_Max_Ingr', self.recipe.recipeData.maxItems)
-    else
-        text = item.recipe:getName()
-    end
-    self:drawText(text, lx, ly, 1, 1, 1, a, UIFont.Small)
-    ly = ly + fhSmall
-    self:drawText(item.itemName, lx, ly, 1, 1, 1, a, UIFont.Small)
-    ly = ly + fhSmall
-    if item.itemDisplayCategory then
-        self:drawText(getText('IGUI_invpanel_Category') .. ': ' .. item.itemDisplayCategory,
-            lx, ly, 0.8, 0.8, 0.8, 0.8, UIFont.Small
-        )
-        ly = ly + fhSmall
-    end
-    if item.isVanilla ~= nil or item.module ~= nil then
-        if item.isVanilla == false then
-            local clr = { r = 0.392, g = 0.584, b = 0.929 } -- CornFlowerBlue
-            self:drawText('Mod: ' .. item.module, lx, ly, clr.r, clr.g, clr.b, a, UIFont.Small)
-        end
-    end
-    y = y + ly - 20
-    -- endregion
-    return y - sy
 end
 
 function CHC_uses_recipepanel:drawIngredients(x, y, item)
@@ -1010,7 +1052,7 @@ function CHC_uses_recipepanel:drawIngredients(x, y, item)
     local ipH = math.min(m1, self.ingredientPanel.origH)
 
     self.ingredientPanel:setHeight(ipH)
-    y = y + self.ingredientPanel.height + self.blockMargin
+    y = y + self.ingredientPanel.height + self.margin
 
     return y - sy
 end
@@ -1142,10 +1184,6 @@ function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y, item)
     local cond3 = type(CHC_main.evoRecipesByItem[item.fullType]) == 'table'
     local cond4 = type(CHC_main.evoRecipesForItem[item.fullType]) == 'table'
 
-    local function addToFav()
-        -- @@@ TODO
-    end
-
     context:addOption(getText('IGUI_find_item'), backRef, CHC_menu.onCraftHelperItem, item)
 
     local newTabOption = context:addOption(getText('IGUI_new_tab'), backRef, backRef.addItemView, item.item,
@@ -1165,8 +1203,9 @@ function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y, item)
 end
 
 function CHC_uses_recipepanel:onRMBDownItemIcon(x, y)
-    if not self.item then return end
-    self.parent.onRMBDownIngrPanel(self, nil, nil, self.item)
+    local recipe_panel = self.parent.parent
+    if not recipe_panel.recipe then return end
+    recipe_panel.parent.onRMBDown(recipe_panel, nil, nil, recipe_panel.recipe.recipeData.result)
 end
 
 function CHC_uses_recipepanel:onIngredientMouseDown(item)
@@ -1295,7 +1334,8 @@ function CHC_uses_recipepanel:new(args)
     o.backgroundColor = { r = 0, g = 0, b = 0, a = 1 }
     o.borderColor = { r = 0.4, g = 0.4, b = 0.4, a = 0.9 }
     o.itemMargin = 2
-    o.blockMargin = 4
+    o.padY = 5
+    o.margin = 5
     o.anchorTop = true;
     o.anchorBottom = true;
     o.backRef = args.backRef

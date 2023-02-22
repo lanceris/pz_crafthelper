@@ -380,8 +380,28 @@ function CHC_uses:onFilterTypeMenu(button)
     end
 end
 
+function CHC_uses:onRMBDown(x, y, item, showNameInFindCtx)
+    local backRef = self.parent.backRef
+    local context = backRef.onRMBDownObjList(self, x, y, item)
+    item = CHC_main.items[item.fullType]
+    if not item then return end
+
+    local ctxText = getText('IGUI_find_item')
+    if showNameInFindCtx then
+        ctxText = ctxText .. " (" .. item.displayName .. ")"
+    end
+    context:addOption(ctxText, backRef, CHC_menu.onCraftHelperItem, item)
+end
+
 function CHC_uses:onRMBDownObjList(x, y, item)
-    self.parent.backRef.onRMBDownObjList(self, x, y, item, true)
+    if not item then
+        local row = self:rowAt(x, y)
+        if row == -1 then return end
+        item = self.items[row].item.recipeData.result
+        if not item then return end
+    end
+
+    self.parent.onRMBDown(self, x, y, item, true)
 end
 
 -- endregion

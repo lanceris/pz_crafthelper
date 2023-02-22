@@ -14,6 +14,8 @@
 - Ensure CraftHelper loaded last in OnGameStart event to catch all lua changes to recipes/items/etc
 - Added current amount of items/recipes in list to tab name
 - Added text to 'One of:' block showing available/total ingredients
+- Refactored recipe details main info
+- Ability to find recipe result item from recipe list
 
 ### Bugfixes
 
