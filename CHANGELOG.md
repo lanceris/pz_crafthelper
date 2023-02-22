@@ -19,6 +19,7 @@
 
 - Fixed item attributes not loading in some cases
 - Fixed incorrect ingredients search
+- Fixed inability to exclude ingredients when searching
 
 ## 1.6.5.1 (10.02.2023)
 

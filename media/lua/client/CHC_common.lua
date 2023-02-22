@@ -58,7 +58,7 @@ end
 ---@param maxTextLength? integer max length of tooltip existing text, if isAdd=true (by default 100)
 function CHC_main.common.setTooltipToCtx(option, text, isAvailable, isAdd, maxTextLength)
     maxTextLength = tonumber(maxTextLength) or 100
-    isAvailable = isAvailable and true or false
+    if isAvailable == nil then isAvailable = true end
     local _tooltip
     if isAdd then
         _tooltip = option.toolTip
@@ -68,7 +68,7 @@ function CHC_main.common.setTooltipToCtx(option, text, isAvailable, isAdd, maxTe
         _tooltip:initialise()
         _tooltip:setVisible(false)
     end
-    _tooltip.notAvailable = not isAvailable
+    option.notAvailable = not isAvailable
     _tooltip.description = text
     option.toolTip = _tooltip
 end

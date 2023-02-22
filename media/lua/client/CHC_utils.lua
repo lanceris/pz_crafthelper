@@ -4,6 +4,7 @@ local lower = string.lower
 local tostring = tostring
 local len = string.len
 local sub = string.sub
+local insert = table.insert
 local contains = string.contains
 
 
@@ -134,19 +135,20 @@ CHC_utils.compare = function(what, to, passAll)
                 state = contains(what, to)
             end
         else
+            local _states = {}
             for i = 1, #what do
                 local wh = lower(tostring(what[i]))
-                if isNegate then -- this is not working atm (so '#~smth' will not work)
-                    if not contains(wh, to) then
-                        state = true
-                        break
-                    end
+                if isNegate then
+                    insert(_states, contains(wh, to))
                 else
                     if contains(wh, to) then
                         state = true
                         break
                     end
                 end
+            end
+            if isNegate and not empty(_states) then
+                state = CHC_utils.all(_states, false)
             end
         end
     end
