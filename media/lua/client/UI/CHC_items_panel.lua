@@ -46,7 +46,6 @@ function CHC_items_panel:createChildren()
     local mr, mg, mb, ma = 1, 1, 1, 1
     self.mainName = ISLabel:new(mainX, mainPadY, fntm, nil, mr, mg, mb, ma, mainPriFont, true)
     self.mainName:initialise()
-    self.mainName.maxWidth = self.mainInfo.width - mainX - self.margin
     mainY = mainY + mainPadY + self.mainName.height
 
     self.mainType = ISLabel:new(mainX, mainY, fnts, nil, mr, mg, mb, ma, mainSecFont, true)
@@ -61,9 +60,6 @@ function CHC_items_panel:createChildren()
     self.mainMod:initialise()
     mainY = mainY + mainPadY + self.mainMod.height
 
-    -- self.mainWeight = ISLabel:new(mainX, mainY, fnts, nil, mr, mg, mb, ma, mainSecFont, true)
-    -- self.mainWeight:initialise()
-    -- mainY = mainY + mainPadY + self.mainWeight.height
     self.mainInfo:setHeight(mainY + mainPadY)
 
     self.mainInfo:addChild(self.mainImg)

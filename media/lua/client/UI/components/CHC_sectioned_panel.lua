@@ -38,8 +38,8 @@ function Section:createChildren()
             )
             if #objList.items > numItems then
                 objList.vscroll:setVisible(true)
-                objList.vscroll:setHeight(objList.itemheight * numItems)
             end
+            objList.vscroll:setHeight(objList.itemheight * numItems)
         end
     end
 
@@ -47,7 +47,6 @@ function Section:createChildren()
 end
 
 function Section:onHeaderClick()
-
     self.expanded = not self.expanded
     if self.expanded then
         self.parent.expandedSections[self.title] = true
@@ -123,7 +122,7 @@ function CHC_sectioned_panel:addSection(panel, title, maxH)
     self:addChild(section)
     if self:getScrollChildren() then
         section:setScrollWithParent(true)
-        section:setScrollChildren(true) -- FIXME?
+        section:setScrollChildren(true)
     end
     table.insert(self.sections, section)
 end
