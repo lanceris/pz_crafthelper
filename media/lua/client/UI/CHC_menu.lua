@@ -100,15 +100,22 @@ CHC_menu.onCraftHelper = function(items, player, itemMode)
 end
 
 CHC_menu.onCraftHelperItem = function(window_inst, item)
-	local backRef = window_inst
 	local viewName = getText('UI_search_tab_name')
-	backRef:refresh(viewName) -- activate top level search view
-	backRef:refresh(backRef.uiTypeToView['search_items'].name,
-		backRef.panel.activeView.view) -- activate Items subview
-	local view = backRef:getActiveSubView()
+	local subViewName = window_inst.uiTypeToView['search_items'].name
+	window_inst:refresh(viewName) -- activate top level search view
+	local top = window_inst.panel.activeView
+	if top.name ~= viewName then
+		print("Top view incorrect in onCraftHelperItem")
+		return
+	end
+	top.view:activateView(subViewName)
+	local sub = top.view.activeView
+	local view = sub.view
+
 	local txt = string.format('#%s,%s', item.displayCategory, item.displayName)
 	txt = string.lower(txt)
 	view.searchRow.searchBar:setText(txt) -- set text to Items subview search bar
+	if not view["updateItems"] then return end
 	view:updateItems(view.selectedCategory)
 	if #view.objList.items ~= 0 then
 		local it = view.objList.items
@@ -126,6 +133,12 @@ CHC_menu.onCraftHelperItem = function(window_inst, item)
 			-- view.needSyncFilters = true
 		end
 	end
+
+	window_inst.updateQueue:push({
+		targetView = view.ui_type,
+		actions = { 'needUpdateSubViewName' },
+		data = { needUpdateSubViewName = view.objListSize }
+	})
 end
 
 --- window toggle logic

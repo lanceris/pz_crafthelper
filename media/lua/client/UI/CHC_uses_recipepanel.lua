@@ -490,7 +490,7 @@ function CHC_uses_recipepanel:refreshIngredientPanel()
 
     local h = math.min(10, #self.ingredientPanel.items) * self.ingredientPanel.itemheight
     self.ingredientPanel.origH = h
-    self.ingredientPanel:setHeight(h)
+    --self.ingredientPanel:setHeight(h)
     self.ingredientPanel.doDrawItem = CHC_uses_recipepanel.drawIngredient
     self.ingredientPanel:setVisible(true)
 end
@@ -1151,13 +1151,12 @@ function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y, item)
     local newTabOption = context:addOption(getText('IGUI_new_tab'), backRef, backRef.addItemView, item.item,
         true, 2)
 
-    if not (cond1 or cond2 or cond3 or cond4) then
+    if not utils.any({ cond1, cond2, cond3, cond4 }, true) then
         CHC_main.common.setTooltipToCtx(
             newTabOption,
             getText('IGUI_no_recipes'),
             false
         )
-        -- backref:addItemView(item, true)
     else
         CHC_main.common.addTooltipNumRecipes(newTabOption, item)
     end

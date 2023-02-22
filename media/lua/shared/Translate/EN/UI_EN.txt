@@ -95,8 +95,7 @@ UI_EN = {
                         "<INDENT:0><SIZE:medium> <LEFT> Examples: <LINE> <SIZE:small> "..
                         "<INDENT:8>%2<LINE>"..
                         "<INDENT:0><SIZE:medium> Limitations: <LINE> <SIZE:small> "..
-                        "<INDENT:8>- Can't use both separators (',' and '|') in one query <LINE> "..
-                        "- Can't exclude ingredients (#~word)"
+                        "<INDENT:8>- Can't use both separators (',' and '|') in one query <LINE> "
 
     -- %1
     UI_searchrow_info_recipes_special = "<SIZE:medium> ! <SIZE:small> <SPACE><SPACE>(exclamation mark) - search by recipe category <LINE>"..

@@ -55,7 +55,13 @@ function CHC_window:create()
 
     self:addChild(self.panel)
 
-    self:refresh()
+    self:refresh(self.favViewName)
+end
+
+function CHC_window:addView(name, view)
+    ISTabPanel.addView(self, name, view)
+    local viewObj = self.viewList[#self.viewList]
+    viewObj.originName = viewObj.name
 end
 
 function CHC_window:addSearchPanel()
@@ -90,8 +96,8 @@ function CHC_window:addSearchPanel()
     if itemsData then
         self.searchItemsScreen:initialise()
         local sivn = getText('UI_search_items_tab_name')
-        self.searchPanel:addView(sivn, self.searchItemsScreen)
-        self.uiTypeToView[items_extra.ui_type] = { view = self.searchItemsScreen, name = sivn }
+        self.addView(self.searchPanel, sivn, self.searchItemsScreen)
+        self.uiTypeToView[items_extra.ui_type] = { view = self.searchItemsScreen, name = sivn, originName = sivn }
     end
     -- endregion
 
@@ -113,8 +119,8 @@ function CHC_window:addSearchPanel()
     if recipesData then
         self.searchRecipesScreen:initialise()
         local srvn = getText('UI_search_recipes_tab_name')
-        self.searchPanel:addView(srvn, self.searchRecipesScreen)
-        self.uiTypeToView[recipes_extra.ui_type] = { view = self.searchRecipesScreen, name = srvn }
+        self.addView(self.searchPanel, srvn, self.searchRecipesScreen)
+        self.uiTypeToView[recipes_extra.ui_type] = { view = self.searchRecipesScreen, name = srvn, originName = srvn }
     end
     -- endregion
     self.searchPanel.infoText = self.searchPanelInfo .. self.infotext_common_items
@@ -153,8 +159,8 @@ function CHC_window:addFavoriteScreen()
     if itemsData then
         self.favItemsScreen:initialise()
         local fivn = getText('UI_search_items_tab_name')
-        self.favPanel:addView(fivn, self.favItemsScreen)
-        self.uiTypeToView[items_extra.ui_type] = { view = self.favItemsScreen, name = fivn }
+        self.addView(self.favPanel, fivn, self.favItemsScreen)
+        self.uiTypeToView[items_extra.ui_type] = { view = self.favItemsScreen, name = fivn, originName = fivn }
     end
     -- endregion
 
@@ -176,8 +182,8 @@ function CHC_window:addFavoriteScreen()
     if recipesData then
         self.favRecipesScreen:initialise()
         local frvn = getText('UI_search_recipes_tab_name')
-        self.favPanel:addView(frvn, self.favRecipesScreen)
-        self.uiTypeToView[recipes_extra.ui_type] = { view = self.favRecipesScreen, name = frvn }
+        self.addView(self.favPanel, frvn, self.favRecipesScreen)
+        self.uiTypeToView[recipes_extra.ui_type] = { view = self.favRecipesScreen, name = frvn, originName = frvn }
     end
     -- endregion
     --favoritesScreen
@@ -219,6 +225,7 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
     --region item container
     self.itemPanel = ISTabPanel:new(1, self.panelY, self.width, self.height - self.panelY)
     self.itemPanel.tabPadX = self.width / 4
+
     self.itemPanel:initialise()
     self.itemPanel:setAnchorRight(true)
     self.itemPanel:setAnchorBottom(true)
@@ -263,8 +270,8 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
         usesScreen:initialise()
         usesScreen.ui_type = usesScreen.ui_type .. '|' .. usesScreen.ID
         local iuvn = getText('UI_item_uses_tab_name')
-        self.itemPanel:addView(iuvn, usesScreen)
-        self.uiTypeToView[usesScreen.ui_type] = { view = usesScreen, name = iuvn }
+        self.addView(self.itemPanel, iuvn, usesScreen)
+        self.uiTypeToView[usesScreen.ui_type] = { view = usesScreen, name = iuvn, originName = iuvn }
     end
     --endregion
 
@@ -288,8 +295,8 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
         craftScreen:initialise()
         craftScreen.ui_type = craftScreen.ui_type .. '|' .. craftScreen.ID
         local icvn = getText('UI_item_craft_tab_name')
-        self.itemPanel:addView(icvn, craftScreen)
-        self.uiTypeToView[craftScreen.ui_type] = { view = craftScreen, name = icvn }
+        self.addView(self.itemPanel, icvn, craftScreen)
+        self.uiTypeToView[craftScreen.ui_type] = { view = craftScreen, name = icvn, originName = icvn }
     end
     -- endregion
     --endregion
@@ -343,23 +350,25 @@ function CHC_window:update()
         local targetViewObj = self.uiTypeToView[toProcess.targetView]
         if not targetViewObj or not toProcess.actions then return end
         local targetView = targetViewObj.view
-        local targetName = targetViewObj.name
+        local targetOriginName = targetViewObj.originName
         for i = 1, #toProcess.actions do
             local action = toProcess.actions[i]
             if action == 'needUpdateSubViewName' then
                 local data = toProcess.data[action]
                 local viewObject
                 for j = 1, #targetView.parent.viewList do
-                    if luautils.split(targetView.parent.viewList[j].name, ' ')[1] == targetName then
-                        viewObject = targetView.parent.viewList[j]
+                    local view = targetView.parent.viewList[j]
+                    if view.originName == targetOriginName then
+                        viewObject = view
                     end
                 end
                 if viewObject then
                     if data then
-                        viewObject.name = string.format("%s (%s)", targetName, data)
+                        viewObject.name = string.format("%s (%s)", targetOriginName, data)
                     else
-                        viewObject.name = targetName
+                        viewObject.name = targetOriginName
                     end
+                    self.uiTypeToView[viewObject.view.ui_type].name = viewObject.name
                 end
             else
                 targetView[action] = true
@@ -369,7 +378,7 @@ function CHC_window:update()
 end
 
 function CHC_window:refresh(viewName, panel, focusOnNew, focusOnTabIdx)
-    local panel = panel or self.panel
+    panel = panel or self.panel
     if viewName and (focusOnNew == nil or focusOnNew == true) then
         panel:activateView(viewName)
         return
@@ -389,8 +398,14 @@ function CHC_window:refresh(viewName, panel, focusOnNew, focusOnTabIdx)
     if focusOnTabIdx then
         -- uses/craft or items/recipes
         local v = panel.activeView.view
-        if v.viewList[focusOnTabIdx] then
-            v:activateView(v.viewList[focusOnTabIdx].name)
+        local vv = v.viewList[focusOnTabIdx]
+        if vv then
+            if vv.originName then
+                vv = vv.originName
+            else
+                vv = vv.name
+            end
+            v:activateView(vv)
         end
     end
 end
@@ -533,12 +548,12 @@ end
 
 function CHC_window:getActiveSubView()
     if not self.panel or not self.panel.activeView then return end
-    local view = self.panel.activeView.view -- search, favorites or itemname
+    local view = self.panel.activeView -- search, favorites or itemname
     local subview
-    if not view.activeView then -- no subviews
+    if not view.view.activeView then -- no subviews
         subview = view
     else
-        subview = view.activeView.view
+        subview = view.view.activeView
     end
     return subview
 end

@@ -83,8 +83,7 @@ UI_RU = {
                         "<INDENT:0><SIZE:medium> <LEFT> Примеры: <LINE> <SIZE:small> "..
                         "<INDENT:8>%2<LINE>"..
                         "<INDENT:0><SIZE:medium> Ограничения: <LINE> <SIZE:small> "..
-                        "<INDENT:8>- Нельзя использовать оба разделителя в одном запросе <LINE> "..
-                        "- Нельзя исключать ингредиенты (#~слово)"
+                        "<INDENT:8>- Нельзя использовать оба разделителя в одном запросе <LINE> "
     UI_searchrow_info_recipes_special = "<SIZE:medium> ! <SIZE:small> <SPACE><SPACE>(восклицательный знак) - поиск по категории рецепта <LINE>"..
                                         "<SIZE:medium> @ <SIZE:small> <SPACE><SPACE>(собака) - поиск по имени мода получаемого предмета ('Project Zomboid' для 'мода' базовой игры) <LINE>"..
                                         "<SIZE:medium> # <SIZE:small> <SPACE><SPACE>(решетка) - поиск по ингредиентам рецепта <LINE>"..
