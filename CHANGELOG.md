@@ -1,5 +1,29 @@
 # CraftHelper updates
 
+## 1.6.6 (XX.02.2023)
+
+### New features
+
+- Support for evolved recipes
+- Current amounts of items/recipes in list added to tab name
+
+### Improvements
+
+- Integration with [Crafting Enhanced Core](https://steamcommunity.com/sharedfiles/filedetails/?id=2923979345) (buildable tables are shown in items/recipes/as required equipment)
+- Cross-integration CEC-Hydrocraft (`isFurnitureNearby` from Hydrocraft to check if table nearby in recipes)
+- Added item tags to attributes
+- Ensure CraftHelper loaded last in OnGameStart event to catch all lua changes to recipes/items/etc
+- Added text to 'One of:' block showing available/total ingredients
+- Refactored recipe details main info
+- Ability to find recipe result item from recipe list
+- Hydrocraft and Crafting Enhanced tables now shows what are they used for
+
+### Bugfixes
+
+- Fixed item attributes not loading in some cases
+- Fixed incorrect ingredients search
+- Fixed inability to exclude ingredients when searching
+
 ## 1.6.5.1 (10.02.2023)
 
 ### Bugfixes

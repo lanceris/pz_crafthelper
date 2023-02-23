@@ -26,7 +26,8 @@ local sub = string.sub
 function CHC_search:initialise()
     ISPanel.initialise(self)
 
-    self.typeData = { -- .count for each calculated in catSelUpdateOptions
+    self.typeData = {
+        -- .count for each calculated in catSelUpdateOptions
         all = {
             tooltip = getText('UI_All'),
             icon = getTexture('media/textures/type_filt_all.png')
@@ -94,7 +95,6 @@ function CHC_search:initialise()
 end
 
 function CHC_search:create()
-
     -- region draggable headers
     self.headers = CHC_tabs:new(0, 0, self.width, 20, { self.onResizeHeaders, self }, self.sep_x)
     self.headers:initialise()
@@ -182,7 +182,6 @@ end
 -- region update
 
 function CHC_search:updateTypesCategoriesInitial()
-
     local selector = self.filterRow.categorySelector
     local uniqueCategories = {}
     local dcatCounts = {}
@@ -191,7 +190,6 @@ function CHC_search:updateTypesCategoriesInitial()
     local c = 1
 
     for i = 1, #allItems do
-
         local ic = allItems[i].category
         if not catCounts[ic] then
             catCounts[ic] = 1
@@ -231,11 +229,15 @@ function CHC_search:update()
     if self.needUpdateFavorites == true then
         -- print('upd Favorites; ui: ' .. self.ui_type)
         self:handleFavorites()
+        if self.favrec then
+            CHC_uses.updateTabNameWithCount(self, #self.favrec)
+        end
         self.needUpdateFavorites = false
     end
     if self.needUpdateObjects == true then
         -- print('upd Objects; ui: ' .. self.ui_type)
         self:updateItems(self.selectedCategory)
+        CHC_uses.updateTabNameWithCount(self)
         self.needUpdateObjects = false
     end
     if self.needUpdateTypes == true then
@@ -257,19 +259,6 @@ function CHC_search:updateItems(sl)
     local sBText = searchBar:getInternalText()
 
     local items
-    -- local c1 = sBText ~= ''
-    -- local c2 = #sBText - #self.searchRow.searchBarLastText >= 1
-    -- local c3 = self.selectedCategory == self.prevSelectedCategory
-    -- local c4 = not string.contains(sBText, '|')
-    -- local c5 = #self.objList.items > 0
-    -- if c1 and c2 and c3 and c4 and c5 then
-    --     items = {}
-    --     for i = 1, #self.objList.items do
-    --         insert(items, self.objList.items[i].item)
-    --     end
-    -- else
-    --     items = self.ui_type == 'fav_items' and self.favrec or self.itemSource
-    -- end
     items = self.ui_type == 'fav_items' and self.favrec or self.itemSource
 
     if sl == categoryAll and self.typeFilter == 'all' and sBText == '' then
@@ -305,7 +294,6 @@ function CHC_search:updateTypes()
     local isSelectorSetToAll = self.selectedCategory == self.defaultCategory
 
     for i = 1, #allItems do
-
         local ic = allItems[i].category
         local idc = allItems[i].displayCategory
         if idc == currentCategory or isSelectorSetToAll then
@@ -336,7 +324,6 @@ function CHC_search:updateCategories()
     local newCats = {}
 
     for i = 1, #allItems do
-
         local ic = allItems[i].category
         local idc = allItems[i].displayCategory
         if ic == currentType or isTypeSetToAll then
@@ -360,7 +347,6 @@ function CHC_search:updateCategories()
 end
 
 function CHC_search:handleFavorites()
-
     local cond3 = self.ui_type == 'fav_items'
 
     if cond3 then
@@ -409,10 +395,9 @@ function CHC_search:onRMBDownObjList(x, y, item)
         if not item then return end
     end
     item = CHC_main.items[item.fullType]
-    local cond1 = type(CHC_main.recipesByItem[item.fullType]) == 'table'
-    local cond2 = type(CHC_main.recipesForItem[item.fullType]) == 'table'
+    local isRecipes = CHC_main.common.areThereRecipesForItem(item)
 
-    if cond1 or cond2 then
+    if isRecipes then
         local opt = context:addOption(getText('IGUI_new_tab'), backRef, backRef.addItemView, item.item, true, 2)
         CHC_main.common.addTooltipNumRecipes(opt, item)
     end
@@ -423,12 +408,10 @@ function CHC_search:onMMBDownObjList()
     local y = self:getMouseY()
     local row = self:rowAt(x, y)
     if row == -1 then return end
-    local item = self.items[row].item.item
-    -- check if there is recipes for item
-    local cond1 = type(CHC_main.recipesByItem[item:getFullType()]) == 'table'
-    local cond2 = type(CHC_main.recipesForItem[item:getFullType()]) == 'table'
-    if cond1 or cond2 then
-        self.parent.backRef:addItemView(item, false)
+    local item = self.items[row].item
+    local isRecipes = CHC_main.common.areThereRecipesForItem(item)
+    if isRecipes then
+        self.parent.backRef:addItemView(item.item, false)
     end
 end
 
@@ -464,7 +447,6 @@ function CHC_search:onFilterTypeMenu(button)
             context:addOption(txt, self, CHC_search.sortByType, data[i].arg)
         end
     end
-
 end
 
 -- endregion
@@ -566,6 +548,9 @@ function CHC_search:searchProcessToken(token, item)
                 return false
             end
         end
+        -- if char == "%" then
+        --     whatCompare = item.fullType
+        -- end
     end
     if token and not isSpecialSearch then
         whatCompare = string.lower(item.displayName)

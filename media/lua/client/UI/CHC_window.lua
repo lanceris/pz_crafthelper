@@ -8,6 +8,7 @@ require 'UI/CHC_search'
 CHC_window = ISCollapsableWindow:derive('CHC_window')
 local utils = require('CHC_utils')
 local print = utils.chcprint
+local insert = table.insert
 
 -- region create
 
@@ -54,7 +55,13 @@ function CHC_window:create()
 
     self:addChild(self.panel)
 
-    self:refresh()
+    self:refresh(self.favViewName)
+end
+
+function CHC_window:addView(name, view)
+    ISTabPanel.addView(self, name, view)
+    local viewObj = self.viewList[#self.viewList]
+    viewObj.originName = viewObj.name
 end
 
 function CHC_window:addSearchPanel()
@@ -89,8 +96,8 @@ function CHC_window:addSearchPanel()
     if itemsData then
         self.searchItemsScreen:initialise()
         local sivn = getText('UI_search_items_tab_name')
-        self.searchPanel:addView(sivn, self.searchItemsScreen)
-        self.uiTypeToView[items_extra.ui_type] = { view = self.searchItemsScreen, name = sivn }
+        self.addView(self.searchPanel, sivn, self.searchItemsScreen)
+        self.uiTypeToView[items_extra.ui_type] = { view = self.searchItemsScreen, name = sivn, originName = sivn }
     end
     -- endregion
 
@@ -112,15 +119,14 @@ function CHC_window:addSearchPanel()
     if recipesData then
         self.searchRecipesScreen:initialise()
         local srvn = getText('UI_search_recipes_tab_name')
-        self.searchPanel:addView(srvn, self.searchRecipesScreen)
-        self.uiTypeToView[recipes_extra.ui_type] = { view = self.searchRecipesScreen, name = srvn }
+        self.addView(self.searchPanel, srvn, self.searchRecipesScreen)
+        self.uiTypeToView[recipes_extra.ui_type] = { view = self.searchRecipesScreen, name = srvn, originName = srvn }
     end
     -- endregion
     self.searchPanel.infoText = self.searchPanelInfo .. self.infotext_common_items
     self.panel:addView(self.searchViewName, self.searchPanel)
 
     --endregion
-
 end
 
 function CHC_window:addFavoriteScreen()
@@ -153,8 +159,8 @@ function CHC_window:addFavoriteScreen()
     if itemsData then
         self.favItemsScreen:initialise()
         local fivn = getText('UI_search_items_tab_name')
-        self.favPanel:addView(fivn, self.favItemsScreen)
-        self.uiTypeToView[items_extra.ui_type] = { view = self.favItemsScreen, name = fivn }
+        self.addView(self.favPanel, fivn, self.favItemsScreen)
+        self.uiTypeToView[items_extra.ui_type] = { view = self.favItemsScreen, name = fivn, originName = fivn }
     end
     -- endregion
 
@@ -176,25 +182,29 @@ function CHC_window:addFavoriteScreen()
     if recipesData then
         self.favRecipesScreen:initialise()
         local frvn = getText('UI_search_recipes_tab_name')
-        self.favPanel:addView(frvn, self.favRecipesScreen)
-        self.uiTypeToView[recipes_extra.ui_type] = { view = self.favRecipesScreen, name = frvn }
+        self.addView(self.favPanel, frvn, self.favRecipesScreen)
+        self.uiTypeToView[recipes_extra.ui_type] = { view = self.favRecipesScreen, name = frvn, originName = frvn }
     end
     -- endregion
     --favoritesScreen
     self.favPanel.infoText = self.favPanelInfo .. self.infotext_common_items
     self.panel:addView(self.favViewName, self.favPanel)
     -- endregion
-
 end
 
 function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
-    local ifn = item:getFullType()
-    local itn = CHC_main.items[ifn]
+    local itn, ifn
+    if item.displayName then
+        ifn = item.fullType
+    else
+        ifn = item:getFullType()
+    end
+    itn = CHC_main.items[ifn]
+
     local nameForTab = itn.displayName
     -- check if there is existing tab with same name (and same item)
     local existingView = self.panel:getView(nameForTab)
     if existingView ~= nil then
-
         if existingView.item.fullType ~= ifn then -- same displayName, but different items
             nameForTab = nameForTab .. string.format(' (%s)', ifn)
         else -- same displayName and same item
@@ -215,13 +225,30 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
     --region item container
     self.itemPanel = ISTabPanel:new(1, self.panelY, self.width, self.height - self.panelY)
     self.itemPanel.tabPadX = self.width / 4
+
     self.itemPanel:initialise()
     self.itemPanel:setAnchorRight(true)
     self.itemPanel:setAnchorBottom(true)
     self.itemPanel.item = itn
     -- endregion
-    local usesData = CHC_main.recipesByItem[itn.fullType]
-    local craftData = CHC_main.recipesForItem[itn.fullType]
+    local usesData = {}
+    local usesRec = CHC_main.recipesByItem[itn.fullType]
+    local usesEvoRec = CHC_main.evoRecipesByItem[itn.fullType]
+    if usesRec then
+        for i = 1, #usesRec do insert(usesData, usesRec[i]) end
+    end
+    if usesEvoRec then
+        for i = 1, #usesEvoRec do insert(usesData, usesEvoRec[i]) end
+    end
+    local craftData = {}
+    local craftRec = CHC_main.recipesForItem[itn.fullType]
+    local craftEvoRec = CHC_main.evoRecipesForItem[itn.fullType]
+    if craftRec then
+        for i = 1, #craftRec do insert(craftData, craftRec[i]) end
+    end
+    if craftEvoRec then
+        for i = 1, #craftEvoRec do insert(craftData, craftEvoRec[i]) end
+    end
     self.panel:addView(nameForTab, self.itemPanel)
 
     --region uses screen
@@ -237,17 +264,14 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
         item = itn
     }
     for k, v in pairs(uses_extra) do uses_screen_init[k] = v end
-    self.usesScreen = CHC_uses:new(uses_screen_init)
+    local usesScreen = CHC_uses:new(uses_screen_init)
 
-    if usesData then
-        self.usesScreen:initialise()
+    if usesData and not utils.empty(usesData) then
+        usesScreen:initialise()
+        usesScreen.ui_type = usesScreen.ui_type .. '|' .. usesScreen.ID
         local iuvn = getText('UI_item_uses_tab_name')
-        self.itemPanel:addView(iuvn, self.usesScreen)
-        if not self.uiTypeToView[uses_extra.ui_type] then
-            self.uiTypeToView[uses_extra.ui_type] = { { view = self.usesScreen, name = iuvn } }
-        else
-            table.insert(self.uiTypeToView[uses_extra.ui_type], { view = self.usesScreen, name = iuvn })
-        end
+        self.addView(self.itemPanel, iuvn, usesScreen)
+        self.uiTypeToView[usesScreen.ui_type] = { view = usesScreen, name = iuvn, originName = iuvn }
     end
     --endregion
 
@@ -265,17 +289,14 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
         item = itn
     }
     for k, v in pairs(craft_extra) do craft_screen_init[k] = v end
-    self.craftScreen = CHC_uses:new(craft_screen_init)
+    local craftScreen = CHC_uses:new(craft_screen_init)
 
-    if craftData then
-        self.craftScreen:initialise()
+    if craftData and not utils.empty(craftData) then
+        craftScreen:initialise()
+        craftScreen.ui_type = craftScreen.ui_type .. '|' .. craftScreen.ID
         local icvn = getText('UI_item_craft_tab_name')
-        self.itemPanel:addView(icvn, self.craftScreen)
-        if not self.uiTypeToView[craft_extra.ui_type] then
-            self.uiTypeToView[craft_extra.ui_type] = { { view = self.craftScreen, name = icvn } }
-        else
-            table.insert(self.uiTypeToView[craft_extra.ui_type], { view = self.craftScreen, name = icvn })
-        end
+        self.addView(self.itemPanel, icvn, craftScreen)
+        self.uiTypeToView[craftScreen.ui_type] = { view = craftScreen, name = icvn, originName = icvn }
     end
     -- endregion
     --endregion
@@ -284,7 +305,6 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
 end
 
 function CHC_window:getItems(items, max, favOnly)
-    local insert = table.insert
     local showHidden = CHC_settings.config.show_hidden
     local newItems = {}
     local to = max or #items
@@ -306,10 +326,15 @@ function CHC_window:getRecipes(favOnly)
     favOnly = favOnly or false
     local recipes = {}
     local allrec = CHC_main.allRecipes
-    local insert = table.insert
+    local allevorec = CHC_main.allEvoRecipes
     for i = 1, #allrec do
         if (favOnly and allrec[i].favorite) or (not favOnly) then
             insert(recipes, allrec[i])
+        end
+    end
+    for i = 1, #allevorec do
+        if (favOnly and allevorec[i].favorite) or (not favOnly) then
+            insert(recipes, allevorec[i])
         end
     end
     return recipes
@@ -322,16 +347,38 @@ end
 function CHC_window:update()
     if self.updateQueue and self.updateQueue.len > 0 then
         local toProcess = self.updateQueue:pop()
-        local targetView = self.uiTypeToView[toProcess.targetView].view
-        if not targetView or not toProcess.actions then return end
+        local targetViewObj = self.uiTypeToView[toProcess.targetView]
+        if not targetViewObj or not toProcess.actions then return end
+        local targetView = targetViewObj.view
+        local targetOriginName = targetViewObj.originName
         for i = 1, #toProcess.actions do
-            targetView[toProcess.actions[i]] = true
+            local action = toProcess.actions[i]
+            if action == 'needUpdateSubViewName' then
+                local data = toProcess.data[action]
+                local viewObject
+                for j = 1, #targetView.parent.viewList do
+                    local view = targetView.parent.viewList[j]
+                    if view.originName == targetOriginName then
+                        viewObject = view
+                    end
+                end
+                if viewObject then
+                    if data then
+                        viewObject.name = string.format("%s (%s)", targetOriginName, data)
+                    else
+                        viewObject.name = targetOriginName
+                    end
+                    self.uiTypeToView[viewObject.view.ui_type].name = viewObject.name
+                end
+            else
+                targetView[action] = true
+            end
         end
     end
 end
 
 function CHC_window:refresh(viewName, panel, focusOnNew, focusOnTabIdx)
-    local panel = panel or self.panel
+    panel = panel or self.panel
     if viewName and (focusOnNew == nil or focusOnNew == true) then
         panel:activateView(viewName)
         return
@@ -351,8 +398,14 @@ function CHC_window:refresh(viewName, panel, focusOnNew, focusOnTabIdx)
     if focusOnTabIdx then
         -- uses/craft or items/recipes
         local v = panel.activeView.view
-        if v.viewList[focusOnTabIdx] then
-            v:activateView(v.viewList[focusOnTabIdx].name)
+        local vv = v.viewList[focusOnTabIdx]
+        if vv then
+            if vv.originName then
+                vv = vv.originName
+            else
+                vv = vv.name
+            end
+            v:activateView(vv)
         end
     end
 end
@@ -370,7 +423,6 @@ function CHC_window:close()
     self:serializeWindowData()
     CHC_settings.Save()
     CHC_settings.SavePropsData()
-
 end
 
 -- endregion
@@ -490,19 +542,18 @@ function CHC_window:onRMBDownObjList(x, y, item, isrecipe, context)
         end
     end
     return context
-
 end
 
 --region tabs
 
 function CHC_window:getActiveSubView()
     if not self.panel or not self.panel.activeView then return end
-    local view = self.panel.activeView.view -- search, favorites or itemname
+    local view = self.panel.activeView -- search, favorites or itemname
     local subview
-    if not view.activeView then -- no subviews
+    if not view.view.activeView then -- no subviews
         subview = view
     else
-        subview = view.activeView.view
+        subview = view.view.activeView
     end
     return subview
 end
@@ -513,6 +564,18 @@ function CHC_window:onActivateView(target)
     local sub = top.view.activeView
     if sub.view.isItemView == false then
         sub.view.needUpdateFavorites = true
+    end
+
+    -- update item counts for all subviews
+    for i = 1, #top.view.viewList do
+        local view = top.view.viewList[i]
+        if view.view.objList and view.view.objList.items then
+            self.updateQueue:push({
+                targetView = view.view.ui_type,
+                actions = { 'needUpdateSubViewName' },
+                data = { needUpdateSubViewName = #view.view.objList.items }
+            })
+        end
     end
 
     if sub.view.ui_type == 'fav_recipes' or sub.view.ui_type == 'fav_items' then
@@ -579,13 +642,13 @@ function CHC_window:closeOtherTabs()
 end
 
 function CHC_window:closeAllTabs()
-    local vl = self.parent.panel
-    for i = #vl.viewList, 3, -1 do
-        vl:removeView(vl.viewList[i].view)
+    local vp = self.parent.panel
+    for i = #vp.viewList, 3, -1 do
+        vp:removeView(vp.viewList[i].view)
     end
-    vl:activateView(vl.viewList[2].name)
-    vl.activeView.view:activateView(getText('UI_search_recipes_tab_name'))
-    vl.scrollX = 0
+    vp:activateView(vp.viewList[2].name)
+    vp.activeView.view:activateView(getText('UI_search_recipes_tab_name'))
+    vp.scrollX = 0
 end
 
 function CHC_window:closeTab(tabIndex)
@@ -787,8 +850,10 @@ end
 function CHC_window:serializeWindowData()
     local vl = self.panel
     CHC_settings.config.main_window = {
-        x = self:getX(), y = self:getY(),
-        w = self:getWidth(), h = self:getHeight()
+        x = self:getX(),
+        y = self:getY(),
+        w = self:getWidth(),
+        h = self:getHeight()
     }
     local sref = vl.viewList[1].view -- search view
     local sref_i = sref.viewList[1].view -- search-items subview

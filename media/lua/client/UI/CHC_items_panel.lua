@@ -31,8 +31,10 @@ function CHC_items_panel:createChildren()
     self.mainImg:initialise()
     self.mainImg.backgroundColorMouseOver.a = 0
     self.mainImg.backgroundColor.a = 0
-    self.mainImg.forcedWidthImage = 60
-    self.mainImg.forcedHeightImage = 60
+    self.mainImg.origWI = 60
+    self.mainImg.origHI = 60
+    self.mainImg.forcedWidthImage = self.mainImg.origWI
+    self.mainImg.forcedHeightImage = self.mainImg.origHI
     self.mainImg.onRightMouseDown = self.onRMBDownItemIcon
 
     local mainPadY = 2
@@ -44,7 +46,6 @@ function CHC_items_panel:createChildren()
     local mr, mg, mb, ma = 1, 1, 1, 1
     self.mainName = ISLabel:new(mainX, mainPadY, fntm, nil, mr, mg, mb, ma, mainPriFont, true)
     self.mainName:initialise()
-    self.mainName.maxWidth = self.mainInfo.width - mainX - self.margin
     mainY = mainY + mainPadY + self.mainName.height
 
     self.mainType = ISLabel:new(mainX, mainY, fnts, nil, mr, mg, mb, ma, mainSecFont, true)
@@ -59,9 +60,6 @@ function CHC_items_panel:createChildren()
     self.mainMod:initialise()
     mainY = mainY + mainPadY + self.mainMod.height
 
-    -- self.mainWeight = ISLabel:new(mainX, mainY, fnts, nil, mr, mg, mb, ma, mainSecFont, true)
-    -- self.mainWeight:initialise()
-    -- mainY = mainY + mainPadY + self.mainWeight.height
     self.mainInfo:setHeight(mainY + mainPadY)
 
     self.mainInfo:addChild(self.mainImg)
@@ -136,7 +134,6 @@ function CHC_items_panel:onResize()
 
     self.statsList:setWidth(self.parent.headers.typeHeader.width - self.margin - self.statsList.x)
     self.statsList:setHeight(self.height - self.mainInfo.height - 4 * self.padY)
-
 end
 
 function CHC_items_panel:render()
@@ -157,6 +154,17 @@ function CHC_items_panel:setObj(item)
     self.item = item
 
     -- region build main info
+    if item.textureMult then
+        if not self.itemImgTextureMultApplied then
+            self.mainImg.forcedWidthImage = self.mainImg.forcedWidthImage * item.textureMult
+            self.mainImg.forcedHeightImage = self.mainImg.forcedHeightImage * item.textureMult
+            self.itemImgTextureMultApplied = true
+        end
+    else
+        self.mainImg.forcedWidthImage = self.mainImg.origWI
+        self.mainImg.forcedHeightImage = self.mainImg.origHI
+        self.itemImgTextureMultApplied = false
+    end
     self.mainImg:setImage(item.texture)
     if self.item.tooltip then
         self.mainImg:setTooltip(getText(self.item.tooltip))
@@ -256,6 +264,7 @@ function CHC_items_panel:new(args)
 
     o.backRef = args.backRef
     o.item = nil
+    o.itemImgTextureMultApplied = false
 
     return o
 end

@@ -30,7 +30,6 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
 	local item
 	-- Go through the items selected (because multiple selections in inventory is possible)
 	for i = 1, #items do
-
 		-- allows to get ctx option when clicking on hotbar/equipped item
 		if not instanceof(items[i], 'InventoryItem') then
 			item = items[i].items[1]
@@ -39,9 +38,9 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
 		end
 
 		-- if item is used in any recipe OR there is a way to create this item - mark item as valid
-		local cond1 = type(CHC_main.recipesByItem[item:getFullType()]) == 'table'
-		local cond2 = type(CHC_main.recipesForItem[item:getFullType()]) == 'table'
-		if cond1 or cond2 then
+		local fullType = item:getFullType()
+		local isRecipes = CHC_main.common.areThereRecipesForItem(nil, fullType)
+		if isRecipes then
 			table.insert(itemsUsedInRecipes, item)
 		end
 	end
@@ -49,7 +48,8 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
 	-- If one or more items tested above are used in a recipe
 	-- we effectively add an option in the contextual menu
 	if type(itemsUsedInRecipes) == 'table' and #itemsUsedInRecipes > 0 then
-		local opt = context:addOption(getText('IGUI_chc_context_onclick'), itemsUsedInRecipes, CHC_menu.onCraftHelper, player)
+		local opt = context:addOption(getText('IGUI_chc_context_onclick'), itemsUsedInRecipes, CHC_menu.onCraftHelper,
+			player)
 		CHC_main.common.addTooltipNumRecipes(opt, item)
 	end
 	if isShiftKeyDown() and CHC_menu.CHC_window ~= nil then
@@ -96,21 +96,31 @@ CHC_menu.onCraftHelper = function(items, player, itemMode)
 end
 
 CHC_menu.onCraftHelperItem = function(window_inst, item)
-	local backRef = window_inst
 	local viewName = getText('UI_search_tab_name')
-	backRef:refresh(viewName) -- activate top level search view
-	backRef:refresh(backRef.uiTypeToView['search_items'].name,
-		backRef.panel.activeView.view) -- activate Items subview
-	local view = backRef:getActiveSubView()
+	local subViewName = window_inst.uiTypeToView['search_items'].name
+	window_inst:refresh(viewName) -- activate top level search view
+	local top = window_inst.panel.activeView
+	if top.name ~= viewName then
+		print("Top view incorrect in onCraftHelperItem")
+		return
+	end
+	top.view:activateView(subViewName)
+	local sub = top.view.activeView
+	local view = sub.view
+
 	local txt = string.format('#%s,%s', item.displayCategory, item.displayName)
 	txt = string.lower(txt)
 	view.searchRow.searchBar:setText(txt) -- set text to Items subview search bar
+	if not view["updateItems"] then return end
 	view:updateItems(view.selectedCategory)
 	if #view.objList.items ~= 0 then
 		local it = view.objList.items
 		local c = 1
 		for i = 1, #it do
-			if string.lower(it[i].text) == string.lower(item.displayName) then c = i break end
+			if string.lower(it[i].text) == string.lower(item.displayName) then
+				c = i
+				break
+			end
 		end
 		view.objList.selected = c
 		view.objList:ensureVisible(c)
@@ -119,6 +129,12 @@ CHC_menu.onCraftHelperItem = function(window_inst, item)
 			-- view.needSyncFilters = true
 		end
 	end
+
+	window_inst.updateQueue:push({
+		targetView = view.ui_type,
+		actions = { 'needUpdateSubViewName' },
+		data = { needUpdateSubViewName = view.objListSize }
+	})
 end
 
 --- window toggle logic

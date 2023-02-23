@@ -3,9 +3,9 @@ require 'ISUI/ISScrollingListBox'
 CHC_uses_recipelist = ISScrollingListBox:derive('CHC_uses_recipelist')
 
 local fontSizeToInternal = {
-	{ font = UIFont.Small, pad = 4, icon = 10 },
+	{ font = UIFont.Small,  pad = 4, icon = 10 },
 	{ font = UIFont.Medium, pad = 4, icon = 18 },
-	{ font = UIFont.Large, pad = 6, icon = 24 }
+	{ font = UIFont.Large,  pad = 6, icon = 24 }
 }
 
 -- region create
@@ -74,17 +74,34 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 	--endregion
 
 	--region text
-	local clr = { txt = item.text, x = iconsEnabled and (curFontData.icon + 8) or 15, y = (y) + itemPadY,
-		a = 0.9, font = self.font }
-	if not self.player:isRecipeKnown(recipe.recipe) then
-		-- unknown recipe, red text
-		clr['r'], clr['g'], clr['b'] = 0.7, 0, 0
-	elseif RecipeManager.IsRecipeValid(recipe.recipe, self.player, nil, self.containerList) then
-		-- can craft, green text
-		clr['r'], clr['g'], clr['b'] = 0, 0.7, 0
-	else
+	local clr = {
+		txt = item.text,
+		x = iconsEnabled and (curFontData.icon + 8) or 15,
+		y = (y) + itemPadY,
+		a = 0.9,
+		font = self.font
+	}
+	if recipe.isSynthetic == true then
 		-- known but cant craft, white text
 		clr['r'], clr['g'], clr['b'] = 0.9, 0.9, 0.9
+	elseif recipe.isEvolved then
+		if CHC_main.common.isEvolvedRecipeValid(recipe, self.containerList) then
+			-- can 'craft', green text
+			clr['r'], clr['g'], clr['b'] = 0, 0.7, 0
+		else
+			clr['r'], clr['g'], clr['b'] = 0.9, 0.9, 0.9
+		end
+	else
+		if not self.player:isRecipeKnown(recipe.recipe) then
+			-- unknown recipe, red text
+			clr['r'], clr['g'], clr['b'] = 0.7, 0, 0
+		elseif RecipeManager.IsRecipeValid(recipe.recipe, self.player, nil, self.containerList) then
+			-- can craft, green text
+			clr['r'], clr['g'], clr['b'] = 0, 0.7, 0
+		else
+			-- known but cant craft, white text
+			clr['r'], clr['g'], clr['b'] = 0.9, 0.9, 0.9
+		end
 	end
 	self:drawText(clr.txt, clr.x, clr.y, clr.r, clr.g, clr.b, clr.a, clr.font)
 	if shouldDrawMod then
@@ -107,7 +124,8 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 		favoriteStar = self.favoriteStar
 	end
 	if favoriteStar then
-		self:drawTexture(favoriteStar, favYPos, y + (item.height / 2 - favoriteStar:getHeight() / 2), favoriteAlpha, 1, 1, 1);
+		self:drawTexture(favoriteStar, favYPos, y + (item.height / 2 - favoriteStar:getHeight() / 2), favoriteAlpha, 1, 1,
+			1);
 	end
 	--endregion
 
@@ -188,7 +206,8 @@ function CHC_uses_recipelist:addToFavorite(selectedIndex, fromKeyboard)
 	if fav_idx == nil then return end
 	local fav_recipes = allr[fav_idx].recipes.items
 	selectedItem.item.favorite = not selectedItem.item.favorite;
-	self.modData[CHC_main.getFavoriteRecipeModDataString(selectedItem.item.recipe)] = selectedItem.item.favorite
+	self.modData[CHC_main.getFavoriteRecipeModDataString(selectedItem.item)] = selectedItem.item
+		.favorite
 	if selectedItem.item.favorite then
 		parent.favRecNum = parent.favRecNum + 1
 		table.insert(fav_recipes, selectedItem)

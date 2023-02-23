@@ -15,7 +15,6 @@ Apart from item tab, there is also two common tabs:
 
 Safe to add/remove to/from existing saves
 Should be compatible with all mods and MP
-Does not support evolved recipes currently (soup, stew, salads etc.)
 
 [hr][/hr]
 [h2]Features:[/h2]

@@ -38,8 +38,13 @@ function CHC_props_table:createChildren()
     -- self.optionsBtn:setTooltip('testTooltip')
 
 
-    self.searchRow = CHC_search_bar:new({ x = x, y = y, w = self.width - 2 * self.padX, h = h,
-        backRef = self.backRef }, nil,
+    self.searchRow = CHC_search_bar:new({
+        x = x,
+        y = y,
+        w = self.width - 2 * self.padX,
+        h = h,
+        backRef = self.backRef
+    }, nil,
         self.onTextChange, self.searchRowHelpText)
     self.searchRow:initialise()
     self.searchRow.drawBorder = false
@@ -67,7 +72,6 @@ function CHC_props_table:createChildren()
     -- self:addChild(self.optionsBtn)
     self:addChild(self.searchRow)
     self:addChild(self.objList)
-
 end
 
 -- endregion
@@ -162,7 +166,6 @@ function CHC_props_table:drawProps(y, item, alt)
     self:drawText(tostring(item.item.value), self.columns[2].size + 5, y, textP.r, textP.g, textP.b, textP.a, self.font)
 
     return y + self.itemheight
-
 end
 
 function CHC_props_table:render()
@@ -247,8 +250,7 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
 
     local maxTextLength = 1000 --FIXME
     -- region copy submenu
-    local name = context:addOption(getText('IGUI_chc_Copy'), nil
-        , nil)
+    local name = context:addOption(getText('IGUI_chc_Copy'), nil, nil)
     local subMenuName = ISContextMenu:getNew(context)
     context:addSubMenu(name, subMenuName)
 
@@ -284,13 +286,13 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
 
     -- region comparison
     local newOptFull = subMenuName:addOption(getText('IGUI_CopyNameProps_ctx') ..
-        ' + ' .. getText('IGUI_CopyValueProps_ctx'), nil, nil)
+    ' + ' .. getText('IGUI_CopyValueProps_ctx'), nil, nil)
     local subMenuName2 = ISContextMenu:getNew(subMenuName)
     subMenuName:addSubMenu(newOptFull, subMenuName2)
-    local eq = subMenuName2:addOption('=', self, chccopy, "$" .. item.name .. '=' .. item.value)
-    local ne = subMenuName2:addOption('~=', self, chccopy, "$" .. item.name .. '~=' .. item.value)
-    local gt = subMenuName2:addOption('>', self, chccopy, "$" .. item.name .. '>' .. item.value)
-    local lt = subMenuName2:addOption('<', self, chccopy, "$" .. item.name .. '<' .. item.value)
+    local eq = subMenuName2:addOption('=', self, chccopy, '$' .. item.name .. '=' .. item.value)
+    local ne = subMenuName2:addOption('~=', self, chccopy, '$' .. item.name .. '~=' .. item.value)
+    local gt = subMenuName2:addOption('>', self, chccopy, '$' .. item.name .. '>' .. item.value)
+    local lt = subMenuName2:addOption('<', self, chccopy, '$' .. item.name .. '<' .. item.value)
 
     for _, opt in ipairs({ eq, ne, gt, lt }) do
         CHC_main.common.setTooltipToCtx(opt, opt.param1)
@@ -326,7 +328,6 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
         context:addOption(getText('IGUI_UnblacklistProps_ctx') .. ' ' .. string.lower(getText('ContextMenu_All')), self,
             unblacklistAll)
     end
-
 end
 
 -- function CHC_props_table:onOptionsMouseDown(x, y)

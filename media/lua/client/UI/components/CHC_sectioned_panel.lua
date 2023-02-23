@@ -24,16 +24,22 @@ function Section:createChildren()
         self.panel:setVisible(self.expanded)
         self.panel:setScrollChildren(true)
         self:addChild(self.panel)
-        if self.panel.objList then
-            local mul = math.min(#self.panel.objList.items, 8)
-            local panelListH = self.panel.objList.itemheight * mul
-            self.panel.objList:setHeight(panelListH)
+        local objList = self.panel.objList
+        if objList then
+            local numItems = 8
+            local mul = math.min(#objList.items, numItems)
+            local panelListH = objList.itemheight * mul
+            objList:setHeight(panelListH)
             self.panel:setHeight(
                 3 * self.panel.padY +
                 self.panel.searchRow.height +
-                self.panel.objList.itemheight +
-                self.panel.objList.height
+                objList.itemheight +
+                objList.height
             )
+            if #objList.items > numItems then
+                objList.vscroll:setVisible(true)
+            end
+            objList.vscroll:setHeight(objList.itemheight * numItems)
         end
     end
 
@@ -41,7 +47,6 @@ function Section:createChildren()
 end
 
 function Section:onHeaderClick()
-
     self.expanded = not self.expanded
     if self.expanded then
         self.parent.expandedSections[self.title] = true
@@ -117,7 +122,7 @@ function CHC_sectioned_panel:addSection(panel, title, maxH)
     self:addChild(section)
     if self:getScrollChildren() then
         section:setScrollWithParent(true)
-        section:setScrollChildren(true) -- FIXME?
+        section:setScrollChildren(true)
     end
     table.insert(self.sections, section)
 end

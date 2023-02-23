@@ -1,13 +1,17 @@
 require 'luautils'
 
-CHC_main = {}
+CraftHelperContinued = {}
+CHC_main = CraftHelperContinued
 CHC_main.author = 'lanceris'
 CHC_main.previousAuthors = { 'Peanut', 'ddraigcymraeg', 'b1n0m' }
 CHC_main.modName = 'CraftHelperContinued'
-CHC_main.version = '1.6.5.1'
+CHC_main.version = '1.6.6'
 CHC_main.allRecipes = {}
 CHC_main.recipesByItem = {}
 CHC_main.recipesForItem = {}
+CHC_main.allEvoRecipes = {}
+CHC_main.evoRecipesByItem = {}
+CHC_main.evoRecipesForItem = {}
 CHC_main.itemsManuals = {}
 CHC_main.items = {}
 CHC_main.itemsForSearch = {}
@@ -32,7 +36,7 @@ local showTime = function(start, st)
 	print(string.format('Loaded %s in %s seconds', st, tostring((getTimestampMs() - start) / 1000)))
 end
 
-CHC_main.handleItems = function(itemString)
+CHC_main.getItemByFullType = function(itemString)
 	local item
 	if itemString == 'Water' then
 		item = CHC_main.items['Base.WaterDrop']
@@ -108,11 +112,13 @@ CHC_main.handleRecipeLua = function(luaClosure)
 			-- if not debug, we cant get luaclosure source code (check zombie\Lua\LuaManager.java@getGameFilesTextInput)
 			-- so we just store filename and starting line
 		end
-		local res = { code = code,
+		local res = {
+			code = code,
 			filepath = closureFileName,
 			shortname = closureShortFileName,
 			startline = closureFirstLine,
-			funcname = closureName }
+			funcname = closureName
+		}
 		CHC_main.luaRecipeCache[closureName] = res
 		return res
 	end
@@ -166,13 +172,20 @@ CHC_main.getItemPropsDebug = function(item)
 	return objAttrs
 end
 
-CHC_main.getItemProps = function(item, itemType)
-	local map = CHC_settings.itemPropsByType
-	local typePropData = map[itemType]
-	local commonPropData = map['Common']
+CHC_main.getItemProps = function(item, itemType, map)
+	map = map or CHC_settings.itemPropsByType
+	local isSpecial = map ~= CHC_settings.itemPropsByType
+
+	local typePropData, commonPropData
+	if not isSpecial then
+		typePropData = map[itemType]
+		commonPropData = map['Common']
+	else
+		typePropData = map
+	end
+
 
 	local function formatOutput(propName, propVal)
-
 		if propName then
 			if sub(propName, 1, 3) == 'get' then
 				propName = sub(propName, 4)
@@ -195,7 +208,12 @@ CHC_main.getItemProps = function(item, itemType)
 		local mul = prop.mul
 		local defVal = prop.default
 		local isIgnoreDefVal = prop.ignoreDefault
-		propVal = item[propName](item)
+		if isSpecial then
+			propVal = item[prop.path]
+			if prop.path2 then propVal = propVal[prop.path2] end
+		else
+			propVal = item[propName] and item[propName](item) or nil
+		end
 		if propVal then
 			propVal = rawToStr(propVal)
 			local val = tonumber(propVal)
@@ -213,7 +231,6 @@ CHC_main.getItemProps = function(item, itemType)
 	end
 
 	local function processPropGroup(item, propData, isTypeSpecific)
-
 		local props = {}
 		if not propData then return props end
 		for i = 1, #propData do
@@ -241,7 +258,8 @@ CHC_main.getItemProps = function(item, itemType)
 				dupedProps[prop.name] = true
 			end
 		end
-		if uniqueProps['Weight'].value == uniqueProps['ActualWeight'].value then
+		if uniqueProps['ActualWeight'] and uniqueProps['Weight'] and
+			uniqueProps['Weight'].value == uniqueProps['ActualWeight'].value then
 			uniqueProps['ActualWeight'] = nil
 		end
 
@@ -253,17 +271,20 @@ CHC_main.getItemProps = function(item, itemType)
 	end
 
 	local props = {}
+	local propsMap = {}
 	local typeProps
 	local dupedProps
 
-	local commonProps = processPropGroup(item, commonPropData, false)
+	if not isSpecial then
+		local commonProps = processPropGroup(item, commonPropData, false)
+		for i = 1, #commonProps do insert(props, commonProps[i]) end
+	end
+
 	if itemType == 'Radio' then
 		typeProps = processPropGroup(item:getDeviceData(), typePropData, true)
 	else
 		typeProps = processPropGroup(item, typePropData, true)
 	end
-
-	for i = 1, #commonProps do insert(props, commonProps[i]) end
 	for i = 1, #typeProps do insert(props, typeProps[i]) end
 
 	props, dupedProps = postProcess(props)
@@ -271,18 +292,28 @@ CHC_main.getItemProps = function(item, itemType)
 	-- 	CHC_main.dupedProps.items[item:getDisplayName()] = dupedProps
 	-- 	CHC_main.dupedProps.size = CHC_main.dupedProps.size + 1
 	-- end
+	for i = 1, #props do
+		if not propsMap[props[i].name] then
+			propsMap[props[i].name] = props[i]
+		end
+	end
 
-	return props
+	return props, propsMap
 end
 
 CHC_main.loadDatas = function()
 	CHC_main.playerModData = getPlayer():getModData()
+	CHC_main.CECData = _G['CraftingEnhancedCore']
 
 	CHC_main.loadAllItems()
+	CHC_main.loadItemsIntegrations()
+
 	if loadLua then CHC_main.loadLuaCache() end
 	--CHC_main.loadAllDistributions()
 
 	CHC_main.loadAllRecipes()
+	CHC_main.loadAllEvolvedRecipes()
+	CHC_main.loadRecipesIntegrations()
 
 	if loadLua then CHC_main.saveLuaCache() end
 	CHC_menu.createCraftHelper()
@@ -290,33 +321,35 @@ end
 
 CHC_main.processOneItem = function(item)
 	local fullType = item:getFullName()
+
+	if CHC_main.items[fullType] then
+		-- print(string.format('Duplicate invItem fullType! (%s)', tostring(invItem:getFullType())))
+		return
+	end
 	local invItem = instanceItem(fullType)
 	local itemDisplayCategory = invItem:getDisplayCategory()
 
-	if not CHC_main.items[fullType] then
-		local toinsert = {
-			itemObj = item,
-			item = invItem,
-			fullType = invItem:getFullType(),
-			name = invItem:getName(),
-			modname = invItem:getModName(),
-			isVanilla = invItem:isVanilla(),
-			IsDrainable = invItem:IsDrainable(),
-			displayName = invItem:getDisplayName(),
-			tooltip = invItem:getTooltip(),
-			hidden = item:isHidden(),
-			count = invItem:getCount() or 1,
-			category = item:getTypeString(),
-			displayCategory = itemDisplayCategory and getTextOrNull('IGUI_ItemCat_' .. itemDisplayCategory) or
-				getText('IGUI_ItemCat_Item'),
-			texture = invItem:getTex()
-		}
-		toinsert.props = CHC_main.getItemProps(invItem, toinsert.category)
-		CHC_main.items[toinsert.fullType] = toinsert
-		insert(CHC_main.itemsForSearch, toinsert)
-	else
-		error(string.format('Duplicate invItem fullType! (%s)', tostring(invItem:getFullType())))
-	end
+	local toinsert = {
+		itemObj = item,
+		item = invItem,
+		fullType = invItem:getFullType(),
+		name = invItem:getName(),
+		modname = invItem:getModName(),
+		isVanilla = invItem:isVanilla(),
+		IsDrainable = invItem:IsDrainable(),
+		displayName = invItem:getDisplayName(),
+		tooltip = invItem:getTooltip(),
+		hidden = item:isHidden(),
+		count = invItem:getCount() or 1,
+		category = item:getTypeString(),
+		displayCategory = itemDisplayCategory and
+		getTextOrNull('IGUI_ItemCat_' .. itemDisplayCategory) or
+		getText('IGUI_ItemCat_Item'),
+		texture = invItem:getTex()
+	}
+	toinsert.props, toinsert.propsMap = CHC_main.getItemProps(invItem, toinsert.category)
+	CHC_main.items[toinsert.fullType] = toinsert
+	insert(CHC_main.itemsForSearch, toinsert)
 
 
 	if item:getTypeString() == 'Literature' then
@@ -331,13 +364,6 @@ CHC_main.processOneItem = function(item)
 			end
 		end
 	end
-end
-
-CHC_main.loadAllBooks = function()
-	local allItems = getAllItems()
-	local nbBooks = 0
-
-	print('Loading books')
 end
 
 CHC_main.loadAllItems = function(am)
@@ -358,6 +384,104 @@ CHC_main.loadAllItems = function(am)
 	print(nbItems .. ' items loaded.')
 end
 
+CHC_main.processOneRecipe = function(recipe)
+	local newItem = {}
+	newItem.category = recipe:getCategory() or getText('IGUI_CraftCategory_General')
+	newItem.displayCategory = getTextOrNull('IGUI_CraftCategory_' .. newItem.category) or newItem.category
+	newItem.recipe = recipe
+	newItem.module = recipe:getModule():getName()
+	newItem.hidden = recipe:isHidden()
+	newItem.recipeData = {}
+	newItem.recipeData.category = newItem.category
+	newItem.recipeData.name = recipe:getName()
+	newItem.recipeData.nearItem = recipe:getNearItem()
+
+	newItem.favorite = CHC_main.playerModData[CHC_main.getFavoriteRecipeModDataString(newItem)] or false
+
+	if loadLua then
+		local onCreate = recipe:getLuaCreate()
+		local onTest = recipe:getLuaTest()
+		local onCanPerform = recipe:getCanPerform()
+		local onGiveXP = recipe:getLuaGiveXP()
+		if onCreate or onTest or onCanPerform or onGiveXP then
+			newItem.recipeData.lua = {}
+			if onCreate then
+				newItem.recipeData.lua.onCreate = CHC_main.handleRecipeLua(onCreate)
+			end
+			if onTest then
+				newItem.recipeData.lua.onTest = CHC_main.handleRecipeLua(onTest)
+			end
+			if onCanPerform then
+				newItem.recipeData.lua.onCanPerform = CHC_main.handleRecipeLua(onCanPerform)
+			end
+			if onGiveXP then
+				newItem.recipeData.lua.onGiveXP = CHC_main.handleRecipeLua(onGiveXP)
+			end
+		end
+		if newItem.recipeData.lua then
+			CHC_main.recipesWithLua[newItem.recipeData.name] = newItem.recipeData.lua
+		end
+	end
+
+
+	local resultItem = recipe:getResult()
+	if not resultItem then return end
+
+	--region integrations
+	--check for hydrocraft furniture
+	local hydrocraftFurniture = CHC_main.processHydrocraft(recipe)
+	if hydrocraftFurniture then
+		newItem.recipeData.hydroFurniture = hydrocraftFurniture
+		newItem.isNearItem = true
+		CHC_main.setRecipeForItem(CHC_main.recipesByItem, hydrocraftFurniture.obj.fullType, newItem)
+	end
+
+	--check for CEC furniture
+	if newItem.recipeData.nearItem then
+		local CECFurniture = CHC_main.processCEC(newItem.recipeData.nearItem, CHC_main.CECData)
+		if CECFurniture and not utils.empty(CECFurniture) then
+			newItem.recipeData.CECFurniture = CECFurniture
+			newItem.isNearItem = true
+			CHC_main.setRecipeForItem(CHC_main.recipesByItem, CECFurniture.obj.fullType, newItem)
+		end
+	end
+
+	-- if CHC_main.itemsManuals[newItem.recipeData.name] then
+	-- 	for _, value in pairs(CHC_main.itemsManuals[newItem.recipeData.name]) do
+	-- 		newItem.isBook = true
+	-- 		CHC_main.setRecipeForItem(CHC_main.recipesByItem, value.fullType, newItem)
+	-- 	end
+	-- end
+	--endregion
+
+	local resultFullType = resultItem:getFullType()
+	local itemres = CHC_main.getItemByFullType(resultFullType)
+
+	insert(CHC_main.allRecipes, newItem)
+	if itemres then
+		newItem.recipeData.result = itemres
+		CHC_main.setRecipeForItem(CHC_main.recipesForItem, itemres.fullType, newItem)
+	else
+		insert(CHC_main.recipesWithoutItem, resultItem:getFullType())
+	end
+	local rSources = recipe:getSource()
+
+	-- Go through items needed by the recipe
+	for n = 0, rSources:size() - 1 do
+		-- Get the item name (not the display name)
+		local rSource = rSources:get(n)
+		local items = rSource:getItems()
+		for k = 0, rSource:getItems():size() - 1 do
+			local itemString = items:get(k)
+			local item = CHC_main.getItemByFullType(itemString)
+
+			if item then
+				CHC_main.setRecipeForItem(CHC_main.recipesByItem, item.fullType, newItem)
+			end
+		end
+	end
+end
+
 CHC_main.loadAllRecipes = function()
 	print('Loading recipes...')
 	local nbRecipes = 0
@@ -368,85 +492,120 @@ CHC_main.loadAllRecipes = function()
 
 	-- Go through recipes stack
 	for i = 0, allRecipes:size() - 1 do
-		local newItem = {}
 		local recipe = allRecipes:get(i)
-
-		newItem.category = recipe:getCategory() or getText('IGUI_CraftCategory_General')
-		newItem.displayCategory = getTextOrNull('IGUI_CraftCategory_' .. newItem.category) or newItem.category
-		newItem.recipe = recipe
-		newItem.module = recipe:getModule():getName()
-		newItem.favorite = CHC_main.playerModData[CHC_main.getFavoriteRecipeModDataString(recipe)] or false
-		newItem.recipeData = {}
-		newItem.recipeData.category = recipe:getCategory() or getText('IGUI_CraftCategory_General')
-		newItem.recipeData.name = recipe:getName()
-		newItem.recipeData.nearItem = recipe:getNearItem()
-
-		if loadLua then
-			local onCreate = recipe:getLuaCreate()
-			local onTest = recipe:getLuaTest()
-			local onCanPerform = recipe:getCanPerform()
-			local onGiveXP = recipe:getLuaGiveXP()
-			if onCreate or onTest or onCanPerform or onGiveXP then
-				newItem.recipeData.lua = {}
-				if onCreate then
-					newItem.recipeData.lua.onCreate = CHC_main.handleRecipeLua(onCreate)
-				end
-				if onTest then
-					newItem.recipeData.lua.onTest = CHC_main.handleRecipeLua(onTest)
-				end
-				if onCanPerform then
-					newItem.recipeData.lua.onCanPerform = CHC_main.handleRecipeLua(onCanPerform)
-				end
-				if onGiveXP then
-					newItem.recipeData.lua.onGiveXP = CHC_main.handleRecipeLua(onGiveXP)
-				end
-			end
-			if newItem.recipeData.lua then
-				CHC_main.recipesWithLua[newItem.recipeData.name] = newItem.recipeData.lua
-			end
-		end
-
-		--check for hydrocraft furniture
-		local hydrocraftFurniture = CHC_main.processHydrocraft(recipe)
-		if hydrocraftFurniture then
-			newItem.recipeData.hydroFurniture = hydrocraftFurniture
-		end
-
-		local resultItem = recipe:getResult()
-		if resultItem then
-			local resultFullType = resultItem:getFullType()
-			local itemres = CHC_main.handleItems(resultFullType)
-
-			insert(CHC_main.allRecipes, newItem)
-			if itemres then
-				newItem.recipeData.result = itemres
-				CHC_main.setRecipeForItem(CHC_main.recipesForItem, itemres.fullType, newItem)
-			else
-				insert(CHC_main.recipesWithoutItem, resultItem:getFullType())
-			end
-			local rSources = recipe:getSource()
-
-			-- Go through items needed by the recipe
-			for n = 0, rSources:size() - 1 do
-				-- Get the item name (not the display name)
-				local rSource = rSources:get(n)
-				local items = rSource:getItems()
-				for k = 0, rSource:getItems():size() - 1 do
-					local itemString = items:get(k)
-					local item = CHC_main.handleItems(itemString)
-
-					if item then
-						CHC_main.setRecipeForItem(CHC_main.recipesByItem, item.fullType, newItem)
-					end
-				end
-			end
-			nbRecipes = nbRecipes + 1
-		else
-			-- omg no 'continue' in lua and goto not working :(
-		end
+		CHC_main.processOneRecipe(recipe)
+		nbRecipes = nbRecipes + 1
 	end
 	showTime(now, 'All Recipes')
 	print(nbRecipes .. ' recipes loaded.')
+end
+
+CHC_main.processOneEvolvedRecipe = function(recipe)
+	if recipe:isHidden() then return end
+	local data = {
+		isEvolved = true,
+		recipe = recipe,
+		category = getText('IGUI_CHC_RecipeCat_Evolved'),
+		displayCategory = getText('IGUI_CHC_RecipeCat_Evolved'),
+		hidden = recipe:isHidden(),
+		module = recipe:getModule():getName(),
+	}
+
+	local recipeData = {
+		category = data.category,
+		name = recipe:getName(),
+		originalName = recipe:getOriginalname(),
+		untranslatedName = recipe:getUntranslatedName(),
+		baseItem = recipe:getBaseItem(),
+		--itemsList = recipe:getItemsList(), -- Map
+		_possibleItems = recipe:getPossibleItems(), -- ArrayList
+		resultItem = recipe:getResultItem(),
+		fullResultItem = recipe:getFullResultItem(),
+		isCookable = recipe:isCookable(),
+		maxItems = recipe:getMaxItems(),
+		addIngredientSound = recipe:getAddIngredientSound(),
+		isAllowFrozenItem = recipe:isAllowFrozenItem()
+	}
+	if not recipeData.baseItem:contains('.') then
+		recipeData.baseItem = "Base." .. recipeData.baseItem
+	end
+	if not recipeData.fullResultItem:contains('.') then
+		recipeData.fullResultItem = "Base." .. recipeData.fullResultItem
+	end
+
+	if recipeData._possibleItems then
+		recipeData.possibleItems = {}
+		for i = 0, recipeData._possibleItems:size() - 1 do
+			local item = recipeData._possibleItems:get(i)
+			local itemData = {
+				name = item:getName(),
+				use = item:getUse(),
+				fullType = item:getFullType()
+			}
+			-- check item for obsolete
+			local _item = CHC_main.getItemByFullType(itemData.fullType)
+			if _item then
+				if _item.propsMap["Spice"] and tostring(_item.propsMap["Spice"].value) == "true" then
+					itemData.isSpice = true
+				else
+					itemData.isSpice = false
+				end
+				insert(recipeData.possibleItems, itemData)
+			end
+		end
+		recipeData._possibleItems = nil
+	end
+
+	data.recipeData = recipeData
+
+	data.favorite = CHC_main.playerModData[CHC_main.getFavoriteRecipeModDataString(data)] or false
+
+	if data.recipeData.possibleItems then
+		for i = 1, #data.recipeData.possibleItems do
+			local itemData = data.recipeData.possibleItems[i]
+			local itemres = CHC_main.getItemByFullType(itemData.fullType)
+			if itemres then
+				CHC_main.setRecipeForItem(CHC_main.evoRecipesByItem, itemData.fullType, data)
+			end
+		end
+	end
+
+	local baseItemRes = CHC_main.getItemByFullType(data.recipeData.baseItem)
+	if baseItemRes then
+		CHC_main.setRecipeForItem(CHC_main.evoRecipesByItem, data.recipeData.baseItem, data)
+	end
+
+	local resultItem = CHC_main.getItemByFullType(data.recipeData.fullResultItem)
+	if resultItem then
+		data.recipeData.result = resultItem
+		CHC_main.setRecipeForItem(CHC_main.evoRecipesForItem, data.recipeData.fullResultItem, data)
+	end
+
+	insert(CHC_main.allEvoRecipes, data)
+end
+
+CHC_main.loadAllEvolvedRecipes = function()
+	print('Loading evolved recipes...')
+	local nbRecipes = 0
+	local now = getTimestampMs()
+
+	local allEvolvedRecipes = RecipeManager.getAllEvolvedRecipes()
+
+	for i = 0, allEvolvedRecipes:size() - 1 do
+		CHC_main.processOneEvolvedRecipe(allEvolvedRecipes:get(i))
+		nbRecipes = nbRecipes + 1
+	end
+
+
+	showTime(now, 'All Evolved Recipes')
+	print(nbRecipes .. ' recipes loaded.')
+end
+
+CHC_main.loadAllBooks = function()
+	local allItems = getAllItems()
+	local nbBooks = 0
+
+	print('Loading books')
 end
 
 CHC_main.processDistrib = function(zone, d, data, isJunk, isProcedural)
@@ -559,7 +718,6 @@ CHC_main.loadAllDistributions = function()
 			data[iN][zN] = round(data[iN][zN] * 100, 5)
 		end
 		table.sort(data[iN])
-
 	end
 	CHC_main.item_distrib = data
 end
@@ -583,8 +741,10 @@ CHC_main.getFavItemModDataStr = function(item)
 end
 
 CHC_main.getFavoriteRecipeModDataString = function(recipe)
+	if recipe.recipeData.isSynthetic then return 'testCHC' .. recipe.recipe:getOriginalname() end
+	recipe = recipe.recipe
 	local text = 'craftingFavorite:' .. recipe:getOriginalname()
-	if nil then --instanceof(recipe, 'EvolvedRecipe') then
+	if instanceof(recipe, 'EvolvedRecipe') then
 		text = text .. ':' .. recipe:getBaseItem()
 		text = text .. ':' .. recipe:getResultItem()
 	else
@@ -596,6 +756,16 @@ CHC_main.getFavoriteRecipeModDataString = function(recipe)
 		end
 	end
 	return text
+end
+
+-- region integrations
+
+CHC_main.loadItemsIntegrations = function()
+	CHC_main.getCECItems()
+end
+
+CHC_main.loadRecipesIntegrations = function()
+	CHC_main.getCECRecipes()
 end
 
 CHC_main.processHydrocraft = function(recipe)
@@ -613,6 +783,126 @@ CHC_main.processHydrocraft = function(recipe)
 	return furniItem
 end
 
+CHC_main.getCECItems = function()
+	-- TODO: synthetic recipes for cec tables (tData.recipe)
+	if not getActivatedMods():contains('craftingEnhancedCore') then return end
+	local map = CHC_settings.itemPropsByType.Integrations.CraftingEnhanced
+
+	for tID, tData in pairs(CHC_main.CECData.tables) do
+		local fullType = tID
+		if not CHC_main.items[fullType] then
+			local toinsert = {
+				item = tData,
+				fullType = 'CEC.' .. fullType,
+				name = tData.nameID,
+				modname = 'Crafting Enhanced Core',
+				isVanilla = false,
+				IsDrainable = false,
+				displayName = tData.displayName,
+				tooltip = tData.tooltipDescription,
+				hidden = false,
+				count = 1,
+				category = 'Moveable',
+				displayCategory = getText('IGUI_CHC_ItemCat_Moveable'),
+				texture = getTexture(tData.tooltipTexture),
+				textureMult = 2
+			}
+			toinsert.item.fullType = toinsert.fullType
+			toinsert.item.getFullType = function() return toinsert.fullType end
+			toinsert.props, toinsert.propsMap = CHC_main.getItemProps(tData, toinsert.category, map)
+			CHC_main.items[toinsert.fullType] = toinsert
+			insert(CHC_main.itemsForSearch, toinsert)
+		end
+	end
+end
+
+CHC_main.getCECRecipes = function()
+	local function getSource()
+
+	end
+
+	if not getActivatedMods():contains('craftingEnhancedCore') then return end
+	print('Loading CraftingEnhancedCore recipes...')
+	local nbRecipes = 0
+	local now = getTimestampMs()
+
+	for tID, tData in pairs(CHC_main.CECData.tables) do
+		local newItem = {}
+		newItem.category = 'CraftingEnhanced'
+		newItem.displayCategory = newItem.category
+		newItem.module = 'CraftingEnhancedCore'
+		newItem.hidden = false
+		newItem.isSynthetic = true
+		newItem.recipeData = {}
+		newItem.recipeData.category = newItem.category
+		newItem.recipeData.name = 'Build ' .. tData.displayName
+		newItem.recipeData.ingredients = tData.recipe
+		newItem.recipeData.isSynthetic = true
+		-- newItem.recipeData.nearItem = recipe:getNearItem()
+		newItem.recipe = {
+			getOriginalname = function() return newItem.recipeData.name end,
+			getSource = getSource,
+			getName = function() return newItem.recipeData.name end
+		}
+		newItem.favorite = CHC_main.playerModData[CHC_main.getFavoriteRecipeModDataString(newItem)] or false
+
+		local resultItem = 'CEC.' .. tID
+		insert(CHC_main.allRecipes, newItem)
+
+		local itemres = CHC_main.getItemByFullType(resultItem)
+		if itemres then
+			newItem.recipeData.result = itemres
+			CHC_main.setRecipeForItem(CHC_main.recipesForItem, itemres.fullType, newItem)
+		end
+
+		for i = 1, #tData.recipe do
+			local ingrData = tData.recipe[i]
+			local itemString = ingrData.type
+			local item = CHC_main.getItemByFullType(itemString)
+			if item then
+				CHC_main.setRecipeForItem(CHC_main.recipesByItem, item.fullType, newItem)
+			end
+		end
+		local tool = tData.requireTool
+		if tool then
+			if not string.contains(tool, '.') then
+				tool = 'Base.' .. tool
+			end
+			if CHC_main.getItemByFullType(tool) then
+				insert(newItem.recipeData.ingredients, { amount = 1, type = tool, isKeep = true }) -- required tool
+				CHC_main.setRecipeForItem(CHC_main.recipesByItem, tool, newItem)
+			end
+		end
+		nbRecipes = nbRecipes + 1
+	end
+	showTime(now, 'CraftingEnhancedCore Recipes')
+	print(nbRecipes .. ' recipes loaded.')
+end
+
+CHC_main.processCEC = function(nearItem, CECData)
+	if not CECData or not getActivatedMods():contains('craftingEnhancedCore') then return end
+	local luaTestFunc
+	if getActivatedMods():contains('Hydrocraft') then
+		-- get isFurnitureNearby function
+		luaTestFunc = _G['isFurnitureNearby']
+	end
+	local furniItem = {}
+	for tID, table in pairs(CECData.tables) do
+		if table.nameID == nearItem then
+			furniItem.obj = CHC_main.items['CEC.' .. tID]
+			if luaTestFunc then
+				furniItem.luaTest = luaTestFunc
+				furniItem.luaTestParam = nearItem
+			else
+				furniItem.luaTest = {}
+			end
+		end
+	end
+	return furniItem
+end
+
+-- endregion
+
 function CHC_main.reloadMod(key)
 	if key == Keyboard.KEY_O then
 		CHC_main.loadDatas()
@@ -625,4 +915,11 @@ if CHC_main.isDebug then
 	Events.OnKeyPressed.Add(CHC_main.reloadMod)
 end
 
-Events.OnGameStart.Add(CHC_main.loadDatas)
+-- catch all lua changes to recipes/items/etc (DoParam and stuff)
+local ensureLoadedLast = function()
+	Events.OnGameStart.Add(function()
+		CHC_main.loadDatas()
+	end)
+end
+
+Events.OnGameStart.Add(ensureLoadedLast)

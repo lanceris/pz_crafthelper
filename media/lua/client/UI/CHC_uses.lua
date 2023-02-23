@@ -33,7 +33,6 @@ function CHC_uses:initialise()
 end
 
 function CHC_uses:create()
-
     -- region draggable headers
     self.headers = CHC_tabs:new(0, 0, self.width, hh.headers, { self.onResizeHeaders, self }, self.sep_x)
     self.headers:initialise()
@@ -123,10 +122,14 @@ end
 function CHC_uses:update()
     if self.needUpdateObjects == true then
         self:updateRecipes(self.selectedCategory)
+        self:updateTabNameWithCount()
         self.needUpdateObjects = false
     end
     if self.needUpdateFavorites == true then
         self:handleFavCategory(self.updFavWithCur)
+        if self.favrec then
+            self:updateTabNameWithCount(self.favRecNum)
+        end
         self.needUpdateFavorites = false
         self.updFavWithCur = false
     end
@@ -187,10 +190,19 @@ function CHC_uses:updateTypes(current)
     local c2 = self.selectedCategory == self.categorySelectorDefaultOption
     local c3 = self.selectedCategory == self.favCatName
     for i = 1, #recipes do
-        local c1 = recipes[i].displayCategory == self.selectedCategory
-        if (not current) or (current == true and (c1 or c2 or (c3 and recipes[i].favorite))) then
-            is_valid = RecipeManager.IsRecipeValid(recipes[i].recipe, self.player, nil, self.objList.containerList)
-            is_known = self.player:isRecipeKnown(recipes[i].recipe)
+        local recipe = recipes[i]
+        local c1 = recipe.displayCategory == self.selectedCategory
+        if (not current) or (current == true and (c1 or c2 or (c3 and recipe.favorite))) then
+            if recipe.isSynthetic then
+                is_valid = false
+                is_known = true
+            elseif recipe.isEvolved then
+                is_valid = CHC_main.common.isEvolvedRecipeValid(recipe, self.objList.containerList)
+                is_known = true
+            else
+                is_valid = RecipeManager.IsRecipeValid(recipe.recipe, self.player, nil, self.objList.containerList)
+                is_known = self.player:isRecipeKnown(recipe.recipe)
+            end
             self.numRecipesAll = self.numRecipesAll + 1
             if is_known and not is_valid then
                 self.numRecipesKnown = self.numRecipesKnown + 1
@@ -201,11 +213,9 @@ function CHC_uses:updateTypes(current)
             end
         end
     end
-
 end
 
 function CHC_uses:updateCategories(current)
-
     local selector = self.filterRow.categorySelector
     local uniqueCategories = {}
     local catCounts = {}
@@ -258,13 +268,21 @@ function CHC_uses:updateCategories(current)
 end
 
 function CHC_uses:refreshObjList(recipes)
-    self.objList:clear()
-    self.objList:setScrollHeight(0)
+    local objL = self.objList
+    objL:clear()
 
     for i = 1, #recipes do
         self:processAddObjToObjList(recipes[i], self.modData)
     end
-    sort(self.objList.items, self.itemSortFunc)
+    sort(objL.items, self.itemSortFunc)
+    if objL.items and #objL.items > 0 then
+        local ix = 1
+        objL.selected = ix
+        objL:ensureVisible(ix)
+        self.objPanel:setObj(objL.items[ix].item)
+    end
+
+    self.objListSize = #objL.items
 end
 
 function CHC_uses:handleFavCategory(current)
@@ -279,16 +297,13 @@ function CHC_uses:handleFavCategory(current)
     --if cond1 or cond2 or cond3 then
     self:updateCategories(current)
     --end
-    if self.favRecNum == 0 then
-        if self.selectedCategory == self.favCatName then
-            self.selectedCategory = self.categorySelectorDefaultOption
-            self.needUpdateObjects = true
-        end
-    end
-    if csSel.data.count == 1 then
+    if self.favRecNum == 0 and
+        self.selectedCategory == self.favCatName or
+        csSel.data.count == 1 then
         self.selectedCategory = self.categorySelectorDefaultOption
         self.needUpdateObjects = true
     end
+
     cs:select(self.selectedCategory)
     --update favorites in favorites view
     if not cond3 then
@@ -297,6 +312,15 @@ function CHC_uses:handleFavCategory(current)
             actions = { 'needUpdateFavorites', 'needUpdateObjects', 'needUpdateTypes' }
         })
     end
+end
+
+function CHC_uses:updateTabNameWithCount(listSize)
+    listSize = listSize and listSize or self.objListSize
+    self.backRef.updateQueue:push({
+        targetView = self.ui_type,
+        actions = { 'needUpdateSubViewName' },
+        data = { needUpdateSubViewName = listSize }
+    })
 end
 
 -- endregion
@@ -341,9 +365,9 @@ function CHC_uses:onFilterTypeMenu(button)
     local context = ISContextMenu.get(0, x + 10, y)
 
     local data = {
-        { txt = 'UI_All', num = self.numRecipesAll, arg = 'all' },
-        { txt = 'UI_settings_av_valid', num = self.numRecipesValid, arg = 'valid' },
-        { txt = 'UI_settings_av_known', num = self.numRecipesKnown, arg = 'known' },
+        { txt = 'UI_All',                 num = self.numRecipesAll,     arg = 'all' },
+        { txt = 'UI_settings_av_valid',   num = self.numRecipesValid,   arg = 'valid' },
+        { txt = 'UI_settings_av_known',   num = self.numRecipesKnown,   arg = 'known' },
         { txt = 'UI_settings_av_invalid', num = self.numRecipesInvalid, arg = 'invalid' }
     }
 
@@ -356,8 +380,43 @@ function CHC_uses:onFilterTypeMenu(button)
     end
 end
 
+function CHC_uses:onRMBDown(x, y, item, showNameInFindCtx)
+    local backRef = self.parent.backRef
+    local context = backRef.onRMBDownObjList(self, x, y, item)
+    item = CHC_main.items[item.fullType]
+    if not item then return end
+
+    local ctxText = getText('IGUI_find_item')
+    if showNameInFindCtx then
+        ctxText = ctxText .. " (" .. item.displayName .. ")"
+    end
+    context:addOption(ctxText, backRef, CHC_menu.onCraftHelperItem, item)
+
+    local newTabOption = context:addOption(getText('IGUI_new_tab'), backRef, backRef.addItemView, item.item,
+        true, 2)
+
+    local isRecipes = CHC_main.common.areThereRecipesForItem(item)
+
+    if not isRecipes then
+        CHC_main.common.setTooltipToCtx(
+            newTabOption,
+            getText('IGUI_no_recipes'),
+            false
+        )
+    else
+        CHC_main.common.addTooltipNumRecipes(newTabOption, item)
+    end
+end
+
 function CHC_uses:onRMBDownObjList(x, y, item)
-    self.parent.backRef.onRMBDownObjList(self, x, y, item, true)
+    if not item then
+        local row = self:rowAt(x, y)
+        if row == -1 then return end
+        item = self.items[row].item.recipeData.result
+        if not item then return end
+    end
+
+    self.parent.onRMBDown(self, x, y, item, true)
 end
 
 -- endregion
@@ -446,9 +505,18 @@ end
 
 function CHC_uses:recipeTypeFilter(recipe)
     local rl = self.objList
-
-    local is_valid = RecipeManager.IsRecipeValid(recipe.recipe, rl.player, nil, rl.containerList)
-    local is_known = rl.player:isRecipeKnown(recipe.recipe)
+    local is_valid
+    local is_known
+    if recipe.isSynthetic then
+        is_valid = false
+        is_known = true
+    elseif recipe.isEvolved then
+        is_valid = CHC_main.common.isEvolvedRecipeValid(recipe, rl.containerList)
+        is_known = true
+    else
+        is_valid = RecipeManager.IsRecipeValid(recipe.recipe, rl.player, nil, rl.containerList)
+        is_known = rl.player:isRecipeKnown(recipe.recipe)
+    end
 
     local state = true
     if self.typeFilter == 'all' then state = true end
@@ -510,19 +578,37 @@ function CHC_uses:searchProcessToken(token, recipe)
         end
         if char == '#' then
             -- search by ingredients
-            local rSources = recipe.recipe:getSource()
-
-            -- Go through items needed by the recipe
-            for n = 0, rSources:size() - 1 do
-                -- Get the item name (not the display name)
-                local rSource = rSources:get(n)
-                local sItems = rSource:getItems()
-                for k = 0, sItems:size() - 1 do
-                    local itemString = sItems:get(k)
-                    local item = CHC_main.items[itemString]
+            if recipe.isSynthetic then
+                local sources = recipe.recipeData.ingredients
+                for i = 1, #sources do
+                    local source = sources[i]
+                    local item = CHC_main.items[source.type]
                     if item then insert(items, item.displayName) end
                 end
+            elseif recipe.isEvolved then
+                local item = CHC_main.items[recipe.recipeData.baseItem]
+                if item then insert(items, item.displayName) end
+                local sources = recipe.recipeData.possibleItems
+                for i = 1, #sources do
+                    local source = sources[i]
+                    local item = CHC_main.items[source.fullType]
+                    if item then insert(items, item.displayName) end
+                end
+            else
+                local rSources = recipe.recipe:getSource()
+                -- Go through items needed by the recipe
+                for n = 0, rSources:size() - 1 do
+                    -- Get the item name (not the display name)
+                    local rSource = rSources:get(n)
+                    local sItems = rSource:getItems()
+                    for k = 0, sItems:size() - 1 do
+                        local itemString = sItems:get(k)
+                        local item = CHC_main.items[itemString]
+                        if item then insert(items, item.displayName) end
+                    end
+                end
             end
+
 
             if recipe.recipeData.hydroFurniture then
                 insert(items, recipe.recipeData.hydroFurniture.obj.displayName)
@@ -549,9 +635,9 @@ function CHC_uses:searchProcessToken(token, recipe)
 end
 
 function CHC_uses:processAddObjToObjList(recipe, modData)
-    if not self.showHidden and recipe.recipe:isHidden() then return end
+    if not self.showHidden and recipe.hidden then return end
     local name = recipe.recipeData.name
-    recipe.favorite = modData[CHC_main.getFavoriteRecipeModDataString(recipe.recipe)] or false
+    recipe.favorite = modData[CHC_main.getFavoriteRecipeModDataString(recipe)] or false
 
     self.objList:addItem(name, recipe)
 end
@@ -589,6 +675,7 @@ function CHC_uses:new(args)
         getText('UI_searchrow_info_recipes_special'),
         getText('UI_searchrow_info_recipes_examples')
     )
+    o.objListSize = 0
 
     o.needUpdateFavorites = true
     o.needUpdateTypes = false

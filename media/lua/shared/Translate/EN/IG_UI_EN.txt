@@ -28,6 +28,8 @@ IGUI_EN = {
     IGUI_CHC_ItemCat_Normal = "Normal"
     IGUI_CHC_ItemCat_Radio = "Radio"
     IGUI_CHC_ItemCat_Key = "Key"
+    IGUI_CHC_RecipeCat_Evolved = "Evolved"
+    IGUI_CHC_Evolved_Max_Ingr = "(Max ingredients: %1)"
     IGUI_new_tab = "Open in new tab"
     IGUI_find_item = "Find item"
     IGUI_mod_chc = "Mod"
@@ -47,6 +49,6 @@ IGUI_EN = {
     IGUI_BlacklistProps_ctx = "Blacklist"
     IGUI_UnblacklistProps_ctx = "Unblacklist"
     IGUI_ItemDetails_Attributes_tab = "Attributes"
-
-
+    IGUI_Synthetic_Recipe_result_tooltip = "Build via right clicking in world"
+    IGUI_Evolved_Recipe_result_tooltip = "Evolved recipe"
 }
