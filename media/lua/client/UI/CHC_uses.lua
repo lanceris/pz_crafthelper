@@ -127,6 +127,9 @@ function CHC_uses:update()
     end
     if self.needUpdateFavorites == true then
         self:handleFavCategory(self.updFavWithCur)
+        if self.favrec then
+            self:updateTabNameWithCount(self.favRecNum)
+        end
         self.needUpdateFavorites = false
         self.updFavWithCur = false
     end
@@ -267,13 +270,12 @@ end
 function CHC_uses:refreshObjList(recipes)
     local objL = self.objList
     objL:clear()
-    objL:setScrollHeight(0)
 
     for i = 1, #recipes do
         self:processAddObjToObjList(recipes[i], self.modData)
     end
     sort(objL.items, self.itemSortFunc)
-    if self.objList.items and #self.objList.items > 0 then
+    if objL.items and #objL.items > 0 then
         local ix = 1
         objL.selected = ix
         objL:ensureVisible(ix)
@@ -295,16 +297,13 @@ function CHC_uses:handleFavCategory(current)
     --if cond1 or cond2 or cond3 then
     self:updateCategories(current)
     --end
-    if self.favRecNum == 0 then
-        if self.selectedCategory == self.favCatName then
-            self.selectedCategory = self.categorySelectorDefaultOption
-            self.needUpdateObjects = true
-        end
-    end
-    if csSel.data.count == 1 then
+    if self.favRecNum == 0 and
+        self.selectedCategory == self.favCatName or
+        csSel.data.count == 1 then
         self.selectedCategory = self.categorySelectorDefaultOption
         self.needUpdateObjects = true
     end
+
     cs:select(self.selectedCategory)
     --update favorites in favorites view
     if not cond3 then
@@ -315,11 +314,12 @@ function CHC_uses:handleFavCategory(current)
     end
 end
 
-function CHC_uses:updateTabNameWithCount()
+function CHC_uses:updateTabNameWithCount(listSize)
+    listSize = listSize and listSize or self.objListSize
     self.backRef.updateQueue:push({
         targetView = self.ui_type,
         actions = { 'needUpdateSubViewName' },
-        data = { needUpdateSubViewName = self.objListSize }
+        data = { needUpdateSubViewName = listSize }
     })
 end
 

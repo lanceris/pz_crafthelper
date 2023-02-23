@@ -229,6 +229,9 @@ function CHC_search:update()
     if self.needUpdateFavorites == true then
         -- print('upd Favorites; ui: ' .. self.ui_type)
         self:handleFavorites()
+        if self.favrec then
+            CHC_uses.updateTabNameWithCount(self, #self.favrec)
+        end
         self.needUpdateFavorites = false
     end
     if self.needUpdateObjects == true then
