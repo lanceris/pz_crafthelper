@@ -391,6 +391,21 @@ function CHC_uses:onRMBDown(x, y, item, showNameInFindCtx)
         ctxText = ctxText .. " (" .. item.displayName .. ")"
     end
     context:addOption(ctxText, backRef, CHC_menu.onCraftHelperItem, item)
+
+    local newTabOption = context:addOption(getText('IGUI_new_tab'), backRef, backRef.addItemView, item.item,
+        true, 2)
+
+    local isRecipes = CHC_main.common.areThereRecipesForItem(item)
+
+    if not isRecipes then
+        CHC_main.common.setTooltipToCtx(
+            newTabOption,
+            getText('IGUI_no_recipes'),
+            false
+        )
+    else
+        CHC_main.common.addTooltipNumRecipes(newTabOption, item)
+    end
 end
 
 function CHC_uses:onRMBDownObjList(x, y, item)

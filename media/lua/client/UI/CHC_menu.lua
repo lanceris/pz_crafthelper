@@ -39,12 +39,8 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
 
 		-- if item is used in any recipe OR there is a way to create this item - mark item as valid
 		local fullType = item:getFullType()
-		local cond1 = type(CHC_main.recipesByItem[fullType]) == 'table'
-		local cond2 = type(CHC_main.recipesForItem[fullType]) == 'table'
-		-- also check for evolved recipes
-		local cond3 = type(CHC_main.evoRecipesByItem[fullType]) == 'table'
-		local cond4 = type(CHC_main.evoRecipesForItem[fullType]) == 'table'
-		if cond1 or cond2 or cond3 or cond4 then
+		local isRecipes = CHC_main.common.areThereRecipesForItem(nil, fullType)
+		if isRecipes then
 			table.insert(itemsUsedInRecipes, item)
 		end
 	end

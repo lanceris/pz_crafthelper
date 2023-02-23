@@ -87,6 +87,7 @@ end
 ---@param passAll? boolean return true if true without checks
 ---@return boolean #result of comparison
 CHC_utils.compare = function(what, to, passAll)
+    if not what then return false end
     local isNegate = sub(to, 1, 1) == '~'
     if isNegate then to = sub(to, 2) end -- remove ~ from token
     if to == '' then return true end

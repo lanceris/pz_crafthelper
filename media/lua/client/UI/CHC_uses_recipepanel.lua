@@ -1178,18 +1178,14 @@ function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y, item)
 
     item = CHC_main.items[item.fullType]
     if not item then return end
-    local cond1 = type(CHC_main.recipesByItem[item.fullType]) == 'table'
-    local cond2 = type(CHC_main.recipesForItem[item.fullType]) == 'table'
-    -- also check for evolved recipes
-    local cond3 = type(CHC_main.evoRecipesByItem[item.fullType]) == 'table'
-    local cond4 = type(CHC_main.evoRecipesForItem[item.fullType]) == 'table'
+    local isRecipes = CHC_main.common.areThereRecipesForItem(item)
 
     context:addOption(getText('IGUI_find_item'), backRef, CHC_menu.onCraftHelperItem, item)
 
     local newTabOption = context:addOption(getText('IGUI_new_tab'), backRef, backRef.addItemView, item.item,
         true, 2)
 
-    if not utils.any({ cond1, cond2, cond3, cond4 }, true) then
+    if not isRecipes then
         CHC_main.common.setTooltipToCtx(
             newTabOption,
             getText('IGUI_no_recipes'),

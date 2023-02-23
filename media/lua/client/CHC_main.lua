@@ -423,11 +423,17 @@ CHC_main.processOneRecipe = function(recipe)
 		end
 	end
 
+
+	local resultItem = recipe:getResult()
+	if not resultItem then return end
+
 	--region integrations
 	--check for hydrocraft furniture
 	local hydrocraftFurniture = CHC_main.processHydrocraft(recipe)
 	if hydrocraftFurniture then
 		newItem.recipeData.hydroFurniture = hydrocraftFurniture
+		newItem.isNearItem = true
+		CHC_main.setRecipeForItem(CHC_main.recipesByItem, hydrocraftFurniture.obj.fullType, newItem)
 	end
 
 	--check for CEC furniture
@@ -435,12 +441,18 @@ CHC_main.processOneRecipe = function(recipe)
 		local CECFurniture = CHC_main.processCEC(newItem.recipeData.nearItem, CHC_main.CECData)
 		if CECFurniture and not utils.empty(CECFurniture) then
 			newItem.recipeData.CECFurniture = CECFurniture
+			newItem.isNearItem = true
+			CHC_main.setRecipeForItem(CHC_main.recipesByItem, CECFurniture.obj.fullType, newItem)
 		end
 	end
-	--endregion
 
-	local resultItem = recipe:getResult()
-	if not resultItem then return end
+	-- if CHC_main.itemsManuals[newItem.recipeData.name] then
+	-- 	for _, value in pairs(CHC_main.itemsManuals[newItem.recipeData.name]) do
+	-- 		newItem.isBook = true
+	-- 		CHC_main.setRecipeForItem(CHC_main.recipesByItem, value.fullType, newItem)
+	-- 	end
+	-- end
+	--endregion
 
 	local resultFullType = resultItem:getFullType()
 	local itemres = CHC_main.getItemByFullType(resultFullType)

@@ -392,13 +392,9 @@ function CHC_search:onRMBDownObjList(x, y, item)
         if not item then return end
     end
     item = CHC_main.items[item.fullType]
-    local cond1 = type(CHC_main.recipesByItem[item.fullType]) == 'table'
-    local cond2 = type(CHC_main.recipesForItem[item.fullType]) == 'table'
-    -- also check for evolved recipes
-    local cond3 = type(CHC_main.evoRecipesByItem[item.fullType]) == 'table'
-    local cond4 = type(CHC_main.evoRecipesForItem[item.fullType]) == 'table'
+    local isRecipes = CHC_main.common.areThereRecipesForItem(item)
 
-    if cond1 or cond2 or cond3 or cond4 then
+    if isRecipes then
         local opt = context:addOption(getText('IGUI_new_tab'), backRef, backRef.addItemView, item.item, true, 2)
         CHC_main.common.addTooltipNumRecipes(opt, item)
     end
@@ -410,13 +406,8 @@ function CHC_search:onMMBDownObjList()
     local row = self:rowAt(x, y)
     if row == -1 then return end
     local item = self.items[row].item
-    -- check if there is recipes for item
-    local cond1 = type(CHC_main.recipesByItem[item.fullType]) == 'table'
-    local cond2 = type(CHC_main.recipesForItem[item.fullType]) == 'table'
-    -- also check for evolved recipes
-    local cond3 = type(CHC_main.evoRecipesByItem[item.fullType]) == 'table'
-    local cond4 = type(CHC_main.evoRecipesForItem[item.fullType]) == 'table'
-    if cond1 or cond2 or cond3 or cond4 then
+    local isRecipes = CHC_main.common.areThereRecipesForItem(item)
+    if isRecipes then
         self.parent.backRef:addItemView(item.item, false)
     end
 end

@@ -5,6 +5,7 @@
 ### New features
 
 - Support for evolved recipes
+- Current amounts of items/recipes in list added to tab name
 
 ### Improvements
 
@@ -12,10 +13,10 @@
 - Cross-integration CEC-Hydrocraft (`isFurnitureNearby` from Hydrocraft to check if table nearby in recipes)
 - Added item tags to attributes
 - Ensure CraftHelper loaded last in OnGameStart event to catch all lua changes to recipes/items/etc
-- Added current amount of items/recipes in list to tab name
 - Added text to 'One of:' block showing available/total ingredients
 - Refactored recipe details main info
 - Ability to find recipe result item from recipe list
+- Hydrocraft and Crafting Enhanced tables now shows what are they used for
 
 ### Bugfixes
 

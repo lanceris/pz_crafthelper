@@ -141,3 +141,13 @@ function CHC_main.common.playerHasItemNearby(item, containerList)
     end
     return false
 end
+
+function CHC_main.common.areThereRecipesForItem(item, fullType)
+    if fullType then item = { fullType = fullType } end
+    local cond1 = type(CHC_main.recipesByItem[item.fullType]) == 'table'
+    local cond2 = type(CHC_main.recipesForItem[item.fullType]) == 'table'
+    local cond3 = type(CHC_main.evoRecipesByItem[item.fullType]) == 'table'
+    local cond4 = type(CHC_main.evoRecipesForItem[item.fullType]) == 'table'
+
+    return utils.any({ cond1, cond2, cond3, cond4 }, true)
+end
