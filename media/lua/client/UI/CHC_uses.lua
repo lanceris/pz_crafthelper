@@ -10,6 +10,12 @@ local hh = {
     search_row = 24
 }
 
+local fontSizeToInternal = {
+    { font = UIFont.Small,  pad = 2, icon = 10, ymin = 2 },
+    { font = UIFont.Medium, pad = 4, icon = 18, ymin = -2 },
+    { font = UIFont.Large,  pad = 6, icon = 24, ymin = -4 }
+}
+
 local derivative = ISPanel
 CHC_uses = derivative:derive('CHC_uses')
 CHC_uses.sortOrderIconAsc = getTexture('media/textures/sort_order_asc.png')
@@ -23,8 +29,6 @@ local utils = require('CHC_utils')
 
 local insert = table.insert
 local sort = table.sort
-
-local advUpdCoCa = true
 
 -- region create
 function CHC_uses:initialise()
@@ -88,6 +92,7 @@ function CHC_uses:create()
     self.objList:instantiate()
     self.objList:setAnchorBottom(true)
     self.objList:setOnMouseDownFunction(self, CHC_uses.onRecipeChange)
+    self.objList.curFontData = self.curFontData
     -- endregion
 
     -- region recipe details windows
@@ -120,12 +125,21 @@ end
 -- region update
 
 function CHC_uses:update()
-    if self.needUpdateObjects == true then
+    if self.needUpdateFont then
+        self.curFontData = fontSizeToInternal[CHC_settings.config.list_font_size]
+        self.objList.curFontData = self.curFontData
+        if self.objList.font ~= self.curFontData.font then
+            self.objList:setFont(self.curFontData.font, self.curFontData.pad)
+        end
+        self.needUpdateFont = false
+    end
+
+    if self.needUpdateObjects then
         self:updateRecipes(self.selectedCategory)
         self:updateTabNameWithCount()
         self.needUpdateObjects = false
     end
-    if self.needUpdateFavorites == true then
+    if self.needUpdateFavorites then
         self:handleFavCategory(self.updFavWithCur)
         if self.favrec then
             self:updateTabNameWithCount(self.favRecNum)
@@ -133,18 +147,10 @@ function CHC_uses:update()
         self.needUpdateFavorites = false
         self.updFavWithCur = false
     end
-    if self.needUpdateTypes == true then
+    if self.needUpdateTypes then
         self:updateTypes()
         self.needUpdateTypes = false
-        self.updCountsWithCur = false
     end
-
-    -- self.ms = self.ms + UIManager.getMillisSinceLastUpdate()
-    -- if self.ms >= 2000 then
-    --     self.updCountsWithCur = true
-    --     self.needUpdateTypes = true
-    --     self.ms = 0
-    -- end
 end
 
 function CHC_uses:updateRecipes(sl)
@@ -199,7 +205,7 @@ function CHC_uses:updateTypes()
     for i = 1, #recipes do
         local recipe = recipes[i]
         local c1 = recipe.displayCategory == self.selectedCategory
-        if (not self.updCountsWithCur) or (self.updCountsWithCur == true and (c1 or c2 or (c3 and recipe.favorite))) then
+        if c1 or c2 or (c3 and recipe.favorite) then
             if recipe.isSynthetic then
                 is_valid = false
                 is_known = true
@@ -219,6 +225,11 @@ function CHC_uses:updateTypes()
                 self.numRecipesInvalid = self.numRecipesInvalid + 1
             end
         end
+    end
+    if self.numRecipesValid == 0 and self.typeFilter == 'valid' or
+        self.numRecipesKnown == 0 and self.typeFilter == 'known' or
+        self.numRecipesInvalid == 0 and self.typeFilter == 'invalid' then
+        self:sortByType('all')
     end
 end
 
@@ -334,6 +345,20 @@ end
 
 -- region render
 
+function CHC_uses:render()
+    ISPanel.render(self)
+    if self.needUpdateScroll then
+        self.objList.needUpdateScroll = true
+        self.objPanel.needUpdateScroll = true
+        self.needUpdateScroll = false
+    end
+    if self.needUpdateMousePos then
+        self.objList.needUpdateMousePos = true
+        self.objPanel.needUpdateMousePos = true
+        self.needUpdateMousePos = false
+    end
+end
+
 function CHC_uses:onResizeHeaders()
     self.filterRow:setWidth(self.headers.nameHeader.width)
     self.searchRow:setWidth(self.headers.nameHeader.width)
@@ -354,10 +379,7 @@ end
 function CHC_uses:onChangeCategory(_option, sl)
     self.parent.selectedCategory = sl or _option.options[_option.selected].text
     self.parent.needUpdateObjects = true
-    if advUpdCoCa then
-        self.parent.updCountsWithCur = true
-        self.parent.needUpdateTypes = true
-    end
+    self.parent.needUpdateTypes = true
 end
 
 function CHC_uses:onRecipeChange(recipe)
@@ -459,10 +481,8 @@ function CHC_uses:sortByType(_type)
         self.filterRow.filterTypeBtn:setTooltip(self:filterTypeSetTooltip())
         self.filterRow.filterTypeBtn:setImage(self:filterTypeSetIcon())
         self.needUpdateObjects = true
-        if advUpdCoCa then
-            self.updFavWithCur = true
-            self.needUpdateFavorites = true
-        end
+        self.updFavWithCur = true
+        self.needUpdateFavorites = true
     end
 end
 
@@ -691,14 +711,18 @@ function CHC_uses:new(args)
     o.needUpdateFavorites = true
     o.needUpdateTypes = false
     o.needUpdateObjects = false
+    o.needUpdateFont = false
+    o.needUpdateScroll = false
+    o.needUpdateMousePos = false
+
     o.selectedCategory = o.categorySelectorDefaultOption
     o.backRef = args.backRef
     o.ui_type = args.ui_type
     o.favRecNum = 0
-    o.updCountsWithCur = false
     o.updFavWithCur = false
     o.isItemView = false
     o.modData = CHC_main.playerModData
+    o.curFontData = fontSizeToInternal[CHC_settings.config.list_font_size]
 
 
     o.numRecipesAll = 0

@@ -388,6 +388,22 @@ function CHC_window:update()
             end
         end
     end
+
+    local ms = UIManager.getMillisSinceLastRender()
+    for i = 1, #self.updRates do
+        local val = self.updRates[i]
+        if not val.cur then val.cur = 0 end
+        val.cur = val.cur + ms
+        if val.cur >= val.rate then
+            -- print("\n")
+            -- print("Time passed: " .. val.rate)
+            for _, view in pairs(self.uiTypeToView) do
+                -- print("Trigger " .. val.var .. " for " .. view.name)
+                view.view[val.var] = true
+            end
+            val.cur = 0
+        end
+    end
 end
 
 function CHC_window:refresh(viewName, panel, focusOnNew, focusOnTabIdx)
@@ -443,7 +459,7 @@ end
 -- region render
 
 function CHC_window:resizeHeaders(headers)
-    if headers.nameHeader:getWidth() == headers.nameHeader.minimumWidth then
+    if headers.nameHeader.width == headers.nameHeader.minimumWidth then
         headers.nameHeader:setWidth(headers.nameHeader.minimumWidth)
         headers.typeHeader:setX(headers.nameHeader.width)
         headers.typeHeader:setWidth(self.width - headers.nameHeader.width)
@@ -967,6 +983,11 @@ function CHC_window:new(args)
         getText('UI_infotext_item_mouse')
     )
     o:setWantKeyEvents(true)
+
+    o.updRates = {
+        { var = "needUpdateScroll",   rate = 50 }, -- TODO move to settings?
+        { var = "needUpdateMousePos", rate = 100 }
+    }
 
     return o
 end

@@ -383,6 +383,18 @@ end
 
 -- region render
 
+function CHC_search:render()
+    ISPanel.render(self)
+    if self.needUpdateScroll then
+        self.objList.needUpdateScroll = true
+        self.needUpdateScroll = false
+    end
+    if self.needUpdateMousePos then
+        self.objList.needUpdateMousePos = true
+        self.needUpdateMousePos = false
+    end
+end
+
 function CHC_search:onResizeHeaders()
     self.filterRow:setWidth(self.headers.nameHeader.width)
     self.searchRow:setWidth(self.headers.nameHeader.width)
@@ -636,7 +648,6 @@ function CHC_search:new(args)
         getText('UI_searchrow_info_items_examples')
     )
 
-
     o.selectedCategory = o.defaultCategory
     o.prevSelectedCategory = o.selectedCategory
     o.backRef = args.backRef
@@ -654,6 +665,8 @@ function CHC_search:new(args)
     o.needUpdateCategories = false
     o.needUpdateFavorites = false
     o.needUpdateFont = false
+    o.needUpdateScroll = false
+    o.needUpdateMousePos = false
 
     o.isItemView = true
 

@@ -9,10 +9,12 @@
 ### Improvements
 
 - Use RecipeManager.getSourceItemsAll for each source instead of getAvailableItemsAll when collecting available items (incorrect counts otherwise, needs testing)
+- Optimized rendering
 
 ### Bugfixes
 
 - Fixed incorrect crafting when [Proximity Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=2847184718) active (extra loot tab not accounted for)
+- Fixed recipe type amounts (valid/invalid) not updating properly
 
 ## 1.6.6 (23.02.2023)
 

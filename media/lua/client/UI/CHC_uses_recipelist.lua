@@ -2,15 +2,10 @@ require 'ISUI/ISScrollingListBox'
 
 CHC_uses_recipelist = ISScrollingListBox:derive('CHC_uses_recipelist')
 
-local fontSizeToInternal = {
-	{ font = UIFont.Small,  pad = 4, icon = 10 },
-	{ font = UIFont.Medium, pad = 4, icon = 18 },
-	{ font = UIFont.Large,  pad = 6, icon = 24 }
-}
-
 -- region create
 function CHC_uses_recipelist:initialise()
 	ISScrollingListBox.initialise(self)
+	self.fastListReturn = CHC_main.common.fastListReturn
 end
 
 -- endregion
@@ -27,17 +22,19 @@ end
 
 function CHC_uses_recipelist:prerender()
 	ISScrollingListBox.prerender(self)
-	-- FIXME add delay
-	self.parent:getContainers()
+	if self.needUpdateScroll then
+		self.yScroll = self:getYScroll()
+		self.needUpdateScroll = false
+	end
+	if self.needUpdateMousePos then
+		self.mouseX = self:getMouseX()
+		self.mouseY = self:getMouseY()
+		self.needUpdateMousePos = false
+	end
 end
 
 function CHC_uses_recipelist:doDrawItem(y, item, alt)
 	local shouldDrawMod = CHC_settings.config.show_recipe_module
-	local curFontData = fontSizeToInternal[CHC_settings.config.list_font_size]
-	if not curFontData then curFontData = fontSizeToInternal[3] end
-	if self.font ~= curFontData.font then
-		self:setFont(curFontData.font, curFontData.pad)
-	end
 
 	if shouldDrawMod then
 		if item.item.module == 'Base' then
@@ -45,22 +42,26 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 		end
 	end
 
-	item.height = curFontData.icon + 2 * curFontData.pad
+	item.height = self.curFontData.icon + 2 * self.curFontData.pad
 	if shouldDrawMod then
 		item.height = item.height + 2 + getTextManager():getFontHeight(UIFont.Small)
 	end
 
-	if y < -self:getYScroll() - 1 then return y + item.height; end
-	if y > self.height - self:getYScroll() + 1 then return y + item.height; end
-	if y + self:getYScroll() >= self.height then return y + item.height end
-	if y + item.height + self:getYScroll() <= 0 then return y + item.height end
+	if self:fastListReturn(y) then return y + item.height end
 
 	local recipe = item.item
 	local a = 0.9
 	local favoriteStar = nil
 	local favoriteAlpha = a
-	local itemPadY = self.itemPadY or (item.height - self.fontHgt) / 2
 	local iconsEnabled = CHC_settings.config.show_icons
+
+	local clr = {
+		txt = item.text,
+		x = iconsEnabled and (self.curFontData.icon + 8) or 15,
+		y = y - self.curFontData.ymin,
+		a = 0.9,
+		font = self.font
+	}
 
 	-- region icons
 	if iconsEnabled then
@@ -68,20 +69,14 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 		if resultItem then
 			local tex = resultItem.texture
 			if tex then
-				self:drawTextureScaled(tex, 6, y + 6, curFontData.icon, curFontData.icon, 1)
+				self:drawTextureScaled(tex, 6, y - 2 + self.curFontData.icon / 2,
+					self.curFontData.icon, self.curFontData.icon, 1)
 			end
 		end
 	end
 	--endregion
 
 	--region text
-	local clr = {
-		txt = item.text,
-		x = iconsEnabled and (curFontData.icon + 8) or 15,
-		y = (y) + itemPadY,
-		a = 0.9,
-		font = self.font
-	}
 	if recipe.isSynthetic == true then
 		-- known but cant craft, white text
 		clr['r'], clr['g'], clr['b'] = 0.9, 0.9, 0.9
@@ -106,15 +101,15 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 	end
 	self:drawText(clr.txt, clr.x, clr.y, clr.r, clr.g, clr.b, clr.a, clr.font)
 	if shouldDrawMod then
-		local modY = clr.y + getTextManager():getFontHeight(self.font)
-		self:drawText('Mod: ' .. item.item.module, clr.x + 5, modY, 1, 1, 1, 0.8, UIFont.Small)
+		local modY = clr.y + getTextManager():getFontHeight(self.font) - self.curFontData.pad
+		self:drawText('Mod: ' .. item.item.module, clr.x + self.curFontData.pad, modY, 1, 1, 1, 0.8, UIFont.Small)
 	end
 	--endregion
 
 	--region favorite handler
 	local favYPos = self.width - 30
-	if item.index == self.mouseoverselected and not self:isMouseOverScrollBar() then
-		if self:getMouseX() >= favYPos - 20 then
+	if item.index == self.mouseoverselected then
+		if self.mouseX >= favYPos - 20 and self.mouseX <= favYPos + 20 then
 			favoriteStar = item.item.favorite and self.favCheckedTex or self.favNotCheckedTex
 			favoriteAlpha = 0.9
 		else
@@ -131,7 +126,7 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 	--endregion
 
 	--region filler
-	local sc = { x = 0, y = y, w = self:getWidth(), h = item.height - 1, a = 0.2, r = 0.75, g = 0.5, b = 0.5 }
+	local sc = { x = 0, y = y, w = self.width, h = item.height - 1, a = 0.2, r = 0.75, g = 0.5, b = 0.5 }
 	local bc = { x = sc.x, y = sc.y, w = sc.w, h = sc.h + 1, a = 0.25, r = 1, g = 1, b = 1 }
 	-- fill selected entry
 	if self.selected == item.index then
@@ -231,5 +226,9 @@ function CHC_uses_recipelist:new(args)
 	o.favoriteStar = getTexture('media/ui/FavoriteStar.png')
 	o.favCheckedTex = getTexture('media/ui/FavoriteStarChecked.png')
 	o.favNotCheckedTex = getTexture('media/ui/FavoriteStarUnchecked.png')
+	o.yScroll = 0
+
+	o.needUpdateScroll = false
+	o.needUpdateMousePos = false
 	return o
 end

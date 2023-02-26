@@ -15,17 +15,6 @@ end
 -- region update
 
 function CHC_items_list:update()
-    if self.needUpdateScroll == true then
-        self.yScroll = self:getYScroll()
-        self.needUpdateScroll = false
-    end
-
-    if self.needUpdateMousePos == true then
-        self.mouseX = self:getMouseX()
-        self.mouseY = self:getMouseY()
-        self.needUpdateMousePos = false
-    end
-
     if self.needmmb and Mouse.isMiddleDown() then
         self:onMMBDown()
         self.needmmb = false
@@ -40,31 +29,20 @@ end
 
 -- region render
 
-function CHC_items_list:rowAtY(y)
-    local y0 = 0
-    for i = 1, #self.items do
-        if y >= y0 and y < y0 + self.itemheight then
-            return i
-        end
-        y0 = y0 + self.itemheight
-    end
-    return -1
-end
-
 function CHC_items_list:prerender()
-    local ms = UIManager.getMillisSinceLastRender()
-    for i = 1, #self.updRates do
-        local val = self.updRates[i]
-        if not val.cur then val.cur = 0 end
-        val.cur = val.cur + ms
-        if val.cur >= val.rate then
-            self[val.var] = true
-            val.cur = 0
-        end
-    end
-
     if not self.items then return end
     if utils.empty(self.items) then return end
+
+    if self.needUpdateScroll then
+        self.yScroll = self:getYScroll()
+        self.needUpdateScroll = false
+    end
+
+    if self.needUpdateMousePos then
+        self.mouseX = self:getMouseX()
+        self.mouseY = self:getMouseY()
+        self.needUpdateMousePos = false
+    end
 
     local stencilX = 0
     local stencilY = 0
@@ -309,10 +287,6 @@ function CHC_items_list:new(args, onmiddlemousedown)
     o.needmmb = false
     o.modData = CHC_main.playerModData
 
-    o.updRates = {
-        { var = "needUpdateScroll",   rate = 50 },
-        { var = "needUpdateMousePos", rate = 100 }
-    }
     o.yScroll = 0
     o.needUpdateScroll = true
     o.needUpdateMousePos = true

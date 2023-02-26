@@ -132,7 +132,7 @@ function CHC_props_table:drawProps(y, item, alt)
     end
 
     if item.index == self.mouseoverselected then
-        local sc = { x = 0, y = y, w = self:getWidth(), h = item.height - 1, a = 0.2, r = 0.75, g = 0.5, b = 0.5 }
+        local sc = { x = 0, y = y, w = self.width, h = item.height - 1, a = 0.2, r = 0.75, g = 0.5, b = 0.5 }
         self:drawRect(sc.x, sc.y, sc.w, sc.h, 0.2, 0.5, sc.g, sc.b)
     end
 
@@ -149,9 +149,9 @@ function CHC_props_table:drawProps(y, item, alt)
         rectP = { a = 0.2, r = 0.75, g = 0.5, b = 0.5 }
     end
 
-    self:drawRect(0, (y), self:getWidth(), self.itemheight, rectP.a, rectP.r, rectP.g, rectP.b)
+    self:drawRect(0, (y), self.width, self.itemheight, rectP.a, rectP.r, rectP.g, rectP.b)
 
-    self:drawRectBorder(0, (y), self:getWidth(), self.itemheight, a, self.borderColor.r, self.borderColor.g,
+    self:drawRectBorder(0, (y), self.width, self.itemheight, a, self.borderColor.r, self.borderColor.g,
         self.borderColor.b)
 
     local clipX = self.columns[1].size
