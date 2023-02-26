@@ -1,15 +1,12 @@
 CHC_items_list = ISScrollingListBox:derive('CHC_items_list')
 
-local fontSizeToInternal = {
-    { font = UIFont.Small,  pad = 4, icon = 10 },
-    { font = UIFont.Medium, pad = 4, icon = 18 },
-    { font = UIFont.Large,  pad = 6, icon = 24 }
-}
+local utils = require('CHC_utils')
 
 -- region create
 
 function CHC_items_list:initialise()
     self.ft = true
+    self.fastListReturn = CHC_main.common.fastListReturn
     ISScrollingListBox.initialise(self)
 end
 
@@ -17,23 +14,18 @@ end
 
 -- region update
 
-function CHC_items_list:onMMBDown()
-    if self.onmiddlemousedown then
-        self:onmiddlemousedown()
-    end
-end
-
-function CHC_items_list:onMouseMove(dx, dy)
-    ISScrollingListBox.onMouseMove(self, dx, dy)
-    self.needmmb = true
-end
-
-function CHC_items_list:onMouseMoveOutside(x, y)
-    ISScrollingListBox.onMouseMoveOutside(self, x, y)
-    self.needmmb = false
-end
-
 function CHC_items_list:update()
+    if self.needUpdateScroll == true then
+        self.yScroll = self:getYScroll()
+        self.needUpdateScroll = false
+    end
+
+    if self.needUpdateMousePos == true then
+        self.mouseX = self:getMouseX()
+        self.mouseY = self:getMouseY()
+        self.needUpdateMousePos = false
+    end
+
     if self.needmmb and Mouse.isMiddleDown() then
         self:onMMBDown()
         self.needmmb = false
@@ -48,19 +40,42 @@ end
 
 -- region render
 
+function CHC_items_list:rowAtY(y)
+    local y0 = 0
+    for i = 1, #self.items do
+        if y >= y0 and y < y0 + self.itemheight then
+            return i
+        end
+        y0 = y0 + self.itemheight
+    end
+    return -1
+end
+
 function CHC_items_list:prerender()
+    local ms = UIManager.getMillisSinceLastRender()
+    for i = 1, #self.updRates do
+        local val = self.updRates[i]
+        if not val.cur then val.cur = 0 end
+        val.cur = val.cur + ms
+        if val.cur >= val.rate then
+            self[val.var] = true
+            val.cur = 0
+        end
+    end
+
     if not self.items then return end
+    if utils.empty(self.items) then return end
 
     local stencilX = 0
     local stencilY = 0
     local stencilX2 = self.width
     local stencilY2 = self.height
 
-    self:drawRect(0, -self:getYScroll(), self.width, self.height, self.backgroundColor.a, self.backgroundColor.r,
+    self:drawRect(0, -self.yScroll, self.width, self.height, self.backgroundColor.a, self.backgroundColor.r,
         self.backgroundColor.g, self.backgroundColor.b);
 
     if self.drawBorder then
-        self:drawRectBorder(0, -self:getYScroll(), self.width, self.height, self.borderColor.a, self.borderColor.r,
+        self:drawRectBorder(0, -self.yScroll, self.width, self.height, self.borderColor.a, self.borderColor.r,
             self.borderColor.g, self.borderColor.b)
         stencilX = 1
         stencilY = 1
@@ -87,14 +102,14 @@ function CHC_items_list:prerender()
     self.listHeight = 0;
     local i = 1
     for j = 1, #self.items do
-        self.items[j].index = i;
-        local y2 = self:doDrawItem(y, self.items[j], alt);
-        self.listHeight = y2;
+        self.items[j].index = i
+        self.items[j].height = self.curFontData.icon + 2 * self.curFontData.pad
+        local y2 = self:doDrawItem(y, self.items[j], alt)
+        self.listHeight = y2
         self.items[j].height = y2 - y
         y = y2
-
-        alt = not alt;
-        i = i + 1;
+        --alt = not alt
+        i = i + 1
     end
 
     self:setScrollHeight((y));
@@ -104,11 +119,11 @@ function CHC_items_list:prerender()
         self:repaintStencilRect(stencilX, stencilY, stencilX2 - stencilX, stencilY2 - stencilY)
     end
 
-    local mouseY = self:getMouseY()
+    local mouseY = self.mouseY
     self:updateSmoothScrolling()
 
-    if mouseY ~= self:getMouseY() and self:isMouseOver() then
-        self:onMouseMove(0, self:getMouseY() - mouseY)
+    if mouseY ~= self.mouseY and self:isMouseOver() then
+        self:onMouseMove(0, self.mouseY - mouseY)
     end
     self:updateTooltip()
 
@@ -118,17 +133,7 @@ function CHC_items_list:prerender()
 end
 
 function CHC_items_list:doDrawItem(y, item, alt)
-    local curFontData = fontSizeToInternal[CHC_settings.config.list_font_size]
-    if not curFontData then curFontData = fontSizeToInternal[3] end
-    if self.font ~= curFontData.font then
-        self:setFont(curFontData.font, curFontData.pad)
-    end
-    item.height = curFontData.icon + 2 * curFontData.pad
-
-    if y + self:getYScroll() >= self.height then return y + item.height end
-    if y + item.height + self:getYScroll() <= 0 then return y + item.height end
-    if y < -self:getYScroll() - 1 then return y + item.height; end
-    if y > self:getHeight() - self:getYScroll() + 1 then return y + item.height; end
+    if self:fastListReturn(y) then return y + self.itemheight end
 
     local itemObj = item.item
     local a = 0.9
@@ -142,50 +147,49 @@ function CHC_items_list:doDrawItem(y, item, alt)
     -- region icons
     if iconsEnabled then
         local itemIcon = itemObj.texture
-        self:drawTextureScaled(itemIcon, 6, y + 6, curFontData.icon, curFontData.icon, 1)
+        self:drawTextureScaled(itemIcon, 6, y + 6, self.curFontData.icon, self.curFontData.icon, 1)
     end
     --endregion
 
     --region text
     local clr = {
         txt = item.text,
-        x = iconsEnabled and (curFontData.icon + 8) or 15,
+        x = iconsEnabled and (self.curFontData.icon + 8) or 15,
         y = (y) + itemPadY,
+        r = 1,
+        g = 1,
+        b = 1,
         a = 0.9,
-        font = self.font
+        font = self.font,
     }
-    clr['r'] = 1
-    clr['g'] = 1
-    clr['b'] = 1
-    clr['a'] = a
     self:drawText(clr.txt, clr.x, clr.y, clr.r, clr.g, clr.b, clr.a, clr.font)
     --endregion
 
     --region favorite handler
-    local isFav = CHC_main.playerModData[CHC_main.getFavItemModDataStr(item.item)] == true
+    local isFav = self.modData[CHC_main.getFavItemModDataStr(item.item)] == true
     local favYPos = self.width - 30
     if item.index == self.mouseoverselected and not self:isMouseOverScrollBar() then
         if self:getMouseX() >= favYPos - 20 then
-            favoriteStar = isFav and self.favCheckedTex or self.favNotCheckedTex
+            favoriteStar = isFav and self.favorite.checked or self.favorite.notChecked
             favoriteAlpha = 0.9
         else
-            favoriteStar = isFav and self.favoriteStar or self.favNotCheckedTex
+            favoriteStar = isFav and self.favorite.star or self.favorite.notChecked
             favoriteAlpha = isFav and a or 0.3
         end
     elseif isFav then
-        favoriteStar = self.favoriteStar
+        favoriteStar = self.favorite.star
     end
     if favoriteStar then
         self:drawTexture(
-            favoriteStar, favYPos,
-            y + (item.height / 2 - favoriteStar:getHeight() / 2),
+            favoriteStar.tex, favYPos,
+            y + (item.height / 2 - favoriteStar.height / 2),
             favoriteAlpha, 1, 1, 1
         )
     end
     --endregion
 
     --region filler
-    local sc = { x = 0, y = y, w = self:getWidth(), h = item.height - 1, a = 0.2, r = 0.75, g = 0.5, b = 0.5 }
+    local sc = { x = 0, y = y, w = self.width, h = item.height - 1, a = 0.2, r = 0.75, g = 0.5, b = 0.5 }
     local bc = { x = sc.x, y = sc.y, w = sc.w, h = sc.h + 1, a = 0.25, r = 1, g = 1, b = 1 }
     -- fill selected entry
     if self.selected == item.index then
@@ -214,6 +218,23 @@ function CHC_items_list:onMouseDown_Recipes(x, y)
     if self:isMouseOverFavorite(x) then
         self:addToFavorite(row)
     end
+end
+
+
+function CHC_items_list:onMMBDown()
+    if self.onmiddlemousedown then
+        self:onmiddlemousedown()
+    end
+end
+
+function CHC_items_list:onMouseMove(dx, dy)
+    ISScrollingListBox.onMouseMove(self, dx, dy)
+    if not self.needmmb then self.needmmb = true end
+end
+
+function CHC_items_list:onMouseMoveOutside(x, y)
+    ISScrollingListBox.onMouseMoveOutside(self, x, y)
+    if self.needmmb then self.needmmb = false end
 end
 
 -- endregion
@@ -256,12 +277,25 @@ function CHC_items_list:new(args, onmiddlemousedown)
     o.anchorTop = true
     o.anchorBottom = true
 
-    o.favoriteStar = getTexture('media/textures/itemFavoriteStar.png')
-    o.favCheckedTex = getTexture('media/textures/itemFavoriteStarChecked.png')
-    o.favNotCheckedTex = getTexture('media/textures/itemFavoriteStarOutline.png')
+    o.favorite = {
+        star = { tex = getTexture('media/textures/itemFavoriteStar.png') },
+        checked = { tex = getTexture('media/textures/itemFavoriteStarChecked.png') },
+        notChecked = { tex = getTexture('media/textures/itemFavoriteStarOutline.png') }
+    }
+    o.favorite.star.height = o.favorite.star.tex:getHeight()
+    o.favorite.checked.height = o.favorite.checked.tex:getHeight()
+    o.favorite.notChecked.height = o.favorite.notChecked.tex:getHeight()
     o.onmiddlemousedown = onmiddlemousedown
     o.needmmb = false
     o.modData = CHC_main.playerModData
+
+    o.updRates = {
+        { var = "needUpdateScroll",   rate = 50 },
+        { var = "needUpdateMousePos", rate = 100 }
+    }
+    o.yScroll = 0
+    o.needUpdateScroll = true
+    o.needUpdateMousePos = true
 
     o.player = getPlayer()
     return o

@@ -15,6 +15,12 @@ CHC_search.typeFiltIconValid = getTexture('media/textures/type_filt_valid.png')
 CHC_search.typeFiltIconKnown = getTexture('media/textures/type_filt_known.png')
 CHC_search.typeFiltIconInvalid = getTexture('media/textures/type_filt_invalid.png')
 
+local fontSizeToInternal = {
+    { font = UIFont.Small,  pad = 4, icon = 10 },
+    { font = UIFont.Medium, pad = 4, icon = 18 },
+    { font = UIFont.Large,  pad = 6, icon = 24 }
+}
+
 local advUpdCoCa = true
 
 local insert = table.insert
@@ -152,6 +158,7 @@ function CHC_search:create()
     self.objList:instantiate()
     self.objList:setAnchorBottom(true)
     self.objList:setOnMouseDownFunction(self, self.onItemChange)
+    self.objList.curFontData = self.curFontData
 
     -- Add entries to recipeList
     -- self:cacheFullRecipeCount(self.itemSource)
@@ -226,7 +233,16 @@ function CHC_search:updateTypesCategoriesInitial()
 end
 
 function CHC_search:update()
-    if self.needUpdateFavorites == true then
+    if self.needUpdateFont then
+        self.curFontData = fontSizeToInternal[CHC_settings.config.list_font_size]
+        self.objList.curFontData = self.curFontData
+        if self.objList.font ~= self.curFontData.font then
+            self.objList:setFont(self.curFontData.font, self.curFontData.pad)
+        end
+        self.needUpdateFont = false
+    end
+
+    if self.needUpdateFavorites then
         -- print('upd Favorites; ui: ' .. self.ui_type)
         self:handleFavorites()
         if self.favrec then
@@ -234,18 +250,18 @@ function CHC_search:update()
         end
         self.needUpdateFavorites = false
     end
-    if self.needUpdateObjects == true then
+    if self.needUpdateObjects then
         -- print('upd Objects; ui: ' .. self.ui_type)
         self:updateItems(self.selectedCategory)
         CHC_uses.updateTabNameWithCount(self)
         self.needUpdateObjects = false
     end
-    if self.needUpdateTypes == true then
+    if self.needUpdateTypes then
         -- print('upd Types; ui: ' .. self.ui_type)
         self:updateTypes()
         self.needUpdateTypes = false
     end
-    if self.needUpdateCategories == true then
+    if self.needUpdateCategories then
         -- print('upd Categories; ui: ' .. self.ui_type)
         self:updateCategories()
         self.needUpdateCategories = false
@@ -631,10 +647,13 @@ function CHC_search:new(args)
     o.typeFilter = args.typeFilter
     o.showHidden = args.showHidden
 
+    o.curFontData = fontSizeToInternal[CHC_settings.config.list_font_size]
+
     o.needUpdateObjects = false
     o.needUpdateTypes = false
     o.needUpdateCategories = false
     o.needUpdateFavorites = false
+    o.needUpdateFont = false
 
     o.isItemView = true
 

@@ -562,6 +562,7 @@ function CHC_window:onActivateView(target)
     if not target.activeView or not target.activeView.view then return end
     local top = target.activeView -- top level tab
     local sub = top.view.activeView
+    if not sub then return end
     if sub.view.isItemView == false then
         sub.view.needUpdateFavorites = true
     end

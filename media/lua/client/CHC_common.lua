@@ -151,3 +151,14 @@ function CHC_main.common.areThereRecipesForItem(item, fullType)
 
     return utils.any({ cond1, cond2, cond3, cond4 }, true)
 end
+
+function CHC_main.common.fastListReturn(self, y)
+    if y + self.yScroll >= self.height or
+        y + self.itemheight + self.yScroll <= 0 or
+        y < -self.yScroll - 1 or
+        y > self.height - self.yScroll + 1 then
+        return true
+    end
+    return false
+end
+

@@ -39,7 +39,7 @@ function Section:createChildren()
             if #objList.items > numItems then
                 objList.vscroll:setVisible(true)
             end
-            objList.vscroll:setHeight(objList.itemheight * numItems)
+            objList:setScrollHeight(objList.itemheight * numItems)
         end
     end
 
