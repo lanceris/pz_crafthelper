@@ -339,7 +339,7 @@ function CHC_uses_recipepanel:getSources(recipe)
 end
 
 function CHC_uses_recipepanel:setObj(recipe)
-    CHC_uses_recipelist.getContainers(self)
+    self.parent.getContainers(self)
     local obj = {}
 
     obj.category = recipe.category
@@ -642,9 +642,10 @@ function CHC_uses_recipepanel:getAvailableItemsType()
             end
             for x = 0, items:size() - 1 do
                 local item = items:get(x)
+                local itemFT = item:getFullType()
                 if sourceItemTypes['Water'] and ISCraftingUI:isWaterSource(item, source:getCount()) then
                     result['Base.WaterDrop'] = (result['Base.WaterDrop'] or 0) + item:getDrainableUsesInt()
-                elseif sourceItemTypes[item:getFullType()] then
+                elseif sourceItemTypes[itemFT] then
                     local count = 1
                     if not source:isDestroy() and item:IsDrainable() then
                         count = item:getDrainableUsesInt()
@@ -654,7 +655,7 @@ function CHC_uses_recipepanel:getAvailableItemsType()
                             count = -item:getHungerChange() * 100
                         end
                     end
-                    result[item:getFullType()] = (result[item:getFullType()] or 0) + count;
+                    result[itemFT] = (result[itemFT] or 0) + count
                 end
             end
         end
@@ -963,7 +964,7 @@ function CHC_uses_recipepanel:render()
         local typesAvailable = self:getAvailableItemsType()
         self.needRefreshRecipeCounts = utils.areTablesDifferent(selectedItem.typesAvailable, typesAvailable)
         selectedItem.typesAvailable = typesAvailable
-        CHC_uses_recipelist.getContainers(self)
+        self.parent.getContainers(self)
         if self.recipe.isSynthetic then
             selectedItem.available = false
             selectedItem.howManyCanCraft = 0

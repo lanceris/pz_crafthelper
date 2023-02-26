@@ -134,10 +134,17 @@ function CHC_uses:update()
         self.updFavWithCur = false
     end
     if self.needUpdateTypes == true then
-        self:updateTypes(self.updCountsWithCur)
+        self:updateTypes()
         self.needUpdateTypes = false
         self.updCountsWithCur = false
     end
+
+    -- self.ms = self.ms + UIManager.getMillisSinceLastUpdate()
+    -- if self.ms >= 2000 then
+    --     self.updCountsWithCur = true
+    --     self.needUpdateTypes = true
+    --     self.ms = 0
+    -- end
 end
 
 function CHC_uses:updateRecipes(sl)
@@ -152,7 +159,7 @@ function CHC_uses:updateRecipes(sl)
     end
 
     -- get all containers nearby
-    ISCraftingUI.getContainers(self.objList)
+    self.getContainers(self.objList)
 
     -- filter recipes
     local filteredRecipes = {}
@@ -181,18 +188,18 @@ function CHC_uses:updateRecipes(sl)
     self:refreshObjList(filteredRecipes)
 end
 
-function CHC_uses:updateTypes(current)
+function CHC_uses:updateTypes()
     local recipes = self.ui_type == 'fav_recipes' and self.favrec or self.recipeSource
     local is_valid
     local is_known
-    ISCraftingUI.getContainers(self.objList)
+    self.getContainers(self.objList)
     self.numRecipesAll, self.numRecipesValid, self.numRecipesKnown, self.numRecipesInvalid = 0, 0, 0, 0
     local c2 = self.selectedCategory == self.categorySelectorDefaultOption
     local c3 = self.selectedCategory == self.favCatName
     for i = 1, #recipes do
         local recipe = recipes[i]
         local c1 = recipe.displayCategory == self.selectedCategory
-        if (not current) or (current == true and (c1 or c2 or (c3 and recipe.favorite))) then
+        if (not self.updCountsWithCur) or (self.updCountsWithCur == true and (c1 or c2 or (c3 and recipe.favorite))) then
             if recipe.isSynthetic then
                 is_valid = false
                 is_known = true
@@ -642,6 +649,10 @@ function CHC_uses:processAddObjToObjList(recipe, modData)
     self.objList:addItem(name, recipe)
 end
 
+function CHC_uses:getContainers()
+    ISCraftingUI.getContainers(self)
+end
+
 --endregion
 
 
@@ -694,5 +705,7 @@ function CHC_uses:new(args)
     o.numRecipesValid = 0
     o.numRecipesKnown = 0
     o.numRecipesInvalid = 0
+
+    -- o.ms = 0
     return o
 end

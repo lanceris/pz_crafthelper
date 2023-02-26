@@ -27,7 +27,8 @@ end
 
 function CHC_uses_recipelist:prerender()
 	ISScrollingListBox.prerender(self)
-	self:getContainers();
+	-- FIXME add delay
+	self.parent:getContainers()
 end
 
 function CHC_uses_recipelist:doDrawItem(y, item, alt)
@@ -167,24 +168,6 @@ function CHC_uses_recipelist:onMouseUpOutside(x, y)
 end
 
 -- endregion
-
-function CHC_uses_recipelist:getContainers()
-	if not self.player then return end
-	local playerNum = self.player and self.player:getPlayerNum() or -1
-	-- get all the surrounding inventory of the player, gonna check for the item in them too
-	local playerInv = getPlayerInventory(playerNum)
-	local playerLoot = getPlayerLoot(playerNum)
-	if not playerInv and not playerLoot then return end
-	self.containerList = ArrayList.new()
-	playerInv = playerInv.inventoryPane.inventoryPage.backpacks
-	playerLoot = playerLoot.inventoryPane.inventoryPage.backpacks
-	for i = 1, #playerInv do
-		self.containerList:add(playerInv[i].inventory)
-	end
-	for i = 1, #playerLoot do
-		self.containerList:add(playerLoot[i].inventory)
-	end
-end
 
 function CHC_uses_recipelist:addToFavorite(selectedIndex, fromKeyboard)
 	if fromKeyboard == true then
