@@ -168,8 +168,8 @@ function CHC_items_list:doDrawItem(y, item, alt)
     --region favorite handler
     local isFav = self.modData[CHC_main.getFavItemModDataStr(item.item)] == true
     local favYPos = self.width - 30
-    if item.index == self.mouseoverselected and not self:isMouseOverScrollBar() then
-        if self:getMouseX() >= favYPos - 20 then
+    if item.index == self.mouseoverselected then
+        if self.mouseX >= favYPos - 20 and self.mouseX <= favYPos + 20 then
             favoriteStar = isFav and self.favorite.checked or self.favorite.notChecked
             favoriteAlpha = 0.9
         else
@@ -220,6 +220,26 @@ function CHC_items_list:onMouseDown_Recipes(x, y)
     end
 end
 
+function CHC_items_list:onMouseWheel(del)
+    local yScroll = self.smoothScrollTargetY or self.yScroll
+    local topRow = self:rowAt(0, -yScroll)
+    if self.items[topRow] then
+        if not self.smoothScrollTargetY then self.smoothScrollY = self.yScroll end
+        local y = self:topOfItem(topRow)
+        if del < 0 then
+            if yScroll == -y and topRow > 1 then
+                local prev = self:prevVisibleIndex(topRow)
+                y = self:topOfItem(prev)
+            end
+            self.smoothScrollTargetY = -y;
+        else
+            self.smoothScrollTargetY = -(y + self.items[topRow].height);
+        end
+    else
+        self.yScroll = self.yScroll - (del * 18)
+    end
+    return true;
+end
 
 function CHC_items_list:onMMBDown()
     if self.onmiddlemousedown then

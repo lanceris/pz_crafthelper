@@ -339,7 +339,6 @@ end
 
 function CHC_props_table:refreshObjList(props)
     self.objList:clear()
-    self.objList:setScrollHeight(0)
 
     local blacklisted = CHC_settings.mappings.ignoredItemProps
     local pinned = CHC_settings.mappings.pinnedItemProps

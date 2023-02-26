@@ -345,33 +345,46 @@ end
 -- region update
 
 function CHC_window:update()
-    if self.updateQueue and self.updateQueue.len > 0 then
+    if self.updateQueue.len > 0 then
         local toProcess = self.updateQueue:pop()
-        local targetViewObj = self.uiTypeToView[toProcess.targetView]
-        if not targetViewObj or not toProcess.actions then return end
-        local targetView = targetViewObj.view
-        local targetOriginName = targetViewObj.originName
-        for i = 1, #toProcess.actions do
-            local action = toProcess.actions[i]
-            if action == 'needUpdateSubViewName' then
-                local data = toProcess.data[action]
-                local viewObject
-                for j = 1, #targetView.parent.viewList do
-                    local view = targetView.parent.viewList[j]
-                    if view.originName == targetOriginName then
-                        viewObject = view
+        if not toProcess.actions then return end
+        local targetViewObjs = {}
+        if toProcess.targetView == "all" then
+            for _, view in pairs(self.uiTypeToView) do
+                insert(targetViewObjs, view)
+            end
+        else
+            insert(targetViewObjs, self.uiTypeToView[toProcess.targetView])
+        end
+        if utils.empty(targetViewObjs) then return end
+        for j = 1, #targetViewObjs do
+            local targetViewObj = targetViewObjs[j]
+            if not targetViewObj then return end
+            local targetView = targetViewObj.view
+            local targetOriginName = targetViewObj.originName
+
+            for i = 1, #toProcess.actions do
+                local action = toProcess.actions[i]
+                if action == 'needUpdateSubViewName' then
+                    local data = toProcess.data[action]
+                    local viewObject
+                    for j = 1, #targetView.parent.viewList do
+                        local view = targetView.parent.viewList[j]
+                        if view.originName == targetOriginName then
+                            viewObject = view
+                        end
                     end
-                end
-                if viewObject then
-                    if data then
-                        viewObject.name = string.format("%s (%s)", targetOriginName, data)
-                    else
-                        viewObject.name = targetOriginName
+                    if viewObject then
+                        if data then
+                            viewObject.name = string.format("%s (%s)", targetOriginName, data)
+                        else
+                            viewObject.name = targetOriginName
+                        end
+                        self.uiTypeToView[viewObject.view.ui_type].name = viewObject.name
                     end
-                    self.uiTypeToView[viewObject.view.ui_type].name = viewObject.name
+                else
+                    targetView[action] = true
                 end
-            else
-                targetView[action] = true
             end
         end
     end
