@@ -1,6 +1,20 @@
 # CraftHelper updates
 
-## 1.6.6 (XX.02.2023)
+## 1.6.7 (XX.02.2023)
+
+### New features
+
+-
+
+### Improvements
+
+- Use RecipeManager.getSourceItemsAll for each source instead of getAvailableItemsAll when collecting available items (incorrect counts otherwise, needs testing)
+
+### Bugfixes
+
+- Fixed incorrect crafting when [Proximity Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=2847184718) active (extra loot tab not accounted for)
+
+## 1.6.6 (23.02.2023)
 
 ### New features
 

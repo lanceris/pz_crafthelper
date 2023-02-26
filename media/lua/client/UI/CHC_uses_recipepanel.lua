@@ -632,8 +632,8 @@ function CHC_uses_recipepanel:getAvailableItemsType()
         end
     else
         recipe = recipe.recipe
-        local items = RecipeManager.getAvailableItemsAll(recipe, self.player, self.containerList, nil, nil)
         for i = 0, recipe:getSource():size() - 1 do
+            local items = RecipeManager.getSourceItemsAll(recipe, i, self.player, self.containerList, nil, nil)
             local source = recipe:getSource():get(i);
             local sourceItemTypes = {};
             for k = 1, source:getItems():size() do
