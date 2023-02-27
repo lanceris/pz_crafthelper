@@ -111,6 +111,52 @@ function CHC_main.common.getItemProps(item)
     return attrs
 end
 
+function CHC_main.common.isRecipeValid(recipe, player, containerList, knownRecipes, playerSkills, nearbyIsoObjects)
+    if not recipe.recipeData.result or utils.empty(recipe.recipeData.result) then
+        -- print('result')
+        return false
+    elseif recipe.recipeData.needToBeLearn and not knownRecipes[recipe.recipeData.originalName] then
+        -- print('known')
+        return false
+    elseif not RecipeManager.HasAllRequiredItems(recipe.recipe, player, nil, containerList) then
+        -- print('items')
+        return false
+    elseif recipe.recipeData.requiredSkillCount ~= 0 then
+        for i = 1, #recipe.recipeData.requiredSkills do
+            local skillData = recipe.recipeData.requiredSkills[i]
+            if playerSkills[skillData.skill] < skillData.level then
+                -- print('skill')
+                return false
+            end
+        end
+    elseif recipe.recipeData.nearItem or recipe.isNearItem then
+        local nameToCheck
+        if recipe.recipeData.nearItem then
+            nearbyIsoObjects = nearbyIsoObjects[2]
+            nameToCheck = recipe.recipeData.nearItem
+        elseif recipe.recipeData.hydroFurniture then
+            nearbyIsoObjects = nearbyIsoObjects[1]
+            nameToCheck = recipe.recipeData.hydroFurniture.obj.displayName
+        elseif recipe.isSynthetic then
+            nearbyIsoObjects = nearbyIsoObjects[2]
+            nameToCheck = recipe.recipeData.displayName
+        end
+        if nameToCheck and not nearbyIsoObjects[nameToCheck] then
+            -- print('near')
+            return false
+        end
+        -- elseif (not hasHeat(var0, var2, var3, var1)) then -- not needed
+        --     return false
+    else
+        if recipe.recipeData.lua.onCanPerform then
+            -- print('lua')
+            return _G[recipe.recipeData.lua.onCanPerform](recipe, player, nil)
+        else
+            return true
+        end
+    end
+end
+
 function CHC_main.common.isEvolvedRecipeValid(recipe, containerList)
     local check = CHC_main.common.playerHasItemNearby
     local typesAvailable = {}
@@ -162,3 +208,48 @@ function CHC_main.common.fastListReturn(self, y)
     return false
 end
 
+function CHC_main.common.getKnownRecipes(player)
+    local recipes = player:getKnownRecipes()
+    local result = {}
+    for i = 0, recipes:size() - 1 do
+        result[recipes:get(i)] = true
+    end
+    return result
+end
+
+function CHC_main.common.getPlayerSkills(player)
+    -- local perks = player:getPerkList()
+    local result = {}
+    for i = 0, Perks.getMaxIndex() - 1 do
+        local perk = PerkFactory.getPerk(Perks.fromIndex(i))
+        if perk and perk:getParent() ~= Perks.None then
+            result[perk:getName()] = player:getPerkLevel(Perks.fromIndex(i))
+        end
+    end
+    return result
+end
+
+function CHC_main.common.getNearbyIsoObjectNames(player)
+    local nearItemRadius = 2
+    local plX, plY, plZ = player:getX(), player:getY(), player:getZ()
+    local square
+    local res = { [1] = {},[2] = {} }
+    for x = -nearItemRadius, nearItemRadius do
+        for y = -nearItemRadius, nearItemRadius do
+            square = player:getCell():getGridSquare(plX + x, plY + y, plZ)
+            if square then
+                local o = square:getObjects()
+                for i = 0, o:size() - 1 do
+                    local obj = o:get(i):getName()
+                    if obj then
+                        res[2][obj] = true
+                        if math.abs(x) <= 1 then
+                            res[1][obj] = true
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return res
+end

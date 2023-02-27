@@ -106,7 +106,7 @@ if ModOptions and ModOptions.getInstance then
                 tooltip = 'IGUI_ShowIconsTooltip',
                 default = true,
                 OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
-                OnApplyInGame = CHC_settings.f.onModOptionsApply
+                OnApplyInGame = CHC_main.config_apply_funcs.process
             },
             show_hidden = {
                 name = 'IGUI_ShowHidden',
@@ -174,7 +174,7 @@ if ModOptions and ModOptions.getInstance then
                 tooltip = 'IGUI_ShowRecipeModuleTooltip',
                 default = true,
                 OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
-                OnApplyInGame = CHC_settings.f.onModOptionsApply
+                OnApplyInGame = CHC_main.config_apply_funcs.process
             },
             show_fav_items_inventory = {
                 name = 'IGUI_ShowFavItemsInventory',

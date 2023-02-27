@@ -10,6 +10,7 @@
 
 - Use RecipeManager.getSourceItemsAll for each source instead of getAvailableItemsAll when collecting available items (incorrect counts otherwise, needs testing)
 - Optimized rendering
+- Removed vanilla recipes that require Anvil nearby
 
 ### Bugfixes
 

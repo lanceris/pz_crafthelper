@@ -8,7 +8,11 @@ CHC_main.config_apply_funcs.process = function(values)
     if not inst then return end
 
     local p = CHC_main.config_apply_funcs
-    local map = { list_font_size = p.onChangeListFontSizeInGame }
+    local map = {
+        list_font_size = p.onChangeListFontSize,
+        show_recipe_module = p.onChangeShowRecipeModule,
+        show_icons = p.onChangeShowIcons
+    }
     if map[values.id] then
         map[values.id](inst)
     end
@@ -16,9 +20,27 @@ CHC_main.config_apply_funcs.process = function(values)
     CHC_settings.f.onModOptionsApply(values)
 end
 
-CHC_main.config_apply_funcs.onChangeListFontSizeInGame = function(inst)
+CHC_main.config_apply_funcs.onChangeListFontSize = function(inst)
     inst.updateQueue:push({
         targetView = 'all',
         actions = { 'needUpdateFont' }
+    })
+end
+
+CHC_main.config_apply_funcs.onChangeShowRecipeModule = function(inst)
+    inst.updateQueue:push({
+        targetView = 'all',
+        actions = { 'needUpdateModRender' },
+        exclude = {
+            search_items = true,
+            fav_items = true
+        }
+    })
+end
+
+CHC_main.config_apply_funcs.onChangeShowIcons = function(inst)
+    inst.updateQueue:push({
+        targetView = 'all',
+        actions = { 'needUpdateShowIcons' }
     })
 end

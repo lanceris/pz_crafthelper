@@ -2,6 +2,8 @@ require 'ISUI/ISScrollingListBox'
 
 CHC_uses_recipelist = ISScrollingListBox:derive('CHC_uses_recipelist')
 
+local utils = require('CHC_utils')
+
 -- region create
 function CHC_uses_recipelist:initialise()
 	ISScrollingListBox.initialise(self)
@@ -21,50 +23,43 @@ end
 -- region render
 
 function CHC_uses_recipelist:prerender()
-	ISScrollingListBox.prerender(self)
-	if self.needUpdateScroll then
+	if self.items and self.parent.objListSize > 1000 then
+		if self.needUpdateScroll then
+			self.yScroll = self:getYScroll()
+			self.needUpdateScroll = false
+		end
+		if self.needUpdateMousePos then
+			self.mouseX = self:getMouseX()
+			self.mouseY = self:getMouseY()
+			self.needUpdateMousePos = false
+		end
+	else
 		self.yScroll = self:getYScroll()
-		self.needUpdateScroll = false
-	end
-	if self.needUpdateMousePos then
 		self.mouseX = self:getMouseX()
 		self.mouseY = self:getMouseY()
-		self.needUpdateMousePos = false
 	end
+
+	ISScrollingListBox.prerender(self)
 end
 
 function CHC_uses_recipelist:doDrawItem(y, item, alt)
-	local shouldDrawMod = CHC_settings.config.show_recipe_module
-
-	if shouldDrawMod then
-		if item.item.module == 'Base' then
-			shouldDrawMod = false
-		end
-	end
-
-	item.height = self.curFontData.icon + 2 * self.curFontData.pad
-	if shouldDrawMod then
-		item.height = item.height + 2 + getTextManager():getFontHeight(UIFont.Small)
-	end
-
 	if self:fastListReturn(y) then return y + item.height end
 
 	local recipe = item.item
 	local a = 0.9
 	local favoriteStar = nil
 	local favoriteAlpha = a
-	local iconsEnabled = CHC_settings.config.show_icons
 
 	local clr = {
 		txt = item.text,
-		x = iconsEnabled and (self.curFontData.icon + 8) or 15,
+		x = self.shouldShowIcons and (self.curFontData.icon + 8) or 15, --FIXME
 		y = y - self.curFontData.ymin,
 		a = 0.9,
 		font = self.font
 	}
 
 	-- region icons
-	if iconsEnabled then
+	if self.shouldShowIcons then
 		local resultItem = recipe.recipeData.result
 		if resultItem then
 			local tex = resultItem.texture
@@ -77,31 +72,28 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 	--endregion
 
 	--region text
-	if recipe.isSynthetic == true then
+	if recipe.isSynthetic then
 		-- known but cant craft, white text
 		clr['r'], clr['g'], clr['b'] = 0.9, 0.9, 0.9
 	elseif recipe.isEvolved then
-		if CHC_main.common.isEvolvedRecipeValid(recipe, self.containerList) then
+		if recipe.valid then
 			-- can 'craft', green text
 			clr['r'], clr['g'], clr['b'] = 0, 0.7, 0
 		else
 			clr['r'], clr['g'], clr['b'] = 0.9, 0.9, 0.9
 		end
 	else
-		if not self.player:isRecipeKnown(recipe.recipe) then
-			-- unknown recipe, red text
-			clr['r'], clr['g'], clr['b'] = 0.7, 0, 0
-		elseif RecipeManager.IsRecipeValid(recipe.recipe, self.player, nil, self.containerList) then
-			-- can craft, green text
+		if recipe.valid then
 			clr['r'], clr['g'], clr['b'] = 0, 0.7, 0
-		else
-			-- known but cant craft, white text
+		elseif recipe.known then
 			clr['r'], clr['g'], clr['b'] = 0.9, 0.9, 0.9
+		else
+			clr['r'], clr['g'], clr['b'] = 0.7, 0, 0
 		end
 	end
 	self:drawText(clr.txt, clr.x, clr.y, clr.r, clr.g, clr.b, clr.a, clr.font)
-	if shouldDrawMod then
-		local modY = clr.y + getTextManager():getFontHeight(self.font) - self.curFontData.pad
+	if self.shouldDrawMod and item.item.module ~= 'Base' then
+		local modY = clr.y + self.fontSize - self.curFontData.pad
 		self:drawText('Mod: ' .. item.item.module, clr.x + self.curFontData.pad, modY, 1, 1, 1, 0.8, UIFont.Small)
 	end
 	--endregion
@@ -217,18 +209,22 @@ function CHC_uses_recipelist:new(args)
 	o.anchorTop = true
 	o.anchorBottom = true
 	o.backRef = args.backRef
-	local player = getPlayer()
-	o.player = player
-	o.character = player
-	o.playerNum = player and player:getPlayerNum() or -1
 	o.modData = CHC_main.playerModData
 
 	o.favoriteStar = getTexture('media/ui/FavoriteStar.png')
 	o.favCheckedTex = getTexture('media/ui/FavoriteStarChecked.png')
 	o.favNotCheckedTex = getTexture('media/ui/FavoriteStarUnchecked.png')
+	o.mouseX = 0
+	o.mouseY = 0
 	o.yScroll = 0
+	o.fontSize = getTextManager():getFontHeight(o.font)
+
+
+	o.shouldDrawMod = CHC_settings.config.show_recipe_module
+	o.shouldShowIcons = CHC_settings.config.show_icons
 
 	o.needUpdateScroll = false
 	o.needUpdateMousePos = false
+	o.needUpdateRecipeState = false
 	return o
 end

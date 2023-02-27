@@ -16,9 +16,9 @@ CHC_search.typeFiltIconKnown = getTexture('media/textures/type_filt_known.png')
 CHC_search.typeFiltIconInvalid = getTexture('media/textures/type_filt_invalid.png')
 
 local fontSizeToInternal = {
-    { font = UIFont.Small,  pad = 4, icon = 10 },
-    { font = UIFont.Medium, pad = 4, icon = 18 },
-    { font = UIFont.Large,  pad = 6, icon = 24 }
+    { font = UIFont.Small,  pad = 2, icon = 10, ymin = 2 },
+    { font = UIFont.Medium, pad = 4, icon = 18, ymin = -2 },
+    { font = UIFont.Large,  pad = 6, icon = 24, ymin = -4 }
 }
 
 local advUpdCoCa = true
@@ -240,6 +240,11 @@ function CHC_search:update()
             self.objList:setFont(self.curFontData.font, self.curFontData.pad)
         end
         self.needUpdateFont = false
+    end
+
+    if self.needUpdateShowIcons then
+        self.objList.shouldShowIcons = CHC_settings.config.show_icons
+        self.needUpdateShowIcons = false
     end
 
     if self.needUpdateFavorites then
@@ -659,6 +664,7 @@ function CHC_search:new(args)
     o.showHidden = args.showHidden
 
     o.curFontData = fontSizeToInternal[CHC_settings.config.list_font_size]
+    o.objListSize = 0
 
     o.needUpdateObjects = false
     o.needUpdateTypes = false

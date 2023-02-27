@@ -353,6 +353,7 @@ function CHC_uses_recipepanel:setObj(recipe)
     local obj = {}
 
     obj.category = recipe.category
+    obj._id = recipe._id
 
     obj.recipe = recipe.recipe
     if recipe.isSynthetic then
@@ -497,6 +498,9 @@ end
 function CHC_uses_recipepanel:refreshIngredientPanel()
     local selectedItem = self.newItem
     if not selectedItem then return end
+    if not self.lastSelectedItem then
+        self.lastSelectedItem = selectedItem
+    end
 
     if self.recipe.isSynthetic then
         selectedItem.typesAvailable = { true }
@@ -506,15 +510,17 @@ function CHC_uses_recipepanel:refreshIngredientPanel()
         selectedItem.typesAvailable = self:getAvailableItemsType()
     end
     local c1 = not utils.areTablesDifferent(selectedItem.typesAvailable, self.lastAvailableTypes)
-    local c2 = self.lastAvailableTypes and not utils.empty(self.lastAvailableTypes)
-    if c1 and c2 then
+    local c2 = self.ingredientPanel.origH
+    local c3 = selectedItem._id == self.lastSelectedItem._id
+    if c1 and c2 and c3 then
         return
     end
+    self.lastAvailableTypes = selectedItem.typesAvailable
+    self.lastSelectedItem = selectedItem
     self.parent.backRef.updateQueue:push({
         targetView = self.parent.ui_type,
         actions = { 'needUpdateTypes' }
     })
-    self.lastAvailableTypes = selectedItem.typesAvailable
     self.ingredientPanel:setVisible(false)
     self.ingredientPanel:clear()
 

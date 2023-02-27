@@ -301,6 +301,18 @@ CHC_main.getItemProps = function(item, itemType, map)
 	return props, propsMap
 end
 
+CHC_main.getRecipeRequiredSkills = function(recipe, n)
+	local result = {}
+	for i = 1, n do
+		local skill = recipe:getRequiredSkill(i - 1)
+		local _perk = skill:getPerk()
+		local perk = PerkFactory.getPerk(_perk)
+		local perkName = perk and perk:getName() or _perk:name()
+		insert(result, { skill = perkName, level = skill:getLevel() })
+	end
+	return result
+end
+
 CHC_main.loadDatas = function()
 	CHC_main.playerModData = getPlayer():getModData()
 	CHC_main.CECData = _G['CraftingEnhancedCore']
@@ -384,17 +396,31 @@ CHC_main.loadAllItems = function(am)
 	print(nbItems .. ' items loaded.')
 end
 
-CHC_main.processOneRecipe = function(recipe)
+CHC_main.processOneRecipe = function(recipe, id)
 	local newItem = {}
+	newItem._id = id
 	newItem.category = recipe:getCategory() or getText('IGUI_CraftCategory_General')
 	newItem.displayCategory = getTextOrNull('IGUI_CraftCategory_' .. newItem.category) or newItem.category
 	newItem.recipe = recipe
 	newItem.module = recipe:getModule():getName()
 	newItem.hidden = recipe:isHidden()
 	newItem.recipeData = {}
+	newItem.recipeData.lua = {}
+	newItem.recipeData.lua.onCanPerform = recipe:getCanPerform()
 	newItem.recipeData.category = newItem.category
 	newItem.recipeData.name = recipe:getName()
 	newItem.recipeData.nearItem = recipe:getNearItem()
+	newItem.recipeData.needToBeLearn = recipe:needToBeLearn()
+	newItem.recipeData.originalName = recipe:getOriginalname()
+	newItem.recipeData.requiredSkillCount = recipe:getRequiredSkillCount()
+	if newItem.recipeData.requiredSkillCount > 0 then
+		newItem.recipeData.requiredSkills = CHC_main.getRecipeRequiredSkills(recipe,
+			newItem.recipeData.requiredSkillCount)
+	end
+	if newItem.recipeData.nearItem == "Anvil" and
+		not getActivatedMods():contains("Blacksmith41") then
+		return
+	end
 
 	newItem.favorite = CHC_main.playerModData[CHC_main.getFavoriteRecipeModDataString(newItem)] or false
 
@@ -493,7 +519,7 @@ CHC_main.loadAllRecipes = function()
 	-- Go through recipes stack
 	for i = 0, allRecipes:size() - 1 do
 		local recipe = allRecipes:get(i)
-		CHC_main.processOneRecipe(recipe)
+		CHC_main.processOneRecipe(recipe, i)
 		nbRecipes = nbRecipes + 1
 	end
 	showTime(now, 'All Recipes')
@@ -836,6 +862,7 @@ CHC_main.getCECRecipes = function()
 		newItem.recipeData = {}
 		newItem.recipeData.category = newItem.category
 		newItem.recipeData.name = 'Build ' .. tData.displayName
+		newItem.recipeData.displayName = tData.displayName
 		newItem.recipeData.ingredients = tData.recipe
 		newItem.recipeData.isSynthetic = true
 		-- newItem.recipeData.nearItem = recipe:getNearItem()

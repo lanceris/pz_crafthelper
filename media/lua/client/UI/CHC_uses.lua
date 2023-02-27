@@ -24,6 +24,7 @@ CHC_uses.typeFiltIconAll = getTexture('media/textures/type_filt_all.png')
 CHC_uses.typeFiltIconValid = getTexture('media/textures/type_filt_valid.png')
 CHC_uses.typeFiltIconKnown = getTexture('media/textures/type_filt_known.png')
 CHC_uses.typeFiltIconInvalid = getTexture('media/textures/type_filt_invalid.png')
+local fhs = getTextManager():getFontHeight(UIFont.Small) -- FIXME
 
 local utils = require('CHC_utils')
 
@@ -115,6 +116,10 @@ function CHC_uses:create()
     if self.ui_type == 'fav_recipes' then
         self.favrec = self.backRef:getRecipes(true)
     end
+    self:getContainers()
+    self.knownRecipes = CHC_main.common.getKnownRecipes(self.player)
+    self.playerSkills = CHC_main.common.getPlayerSkills(self.player)
+    self.nearbyIsoObjects = CHC_main.common.getNearbyIsoObjectNames(self.player)
     self:updateCategories()
     self:updateTypes()
     self:updateRecipes(self.selectedCategory)
@@ -130,8 +135,19 @@ function CHC_uses:update()
         self.objList.curFontData = self.curFontData
         if self.objList.font ~= self.curFontData.font then
             self.objList:setFont(self.curFontData.font, self.curFontData.pad)
+            self.objList.fontSize = getTextManager():getFontHeight(self.curFontData.font)
         end
         self.needUpdateFont = false
+    end
+
+    if self.needUpdateModRender then
+        self.objList.shouldDrawMod = CHC_settings.config.show_recipe_module
+        self.needUpdateModRender = false
+    end
+
+    if self.needUpdateShowIcons then
+        self.objList.shouldShowIcons = CHC_settings.config.show_icons
+        self.needUpdateShowIcons = false
     end
 
     if self.needUpdateObjects then
@@ -165,7 +181,7 @@ function CHC_uses:updateRecipes(sl)
     end
 
     -- get all containers nearby
-    self.getContainers(self.objList)
+    self:getContainers()
 
     -- filter recipes
     local filteredRecipes = {}
@@ -194,11 +210,11 @@ function CHC_uses:updateRecipes(sl)
     self:refreshObjList(filteredRecipes)
 end
 
-function CHC_uses:updateTypes()
+function CHC_uses:updateTypes() --FIXME
     local recipes = self.ui_type == 'fav_recipes' and self.favrec or self.recipeSource
     local is_valid
     local is_known
-    self.getContainers(self.objList)
+    self:getContainers()
     self.numRecipesAll, self.numRecipesValid, self.numRecipesKnown, self.numRecipesInvalid = 0, 0, 0, 0
     local c2 = self.selectedCategory == self.categorySelectorDefaultOption
     local c3 = self.selectedCategory == self.favCatName
@@ -210,10 +226,10 @@ function CHC_uses:updateTypes()
                 is_valid = false
                 is_known = true
             elseif recipe.isEvolved then
-                is_valid = CHC_main.common.isEvolvedRecipeValid(recipe, self.objList.containerList)
+                is_valid = CHC_main.common.isEvolvedRecipeValid(recipe, self.containerList)
                 is_known = true
             else
-                is_valid = RecipeManager.IsRecipeValid(recipe.recipe, self.player, nil, self.objList.containerList)
+                is_valid = RecipeManager.IsRecipeValid(recipe.recipe, self.player, nil, self.containerList)
                 is_known = self.player:isRecipeKnown(recipe.recipe)
             end
             self.numRecipesAll = self.numRecipesAll + 1
@@ -344,6 +360,21 @@ end
 -- endregion
 
 -- region render
+
+function CHC_uses:prerender()
+    local ms = UIManager.getMillisSinceLastRender()
+    if not self.ms then self.ms = 0 end
+    self.ms = self.ms + ms
+    if self.ms > 1000 then -- FIXME
+        self.needUpdateRecipeState = true
+        self.ms = 0
+    end
+
+    if self.needUpdateRecipeState then
+        self:updateRecipesState()
+        self.needUpdateRecipeState = false
+    end
+end
 
 function CHC_uses:render()
     ISPanel.render(self)
@@ -530,19 +561,18 @@ function CHC_uses:filterSortMenuGetText(textStr, value)
     return txt
 end
 
-function CHC_uses:recipeTypeFilter(recipe)
-    local rl = self.objList
+function CHC_uses:recipeTypeFilter(recipe) --FIXME
     local is_valid
     local is_known
     if recipe.isSynthetic then
         is_valid = false
         is_known = true
     elseif recipe.isEvolved then
-        is_valid = CHC_main.common.isEvolvedRecipeValid(recipe, rl.containerList)
+        is_valid = CHC_main.common.isEvolvedRecipeValid(recipe, self.containerList)
         is_known = true
     else
-        is_valid = RecipeManager.IsRecipeValid(recipe.recipe, rl.player, nil, rl.containerList)
-        is_known = rl.player:isRecipeKnown(recipe.recipe)
+        is_valid = RecipeManager.IsRecipeValid(recipe.recipe, self.player, nil, self.containerList)
+        is_known = self.player:isRecipeKnown(recipe.recipe)
     end
 
     local state = true
@@ -661,16 +691,60 @@ function CHC_uses:searchProcessToken(token, recipe)
     return state
 end
 
-function CHC_uses:processAddObjToObjList(recipe, modData)
+function CHC_uses:processAddObjToObjList(recipe, modData) --FIXME
     if not self.showHidden and recipe.hidden then return end
     local name = recipe.recipeData.name
     recipe.favorite = modData[CHC_main.getFavoriteRecipeModDataString(recipe)] or false
+    if self.shouldDrawMod and recipe.module ~= 'Base' then
+        recipe.height = recipe.height + 2 + fhs
+    else
+        recipe.height = self.curFontData.icon + 2 * self.curFontData.pad
+    end
+
+    self:updateRecipeState(recipe)
 
     self.objList:addItem(name, recipe)
 end
 
 function CHC_uses:getContainers()
     ISCraftingUI.getContainers(self)
+end
+
+function CHC_uses:updateRecipeState(recipe)
+    if recipe.isSynthetic then
+        recipe.known = true
+        recipe.valid = false
+    elseif recipe.isEvolved then
+        if CHC_main.common.isEvolvedRecipeValid(recipe, self.containerList) then
+            recipe.valid = true
+        else
+            recipe.valid = false
+            recipe.known = true
+        end
+    else
+        -- if RecipeManager.IsRecipeValid(recipe.recipe, self.player, nil, self.containerList) then
+        if CHC_main.common.isRecipeValid(recipe, self.player, self.containerList, self.knownRecipes, self.playerSkills, self.nearbyIsoObjects) then
+            recipe.valid = true
+        elseif (not recipe.recipeData.needToBeLearn) or
+            (recipe.recipeData.needToBeLearn and self.knownRecipes[recipe.recipeData.originalName]) then
+            recipe.valid = false
+            recipe.known = true
+        else
+            recipe.valid = false
+            recipe.known = false
+        end
+    end
+end
+
+function CHC_uses:updateRecipesState()
+    local items = self.objList.items
+    if not items or utils.empty(items) then return end
+    self.knownRecipes = CHC_main.common.getKnownRecipes(self.player)
+    self.playerSkills = CHC_main.common.getPlayerSkills(self.player)
+    self.nearbyIsoObjects = CHC_main.common.getNearbyIsoObjectNames(self.player)
+    for i = 1, #items do
+        self:updateRecipeState(items[i].item)
+    end
 end
 
 --endregion
@@ -714,6 +788,9 @@ function CHC_uses:new(args)
     o.needUpdateFont = false
     o.needUpdateScroll = false
     o.needUpdateMousePos = false
+    o.needUpdateModRender = false
+    o.needUpdateShowIcons = false
+    o.needUpdateRecipeState = false
 
     o.selectedCategory = o.categorySelectorDefaultOption
     o.backRef = args.backRef
@@ -723,6 +800,10 @@ function CHC_uses:new(args)
     o.isItemView = false
     o.modData = CHC_main.playerModData
     o.curFontData = fontSizeToInternal[CHC_settings.config.list_font_size]
+    local player = getPlayer()
+    o.player = player
+    o.character = player
+    o.playerNum = player and player:getPlayerNum() or -1
 
 
     o.numRecipesAll = 0

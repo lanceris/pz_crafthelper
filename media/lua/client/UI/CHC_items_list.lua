@@ -33,17 +33,21 @@ function CHC_items_list:prerender()
     if not self.items then return end
     if utils.empty(self.items) then return end
 
-    if self.needUpdateScroll then
+    if self.items and self.parent.objListSize > 1000 then
+        if self.needUpdateScroll then
+            self.yScroll = self:getYScroll()
+            self.needUpdateScroll = false
+        end
+        if self.needUpdateMousePos then
+            self.mouseX = self:getMouseX()
+            self.mouseY = self:getMouseY()
+            self.needUpdateMousePos = false
+        end
+    else
         self.yScroll = self:getYScroll()
-        self.needUpdateScroll = false
-    end
-
-    if self.needUpdateMousePos then
         self.mouseX = self:getMouseX()
         self.mouseY = self:getMouseY()
-        self.needUpdateMousePos = false
     end
-
     local stencilX = 0
     local stencilY = 0
     local stencilX2 = self.width
@@ -119,11 +123,8 @@ function CHC_items_list:doDrawItem(y, item, alt)
     local favoriteStar = nil
     local favoriteAlpha = a
 
-    local itemPadY = self.itemPadY or (item.height - self.fontHgt) / 2
-    local iconsEnabled = CHC_settings.config.show_icons
-
     -- region icons
-    if iconsEnabled then
+    if self.shouldShowIcons then
         local itemIcon = itemObj.texture
         self:drawTextureScaled(itemIcon, 6, y + 6, self.curFontData.icon, self.curFontData.icon, 1)
     end
@@ -132,8 +133,8 @@ function CHC_items_list:doDrawItem(y, item, alt)
     --region text
     local clr = {
         txt = item.text,
-        x = iconsEnabled and (self.curFontData.icon + 8) or 15,
-        y = (y) + itemPadY,
+        x = self.shouldShowIcons and (self.curFontData.icon + 8) or 15,
+        y = y - self.curFontData.ymin,
         r = 1,
         g = 1,
         b = 1,
@@ -290,6 +291,7 @@ function CHC_items_list:new(args, onmiddlemousedown)
     o.yScroll = 0
     o.needUpdateScroll = true
     o.needUpdateMousePos = true
+    o.shouldShowIcons = CHC_settings.config.show_icons
 
     o.player = getPlayer()
     return o

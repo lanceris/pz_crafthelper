@@ -9,6 +9,7 @@ CHC_window = ISCollapsableWindow:derive('CHC_window')
 local utils = require('CHC_utils')
 local print = utils.chcprint
 local insert = table.insert
+local pairs = pairs
 
 -- region create
 
@@ -351,7 +352,13 @@ function CHC_window:update()
         local targetViewObjs = {}
         if toProcess.targetView == "all" then
             for _, view in pairs(self.uiTypeToView) do
-                insert(targetViewObjs, view)
+                if toProcess.exclude then
+                    if not toProcess.exclude[view.originName] then
+                        insert(targetViewObjs, view)
+                    end
+                else
+                    insert(targetViewObjs, view)
+                end
             end
         else
             insert(targetViewObjs, self.uiTypeToView[toProcess.targetView])
@@ -368,10 +375,10 @@ function CHC_window:update()
                 if action == 'needUpdateSubViewName' then
                     local data = toProcess.data[action]
                     local viewObject
-                    for j = 1, #targetView.parent.viewList do
-                        local view = targetView.parent.viewList[j]
-                        if view.originName == targetOriginName then
-                            viewObject = view
+                    for k = 1, #targetView.parent.viewList do
+                        local _view = targetView.parent.viewList[k]
+                        if _view.originName == targetOriginName then
+                            viewObject = _view
                         end
                     end
                     if viewObject then
