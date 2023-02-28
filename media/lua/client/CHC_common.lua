@@ -8,6 +8,18 @@ local contains = string.contains
 local globalTextLimit = 1000 -- FIXME
 
 
+CHC_main.common.fontSizeToInternal = {
+    { font = UIFont.Small,  pad = 2, icon = 10, ymin = 2 },
+    { font = UIFont.Medium, pad = 4, icon = 18, ymin = -2 },
+    { font = UIFont.Large,  pad = 6, icon = 24, ymin = -4 }
+}
+
+CHC_main.common.heights = {
+    headers = 20,
+    filter_row = 24,
+    search_row = 24
+}
+
 -- parse tokens from search query, determine search type (single/multi) and query type (and/or), get state based on processTokenFunc
 function CHC_main.common.searchFilter(self, q, processTokenFunc)
     local stateText = string.trim(self.searchRow.searchBar:getInternalText())
@@ -112,16 +124,7 @@ function CHC_main.common.getItemProps(item)
 end
 
 function CHC_main.common.isRecipeValid(recipe, player, containerList, knownRecipes, playerSkills, nearbyIsoObjects)
-    if not recipe.recipeData.result or utils.empty(recipe.recipeData.result) then
-        -- print('result')
-        return false
-    elseif recipe.recipeData.needToBeLearn and not knownRecipes[recipe.recipeData.originalName] then
-        -- print('known')
-        return false
-    elseif not RecipeManager.HasAllRequiredItems(recipe.recipe, player, nil, containerList) then
-        -- print('items')
-        return false
-    elseif recipe.recipeData.requiredSkillCount ~= 0 then
+    local function checkSkills()
         for i = 1, #recipe.recipeData.requiredSkills do
             local skillData = recipe.recipeData.requiredSkills[i]
             if playerSkills[skillData.skill] < skillData.level then
@@ -129,7 +132,10 @@ function CHC_main.common.isRecipeValid(recipe, player, containerList, knownRecip
                 return false
             end
         end
-    elseif recipe.recipeData.nearItem or recipe.isNearItem then
+        return true
+    end
+
+    local function checkNearItem()
         local nameToCheck
         if recipe.recipeData.nearItem then
             nearbyIsoObjects = nearbyIsoObjects[2]
@@ -145,15 +151,30 @@ function CHC_main.common.isRecipeValid(recipe, player, containerList, knownRecip
             -- print('near')
             return false
         end
+        return true
+    end
+
+    if not recipe.recipeData.result or utils.empty(recipe.recipeData.result) then
+        -- print('result')
+        return false
+    elseif recipe.recipeData.needToBeLearn and not knownRecipes[recipe.recipeData.originalName] then
+        -- print('known')
+        return false
+    elseif not RecipeManager.HasAllRequiredItems(recipe.recipe, player, nil, containerList) then
+        -- print('items')
+        return false
+    elseif recipe.recipeData.requiredSkillCount ~= 0 and not checkSkills() then
+        return false
+    elseif (recipe.recipeData.nearItem or recipe.isNearItem) and not checkNearItem() then
+        return false
         -- elseif (not hasHeat(var0, var2, var3, var1)) then -- not needed
         --     return false
     else
         if recipe.recipeData.lua.onCanPerform then
             -- print('lua')
             return _G[recipe.recipeData.lua.onCanPerform](recipe, player, nil)
-        else
-            return true
         end
+        return true
     end
 end
 
@@ -243,7 +264,7 @@ function CHC_main.common.getNearbyIsoObjectNames(player)
                     local obj = o:get(i):getName()
                     if obj then
                         res[2][obj] = true
-                        if math.abs(x) <= 1 then
+                        if math.abs(x) <= 1 and math.abs(y) <= 1 then
                             res[1][obj] = true
                         end
                     end

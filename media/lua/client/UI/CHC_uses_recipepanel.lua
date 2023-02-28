@@ -404,7 +404,7 @@ function CHC_uses_recipepanel:setObj(recipe)
         if recipe.isSynthetic then
             resultCount = 1
         elseif recipe.isEvolved then
-            resultCount = 1 -- FIXME
+            resultCount = 1
         else
             resultCount = recipe.recipe:getResult():getCount()
         end
@@ -452,7 +452,7 @@ function CHC_uses_recipepanel:setObj(recipe)
         obj.isKnown = true
         obj.nearItem = nil
         obj.timeToMake = 100 -- FIXME
-        obj.howManyCanCraft = 1 -- FIXME
+        obj.howManyCanCraft = 1
         obj.needToBeLearn = false
     elseif recipe.isEvolved then
         obj.isEvolved = true
@@ -517,10 +517,6 @@ function CHC_uses_recipepanel:refreshIngredientPanel()
     end
     self.lastAvailableTypes = selectedItem.typesAvailable
     self.lastSelectedItem = selectedItem
-    self.parent.backRef.updateQueue:push({
-        targetView = self.parent.ui_type,
-        actions = { 'needUpdateTypes' }
-    })
     self.ingredientPanel:setVisible(false)
     self.ingredientPanel:clear()
 

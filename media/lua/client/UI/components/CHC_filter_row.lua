@@ -17,7 +17,9 @@ function CHC_filter_row:create()
     local foo = self.filterOrderData
     self.filterOrderBtn = ISButton:new(x, 0, foo.width or h, h, foo.title or '', self)
     self.filterOrderBtn:initialise()
-    self.filterOrderBtn.onclick = foo.onclick
+    if not foo.onclickargs then foo.onclickargs = {} end
+    self.filterOrderBtn:setOnClick(foo.onclick, foo.onclickargs[1], foo.onclickargs[2],
+        foo.onclickargs[3], foo.onclickargs[4])
     self.filterOrderBtn.tooltip = foo.defaultTooltip
     self.filterOrderBtn:setImage(foo.defaultIcon)
     self.filterOrderBtn.borderColor.a = 0

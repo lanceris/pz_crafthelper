@@ -12,11 +12,14 @@
 - Optimized rendering
 - Removed vanilla recipes that require Anvil nearby
 - Added Traditional Chinese translation (thanks to [TW_Billy](https://steamcommunity.com/profiles/76561198001484294))
+- Types and categories are now filtered along with search query
 
 ### Bugfixes
 
 - Fixed incorrect crafting when [Proximity Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=2847184718) active (extra loot tab not accounted for)
 - Fixed recipe type amounts (valid/invalid) not updating properly
+- Fixed logic in CHC_main.common.isRecipeValid
+- Fixed logical errors with types/categories
 
 ## 1.6.6 (23.02.2023)
 

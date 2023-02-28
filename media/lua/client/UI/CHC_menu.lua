@@ -108,11 +108,11 @@ CHC_menu.onCraftHelperItem = function(window_inst, item)
 	local sub = top.view.activeView
 	local view = sub.view
 
+	assert(view.ui_type == "search_items", error("Incorrect view selected"))
 	local txt = string.format('#%s,%s', item.displayCategory, item.displayName)
 	txt = string.lower(txt)
 	view.searchRow.searchBar:setText(txt) -- set text to Items subview search bar
-	if not view["updateItems"] then return end
-	view:updateItems(view.selectedCategory)
+	view:updateObjects(view.selectedCategory)
 	if #view.objList.items ~= 0 then
 		local it = view.objList.items
 		local c = 1

@@ -142,7 +142,7 @@ end
 
 -- region event handlers
 
-function CHC_uses_recipelist:onMouseDown_Recipes(x, y)
+function CHC_uses_recipelist:onMouseDownObj(x, y)
 	local row = self:rowAt(x, y)
 	if row == -1 then return end
 	if self:isMouseOverFavorite(x) then

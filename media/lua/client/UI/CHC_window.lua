@@ -84,7 +84,7 @@ function CHC_window:addSearchPanel()
     local itemsData = self:getItems(CHC_main.itemsForSearch)
     local items_screen_init = self.common_screen_data
     local items_extra = {
-        recipeSource = itemsData,
+        objSource = itemsData,
         itemSortAsc = options.search.items.filter_asc,
         typeFilter = options.search.items.filter_type,
         showHidden = options.show_hidden,
@@ -106,7 +106,7 @@ function CHC_window:addSearchPanel()
     local recipesData = self:getRecipes(false)
     local recipes_screen_init = self.common_screen_data
     local recipes_extra = {
-        recipeSource = recipesData,
+        objSource = recipesData,
         itemSortAsc = options.search.recipes.filter_asc,
         typeFilter = options.search.recipes.filter_type,
         showHidden = options.show_hidden,
@@ -146,7 +146,7 @@ function CHC_window:addFavoriteScreen()
     local itemsData = self:getItems(CHC_main.itemsForSearch, nil, true)
     local items_screen_init = self.common_screen_data
     local items_extra = {
-        recipeSource = itemsData,
+        objSource = itemsData,
         itemSortAsc = options.favorites.items.filter_asc,
         typeFilter = options.favorites.items.filter_type,
         showHidden = options.show_hidden,
@@ -165,11 +165,11 @@ function CHC_window:addFavoriteScreen()
     end
     -- endregion
 
-    -- region search recipes screen
+    -- region fav recipes screen
     local recipesData = self:getRecipes(false)
     local recipes_screen_init = self.common_screen_data
     local recipes_extra = {
-        recipeSource = recipesData,
+        objSource = recipesData,
         itemSortAsc = options.favorites.recipes.filter_asc,
         typeFilter = options.favorites.recipes.filter_type,
         showHidden = options.show_hidden,
@@ -255,7 +255,7 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
     --region uses screen
     local uses_screen_init = self.common_screen_data
     local uses_extra = {
-        recipeSource = usesData,
+        objSource = usesData,
         itemSortAsc = options.uses.filter_asc,
         typeFilter = options.uses.filter_type,
         showHidden = options.show_hidden,
@@ -280,7 +280,7 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
 
     local craft_screen_init = self.common_screen_data
     local craft_extra = {
-        recipeSource = craftData,
+        objSource = craftData,
         itemSortAsc = options.craft.filter_asc,
         typeFilter = options.craft.filter_type,
         showHidden = options.show_hidden,
