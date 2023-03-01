@@ -179,10 +179,8 @@ function CHC_uses_recipelist:addToFavorite(selectedIndex, fromKeyboard)
 	self.modData[CHC_main.getFavoriteRecipeModDataString(selectedItem.item)] = selectedItem.item
 		.favorite
 	if selectedItem.item.favorite then
-		parent.favRecNum = parent.favRecNum + 1
 		table.insert(fav_recipes, selectedItem)
 	else
-		parent.favRecNum = parent.favRecNum - 1
 		local cs = parent.filterRow.categorySelector
 		if cs.options[cs.selected].text == parent.favCatName or parent.ui_type == 'fav_recipes' then
 			self:removeItemByIndex(selectedIndex)

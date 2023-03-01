@@ -81,7 +81,7 @@ function CHC_window:addSearchPanel()
     self.searchPanel:setAnchorBottom(true)
 
     -- region search items screen
-    local itemsData = self:getItems(CHC_main.itemsForSearch)
+    local itemsData = self:getItems()
     local items_screen_init = self.common_screen_data
     local items_extra = {
         objSource = itemsData,
@@ -143,7 +143,7 @@ function CHC_window:addFavoriteScreen()
     self.favPanel:setAnchorBottom(true)
 
     -- region fav items screen
-    local itemsData = self:getItems(CHC_main.itemsForSearch, nil, true)
+    local itemsData = self:getItems(true)
     local items_screen_init = self.common_screen_data
     local items_extra = {
         objSource = itemsData,
@@ -305,9 +305,11 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
     self:refresh(nil, nil, focusOnNew, focusOnTabIdx)
 end
 
-function CHC_window:getItems(items, max, favOnly)
+function CHC_window:getItems(favOnly, max)
+    favOnly = favOnly or false
     local showHidden = CHC_settings.config.show_hidden
     local newItems = {}
+    local items = CHC_main.itemsForSearch
     local to = max or #items
 
     for i = 1, to do
@@ -548,7 +550,12 @@ function CHC_window:onRMBDownObjList(x, y, item, isrecipe, context)
         local name = context:addOption(getText('IGUI_chc_Copy') .. ' (' .. item.displayName .. ')', nil, nil)
         local subMenuName = ISContextMenu:getNew(context)
         context:addSubMenu(name, subMenuName)
-        local itemType = self.parent.typeData and self.parent.typeData[item.category].tooltip or item.category
+        local itemType
+        if self.parent.isItemView then
+            itemType = self.parent.typeData[item.category].tooltip
+        else
+            itemType = item.category
+        end
 
         local ft = subMenuName:addOption('FullType', self, chccopy, item.fullType)
         local na = subMenuName:addOption('Name', self, chccopy, item.name)
@@ -840,7 +847,7 @@ function CHC_window:onKeyRelease(key)
         if cs.selected > #cs.options then cs.selected = 1 end
     end
     if oldcsSel ~= cs.selected then
-        subview.onChangeCategory(subview.filterRow, nil, cs.options[cs.selected].text)
+        CHC_view.onChangeCategory(subview.filterRow, nil, cs.options[cs.selected].text)
         return
     end
     -- endregion

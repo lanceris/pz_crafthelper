@@ -11,7 +11,6 @@ local fhs = getTextManager():getFontHeight(UIFont.Small) -- FIXME
 local utils = require('CHC_utils')
 
 local insert = table.insert
-local sort = table.sort
 
 -- region create
 function CHC_uses:initialise()
@@ -19,20 +18,24 @@ function CHC_uses:initialise()
 
     self.typeData = {
         all = {
-            tooltip = self.categorySelectorDefaultOption,
+            tooltip = self.defaultCategory,
             icon = self.typeFiltIconAll,
+            count = 0
         },
         valid = {
             tooltip = getText('UI_settings_av_valid'),
-            icon = self.typeFiltIconValid
+            icon = self.typeFiltIconValid,
+            count = 0
         },
         known = {
             tooltip = getText('UI_settings_av_known'),
-            icon = self.typeFiltIconKnown
+            icon = self.typeFiltIconKnown,
+            count = 0
         },
         invalid = {
             tooltip = getText('UI_settings_av_invalid'),
-            icon = self.typeFiltIconInvalid
+            icon = self.typeFiltIconInvalid,
+            count = 0
         },
     }
 
@@ -40,94 +43,27 @@ function CHC_uses:initialise()
 end
 
 function CHC_uses:create()
-    -- region draggable headers
-    self.headers = CHC_tabs:new(0, 0, self.width, CHC_main.common.heights.headers, { self.onResizeHeaders, self },
-        self.sep_x)
-    self.headers:initialise()
-    -- endregion
-
-    local x = self.headers.x
-    local y = self.headers.y + self.headers.height
-    local leftW = self.headers.nameHeader.width
-    local rightX = self.headers.typeHeader.x
-    local rightW = self.headers.typeHeader.width
-    -- region filters UI
-
-    local filterRowData = {
-        filterOrderData = {
-            width = CHC_main.common.heights.filter_row,
-            title = '',
-            onclick = CHC_view.sortByName,
-            onclickargs = { CHC_uses.sortByNameAsc, CHC_uses.sortByNameDesc },
-            defaultTooltip = CHC_view.filterOrderSetTooltip(self),
-            defaultIcon = CHC_view.filterOrderSetIcon(self)
-        },
-        filterTypeData = {
-            width = CHC_main.common.heights.filter_row,
-            title = '',
-            onclick = self.onFilterTypeMenu,
-            defaultTooltip = self:filterTypeSetTooltip(),
-            defaultIcon = CHC_view.filterTypeSetIcon(self)
-        },
-        filterSelectorData = {
-            defaultTooltip = getText('IGUI_invpanel_Category'),
-            onChange = self.onChangeCategory
-        }
+    local filterRowOrderOnClickArgs = { CHC_uses.sortByNameAsc, CHC_uses.sortByNameDesc }
+    local mainPanelsData = {
+        listCls = CHC_uses_recipelist,
+        panelCls = CHC_uses_recipepanel,
+        --extra_init_params = { }
     }
-
-    self.filterRow = CHC_filter_row:new(
-        { x = x, y = y, w = leftW, h = CHC_main.common.heights.filter_row, backRef = self.backRef },
-        filterRowData)
-    self.filterRow:initialise()
-    local leftY = y + CHC_main.common.heights.filter_row
-    -- endregion
-
-    -- region search bar
-    self.searchRow = CHC_search_bar:new(
-        { x = x, y = leftY, w = leftW, h = CHC_main.common.heights.search_row, backRef = self.backRef }, nil,
-        self.onTextChange, self.searchRowHelpText)
-    self.searchRow:initialise()
-    leftY = leftY + self.searchRow.height
-    -- endregion
-
-    -- region recipe list
-    local rlh = self.height - self.headers.height - self.filterRow.height - self.searchRow.height
-    self.objList = CHC_uses_recipelist:new({ x = x, y = leftY, w = leftW, h = rlh, backRef = self.backRef })
-
-    self.objList.drawBorder = true
-    self.objList.onRightMouseDown = self.onRMBDownObjList
-    self.objList:initialise()
-    self.objList:instantiate()
-    self.objList:setAnchorBottom(true)
-    self.objList:setOnMouseDownFunction(self, self.onObjectChange)
-    self.objList.curFontData = self.curFontData
-    -- endregion
-
-    -- region recipe details windows
-    local rph = self.height - self.headers.height
-    self.objPanel = CHC_uses_recipepanel:new({ x = rightX, y = y, w = rightW, h = rph, backRef = self.backRef })
-    self.objPanel.drawBorder = true
-    self.objPanel:initialise()
-    self.objPanel:instantiate()
-    self.objPanel:setAnchorRight(true)
-    self.objPanel:setAnchorBottom(true)
-    -- endregion
-
-    -- Attach all to the craft helper window
-    self:addChild(self.headers)
-    self:addChild(self.filterRow)
-    self:addChild(self.searchRow)
-    self:addChild(self.objList)
-    self:addChild(self.objPanel)
+    CHC_view.create(self, filterRowOrderOnClickArgs, mainPanelsData)
+    self.onResizeHeaders = CHC_view.onResizeHeaders
+    self.objGetter = "getRecipes"
 
     if self.ui_type == 'fav_recipes' then
-        self.objSource = self.backRef:getRecipes(true)
+        self.objSource = self.backRef[self.objGetter](self, true)
     end
-    self:getContainers()
+
     self:updateCategories()
     self:updateTypes()
-    self:updateObjects(self.selectedCategory)
+    self:updateObjects()
+
+    self:getContainers()
     self:updateRecipesState()
+    self.initDone = true
 end
 
 -- endregion
@@ -142,143 +78,16 @@ function CHC_uses:update()
     CHC_view.update(self)
 end
 
-function CHC_uses:updateObjects(sl)
-    -- get all containers nearby
-    self:getContainers()
-
-    if type(sl) == 'table' then sl = sl.text end
-    local categoryAll = self.categorySelectorDefaultOption
-    local searchBar = self.searchRow.searchBar
-    local recipes = self.objSource
-
-    if sl == categoryAll and self.typeFilter == 'all' and searchBar:getInternalText() == '' then
-        CHC_view.refreshObjList(self, recipes)
-        return
-    end
-
-    -- filter recipes
-    local filteredRecipes = {}
-    for i = 1, #recipes do
-        local rc = recipes[i].category
-        local rc_tr = getTextOrNull('IGUI_CraftCategory_' .. rc) or rc
-
-        local type_filter_state = false
-        local search_state = false
-
-        if (rc_tr == sl or sl == categoryAll) then
-            type_filter_state = CHC_view.objTypeFilter(self, recipes[i]._state)
-        end
-        search_state = CHC_main.common.searchFilter(self, recipes[i], self.searchProcessToken)
-
-        if type_filter_state and search_state then
-            insert(filteredRecipes, recipes[i])
-        end
-    end
-    CHC_view.refreshObjList(self, filteredRecipes)
+function CHC_uses:updateObjects()
+    CHC_view.updateObjects(self, '_state')
 end
 
 function CHC_uses:updateTypes()
-    local recipes
-    local suff = false
-    if self.searchRow.searchBar:getInternalText() == "" then
-        recipes = self.objSource
-    else
-        recipes = self.objList.items
-        suff = true
-        if not recipes or utils.empty(recipes) then
-            recipes = self.objSource
-            suff = false
-        end
-    end
-    self:getContainers()
-    self.numRecipes = { all = 0, valid = 0, known = 0, invalid = 0 }
-    for i = 1, #recipes do
-        local recipe = suff and recipes[i].item or recipes[i]
-        local category = recipe.category
-        category = getTextOrNull('IGUI_CraftCategory_' .. category) or category
-        if self.selectedCategory == self.categorySelectorDefaultOption or self.selectedCategory == category then
-            self.numRecipes.all = self.numRecipes.all + 1
-            if recipe.valid then
-                self.numRecipes.valid = self.numRecipes.valid + 1
-            elseif recipe.known then
-                self.numRecipes.known = self.numRecipes.known + 1
-            else
-                self.numRecipes.invalid = self.numRecipes.invalid + 1
-            end
-        end
-    end
-    if self.numRecipes.valid == 0 and self.typeFilter == 'valid' or
-        self.numRecipes.known == 0 and self.typeFilter == 'known' or
-        self.numRecipes.invalid == 0 and self.typeFilter == 'invalid' then
-        CHC_view.sortByType(self, 'all')
-    end
-    if self.numRecipesPrev ~= self.numRecipes then
-        self.needUpdateObjects = true
-    end
-    self.numRecipesPrev = self.numRecipes
-    -- print(self.numRecipes.all .. "|" .. self.numRecipes.valid .. "|" ..
-    -- self.numRecipes.known .. "|" .. self.numRecipes.invalid)
+    CHC_view.updateTypes(self, '_state')
 end
 
 function CHC_uses:updateCategories()
-    local selector = self.filterRow.categorySelector
-    local uniqueCategories = {}
-    local catCounts = {}
-    local allrec
-    local suff = false
-    if self.searchRow.searchBar:getInternalText() == "" then
-        allrec = self.objSource
-    else
-        allrec = self.objList.items
-        suff = true
-        if not allrec or utils.empty(allrec) then
-            allrec = self.objSource
-            suff = false
-        end
-    end
-    local c = 1
-    self.favRecNum = 0
-
-
-    for i = 1, #allrec do
-        local recipe = suff and allrec[i].item or allrec[i]
-        if recipe.favorite then
-            self.favRecNum = self.favRecNum + 1
-        end
-        local state = recipe._state
-        local rc = recipe.recipeData.category
-        rc = getTextOrNull('IGUI_CraftCategory_' .. rc) or rc
-        if self.typeFilter == 'all' or self.typeFilter == state then
-            if not utils.any(uniqueCategories, rc) then
-                uniqueCategories[c] = rc
-                catCounts[rc] = 1
-                c = c + 1
-            else
-                catCounts[rc] = catCounts[rc] + 1
-            end
-        end
-    end
-
-    selector:clear()
-    selector:addOptionWithData(self.categorySelectorDefaultOption, { count = #allrec })
-
-    sort(uniqueCategories)
-    for i = 1, #uniqueCategories do
-        selector:addOptionWithData(uniqueCategories[i], { count = catCounts[uniqueCategories[i]] })
-    end
-end
-
-function CHC_uses:handleFavorites()
-    if self.ui_type == 'fav_recipes' then
-        self.objSource = self.backRef:getRecipes(true)
-    else
-        self.backRef.updateQueue:push({
-            targetView = 'fav_recipes',
-            actions = { 'needUpdateFavorites', 'needUpdateObjects', 'needUpdateTypes' }
-        })
-    end
-    self:updateCategories()
-    self.filterRow.categorySelector:select(self.selectedCategory)
+    CHC_view.updateCategories(self, '_state')
 end
 
 function CHC_uses:updateRecipeState(recipe)
@@ -317,7 +126,7 @@ function CHC_uses:updateRecipeState(recipe)
             recipe.known = true
             recipe.invalid = false
         else
-            recipe._state = "unknown"
+            recipe._state = "invalid"
             recipe.valid = false
             recipe.known = false
             recipe.invalid = true
@@ -326,6 +135,7 @@ function CHC_uses:updateRecipeState(recipe)
 end
 
 function CHC_uses:updateRecipesState()
+    self:getContainers()
     local recipes
     local issuff = false
     if self.typeFilter == 'all' then
@@ -347,7 +157,7 @@ function CHC_uses:updateRecipesState()
     end
     self.needUpdateTypes = true
     if not self.filterRow.categorySelector:getSelectedText() then
-        self.filterRow.categorySelector:select(self.categorySelectorDefaultOption)
+        self.filterRow.categorySelector:select(self.defaultCategory)
     end
 end
 
@@ -359,7 +169,7 @@ function CHC_uses:prerender()
     local ms = UIManager.getMillisSinceLastRender()
     if not self.ms then self.ms = 0 end
     self.ms = self.ms + ms
-    if self.ms > 1000 then -- FIXME
+    if self.ms > 1000 and self.initDone then -- FIXME
         self.needUpdateRecipeState = true
         self.ms = 0
     end
@@ -374,10 +184,6 @@ function CHC_uses:render()
     CHC_view.render(self)
 end
 
-function CHC_uses:onResizeHeaders()
-    CHC_view.onResizeHeaders(self)
-end
-
 -- endregion
 
 -- region logic
@@ -385,25 +191,6 @@ end
 -- region event handlers
 function CHC_uses:onTextChange()
     CHC_view.onTextChange(self)
-end
-
-function CHC_uses:onChangeCategory(_option, sl)
-    CHC_view.onChangeCategory(self, _option, sl)
-end
-
-function CHC_uses:onObjectChange(obj)
-    CHC_view.onObjectChange(self, obj)
-end
-
-function CHC_uses:onFilterTypeMenu(button)
-    local data = {
-        { txt = 'UI_All',                 num = self.parent.numRecipes.all,     arg = 'all' },
-        { txt = 'UI_settings_av_valid',   num = self.parent.numRecipes.valid,   arg = 'valid' },
-        { txt = 'UI_settings_av_known',   num = self.parent.numRecipes.known,   arg = 'known' },
-        { txt = 'UI_settings_av_invalid', num = self.parent.numRecipes.invalid, arg = 'invalid' }
-    }
-
-    CHC_view.onFilterTypeMenu(self.parent, button, data, CHC_view.sortByType)
 end
 
 function CHC_uses:onRMBDown(x, y, item, showNameInFindCtx)
@@ -456,10 +243,6 @@ CHC_uses.sortByNameDesc = function(a, b)
     return a.item.recipeData.name > b.item.recipeData.name
 end
 
--- endregion
-
--- region filterRow setters
-
 function CHC_uses:filterTypeSetTooltip()
     local curtype = self.typeData[self.typeFilter].tooltip
     return getText('UI_settings_av_title') .. ' (' .. curtype .. ')'
@@ -467,14 +250,7 @@ end
 
 -- endregion
 
-
 function CHC_uses:searchProcessToken(token, recipe)
-    -- check if token is special search
-    -- if so
-    -- remove special char from token
-    -- process special chars
-    -- if not, compare token with recipe name
-    --return state
     local state = false
     local isAllowSpecialSearch = CHC_settings.config.allow_special_search
     local isSpecialSearch = false
@@ -489,34 +265,15 @@ function CHC_uses:searchProcessToken(token, recipe)
     end
 
     local whatCompare
-    if isAllowSpecialSearch and char == '^' then
-        -- show favorited reciped and search by them
-        if not recipe.favorite then return false end
-        whatCompare = string.lower(recipe.recipeData.name)
-    end
-    if isAllowSpecialSearch and char == '&' then
-        -- search by mod(ule) name of recipe
-        whatCompare = string.lower(recipe.module)
-    end
-    if token and isSpecialSearch then
-        if char == '!' then
-            -- search by recipe category
-            local catName = getTextOrNull('IGUI_CraftCategory_' .. recipe.category) or recipe.category
-            whatCompare = catName
+    if not token then return true end
+    if isSpecialSearch then
+        if char == '^' then
+            if not recipe.favorite then return false end
+            whatCompare = string.lower(recipe.recipeData.name)
         end
-        local resultItem = recipe.recipeData.result
-        if resultItem and resultItem.fullType then
-            if char == '@' then
-                -- search by mod name of resulting item
-                whatCompare = resultItem.modname
-            elseif char == '$' then
-                -- search by DisplayCategory of resulting item
-                local displayCat = resultItem.displayCategory or ''
-                whatCompare = getText('IGUI_ItemCat_' .. displayCat) or 'None'
-            elseif char == '%' then
-                -- search by name of resulting item
-                whatCompare = resultItem.displayName
-            end
+        if char == '!' then
+            local catName = recipe.displayCategory or recipe.category
+            whatCompare = catName
         end
         if char == '#' then
             -- search by ingredients
@@ -567,12 +324,24 @@ function CHC_uses:searchProcessToken(token, recipe)
 
             whatCompare = items
         end
-    end
-    if token and not isSpecialSearch then
+        if char == '&' then
+            whatCompare = string.lower(recipe.module)
+        end
+        local resultItem = recipe.recipeData.result
+        if resultItem and resultItem.fullType then
+            if char == '@' then
+                whatCompare = resultItem.modname
+            elseif char == '$' then
+                local displayCat = resultItem.displayCategory or ''
+                whatCompare = getText('IGUI_ItemCat_' .. displayCat) or 'None'
+            elseif char == '%' then
+                whatCompare = resultItem.displayName
+            end
+        end
+    else
         whatCompare = string.lower(recipe.recipeData.name)
     end
     state = utils.compare(whatCompare, token)
-    if not token then state = true end
     return state
 end
 
@@ -621,7 +390,7 @@ function CHC_uses:new(args)
     o.itemSortFunc = o.itemSortAsc == true and CHC_uses.sortByNameAsc or CHC_uses.sortByNameDesc
     o.player = getPlayer()
     o.favCatName = '* ' .. getText('IGUI_CraftCategory_Favorite')
-    o.categorySelectorDefaultOption = getText('UI_All')
+    o.defaultCategory = getText('UI_All')
     o.searchRowHelpText = getText('UI_searchrow_info',
         getText('UI_searchrow_info_recipes_special'),
         getText('UI_searchrow_info_recipes_examples')
@@ -638,10 +407,11 @@ function CHC_uses:new(args)
     o.needUpdateShowIcons = false
     o.needUpdateRecipeState = false
 
-    o.selectedCategory = o.categorySelectorDefaultOption
+    o.selectedCategory = o.defaultCategory
+    o.initDone = false
+    o.fav_ui_type = "fav_recipes"
     o.backRef = args.backRef
     o.ui_type = args.ui_type
-    o.favRecNum = 0
     o.isItemView = false
     o.modData = CHC_main.playerModData
     o.curFontData = CHC_main.common.fontSizeToInternal[CHC_settings.config.list_font_size]
@@ -657,8 +427,5 @@ function CHC_uses:new(args)
     o.typeFiltIconKnown = getTexture('media/textures/type_filt_known.png')
     o.typeFiltIconInvalid = getTexture('media/textures/type_filt_invalid.png')
 
-    o.numRecipes = { all = 0, valid = 0, known = 0, invalid = 0 }
-
-    -- o.ms = 0
     return o
 end

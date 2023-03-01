@@ -1,8 +1,96 @@
 CHC_view = ISPanel:derive('CHC_view')
 
 local sort = table.sort
+local insert = table.insert
+
+local utils = require('CHC_utils')
 
 -- region create
+function CHC_view:create(filterRowOrderOnClickArgs, mainPanelsData)
+    -- region draggable headers
+    self.headers = CHC_tabs:new(0, 0, self.width, CHC_main.common.heights.headers, { CHC_view.onResizeHeaders, self },
+        self.sep_x)
+    self.headers:initialise()
+    -- endregion
+
+    local x = self.headers.x
+    local y = self.headers.y + self.headers.height
+    local leftW = self.headers.nameHeader.width
+    local rightX = self.headers.typeHeader.x
+    local rightW = self.headers.typeHeader.width
+
+    -- region filters UI
+    local filterRowData = {
+        filterOrderData = {
+            width = CHC_main.common.heights.filter_row,
+            title = '',
+            onclick = CHC_view.sortByName,
+            onclickargs = filterRowOrderOnClickArgs,
+            defaultTooltip = CHC_view.filterOrderSetTooltip(self),
+            defaultIcon = CHC_view.filterOrderSetIcon(self)
+        },
+        filterTypeData = {
+            width = CHC_main.common.heights.filter_row,
+            title = '',
+            onclick = CHC_view.onFilterTypeMenu,
+            defaultTooltip = self:filterTypeSetTooltip(),
+            defaultIcon = CHC_view.filterTypeSetIcon(self)
+        },
+        filterSelectorData = {
+            defaultCategory = getText('UI_All'),
+            defaultTooltip = getText('IGUI_invpanel_Category'),
+            onChange = CHC_view.onChangeCategory
+        }
+    }
+
+    self.filterRow = CHC_filter_row:new(
+        { x = x, y = y, w = leftW, h = CHC_main.common.heights.filter_row, backRef = self.backRef }, filterRowData)
+    self.filterRow:initialise()
+    local leftY = y + CHC_main.common.heights.filter_row
+    --endregion
+
+    -- region search bar
+    self.searchRow = CHC_search_bar:new(
+        { x = x, y = leftY, w = leftW, h = CHC_main.common.heights.search_row, backRef = self.backRef }, nil,
+        self.onTextChange, self.searchRowHelpText)
+    self.searchRow:initialise()
+    leftY = leftY + self.searchRow.height
+    -- endregion
+
+    -- region recipe list
+    local rlh = self.height - self.headers.height - self.filterRow.height - self.searchRow.height
+    local params = { x = x, y = leftY, w = leftW, h = rlh, backRef = self.backRef }
+    if mainPanelsData.extra_init_params then
+        for key, value in pairs(mainPanelsData.extra_init_params) do
+            params[key] = value
+        end
+    end
+    self.objList = mainPanelsData.listCls:new(params)
+
+    self.objList.drawBorder = true
+    self.objList.onRightMouseDown = self.onRMBDownObjList
+    self.objList:initialise()
+    self.objList:instantiate()
+    self.objList:setAnchorBottom(true)
+    self.objList:setOnMouseDownFunction(self, CHC_view.onObjectChange)
+    self.objList.curFontData = self.curFontData
+
+    -- Add entries to recipeList
+    local iph = self.height - self.headers.height
+    self.objPanel = mainPanelsData.panelCls:new({ x = rightX, y = y, w = rightW, h = iph, backRef = self.backRef })
+    self.objPanel:initialise()
+    self.objPanel:instantiate()
+    self.objPanel:setAnchorLeft(true)
+    self.objPanel:setAnchorBottom(true)
+
+    -- endregion
+
+    self:addChild(self.headers)
+    self:addChild(self.filterRow)
+    self:addChild(self.searchRow)
+    self:addChild(self.objList)
+    self:addChild(self.objPanel)
+end
 
 -- endregion
 
@@ -23,12 +111,12 @@ function CHC_view:update()
         self.needUpdateShowIcons = false
     end
     if self.needUpdateObjects then
-        self:updateObjects(self.selectedCategory)
+        self:updateObjects()
         CHC_view.updateTabNameWithCount(self)
         self.needUpdateObjects = false
     end
     if self.needUpdateFavorites then
-        self:handleFavorites()
+        CHC_view.handleFavorites(self, self.fav_ui_type)
         self.needUpdateFavorites = false
     end
     if self.needUpdateTypes then
@@ -41,8 +129,37 @@ function CHC_view:update()
     end
 end
 
+function CHC_view:updateObjects(categoryField)
+    local defCategorySelected = self.selectedCategory == self.defaultCategory
+    local defTypeSelected = self.typeFilter == 'all'
+    local searchBarEmpty = self.searchRow.searchBar:getInternalText() == ''
+
+    if defCategorySelected and defTypeSelected and searchBarEmpty then
+        CHC_view.refreshObjList(self, self.objSource)
+        return
+    end
+
+    local filtered = {}
+    for i = 1, #self.objSource do
+        local obj = self.objSource[i]
+
+        local type_filter_state = false
+        local search_state = false
+
+        if (obj.displayCategory == self.selectedCategory or defCategorySelected) then
+            type_filter_state = CHC_view.objTypeFilter(self, obj[categoryField])
+        end
+        search_state = CHC_main.common.searchFilter(self, obj, self.searchProcessToken)
+
+        if type_filter_state and search_state then
+            insert(filtered, obj)
+        end
+    end
+    CHC_view.refreshObjList(self, filtered)
+end
+
 function CHC_view:updateTabNameWithCount(listSize)
-    listSize = listSize and listSize or self.objListSize
+    listSize = listSize or self.objListSize
     self.backRef.updateQueue:push({
         targetView = self.ui_type,
         actions = { 'needUpdateSubViewName' },
@@ -82,6 +199,114 @@ function CHC_view:refreshObjList(objects)
     end
 
     self.objListSize = #objL.items
+end
+
+function CHC_view:updateTypes(categoryField)
+    local typCounts = {}
+    local objs
+    local suff = false
+    local currentCategory = self.selectedCategory
+    local defCategorySelected = self.selectedCategory == self.defaultCategory
+    if self.searchRow.searchBar:getInternalText() == "" then
+        objs = self.objSource
+    else
+        objs = self.objList.items
+        suff = true
+        if not objs or utils.empty(objs) then
+            objs = self.objSource
+            suff = false
+        end
+    end
+    for _, val in pairs(self.typeData) do
+        val.count = 0
+    end
+
+    for i = 1, #objs do
+        local obj = suff and objs[i].item or objs[i]
+        local ic = obj[categoryField]
+        local idc = obj.displayCategory
+        if idc == currentCategory or defCategorySelected then
+            if not typCounts[ic] then
+                typCounts[ic] = 1
+            else
+                typCounts[ic] = typCounts[ic] + 1
+            end
+        end
+    end
+
+    local allcnt = 0
+    for typ, cnt in pairs(typCounts) do
+        self.typeData[typ].count = cnt
+        allcnt = allcnt + cnt
+    end
+    self.typeData.all.count = allcnt
+
+
+    if self.typeFilter ~= 'all' and self.typeData[self.typeFilter].count == 0 then
+        CHC_view.sortByType(self, 'all')
+    end
+    if self.typeDataPrev ~= self.typeData then
+        self.needUpdateObjects = true
+    end
+    self.typeDataPrev = self.typeData
+end
+
+function CHC_view:updateCategories(categoryField)
+    local catCounts = {}
+    local newCats = {}
+    local selector = self.filterRow.categorySelector
+    local objs
+    local suff = false
+    local currentType = self.typeFilter
+    local defTypeSelected = self.typeFilter == 'all'
+
+    if self.searchRow.searchBar:getInternalText() == "" then
+        objs = self.objSource
+    else
+        objs = self.objList.items
+        suff = true
+        if not objs or utils.empty(objs) then
+            objs = self.objSource
+            suff = false
+        end
+    end
+
+    for i = 1, #objs do
+        local obj = suff and objs[i].item or objs[i]
+        local ic = obj[categoryField]
+        local idc = obj.displayCategory
+        if ic == currentType or defTypeSelected then
+            if not catCounts[idc] then
+                insert(newCats, idc)
+                catCounts[idc] = 1
+            else
+                catCounts[idc] = catCounts[idc] + 1
+            end
+        end
+    end
+
+    selector:clear()
+    selector:addOptionWithData(self.defaultCategory, { count = self.typeData.all.count })
+    sort(newCats)
+    for i = 1, #newCats do
+        selector:addOptionWithData(newCats[i], { count = catCounts[newCats[i]] })
+    end
+
+    selector:select(self.selectedCategory)
+end
+
+function CHC_view:handleFavorites(fav_ui_type)
+    if self.ui_type == fav_ui_type then
+        self.objSource = self.backRef[self.objGetter](self, true)
+        self.needUpdateObjects = true
+    else
+        self.backRef.updateQueue:push({
+            targetView = fav_ui_type,
+            actions = { 'needUpdateFavorites', 'needUpdateObjects', 'needUpdateTypes' }
+        })
+    end
+    self.needUpdateCategories = true
+    self.needUpdateTypes = true
 end
 
 -- endregion
@@ -129,7 +354,12 @@ function CHC_view:onTextChange()
     self.needUpdateTypes = true
 end
 
-function CHC_view:onFilterTypeMenu(button, data, typeSortFunc)
+function CHC_view:onFilterTypeMenu(button)
+    local data = {}
+    for typ, d in pairs(self.parent.typeData) do
+        insert(data, { txt = d.tooltip, num = d.count, arg = typ })
+    end
+
     local x = button:getAbsoluteX()
     local y = button:getAbsoluteY()
     local context = ISContextMenu.get(0, x + 10, y)
@@ -138,7 +368,7 @@ function CHC_view:onFilterTypeMenu(button, data, typeSortFunc)
     for i = 1, #data do
         if data[i].num and data[i].num > 0 then
             txt = CHC_view.filterSortMenuGetText(data[i].txt, data[i].num)
-            context:addOption(txt, self, typeSortFunc, data[i].arg)
+            context:addOption(txt, self.parent, CHC_view.sortByType, data[i].arg)
         end
     end
 end

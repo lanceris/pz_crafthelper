@@ -101,14 +101,13 @@ CHC_menu.onCraftHelperItem = function(window_inst, item)
 	window_inst:refresh(viewName) -- activate top level search view
 	local top = window_inst.panel.activeView
 	if top.name ~= viewName then
-		print("Top view incorrect in onCraftHelperItem")
+		error("Top view incorrect in onCraftHelperItem")
 		return
 	end
 	top.view:activateView(subViewName)
 	local sub = top.view.activeView
 	local view = sub.view
 
-	assert(view.ui_type == "search_items", error("Incorrect view selected"))
 	local txt = string.format('#%s,%s', item.displayCategory, item.displayName)
 	txt = string.lower(txt)
 	view.searchRow.searchBar:setText(txt) -- set text to Items subview search bar
@@ -126,7 +125,6 @@ CHC_menu.onCraftHelperItem = function(window_inst, item)
 		view.objList:ensureVisible(c)
 		if view.objPanel then
 			view.objPanel:setObj(it[c].item)
-			-- view.needSyncFilters = true
 		end
 	end
 

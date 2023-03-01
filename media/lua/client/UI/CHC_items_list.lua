@@ -265,7 +265,7 @@ end
 
 -- endregion
 
-function CHC_items_list:new(args, onmiddlemousedown)
+function CHC_items_list:new(args)
     local o = {}
 
     o = ISScrollingListBox:new(args.x, args.y, args.w, args.h)
@@ -284,7 +284,7 @@ function CHC_items_list:new(args, onmiddlemousedown)
     o.favorite.star.height = o.favorite.star.tex:getHeight()
     o.favorite.checked.height = o.favorite.checked.tex:getHeight()
     o.favorite.notChecked.height = o.favorite.notChecked.tex:getHeight()
-    o.onmiddlemousedown = onmiddlemousedown
+    o.onmiddlemousedown = args.onmiddlemousedown
     o.needmmb = false
     o.modData = CHC_main.playerModData
 
