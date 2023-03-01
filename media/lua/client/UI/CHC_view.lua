@@ -1,8 +1,7 @@
-CHC_view = ISPanel:derive('CHC_view')
-
+CHC_view = {}
+CHC_view._list = {}
 local sort = table.sort
 local insert = table.insert
-
 local utils = require('CHC_utils')
 
 -- region create
@@ -421,3 +420,104 @@ function CHC_view:filterTypeSetIcon()
 end
 
 -- endregion
+
+
+--region objlist
+function CHC_view._list:isMouseOverFavorite(x)
+    return (x >= self.width - 40) and not self:isMouseOverScrollBar()
+end
+
+function CHC_view._list:prerender()
+    if not self.items then return end
+    if utils.empty(self.items) then return end
+
+    if self.items and self.parent.objListSize > 1000 then
+        if self.needUpdateScroll then
+            self.yScroll = self:getYScroll()
+            self.needUpdateScroll = false
+        end
+        if self.needUpdateMousePos then
+            self.mouseX = self:getMouseX()
+            self.mouseY = self:getMouseY()
+            self.needUpdateMousePos = false
+        end
+    else
+        self.yScroll = self:getYScroll()
+        self.mouseX = self:getMouseX()
+        self.mouseY = self:getMouseY()
+    end
+
+    local stencilX = 0
+    local stencilY = 0
+    local stencilX2 = self.width
+    local stencilY2 = self.height
+
+    local bg = {
+        x = 0,
+        y = -self.yScroll,
+        w = self.width,
+        h = self.height,
+        a = self.backgroundColor.a,
+        r = self.backgroundColor.r,
+        g = self.backgroundColor.g,
+        b = self.backgroundColor.b
+    }
+    self:drawRect(bg.x, bg.y, bg.w, bg.h, bg.a, bg.r, bg.g, bg.b)
+
+    if self.drawBorder then
+        self:drawRectBorder(0, -self.yScroll, self.width, self.height, self.borderColor.a, self.borderColor.r,
+            self.borderColor.g, self.borderColor.b)
+        stencilX = 1
+        stencilY = 1
+        stencilX2 = self.width - 1
+        stencilY2 = self.height - 1
+    end
+
+    if self:isVScrollBarVisible() then
+        stencilX2 = self.vscroll.x + 3 -- +3 because the scrollbar texture is narrower than the scrollbar width
+    end
+
+    self:setStencilRect(stencilX, stencilY, stencilX2 - stencilX, stencilY2 - stencilY)
+
+    local y = 0
+    local alt = false
+
+    if self.selected ~= -1 and self.selected > #self.items then
+        self.selected = #self.items
+    end
+
+    self.listHeight = 0
+    local i = 1
+    for j = 1, #self.items do
+        self.items[j].index = i
+        self.items[j].height = self.curFontData.icon + 2 * self.curFontData.pad
+        if not self.parent.isItemView and
+            CHC_settings.config.show_recipe_module and
+            self.items[j].item.module ~= 'Base' then
+            self.items[j].height = self.items[j].height + self.fontSize - self.curFontData.pad
+        end
+        local y2 = self:doDrawItem(y, self.items[j], alt)
+        self.listHeight = y2
+        self.items[j].height = y2 - y
+        y = y2
+        --alt = not alt
+        i = i + 1
+    end
+
+    self:setScrollHeight((y))
+    self:clearStencilRect()
+
+    if self.doRepaintStencil then
+        self:repaintStencilRect(stencilX, stencilY, stencilX2 - stencilX, stencilY2 - stencilY)
+    end
+
+    local mouseY = self.mouseY
+    self:updateSmoothScrolling()
+
+    if mouseY ~= self.mouseY and self:isMouseOver() then
+        self:onMouseMove(0, self.mouseY - mouseY)
+    end
+    self:updateTooltip()
+end
+
+--endregion

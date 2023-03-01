@@ -1,5 +1,3 @@
-require 'ISUI/ISPanel'
-require 'ISUI/ISContextMenu'
 require 'UI/CHC_tabs'
 require 'UI/CHC_uses_recipelist'
 require 'UI/CHC_uses_recipepanel'
@@ -389,7 +387,6 @@ function CHC_uses:new(args)
     o.sep_x = args.sep_x
     o.itemSortFunc = o.itemSortAsc == true and CHC_uses.sortByNameAsc or CHC_uses.sortByNameDesc
     o.player = getPlayer()
-    o.favCatName = '* ' .. getText('IGUI_CraftCategory_Favorite')
     o.defaultCategory = getText('UI_All')
     o.searchRowHelpText = getText('UI_searchrow_info',
         getText('UI_searchrow_info_recipes_special'),

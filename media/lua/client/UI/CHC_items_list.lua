@@ -1,11 +1,8 @@
 CHC_items_list = ISScrollingListBox:derive('CHC_items_list')
 
-local utils = require('CHC_utils')
-
 -- region create
 
 function CHC_items_list:initialise()
-    self.ft = true
     self.fastListReturn = CHC_main.common.fastListReturn
     ISScrollingListBox.initialise(self)
 end
@@ -13,7 +10,6 @@ end
 -- endregion
 
 -- region update
-
 function CHC_items_list:update()
     if self.needmmb and Mouse.isMiddleDown() then
         self:onMMBDown()
@@ -21,97 +17,12 @@ function CHC_items_list:update()
     end
 end
 
-function CHC_items_list:isMouseOverFavorite(x)
-    return (x >= self.width - 40) and not self:isMouseOverScrollBar()
-end
-
 -- endregion
 
 -- region render
 
 function CHC_items_list:prerender()
-    if not self.items then return end
-    if utils.empty(self.items) then return end
-
-    if self.items and self.parent.objListSize > 1000 then
-        if self.needUpdateScroll then
-            self.yScroll = self:getYScroll()
-            self.needUpdateScroll = false
-        end
-        if self.needUpdateMousePos then
-            self.mouseX = self:getMouseX()
-            self.mouseY = self:getMouseY()
-            self.needUpdateMousePos = false
-        end
-    else
-        self.yScroll = self:getYScroll()
-        self.mouseX = self:getMouseX()
-        self.mouseY = self:getMouseY()
-    end
-    local stencilX = 0
-    local stencilY = 0
-    local stencilX2 = self.width
-    local stencilY2 = self.height
-
-    self:drawRect(0, -self.yScroll, self.width, self.height, self.backgroundColor.a, self.backgroundColor.r,
-        self.backgroundColor.g, self.backgroundColor.b);
-
-    if self.drawBorder then
-        self:drawRectBorder(0, -self.yScroll, self.width, self.height, self.borderColor.a, self.borderColor.r,
-            self.borderColor.g, self.borderColor.b)
-        stencilX = 1
-        stencilY = 1
-        stencilX2 = self.width - 1
-        stencilY2 = self.height - 1
-    end
-
-    if self:isVScrollBarVisible() then
-        stencilX2 = self.vscroll.x + 3 -- +3 because the scrollbar texture is narrower than the scrollbar width
-    end
-
-    self:setStencilRect(stencilX, stencilY, stencilX2 - stencilX, stencilY2 - stencilY)
-
-    local y = 0;
-    local alt = false;
-
-    --	if self.selected ~= -1 and self.selected < 1 then
-    --		self.selected = 1
-    if self.selected ~= -1 and self.selected > #self.items then
-        self.selected = #self.items
-    end
-
-
-    self.listHeight = 0;
-    local i = 1
-    for j = 1, #self.items do
-        self.items[j].index = i
-        self.items[j].height = self.curFontData.icon + 2 * self.curFontData.pad
-        local y2 = self:doDrawItem(y, self.items[j], alt)
-        self.listHeight = y2
-        self.items[j].height = y2 - y
-        y = y2
-        --alt = not alt
-        i = i + 1
-    end
-
-    self:setScrollHeight((y));
-    self:clearStencilRect();
-
-    if self.doRepaintStencil then
-        self:repaintStencilRect(stencilX, stencilY, stencilX2 - stencilX, stencilY2 - stencilY)
-    end
-
-    local mouseY = self.mouseY
-    self:updateSmoothScrolling()
-
-    if mouseY ~= self.mouseY and self:isMouseOver() then
-        self:onMouseMove(0, self.mouseY - mouseY)
-    end
-    self:updateTooltip()
-
-    if self.ft then
-        self.ft = false
-    end
+    CHC_view._list.prerender(self)
 end
 
 function CHC_items_list:doDrawItem(y, item, alt)
@@ -194,7 +105,7 @@ end
 function CHC_items_list:onMouseDownObj(x, y)
     local row = self:rowAt(x, y)
     if row == -1 then return end
-    if self:isMouseOverFavorite(x) then
+    if CHC_view._list.isMouseOverFavorite(self, x) then
         self:addToFavorite(row)
     end
 end
@@ -246,21 +157,16 @@ function CHC_items_list:addToFavorite(selectedIndex, fromKeyboard)
     if not selectedItem then return end
     local parent = self.parent
 
-    local isFav = self.modData[CHC_main.getFavItemModDataStr(selectedItem.item)] == true
+    local favStr = CHC_main.getFavItemModDataStr(selectedItem.item)
+    local isFav = self.modData[favStr] == true
     isFav = not isFav
-    self.modData[CHC_main.getFavItemModDataStr(selectedItem.item)] = isFav or nil
-
-    if isFav == true then
-    else
-        if parent.ui_type == 'fav_items' then
-            self:removeItemByIndex(selectedIndex)
-        end
+    self.modData[favStr] = isFav or nil
+    if not isFav and parent.ui_type == 'fav_items' then
+        self:removeItemByIndex(selectedIndex)
+        parent.needUpdateCategories = true
     end
     parent.needUpdateTypes = true
     parent.needUpdateFavorites = true
-    if parent.ui_type == 'fav_items' then
-        parent.needUpdateCategories = true
-    end
 end
 
 -- endregion

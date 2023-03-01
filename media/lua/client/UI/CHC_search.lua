@@ -1,5 +1,3 @@
-require 'ISUI/ISPanel'
-
 require 'UI/CHC_tabs'
 require 'UI/CHC_uses_recipelist'
 require 'UI/CHC_uses'

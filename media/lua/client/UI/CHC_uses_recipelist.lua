@@ -1,8 +1,4 @@
-require 'ISUI/ISScrollingListBox'
-
 CHC_uses_recipelist = ISScrollingListBox:derive('CHC_uses_recipelist')
-
-local utils = require('CHC_utils')
 
 -- region create
 function CHC_uses_recipelist:initialise()
@@ -12,34 +8,10 @@ end
 
 -- endregion
 
--- region update
-
-function CHC_uses_recipelist:isMouseOverFavorite(x)
-	return (x >= self.width - 40) and not self:isMouseOverScrollBar()
-end
-
--- endregion
-
 -- region render
 
 function CHC_uses_recipelist:prerender()
-	if self.items and self.parent.objListSize > 1000 then
-		if self.needUpdateScroll then
-			self.yScroll = self:getYScroll()
-			self.needUpdateScroll = false
-		end
-		if self.needUpdateMousePos then
-			self.mouseX = self:getMouseX()
-			self.mouseY = self:getMouseY()
-			self.needUpdateMousePos = false
-		end
-	else
-		self.yScroll = self:getYScroll()
-		self.mouseX = self:getMouseX()
-		self.mouseY = self:getMouseY()
-	end
-
-	ISScrollingListBox.prerender(self)
+	CHC_view._list.prerender(self)
 end
 
 function CHC_uses_recipelist:doDrawItem(y, item, alt)
@@ -140,12 +112,10 @@ end
 
 -- region logic
 
--- region event handlers
-
 function CHC_uses_recipelist:onMouseDownObj(x, y)
 	local row = self:rowAt(x, y)
 	if row == -1 then return end
-	if self:isMouseOverFavorite(x) then
+	if CHC_view._list.isMouseOverFavorite(self, x) then
 		self:addToFavorite(row)
 	end
 end
@@ -153,8 +123,6 @@ end
 function CHC_uses_recipelist:onMouseUpOutside(x, y)
 	ISScrollingListBox.onMouseUpOutside(self, x, y)
 end
-
--- endregion
 
 function CHC_uses_recipelist:addToFavorite(selectedIndex, fromKeyboard)
 	if fromKeyboard == true then
@@ -173,23 +141,23 @@ function CHC_uses_recipelist:addToFavorite(selectedIndex, fromKeyboard)
 			break
 		end
 	end
-	if fav_idx == nil then return end
+	if not fav_idx then return end
 	local fav_recipes = allr[fav_idx].recipes.items
-	selectedItem.item.favorite = not selectedItem.item.favorite;
-	self.modData[CHC_main.getFavoriteRecipeModDataString(selectedItem.item)] = selectedItem.item
-		.favorite
+	selectedItem.item.favorite = not selectedItem.item.favorite
+	local favStr = CHC_main.getFavoriteRecipeModDataString(selectedItem.item)
+	self.modData[favStr] = selectedItem.item.favorite
 	if selectedItem.item.favorite then
 		table.insert(fav_recipes, selectedItem)
 	else
-		local cs = parent.filterRow.categorySelector
-		if cs.options[cs.selected].text == parent.favCatName or parent.ui_type == 'fav_recipes' then
+		if parent.ui_type == 'fav_recipes' then
 			self:removeItemByIndex(selectedIndex)
-			parent.needUpdateTypes = true
+			parent.needUpdateCategories = true
 		end
 	end
 	if #self.items == 0 then
 		parent.needUpdateObjects = true
 	end
+	parent.needUpdateTypes = true
 	parent.needUpdateFavorites = true
 end
 
