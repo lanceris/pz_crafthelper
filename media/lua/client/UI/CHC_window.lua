@@ -327,11 +327,14 @@ end
 
 function CHC_window:getRecipes(favOnly)
     favOnly = favOnly or false
+    local showHidden = CHC_settings.config.show_hidden
     local recipes = {}
-    local allrec = CHC_main.allRecipes
-    local allevorec = CHC_main.allEvoRecipes
+    local allrec = CHC_main.allRecipes or {}
+    local allevorec = CHC_main.allEvoRecipes or {}
     for i = 1, #allrec do
-        if (favOnly and allrec[i].favorite) or (not favOnly) then
+        local isFav = allrec[i].favorite
+        if (not showHidden) and allrec[i].hidden then
+        elseif (favOnly and isFav) or (not favOnly) then
             insert(recipes, allrec[i])
         end
     end
@@ -339,6 +342,11 @@ function CHC_window:getRecipes(favOnly)
         if (favOnly and allevorec[i].favorite) or (not favOnly) then
             insert(recipes, allevorec[i])
         end
+    end
+
+    if not showHidden and not favOnly then
+        print(string.format('Removed %d hidden recipes in %s', #allrec + #allevorec - #recipes,
+            self.ui_type or "CHC_window"))
     end
     return recipes
 end

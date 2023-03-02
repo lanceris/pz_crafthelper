@@ -18,25 +18,8 @@ function CHC_props_table:createChildren()
     local x = self.padX
     local y = self.padY
 
-    -- self.optionsUI = CHC_options_ui:new({ x = self.backRef.x + self.backRef.width, y = self.backRef.y, w = 100, h = 150,
-    --     backRef = self.backRef })
-    -- self.optionsUI:initialise()
-    -- self.optionsUI:setTitle('Temp title')
-    -- self.optionsUI:setResizable(false)
-    -- self.optionsUI:setVisible(false)
-
-    -- self.label = ISLabel:new(x, y, self.fonthgt, 'Attributes', 1, 1, 1, 1, self.font, true)
-    -- self.label:initialise()
-    -- y = y + self.padY + self.label.height
-
     -- region search bar row
     local h = 20
-    -- self.optionsBtn = ISButton:new(x, y, h, h, '', self, self.onOptionsMouseDown)
-    -- self.optionsBtn:initialise()
-    -- self.optionsBtn.borderColor.a = 0
-    -- self.optionsBtn:setImage(self.optionsBtnIcon)
-    -- self.optionsBtn:setTooltip('testTooltip')
-
 
     self.searchRow = CHC_search_bar:new({
         x = x,
@@ -45,8 +28,9 @@ function CHC_props_table:createChildren()
         h = h,
         backRef = self.backRef
     }, nil,
-        self.onTextChange, self.searchRowHelpText)
+        self.onTextChange, self.searchRowHelpText, self.onCommandEntered)
     self.searchRow:initialise()
+    if self.delayedSearch then self.searchRow:setTooltip(self.searchBarDelayedTooltip) end
     self.searchRow.drawBorder = false
     y = y + self.padY + self.searchRow.height
     -- endregion
@@ -386,7 +370,15 @@ function CHC_props_table:processAddObjToObjList(prop)
 end
 
 function CHC_props_table:onTextChange()
-    self.needUpdateObjects = true
+    if not self.delayedSearch or self.searchRow.searchBar:getInternalText() == '' then
+        CHC_view.onTextChange(self)
+    end
+end
+
+function CHC_props_table:onCommandEntered()
+    if self.delayedSearch then
+        CHC_view.onCommandEntered(self)
+    end
 end
 
 -- search rules
@@ -465,6 +457,10 @@ function CHC_props_table:new(args)
     o.needUpdateObjects = false
     o.propData = nil
     o.savedPos = -1
+
+    o.delayedSearch = CHC_settings.config.delayed_search
+    o.needUpdateDelayedSearch = false
+    o.searchBarDelayedTooltip = getText('IGUI_DelayedSearchBarTooltip')
 
     return o
 end

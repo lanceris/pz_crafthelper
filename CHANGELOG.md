@@ -4,12 +4,12 @@
 
 ### New features
 
--
+- Added option for delayed search (Need to press Enter to perform search) (by default OFF)
 
 ### Improvements
 
 - Use RecipeManager.getSourceItemsAll for each source instead of getAvailableItemsAll when collecting available items (incorrect counts otherwise, needs testing)
-- Optimized rendering
+- Optimized rendering and improved overall performance
 - Removed vanilla recipes that require Anvil nearby
 - Added Traditional Chinese translation (thanks to [TW_Billy](https://steamcommunity.com/profiles/76561198001484294))
 - Types and categories are now filtered along with search query

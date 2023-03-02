@@ -24,11 +24,7 @@ CHC_main.common.heights = {
 function CHC_main.common.searchFilter(self, q, processTokenFunc)
     local stateText = string.trim(self.searchRow.searchBar:getInternalText())
     if #stateText > globalTextLimit then
-        self.searchRow:setTooltip(getText('IGUI_TextTooLongTooltip') ..
-        '! (' .. #stateText .. ' > ' .. globalTextLimit .. ')')
         return true
-    else
-        self.searchRow:setTooltip(self.searchRow.origTooltip)
     end
     local tokens, isMultiSearch, queryType = CHC_search_bar:parseTokens(stateText)
     local tokenStates = {}
@@ -273,4 +269,21 @@ function CHC_main.common.getNearbyIsoObjectNames(player)
         end
     end
     return res
+end
+
+function CHC_main.common.getContainersHash(containerList)
+    local hashSum = 0
+    for i = 0, containerList:size() - 1 do
+        local itemsHash = containerList:get(i):getItems():hashCode()
+        hashSum = hashSum + itemsHash
+    end
+    return hashSum
+end
+
+function CHC_main.common.compareContainersHash(current, prev)
+    if not current then
+        error("No way to compare hashes")
+    end
+    if not prev then prev = 0 end
+    return current == prev
 end

@@ -349,7 +349,9 @@ function CHC_uses_recipepanel:getSources(recipe)
 end
 
 function CHC_uses_recipepanel:setObj(recipe)
-    self.parent.getContainers(self)
+    if not self.containerList then
+        self.parent.getContainers(self)
+    end
     local obj = {}
 
     obj.category = recipe.category
@@ -988,20 +990,13 @@ function CHC_uses_recipepanel:render()
     local selectedItem = self.newItem
 
     -- region check if available
-    local ms = UIManager.getMillisSinceLastRender()
-    if not self.ms then self.ms = 0 end
-    self.ms = self.ms + ms
-    if self.ms > 500 then
-        self.needRefreshIngredientPanel = true
-        self.ms = 0
-    end
 
     if self.needRefreshIngredientPanel then
         self.needRefreshIngredientPanel = false
+        self.containerList = self.parent.containerList
         local typesAvailable = self:getAvailableItemsType()
         self.needRefreshRecipeCounts = utils.areTablesDifferent(selectedItem.typesAvailable, typesAvailable)
         selectedItem.typesAvailable = typesAvailable
-        self.parent.getContainers(self)
         if self.recipe.isSynthetic then
             selectedItem.available = false
             selectedItem.howManyCanCraft = 0

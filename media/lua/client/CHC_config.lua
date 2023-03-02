@@ -54,6 +54,7 @@ local init_cfg = {
     show_hidden = false,
     close_all_on_exit = false,
     show_all_props = false,
+    delayed_search = false,
     main_window = { x = 100, y = 100, w = 1000, h = 600 },
     uses = { sep_x = 500, filter_asc = true, filter_type = 'all' },
     craft = { sep_x = 500, filter_asc = true, filter_type = 'all' },
@@ -85,6 +86,7 @@ function CHC_settings.f.onModOptionsApply(values)
     CHC_settings.config.show_hidden = values.settings.options.show_hidden
     CHC_settings.config.close_all_on_exit = values.settings.options.close_all_on_exit
     CHC_settings.config.show_all_props = values.settings.options.show_all_props
+    CHC_settings.config.delayed_search = values.settings.options.delayed_search
     if CHC_settings.config.main_window == nil then
         CHC_settings.Load()
     end
@@ -196,6 +198,13 @@ if ModOptions and ModOptions.getInstance then
                 default = false,
                 OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
                 OnApplyInGame = CHC_settings.f.onModOptionsApply
+            },
+            delayed_search = {
+                name = 'IGUI_DelayedSearch',
+                tooltip = 'IGUI_DelayedSearchTooltip',
+                default = false,
+                OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
+                OnApplyInGame = CHC_main.config_apply_funcs.process
             }
         },
         mod_id = 'CraftHelperContinued',
@@ -223,6 +232,7 @@ else
     CHC_settings.config.show_hidden = false
     CHC_settings.config.close_all_on_exit = false
     CHC_settings.config.show_all_props = false
+    CHC_settings.config.delayed_search = false
 end
 
 

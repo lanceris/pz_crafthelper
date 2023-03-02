@@ -331,7 +331,7 @@ CHC_main.loadDatas = function()
 	CHC_menu.createCraftHelper()
 end
 
-CHC_main.processOneItem = function(item)
+CHC_main.processOneItem = function(item, id)
 	local fullType = item:getFullName()
 
 	if CHC_main.items[fullType] then
@@ -342,6 +342,7 @@ CHC_main.processOneItem = function(item)
 	local itemDisplayCategory = invItem:getDisplayCategory()
 
 	local toinsert = {
+		_id = id,
 		itemObj = item,
 		item = invItem,
 		fullType = invItem:getFullType(),
@@ -388,7 +389,7 @@ CHC_main.loadAllItems = function(am)
 	for i = 0, amount do
 		local item = allItems:get(i)
 		if not item:getObsolete() then
-			CHC_main.processOneItem(item)
+			CHC_main.processOneItem(item, i)
 			nbItems = nbItems + 1
 		end
 	end

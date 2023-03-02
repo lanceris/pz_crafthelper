@@ -50,9 +50,12 @@ function CHC_view:create(filterRowOrderOnClickArgs, mainPanelsData)
 
     -- region search bar
     self.searchRow = CHC_search_bar:new(
-        { x = x, y = leftY, w = leftW, h = CHC_main.common.heights.search_row, backRef = self.backRef }, nil,
-        self.onTextChange, self.searchRowHelpText)
+        { x = x, y = leftY, w = leftW, h = CHC_main.common.heights.search_row, backRef = self.backRef },
+        self.searchBarTooltip,
+        self.onTextChange, self.searchRowHelpText, self.onCommandEntered)
     self.searchRow:initialise()
+    if self.delayedSearch then self.searchRow:setTooltip(self.searchBarDelayedTooltip) end
+
     leftY = leftY + self.searchRow.height
     -- endregion
 
@@ -106,25 +109,34 @@ function CHC_view:update()
         self.needUpdateFont = false
     end
     if self.needUpdateShowIcons then
-        self.objList.shouldShowIcons = CHC_settings.config.show_icons
         self.needUpdateShowIcons = false
+        self.objList.shouldShowIcons = CHC_settings.config.show_icons
     end
     if self.needUpdateObjects then
+        self.needUpdateObjects = false
         self:updateObjects()
         CHC_view.updateTabNameWithCount(self)
-        self.needUpdateObjects = false
     end
     if self.needUpdateFavorites then
-        CHC_view.handleFavorites(self, self.fav_ui_type)
         self.needUpdateFavorites = false
+        CHC_view.handleFavorites(self, self.fav_ui_type)
     end
     if self.needUpdateTypes then
-        self:updateTypes()
         self.needUpdateTypes = false
+        self:updateTypes()
     end
     if self.needUpdateCategories then
-        self:updateCategories()
         self.needUpdateCategories = false
+        self:updateCategories()
+    end
+    if self.needUpdateDelayedSearch then
+        self.needUpdateDelayedSearch = false
+        self.delayedSearch = CHC_settings.config.delayed_search
+        if self.delayedSearch then
+            self.searchRow:setTooltip(self.searchBarDelayedTooltip)
+        else
+            self.searchRow:setTooltip(self.searchRow.origTooltip)
+        end
     end
 end
 
@@ -219,7 +231,6 @@ function CHC_view:updateTypes(categoryField)
     for _, val in pairs(self.typeData) do
         val.count = 0
     end
-
     for i = 1, #objs do
         local obj = suff and objs[i].item or objs[i]
         local ic = obj[categoryField]
@@ -347,10 +358,18 @@ function CHC_view:onChangeCategory(_option, sl)
     self.parent.needUpdateTypes = true
 end
 
-function CHC_view:onTextChange()
+function CHC_view:onProcessSearch()
     self.needUpdateObjects = true
     self.needUpdateCategories = true
     self.needUpdateTypes = true
+end
+
+function CHC_view:onTextChange()
+    CHC_view.onProcessSearch(self)
+end
+
+function CHC_view:onCommandEntered()
+    CHC_view.onProcessSearch(self)
 end
 
 function CHC_view:onFilterTypeMenu(button)

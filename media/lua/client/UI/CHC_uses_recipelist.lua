@@ -154,9 +154,6 @@ function CHC_uses_recipelist:addToFavorite(selectedIndex, fromKeyboard)
 			parent.needUpdateCategories = true
 		end
 	end
-	if #self.items == 0 then
-		parent.needUpdateObjects = true
-	end
 	parent.needUpdateTypes = true
 	parent.needUpdateFavorites = true
 end

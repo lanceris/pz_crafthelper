@@ -212,7 +212,7 @@ function CHC_items_panel:setObj(item)
     self.statsList:clear()
     self.statsList:setY(self.mainInfo.y + self.mainInfo:getBottom() + self.padY)
 
-    self.statsList:addSection(self.itemProps, getText('IGUI_ItemDetails_Attributes_tab'))
+    self.statsList:addSection(self.itemProps, self.attributeSectionName)
     -- self.statsList:addSection(self.itemDistrib, 'Distributions')
     -- self.statsList:addSection(self.itemFixing, 'Fixing')
 
@@ -265,6 +265,8 @@ function CHC_items_panel:new(args)
     o.backRef = args.backRef
     o.item = nil
     o.itemImgTextureMultApplied = false
+
+    o.attributeSectionName = getText('IGUI_ItemDetails_Attributes_tab')
 
     return o
 end

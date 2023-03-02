@@ -107,6 +107,15 @@ end
 
 -- region update
 function CHC_search:update()
+    if self.needUpdateDelayedSearch then
+        local props = self.objPanel.itemProps.searchRow
+        self.delayedSearch = CHC_settings.config.delayed_search
+        if self.delayedSearch then
+            props.row:setTooltip(props.searchBarDelayedTooltip)
+        else
+            props.row:setTooltip(props.searchRow.origTooltip)
+        end
+    end
     CHC_view.update(self)
 end
 
@@ -136,7 +145,15 @@ end
 
 -- region event handlers
 function CHC_search:onTextChange()
-    CHC_view.onTextChange(self)
+    if not self.delayedSearch or self.searchRow.searchBar:getInternalText() == '' then
+        CHC_view.onTextChange(self)
+    end
+end
+
+function CHC_search:onCommandEntered()
+    if self.delayedSearch then
+        CHC_view.onCommandEntered(self)
+    end
 end
 
 function CHC_search:onRMBDownObjList(x, y, item)
@@ -296,6 +313,8 @@ function CHC_search:new(args)
     o.showHidden = args.showHidden
 
     o.curFontData = CHC_main.common.fontSizeToInternal[CHC_settings.config.list_font_size]
+    o.delayedSearch = CHC_settings.config.delayed_search
+    o.searchBarDelayedTooltip = getText('IGUI_DelayedSearchBarTooltip')
     o.objListSize = 0
 
     o.needUpdateObjects = false
@@ -305,10 +324,11 @@ function CHC_search:new(args)
     o.needUpdateFont = false
     o.needUpdateScroll = false
     o.needUpdateMousePos = false
+    o.needUpdateDelayedSearch = false
 
     o.isItemView = true
     o.initDone = false
-    o.fav_ui_type = "fav_items"
+    o.fav_ui_type = 'fav_items'
 
     o.sortOrderIconAsc = getTexture('media/textures/sort_order_asc.png')
     o.sortOrderIconDesc = getTexture('media/textures/sort_order_desc.png')

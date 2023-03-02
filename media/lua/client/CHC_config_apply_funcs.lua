@@ -11,7 +11,8 @@ CHC_main.config_apply_funcs.process = function(values)
     local map = {
         list_font_size = p.onChangeListFontSize,
         show_recipe_module = p.onChangeShowRecipeModule,
-        show_icons = p.onChangeShowIcons
+        show_icons = p.onChangeShowIcons,
+        delayed_search = p.onChangeDelayedSearch
     }
     if map[values.id] then
         map[values.id](inst)
@@ -42,5 +43,12 @@ CHC_main.config_apply_funcs.onChangeShowIcons = function(inst)
     inst.updateQueue:push({
         targetView = 'all',
         actions = { 'needUpdateShowIcons' }
+    })
+end
+
+CHC_main.config_apply_funcs.onChangeDelayedSearch = function(inst)
+    inst.updateQueue:push({
+        targetView = 'all',
+        actions = { 'needUpdateDelayedSearch' }
     })
 end

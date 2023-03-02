@@ -110,8 +110,9 @@ CHC_menu.onCraftHelperItem = function(window_inst, item)
 
 	local txt = string.format('#%s,%s', item.displayCategory, item.displayName)
 	txt = string.lower(txt)
-	view.searchRow.searchBar:setText(txt) -- set text to Items subview search bar
-	view:updateObjects(view.selectedCategory)
+	view.searchRow.searchBar:setText(txt)
+	-- view.searchRow.searchBar:setText('') -- FIXME to change find item behaviour
+	view:updateObjects()
 	if #view.objList.items ~= 0 then
 		local it = view.objList.items
 		local c = 1

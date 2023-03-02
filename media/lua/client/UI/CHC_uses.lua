@@ -41,11 +41,12 @@ function CHC_uses:initialise()
 end
 
 function CHC_uses:create()
+    self:getContainers()
     local filterRowOrderOnClickArgs = { CHC_uses.sortByNameAsc, CHC_uses.sortByNameDesc }
     local mainPanelsData = {
         listCls = CHC_uses_recipelist,
         panelCls = CHC_uses_recipepanel,
-        --extra_init_params = { }
+        -- extra_init_params = { }
     }
     CHC_view.create(self, filterRowOrderOnClickArgs, mainPanelsData)
     self.onResizeHeaders = CHC_view.onResizeHeaders
@@ -55,12 +56,10 @@ function CHC_uses:create()
         self.objSource = self.backRef[self.objGetter](self, true)
     end
 
+    self:updateObjects()
+    self:updateRecipesState()
     self:updateCategories()
     self:updateTypes()
-    self:updateObjects()
-
-    self:getContainers()
-    self:updateRecipesState()
     self.initDone = true
 end
 
@@ -106,10 +105,6 @@ function CHC_uses:updateRecipeState(recipe)
             recipe.known = true
             recipe.unknown = false
         end
-        recipe._state = "invalid"
-        recipe.valid = false
-        recipe.known = false
-        recipe.invalid = true
     else
         -- if RecipeManager.IsRecipeValid(recipe.recipe, self.player, nil, self.containerList) then
         if CHC_main.common.isRecipeValid(recipe, self.player, self.containerList, self.knownRecipes, self.playerSkills, self.nearbyIsoObjects) then
@@ -133,7 +128,6 @@ function CHC_uses:updateRecipeState(recipe)
 end
 
 function CHC_uses:updateRecipesState()
-    self:getContainers()
     local recipes
     local issuff = false
     if self.typeFilter == 'all' then
@@ -173,8 +167,16 @@ function CHC_uses:prerender()
     end
 
     if self.needUpdateRecipeState then
-        self:updateRecipesState()
         self.needUpdateRecipeState = false
+        self:getContainers()
+        local areContainersSame = CHC_main.common.compareContainersHash(
+            self.containerListHash,
+            self.prevContainerHash)
+        if not areContainersSame then
+            self:updateRecipesState()
+            self.prevContainerHash = self.containerListHash
+            self.objPanel.needRefreshIngredientPanel = true
+        end
     end
 end
 
@@ -188,7 +190,19 @@ end
 
 -- region event handlers
 function CHC_uses:onTextChange()
-    CHC_view.onTextChange(self)
+    if not self.delayedSearch or self.searchRow.searchBar:getInternalText() == '' then
+        CHC_view.onTextChange(self)
+    end
+end
+
+function CHC_uses:onCommandEntered()
+    if self.delayedSearch then
+        CHC_view.onCommandEntered(self)
+        -- local text = self.searchRow.searchBar:getInternalText()
+        -- if not CHC_search_bar:isSpecialCommand(text) then
+        --     return
+        -- end
+    end
 end
 
 function CHC_uses:onRMBDown(x, y, item, showNameInFindCtx)
@@ -344,7 +358,6 @@ function CHC_uses:searchProcessToken(token, recipe)
 end
 
 function CHC_uses:processAddObjToObjList(recipe, modData) --FIXME
-    if not self.showHidden and recipe.hidden then return end
     local name = recipe.recipeData.name
     recipe.favorite = modData[CHC_main.getFavoriteRecipeModDataString(recipe)] or false
     if self.shouldDrawMod and recipe.module ~= 'Base' then
@@ -358,6 +371,7 @@ end
 
 function CHC_uses:getContainers()
     ISCraftingUI.getContainers(self)
+    self.containerListHash = CHC_main.common.getContainersHash(self.containerList)
 end
 
 --endregion
@@ -402,6 +416,7 @@ function CHC_uses:new(args)
     o.needUpdateMousePos = false
     o.needUpdateModRender = false
     o.needUpdateShowIcons = false
+    o.needUpdateDelayedSearch = false
     o.needUpdateRecipeState = false
 
     o.selectedCategory = o.defaultCategory
@@ -412,6 +427,8 @@ function CHC_uses:new(args)
     o.isItemView = false
     o.modData = CHC_main.playerModData
     o.curFontData = CHC_main.common.fontSizeToInternal[CHC_settings.config.list_font_size]
+    o.delayedSearch = CHC_settings.config.delayed_search
+    o.searchBarDelayedTooltip = getText('IGUI_DelayedSearchBarTooltip')
     local player = getPlayer()
     o.player = player
     o.character = player

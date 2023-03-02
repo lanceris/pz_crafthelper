@@ -116,6 +116,10 @@ end
 
 --region section panel
 
+-- function CHC_sectioned_panel:get(sectionTitle)
+
+-- end
+
 function CHC_sectioned_panel:addSection(panel, title, maxH)
     local sbarWid = self.vscroll and 17 or 0
     local section = Section:new(0, 0, self.width - sbarWid, 1, panel, title, maxH)
@@ -125,6 +129,7 @@ function CHC_sectioned_panel:addSection(panel, title, maxH)
         section:setScrollChildren(true)
     end
     table.insert(self.sections, section)
+    self.sectionMap[title] = section
 end
 
 function CHC_sectioned_panel:clear()
@@ -139,6 +144,7 @@ function CHC_sectioned_panel:clear()
         section:clear()
     end
     self.sections = {}
+    self.sectionMap = {}
 end
 
 function CHC_sectioned_panel:expandSection(sectionTitle)
@@ -207,6 +213,7 @@ function CHC_sectioned_panel:new(args)
     o.backRef = args.backRef
     o.backgroundColor.a = 0.8
     o.sections = {}
+    o.sectionMap = {}
     o.expandedSections = {}
     o.activeSection = nil
     o.maintainHeight = true
