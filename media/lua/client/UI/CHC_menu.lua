@@ -50,6 +50,7 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
 	if type(itemsUsedInRecipes) == 'table' and #itemsUsedInRecipes > 0 then
 		local opt = context:addOption(getText('IGUI_chc_context_onclick'), itemsUsedInRecipes, CHC_menu.onCraftHelper,
 			player)
+		opt.iconTexture = getTexture("media/textures/CHC_ctx_icon.png")
 		CHC_main.common.addTooltipNumRecipes(opt, item)
 	end
 	if isShiftKeyDown() and CHC_menu.CHC_window ~= nil then
