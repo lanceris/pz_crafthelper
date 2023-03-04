@@ -1,6 +1,4 @@
 require 'UI/CHC_tabs'
-require 'UI/CHC_uses_recipelist'
-require 'UI/CHC_uses_recipepanel'
 
 local derivative = ISPanel
 CHC_uses = derivative:derive('CHC_uses')
@@ -61,6 +59,7 @@ function CHC_uses:create()
     self:updateCategories()
     self:updateTypes()
     self.initDone = true
+    self.filterRow.categorySelector.popup.doDrawItem = CHC_filter_row.doDrawItemSelectorPopup
 end
 
 -- endregion
@@ -198,10 +197,6 @@ end
 function CHC_uses:onCommandEntered()
     if self.delayedSearch then
         CHC_view.onCommandEntered(self)
-        -- local text = self.searchRow.searchBar:getInternalText()
-        -- if not CHC_search_bar:isSpecialCommand(text) then
-        --     return
-        -- end
     end
 end
 

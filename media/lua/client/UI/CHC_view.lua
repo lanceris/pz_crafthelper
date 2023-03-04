@@ -297,7 +297,7 @@ function CHC_view:updateCategories(categoryField)
     end
 
     selector:clear()
-    selector:addOptionWithData(self.defaultCategory, { count = self.typeData.all.count })
+    selector:addOptionWithData(self.defaultCategory, { count = #objs })
     sort(newCats)
     for i = 1, #newCats do
         selector:addOptionWithData(newCats[i], { count = catCounts[newCats[i]] })

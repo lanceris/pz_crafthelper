@@ -39,7 +39,8 @@ Should be compatible with all mods and MP
 [*] Show recipe origin (Mod) (ON)
 [*] Enable editable category selector (by default OFF)
 [*] Show favorite items in inventories (by default OFF)
-[*] Context menu option to toggle favorite status of item (Shift + Right click on item)
+[*] Context menu option to find and toggle favorite status of item (Shift + Right click on item)
+[*] Delayed search (Need to press Enter to perform search) (by default OFF)
 [/list]
 Also, with "Mod Options" you can set keybinds (Key bindings -> Craft Helper) for some actions.
 

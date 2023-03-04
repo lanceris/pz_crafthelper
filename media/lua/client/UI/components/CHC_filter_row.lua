@@ -48,11 +48,49 @@ function CHC_filter_row:create()
     self.categorySelector.onChange = fsd.onChange
     self.categorySelector.target = self
     self.categorySelector.tooltip = { defaultTooltip = fsd.defaultTooltip }
+    self.categorySelector.prerender = self.prerenderSelector
     -- endregion
 
     self:addChild(self.filterOrderBtn)
     self:addChild(self.filterTypeBtn)
     self:addChild(self.categorySelector)
+end
+
+function CHC_filter_row:prerenderSelector()
+    ISComboBox.prerender(self)
+    local selected = self.options[self.selected]
+    if not selected then return end
+
+    if self:isEditable() and self.editor and self.editor:isReallyVisible() then
+    else
+        local data = self:getOptionData(self.selected)
+        if not data or not data.count then return end
+        local texX = getTextManager():MeasureStringX(self.font, self:getOptionText(self.selected))
+        local y = (self.height - getTextManager():getFontHeight(self.font)) / 2
+        self:clampStencilRectToParent(0, 0, self.width - self.image:getWidthOrig() - 6, self.height)
+        local countStr = ' (' .. data.count .. ')'
+        self:drawText(countStr, texX + 10, y, self.textColor.r, self.textColor.g,
+            self.textColor.b, self.textColor.a, self.font)
+        self:clearStencilRect()
+    end
+end
+
+function CHC_filter_row:doDrawItemSelectorPopup(y, item, alt)
+    y = ISComboBoxPopup.doDrawItem(self, y, item, alt)
+    local data = self.parentCombo:getOptionData(item.index)
+    if not data or not data.count then return y end
+    if self.parentCombo:hasFilterText() then
+        if not item.text:lower():contains(self.parentCombo:getFilterText():lower()) then
+            return y
+        end
+    end
+    local texX = getTextManager():MeasureStringX(self.font, self.parentCombo:getOptionText(item.index))
+    local countStr = ' (' .. data.count .. ')'
+    self:drawText(countStr, texX + 10, y - item.height + 5,
+        self.parentCombo.textColor.r, self.parentCombo.textColor.g,
+        self.parentCombo.textColor.b, self.parentCombo.textColor.a, self.font)
+
+    return y
 end
 
 function CHC_filter_row:onResize()

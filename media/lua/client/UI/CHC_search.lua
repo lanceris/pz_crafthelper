@@ -1,11 +1,8 @@
 require 'UI/CHC_tabs'
-require 'UI/CHC_uses_recipelist'
-require 'UI/CHC_uses'
-
-local utils = require('CHC_utils')
 
 CHC_search = ISPanel:derive('CHC_search')
 
+local utils = require('CHC_utils')
 local find = string.find
 local sub = string.sub
 
@@ -16,7 +13,7 @@ function CHC_search:initialise()
     self.typeData = {
         -- .count for each calculated in catSelUpdateOptions
         all = {
-            tooltip = getText('UI_All'),
+            tooltip = self.defaultCategory,
             icon = getTexture('media/textures/type_filt_all.png')
         },
         AlarmClock = {
@@ -76,8 +73,6 @@ function CHC_search:initialise()
             icon = CHC_main.items['Base.GunLight'].texture
         }
     }
-
-
     self:create()
 end
 
@@ -96,11 +91,12 @@ function CHC_search:create()
         self.objSource = self.backRef[self.objGetter](self, true)
     end
 
+    self:updateObjects()
     self:updateCategories()
     self:updateTypes()
-    self:updateObjects()
 
     self.initDone = true
+    self.filterRow.categorySelector.popup.doDrawItem = CHC_filter_row.doDrawItemSelectorPopup
 end
 
 --endregion
@@ -319,7 +315,6 @@ function CHC_search:new(args)
 
     o.needUpdateObjects = false
     o.needUpdateTypes = false
-    o.needUpdateCategories = false
     o.needUpdateFavorites = false
     o.needUpdateFont = false
     o.needUpdateScroll = false

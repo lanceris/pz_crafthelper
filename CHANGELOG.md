@@ -5,6 +5,7 @@
 ### New features
 
 - Added option for delayed search (Need to press Enter to perform search) (by default OFF)
+- Added amounts of items in each category to category selector
 
 ### Improvements
 
