@@ -22,12 +22,12 @@ function CHC_props_table:createChildren()
     local h = 20
 
     self.searchRow = CHC_search_bar:new({
-        x = x,
-        y = y,
-        w = self.width - 2 * self.padX,
-        h = h,
-        backRef = self.backRef
-    }, nil,
+            x = x,
+            y = y,
+            w = self.width - 2 * self.padX,
+            h = h,
+            backRef = self.backRef
+        }, nil,
         self.onTextChange, self.searchRowHelpText, self.onCommandEntered)
     self.searchRow:initialise()
     if self.delayedSearch then self.searchRow:setTooltip(self.searchBarDelayedTooltip) end
@@ -63,12 +63,12 @@ end
 -- region update
 function CHC_props_table:update()
     if self.needUpdateObjects == true then
-        self:updatePropsList()
+        self:updateObjects()
         self.needUpdateObjects = false
     end
 end
 
-function CHC_props_table:updatePropsList()
+function CHC_props_table:updateObjects()
     local search_state
     local props = self.propData
     if not props then return end
@@ -270,7 +270,7 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
 
     -- region comparison
     local newOptFull = subMenuName:addOption(getText('IGUI_CopyNameProps_ctx') ..
-    ' + ' .. getText('IGUI_CopyValueProps_ctx'), nil, nil)
+        ' + ' .. getText('IGUI_CopyValueProps_ctx'), nil, nil)
     local subMenuName2 = ISContextMenu:getNew(subMenuName)
     subMenuName:addSubMenu(newOptFull, subMenuName2)
     local eq = subMenuName2:addOption('=', self, chccopy, '$' .. item.name .. '=' .. item.value)

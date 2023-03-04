@@ -108,12 +108,12 @@ end
 -- region update
 function CHC_search:update()
     if self.needUpdateDelayedSearch then
-        local props = self.objPanel.itemProps.searchRow
-        self.delayedSearch = CHC_settings.config.delayed_search
-        if self.delayedSearch then
-            props.row:setTooltip(props.searchBarDelayedTooltip)
+        local props = self.objPanel.itemProps
+        props.delayedSearch = CHC_settings.config.delayed_search
+        if props.delayedSearch then
+            props.searchRow:setTooltip(props.searchBarDelayedTooltip)
         else
-            props.row:setTooltip(props.searchRow.origTooltip)
+            props.searchRow:setTooltip(props.searchRow.origTooltip)
         end
     end
     CHC_view.update(self)

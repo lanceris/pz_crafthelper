@@ -76,6 +76,7 @@ function CHC_view:create(filterRowOrderOnClickArgs, mainPanelsData)
     self.objList:setAnchorBottom(true)
     self.objList:setOnMouseDownFunction(self, CHC_view.onObjectChange)
     self.objList.curFontData = self.curFontData
+    self.objList:setFont(self.curFontData.font)
 
     -- Add entries to recipeList
     local iph = self.height - self.headers.height

@@ -1,6 +1,6 @@
 # CraftHelper updates
 
-## 1.6.7 (XX.02.2023)
+# 1.7.0 (XX.03.2023)
 
 ### New features
 
@@ -8,11 +8,12 @@
 
 ### Improvements
 
-- Use RecipeManager.getSourceItemsAll for each source instead of getAvailableItemsAll when collecting available items (incorrect counts otherwise, needs testing)
 - Optimized rendering and improved overall performance
 - Removed vanilla recipes that require Anvil nearby
 - Added Traditional Chinese translation (thanks to [TW_Billy](https://steamcommunity.com/profiles/76561198001484294))
 - Types and categories are now filtered along with search query
+- Use RecipeManager.getSourceItemsAll for each source instead of getAvailableItemsAll when collecting available items (incorrect counts otherwise, needs testing)
+- Changed event used to load all recipes (OnGameStart -> OnLoad)
 
 ### Bugfixes
 
@@ -20,6 +21,7 @@
 - Fixed recipe type amounts (valid/invalid) not updating properly
 - Fixed logic in CHC_main.common.isRecipeValid
 - Fixed logical errors with types/categories
+- Various UI fixes
 
 ## 1.6.6 (23.02.2023)
 

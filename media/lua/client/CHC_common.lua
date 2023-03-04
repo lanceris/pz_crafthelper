@@ -15,7 +15,7 @@ CHC_main.common.fontSizeToInternal = {
 }
 
 CHC_main.common.heights = {
-    headers = 20,
+    headers = 24,
     filter_row = 24,
     search_row = 24
 }
@@ -108,7 +108,7 @@ function CHC_main.common.getItemProps(item)
     local attrs = {}
     if CHC_settings.config.show_all_props == true then
         attrs = item.props
-    else
+    elseif item.props then
         for i = 1, #item.props do
             local prop = item.props[i]
             if prop.ignore ~= true then

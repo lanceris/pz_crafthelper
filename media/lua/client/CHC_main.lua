@@ -2,10 +2,14 @@ require 'luautils'
 
 CraftHelperContinued = {}
 CHC_main = CraftHelperContinued
-CHC_main.author = 'lanceris'
-CHC_main.previousAuthors = { 'Peanut', 'ddraigcymraeg', 'b1n0m' }
-CHC_main.modName = 'CraftHelperContinued'
-CHC_main.version = '1.6.6'
+CHC_main._meta = {
+	id = 'CraftHelperContinued',
+	workshopId = 2787291513,
+	name = 'Craft Helper Continued',
+	version = '1.7.0',
+	author = 'lanceris',
+	previousAuthors = { 'Peanut', 'ddraigcymraeg', 'b1n0m' },
+}
 CHC_main.allRecipes = {}
 CHC_main.recipesByItem = {}
 CHC_main.recipesForItem = {}
@@ -216,9 +220,7 @@ CHC_main.getItemProps = function(item, itemType, map)
 		end
 		if propVal then
 			propVal = rawToStr(propVal)
-			local val = tonumber(propVal)
-			if val then propVal = val end
-
+			if tonumber(propVal) then propVal = tonumber(propVal) end
 			if mul then propVal = propVal * mul end
 
 			propName, propVal = formatOutput(propName, propVal)
@@ -258,9 +260,9 @@ CHC_main.getItemProps = function(item, itemType, map)
 				dupedProps[prop.name] = true
 			end
 		end
-		if uniqueProps['ActualWeight'] and uniqueProps['Weight'] and
-			uniqueProps['Weight'].value == uniqueProps['ActualWeight'].value then
-			uniqueProps['ActualWeight'] = nil
+		if uniqueProps.ActualWeight and uniqueProps.Weight and
+			uniqueProps.Weight.value == uniqueProps.ActualWeight.value then
+			uniqueProps.ActualWeight = nil
 		end
 
 		for _, prop in pairs(uniqueProps) do
@@ -356,8 +358,8 @@ CHC_main.processOneItem = function(item, id)
 		count = invItem:getCount() or 1,
 		category = item:getTypeString(),
 		displayCategory = itemDisplayCategory and
-		getTextOrNull('IGUI_ItemCat_' .. itemDisplayCategory) or
-		getText('IGUI_ItemCat_Item'),
+			getTextOrNull('IGUI_ItemCat_' .. itemDisplayCategory) or
+			getText('IGUI_ItemCat_Item'),
 		texture = invItem:getTex()
 	}
 	toinsert.props, toinsert.propsMap = CHC_main.getItemProps(invItem, toinsert.category)
@@ -365,7 +367,7 @@ CHC_main.processOneItem = function(item, id)
 	insert(CHC_main.itemsForSearch, toinsert)
 
 
-	if item:getTypeString() == 'Literature' then
+	if toinsert.category == 'Literature' then
 		local teachedRecipes = item:getTeachedRecipes()
 		if teachedRecipes ~= nil and teachedRecipes:size() > 0 then
 			for j = 0, teachedRecipes:size() - 1 do
@@ -373,7 +375,7 @@ CHC_main.processOneItem = function(item, id)
 				if CHC_main.itemsManuals[recipeString] == nil then
 					CHC_main.itemsManuals[recipeString] = {}
 				end
-				insert(CHC_main.itemsManuals[recipeString], CHC_main.items[fullType])
+				insert(CHC_main.itemsManuals[recipeString], CHC_main.items[toinsert.fullType])
 			end
 		end
 	end
@@ -572,7 +574,7 @@ CHC_main.processOneEvolvedRecipe = function(recipe)
 			-- check item for obsolete
 			local _item = CHC_main.getItemByFullType(itemData.fullType)
 			if _item then
-				if _item.propsMap["Spice"] and tostring(_item.propsMap["Spice"].value) == "true" then
+				if _item.propsMap and _item.propsMap["Spice"] and tostring(_item.propsMap["Spice"].value) == "true" then
 					itemData.isSpice = true
 				else
 					itemData.isSpice = false
@@ -932,11 +934,23 @@ end
 -- endregion
 
 function CHC_main.reloadMod(key)
-	if key == Keyboard.KEY_O then
-		CHC_main.loadDatas()
-		local all = CHC_main
-		-- error('debug')
-	end
+	-- if key == Keyboard.KEY_O then
+	-- 	CHC_main.loadDatas()
+	-- 	local all = CHC_main
+	-- 	-- error('debug')
+	-- end
+	-- if key == Keyboard.KEY_Z then
+	-- 	local items = {}
+	-- 	local num = 100
+	-- 	for i = 1, num, 1 do
+	-- 		insert(items, CHC_main.itemsForSearch[i])
+	-- 	end
+	-- 	local now = getTimestampMs()
+	-- 	for i = 1, #items do
+	-- 		CHC_main.getItemProps(items[i].item, items[i].category)
+	-- 	end
+	-- 	showTime(now, num .. "test props")
+	-- end
 end
 
 if CHC_main.isDebug then
@@ -945,9 +959,9 @@ end
 
 -- catch all lua changes to recipes/items/etc (DoParam and stuff)
 local ensureLoadedLast = function()
-	Events.OnGameStart.Add(function()
+	Events.OnLoad.Add(function()
 		CHC_main.loadDatas()
 	end)
 end
 
-Events.OnGameStart.Add(ensureLoadedLast)
+Events.OnLoad.Add(ensureLoadedLast)

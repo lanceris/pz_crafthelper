@@ -16,6 +16,7 @@ local pairs = pairs
 function CHC_window:initialise()
     ISCollapsableWindow.initialise(self)
     self:create()
+    self.infoButton:setOnClick(CHC_window.onInfo, self)
 end
 
 function CHC_window:create()
@@ -529,6 +530,13 @@ end
 -- endregion
 
 -- region logic
+
+function CHC_window:onInfo()
+    ISCollapsableWindow.onInfo(self)
+    if self.infoRichText and self.infoRichText.alwaysOnTop == true then
+        self.infoRichText.alwaysOnTop = false
+    end
+end
 
 -- Common options for RMBDown + init context
 function CHC_window:onRMBDownObjList(x, y, item, isrecipe, context)

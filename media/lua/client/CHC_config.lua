@@ -74,6 +74,9 @@ local init_mappings = {
 }
 
 function CHC_settings.f.onModOptionsApply(values)
+    if CHC_settings.config.main_window == nil then
+        CHC_settings.Load()
+    end
     CHC_settings.config.show_recipe_module = values.settings.options.show_recipe_module
     CHC_settings.config.show_fav_items_inventory = values.settings.options.show_fav_items_inventory
     CHC_settings.config.editable_category_selector = values.settings.options.editable_category_selector
@@ -87,9 +90,6 @@ function CHC_settings.f.onModOptionsApply(values)
     CHC_settings.config.close_all_on_exit = values.settings.options.close_all_on_exit
     CHC_settings.config.show_all_props = values.settings.options.show_all_props
     CHC_settings.config.delayed_search = values.settings.options.delayed_search
-    if CHC_settings.config.main_window == nil then
-        CHC_settings.Load()
-    end
     CHC_settings.Save()
 end
 
@@ -125,7 +125,9 @@ if ModOptions and ModOptions.getInstance then
                 OnApplyInGame = CHC_settings.f.onModOptionsApply
             },
             list_font_size = {
-                getText('UI_optionscreen_Small'), getText('UI_optionscreen_Medium'), getText('UI_optionscreen_Large'),
+                getText('UI_optionscreen_Small'),
+                getText('UI_optionscreen_Medium'),
+                getText('UI_optionscreen_Large'),
                 name = 'IGUI_ListFontSize',
                 tooltip = 'IGUI_ListFontSizeTooltip',
                 default = 3,
@@ -133,7 +135,8 @@ if ModOptions and ModOptions.getInstance then
                 OnApplyInGame = CHC_main.config_apply_funcs.process
             },
             recipe_selector_modifier = {
-                getText('IGUI_None'), getText('UI_optionscreen_CycleContainerKey1'),
+                getText('IGUI_None'),
+                getText('UI_optionscreen_CycleContainerKey1'),
                 getText('UI_optionscreen_CycleContainerKey2'),
                 getText('UI_optionscreen_CycleContainerKey3'),
                 name = 'IGUI_RecipeSelectorModifier',
@@ -146,7 +149,8 @@ if ModOptions and ModOptions.getInstance then
                 OnApplyInGame = CHC_settings.f.onModOptionsApply
             },
             category_selector_modifier = {
-                getText('IGUI_None'), getText('UI_optionscreen_CycleContainerKey1'),
+                getText('IGUI_None'),
+                getText('UI_optionscreen_CycleContainerKey1'),
                 getText('UI_optionscreen_CycleContainerKey2'),
                 getText('UI_optionscreen_CycleContainerKey3'),
                 name = 'IGUI_CategorySelectorModifier',
@@ -159,7 +163,8 @@ if ModOptions and ModOptions.getInstance then
                 OnApplyInGame = CHC_settings.f.onModOptionsApply
             },
             tab_selector_modifier = {
-                getText('IGUI_None'), getText('UI_optionscreen_CycleContainerKey1'),
+                getText('IGUI_None'),
+                getText('UI_optionscreen_CycleContainerKey1'),
                 getText('UI_optionscreen_CycleContainerKey2'),
                 getText('UI_optionscreen_CycleContainerKey3'),
                 name = 'IGUI_TabSelectorModifier',

@@ -12,9 +12,8 @@ CHC_uses_recipepanel = ISPanel:derive('CHC_uses_recipepanel')
 
 -- region create
 local texMan = getTextManager()
-local fhLarge = texMan:getFontHeight(UIFont.Large) -- largeFontHeight
 local fhMedium = texMan:getFontHeight(UIFont.Medium) -- mediumFontHeight
-local fhSmall = texMan:getFontHeight(UIFont.Small) -- smallFontHeight
+local fhSmall = texMan:getFontHeight(UIFont.Small)   -- smallFontHeight
 
 function CHC_uses_recipepanel:initialise()
     ISPanel.initialise(self)
@@ -207,12 +206,16 @@ function CHC_uses_recipepanel:getSources(recipe)
         local param
         local result
         local displayCount
-        if instanceof(item.item, "Food") then
-            param = item.propsMap["HungChange"].value
-        elseif instanceof(item.item, "Drainable") then
-            param = item.propsMap["UseDeltaTotal*"].value
+        if item.propsMap then
+            if instanceof(item.item, "Food") then
+                param = item.propsMap["HungChange"].value
+            elseif instanceof(item.item, "Drainable") then
+                param = item.propsMap["UseDeltaTotal*"].value
+            else
+                param = item.propsMap["Count"].value
+            end
         else
-            param = item.propsMap["Count"].value
+            return 1, 1
         end
         result = math.abs(sourceObj.use / param)
         if math.floor(result) == 1 then
