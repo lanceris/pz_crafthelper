@@ -1214,10 +1214,13 @@ function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y, item)
     if not item then return end
     local isRecipes = CHC_main.common.areThereRecipesForItem(item)
 
-    context:addOption(getText('IGUI_find_item'), backRef, CHC_menu.onCraftHelperItem, item)
+    local findOpt = context:addOption(getText('IGUI_find_item'), backRef, CHC_menu.onCraftHelperItem, item)
+    findOpt.iconTexture = getTexture("media/textures/search_icon.png")
 
     local newTabOption = context:addOption(getText('IGUI_new_tab'), backRef, backRef.addItemView, item.item,
         true, 2)
+
+    newTabOption.iconTexture = getTexture("media/textures/CHC_open_new_tab.png")
 
     if not isRecipes then
         CHC_main.common.setTooltipToCtx(

@@ -210,11 +210,13 @@ function CHC_uses:onRMBDown(x, y, item, showNameInFindCtx)
     if showNameInFindCtx then
         ctxText = ctxText .. " (" .. item.displayName .. ")"
     end
-    context:addOption(ctxText, backRef, CHC_menu.onCraftHelperItem, item)
+    local findOpt = context:addOption(ctxText, backRef, CHC_menu.onCraftHelperItem, item)
+    findOpt.iconTexture = getTexture("media/textures/search_icon.png")
 
     local newTabOption = context:addOption(getText('IGUI_new_tab'), backRef, backRef.addItemView, item.item,
         true, 2)
 
+    newTabOption.iconTexture = getTexture("media/textures/CHC_open_new_tab.png")
     local isRecipes = CHC_main.common.areThereRecipesForItem(item)
 
     if not isRecipes then

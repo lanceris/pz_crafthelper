@@ -179,6 +179,12 @@ function CHC_view:updateTabNameWithCount(listSize)
     })
 end
 
+function CHC_view:updateCounts() --FIXME - category counts not updated when updating types
+    self.needUpdateCategories = true
+    self.needUpdateTypes = true
+    CHC_view.updateTabNameWithCount(self)
+end
+
 function CHC_view:refreshObjList(objects)
     local objL = self.objList
     local wasSelectedId = objL.items[objL.selected]
@@ -376,7 +382,7 @@ end
 function CHC_view:onFilterTypeMenu(button)
     local data = {}
     for typ, d in pairs(self.parent.typeData) do
-        insert(data, { txt = d.tooltip, num = d.count, arg = typ })
+        insert(data, { txt = d.tooltip, num = d.count, arg = typ, icon = d.icon })
     end
 
     local x = button:getAbsoluteX()
@@ -387,7 +393,8 @@ function CHC_view:onFilterTypeMenu(button)
     for i = 1, #data do
         if data[i].num and data[i].num > 0 then
             txt = CHC_view.filterSortMenuGetText(data[i].txt, data[i].num)
-            context:addOption(txt, self.parent, CHC_view.sortByType, data[i].arg)
+            local opt = context:addOption(txt, self.parent, CHC_view.sortByType, data[i].arg)
+            opt.iconTexture = data[i].icon
         end
     end
 end

@@ -167,6 +167,7 @@ function CHC_search:onRMBDownObjList(x, y, item)
 
     if isRecipes then
         local opt = context:addOption(getText('IGUI_new_tab'), backRef, backRef.addItemView, item.item, true, 2)
+        opt.iconTexture = getTexture("media/textures/CHC_open_new_tab.png")
         CHC_main.common.addTooltipNumRecipes(opt, item)
     end
 end

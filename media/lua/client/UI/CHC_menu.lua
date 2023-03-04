@@ -57,10 +57,17 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
 		local isFav = CHC_main.playerModData[CHC_main.getFavItemModDataStr(item)] == true
 		local favStr = isFav and getText('ContextMenu_Unfavorite') or getText('IGUI_CraftUI_Favorite')
 		local optName = favStr .. ' (' .. getText('IGUI_chc_context_onclick') .. ')'
-		context:addOption(optName, items, CHC_menu.toggleItemFavorite)
+		local favOpt = context:addOption(optName, items, CHC_menu.toggleItemFavorite)
+		if isFav then
+			favOpt.iconTexture = getTexture("media/textures/itemFavoriteStarOutline.png") -- FIXME
+		else
+			favOpt.iconTexture = getTexture("media/textures/itemFavoriteStar.png")
+		end
 
-		context:addOption(getText('IGUI_find_item') .. ' (' .. getText('IGUI_chc_context_onclick') .. ')', items,
+		local findOpt = context:addOption(
+			getText('IGUI_find_item') .. ' (' .. getText('IGUI_chc_context_onclick') .. ')', items,
 			CHC_menu.onCraftHelper, player, true)
+		findOpt.iconTexture = getTexture("media/textures/search_icon.png")
 	end
 end
 
