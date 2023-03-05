@@ -21,11 +21,12 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 	local a = 0.9
 	local favoriteStar = nil
 	local favoriteAlpha = a
+	local itemPadY = self.itemPadY or (item.height - self.fontHgt) / 2
 
 	local clr = {
 		txt = item.text,
 		x = self.shouldShowIcons and (self.curFontData.icon + 8) or 15, --FIXME
-		y = y - self.curFontData.ymin,
+		y = y + itemPadY,
 		a = 0.9,
 		font = self.font
 	}
@@ -63,10 +64,13 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 			clr['r'], clr['g'], clr['b'] = 0.7, 0, 0
 		end
 	end
-	self:drawText(clr.txt, clr.x, clr.y, clr.r, clr.g, clr.b, clr.a, clr.font)
 	if self.shouldDrawMod and item.item.module ~= 'Base' then
-		local modY = clr.y + self.fontSize - self.curFontData.pad
-		self:drawText('Mod: ' .. item.item.module, clr.x + self.curFontData.pad, modY, 1, 1, 1, 0.8, UIFont.Small)
+		self:drawText(clr.txt, clr.x, clr.y, clr.r, clr.g, clr.b, clr.a, clr.font)
+		local modY = self.curFontData.pad + getTextManager():getFontHeight(UIFont.Small)
+		self:drawText('Mod: ' .. item.item.module, clr.x + self.curFontData.pad, clr.y + modY, 1, 1, 1, 0.8, UIFont
+			.Small)
+	else
+		self:drawText(clr.txt, clr.x, clr.y, clr.r, clr.g, clr.b, clr.a, clr.font)
 	end
 	--endregion
 

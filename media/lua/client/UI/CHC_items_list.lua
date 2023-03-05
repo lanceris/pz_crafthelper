@@ -42,10 +42,11 @@ function CHC_items_list:doDrawItem(y, item, alt)
     --endregion
 
     --region text
+    local itemPadY = self.itemPadY or (item.height - self.fontHgt) / 2
     local clr = {
         txt = item.text,
         x = self.shouldShowIcons and (self.curFontData.icon + 8) or 15,
-        y = y - self.curFontData.ymin,
+        y = y + itemPadY,
         r = 1,
         g = 1,
         b = 1,

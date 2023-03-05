@@ -523,14 +523,18 @@ function CHC_view._list:prerender()
     end
 
     self.listHeight = 0
+    if not self.fontSize then
+        self.fontSize = getTextManager():getFontHeight(self.curFontData.font)
+    end
+    local baseH = math.min(self.fontSize, self.curFontData.icon) + 2 * self.curFontData.pad
     local i = 1
     for j = 1, #self.items do
         self.items[j].index = i
-        self.items[j].height = self.curFontData.icon + 2 * self.curFontData.pad
+        self.items[j].height = baseH
         if not self.parent.isItemView and
             CHC_settings.config.show_recipe_module and
             self.items[j].item.module ~= 'Base' then
-            self.items[j].height = self.items[j].height + self.fontSize - self.curFontData.pad
+            self.items[j].height = baseH + getTextManager():getFontHeight(UIFont.Small)
         end
         local y2 = self:doDrawItem(y, self.items[j], alt)
         self.listHeight = y2
