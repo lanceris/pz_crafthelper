@@ -529,9 +529,10 @@ CHC_main.loadAllRecipes = function()
 	print(nbRecipes .. ' recipes loaded.')
 end
 
-CHC_main.processOneEvolvedRecipe = function(recipe)
+CHC_main.processOneEvolvedRecipe = function(recipe, _id)
 	if recipe:isHidden() then return end
 	local data = {
+		_id = "e" .. tostring(_id),
 		isEvolved = true,
 		recipe = recipe,
 		category = getText('IGUI_CHC_RecipeCat_Evolved'),
@@ -621,7 +622,7 @@ CHC_main.loadAllEvolvedRecipes = function()
 	local allEvolvedRecipes = RecipeManager.getAllEvolvedRecipes()
 
 	for i = 0, allEvolvedRecipes:size() - 1 do
-		CHC_main.processOneEvolvedRecipe(allEvolvedRecipes:get(i))
+		CHC_main.processOneEvolvedRecipe(allEvolvedRecipes:get(i), i)
 		nbRecipes = nbRecipes + 1
 	end
 
@@ -857,6 +858,7 @@ CHC_main.getCECRecipes = function()
 
 	for tID, tData in pairs(CHC_main.CECData.tables) do
 		local newItem = {}
+		newItem._id = tID
 		newItem.category = 'CraftingEnhanced'
 		newItem.displayCategory = newItem.category
 		newItem.module = 'CraftingEnhancedCore'
