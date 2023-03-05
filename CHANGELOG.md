@@ -1,11 +1,12 @@
 # CraftHelper updates
 
-# 1.7.0 (XX.03.2023)
+# 1.7 (05.03.2023)
 
 ### New features
 
 - Added option for delayed search (Need to press Enter to perform search) (by default OFF)
 - Added amounts of items in each category to category selector
+- Added paste function to search bar (Right click)
 
 ### Improvements
 
