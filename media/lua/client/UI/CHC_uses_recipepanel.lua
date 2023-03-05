@@ -1251,7 +1251,7 @@ function CHC_uses_recipepanel:onIngredientMouseDown(item)
         self.modData[CHC_main.getFavItemModDataStr(item)] = isFav or nil
         self.backRef.updateQueue:push({
             targetView = 'fav_items',
-            actions = { 'needUpdateFavorites', 'needUpdateObjects', 'needUpdateTypes', 'needUpdateCategories' }
+            actions = { 'needUpdateFavorites', 'needUpdateObjects' }
         })
     end
 end
@@ -1383,8 +1383,8 @@ function CHC_uses_recipepanel:new(args)
 
     o.bh = nil
 
-    o.itemFavoriteStar = getTexture('media/textures/itemFavoriteStar.png')
-    o.itemFavCheckedTex = getTexture('media/textures/itemFavoriteStarChecked.png')
-    o.itemFavNotCheckedTex = getTexture('media/textures/itemFavoriteStarOutline.png')
+    o.itemFavoriteStar = getTexture('media/textures/CHC_item_favorite_star.png')
+    o.itemFavCheckedTex = getTexture('media/textures/CHC_item_favorite_star_checked.png')
+    o.itemFavNotCheckedTex = getTexture('media/textures/CHC_item_favorite_star_outline.png')
     return o;
 end

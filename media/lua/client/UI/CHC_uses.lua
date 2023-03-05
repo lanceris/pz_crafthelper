@@ -34,6 +34,8 @@ function CHC_uses:initialise()
             count = 0
         },
     }
+    self.categoryData = {}
+    self.categoryData[self.defaultCategory] = { count = 0 }
 
     self:create()
 end
@@ -56,8 +58,6 @@ function CHC_uses:create()
 
     self:updateObjects()
     self:updateRecipesState()
-    self:updateCategories()
-    self:updateTypes()
     self.initDone = true
     self.filterRow.categorySelector.popup.doDrawItem = CHC_filter_row.doDrawItemSelectorPopup
 end
@@ -76,14 +76,6 @@ end
 
 function CHC_uses:updateObjects()
     CHC_view.updateObjects(self, '_state')
-end
-
-function CHC_uses:updateTypes()
-    CHC_view.updateTypes(self, '_state')
-end
-
-function CHC_uses:updateCategories()
-    CHC_view.updateCategories(self, '_state')
 end
 
 function CHC_uses:updateRecipeState(recipe)
@@ -146,7 +138,6 @@ function CHC_uses:updateRecipesState()
     if self.typeFilter ~= 'all' then
         self.needUpdateObjects = true
     end
-    self.needUpdateTypes = true
     if not self.filterRow.categorySelector:getSelectedText() then
         self.filterRow.categorySelector:select(self.defaultCategory)
     end
@@ -406,7 +397,6 @@ function CHC_uses:new(args)
     o.objListSize = 0
 
     o.needUpdateFavorites = true
-    o.needUpdateTypes = false
     o.needUpdateObjects = false
     o.needUpdateFont = false
     o.needUpdateScroll = false

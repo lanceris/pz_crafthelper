@@ -46,6 +46,7 @@ IGUI_EN = {
     IGUI_CopyNameProps_ctx = "Name"
     IGUI_CopyValueProps_ctx = "Value"
     IGUI_CopyValueSearchProps_ctx = "Value for search"
+    IGUI_chc_Paste = "Paste"
     IGUI_PinProps_ctx = "Pin"
     IGUI_UnpinProps_ctx = "Unpin"
     IGUI_BlacklistProps_ctx = "Blacklist"

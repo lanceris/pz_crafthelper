@@ -163,9 +163,7 @@ function CHC_items_list:addToFavorite(selectedIndex, fromKeyboard)
     self.modData[favStr] = isFav or nil
     if not isFav and parent.ui_type == 'fav_items' then
         self:removeItemByIndex(selectedIndex)
-        parent.needUpdateCategories = true
     end
-    parent.needUpdateTypes = true
     parent.needUpdateFavorites = true
 end
 
@@ -183,9 +181,9 @@ function CHC_items_list:new(args)
     o.anchorBottom = true
 
     o.favorite = {
-        star = { tex = getTexture('media/textures/itemFavoriteStar.png') },
-        checked = { tex = getTexture('media/textures/itemFavoriteStarChecked.png') },
-        notChecked = { tex = getTexture('media/textures/itemFavoriteStarOutline.png') }
+        star = { tex = getTexture('media/textures/CHC_item_favorite_star.png') },
+        checked = { tex = getTexture('media/textures/CHC_item_favorite_star_checked.png') },
+        notChecked = { tex = getTexture('media/textures/CHC_item_favorite_star_outline.png') }
     }
     o.favorite.star.height = o.favorite.star.tex:getHeight()
     o.favorite.checked.height = o.favorite.checked.tex:getHeight()

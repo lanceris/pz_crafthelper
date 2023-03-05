@@ -122,14 +122,6 @@ function CHC_view:update()
         self.needUpdateFavorites = false
         CHC_view.handleFavorites(self, self.fav_ui_type)
     end
-    if self.needUpdateTypes then
-        self.needUpdateTypes = false
-        self:updateTypes()
-    end
-    if self.needUpdateCategories then
-        self.needUpdateCategories = false
-        self:updateCategories()
-    end
     if self.needUpdateDelayedSearch then
         self.needUpdateDelayedSearch = false
         self.delayedSearch = CHC_settings.config.delayed_search
@@ -141,33 +133,146 @@ function CHC_view:update()
     end
 end
 
-function CHC_view:updateObjects(categoryField)
-    local defCategorySelected = self.selectedCategory == self.defaultCategory
-    local defTypeSelected = self.typeFilter == 'all'
+function CHC_view:initTypesAndCategories(typeField, categoryField)
+    local curType = self.typeFilter
+    local objs = self.objSource
+    local typCounts = {}
+    local catCounts = {}
+    local newCats = {}
+    local curCat = self.selectedCategory
+
+    for i = 1, #objs do
+        local obj = objs[i]
+
+        -- types
+        local ic = obj[typeField]
+        local idc = obj[categoryField]
+        --types
+        typCounts[ic] = typCounts[ic] and typCounts[ic] + 1 or 1
+
+        -- categories
+        if not catCounts[idc] then
+            insert(newCats, idc)
+            catCounts[idc] = 1
+        else
+            catCounts[idc] = catCounts[idc] + 1
+        end
+    end
+
+    CHC_view.updateTypes(self, typCounts, curType)
+
+    CHC_view.updateCategories(self, catCounts, curCat, newCats)
+end
+
+function CHC_view:updateObjects(typeField, categoryField)
+    categoryField = categoryField or "displayCategory"
+    if not self.initDone then
+        CHC_view.initTypesAndCategories(self, typeField, categoryField)
+    end
+    local objs = self.objSource
+    local curType = self.typeFilter
+    local defTypeSelected = curType == 'all'
+    local typCounts = {}
+    local catCounts = {}
+    local newCats = {}
+    local curCat = self.selectedCategory
+    local defCatSelected = curCat == self.defaultCategory
     local searchBarEmpty = self.searchRow.searchBar:getInternalText() == ''
 
-    if defCategorySelected and defTypeSelected and searchBarEmpty then
-        CHC_view.refreshObjList(self, self.objSource)
+    if defCatSelected and defTypeSelected and searchBarEmpty then
+        CHC_view.initTypesAndCategories(self, typeField, categoryField)
+        CHC_view.refreshObjList(self, objs)
         return
     end
 
     local filtered = {}
-    for i = 1, #self.objSource do
-        local obj = self.objSource[i]
+    for i = 1, #objs do
+        local obj = objs[i]
 
-        local type_filter_state = false
-        local search_state = false
+        local searchState = CHC_main.common.searchFilter(self, obj, self.searchProcessToken)
+        local typeState = CHC_view.objTypeFilter(self, obj[typeField])
+        local categoryState = CHC_view.objCategoryFilter(self, obj[categoryField])
 
-        if (obj.displayCategory == self.selectedCategory or defCategorySelected) then
-            type_filter_state = CHC_view.objTypeFilter(self, obj[categoryField])
-        end
-        search_state = CHC_main.common.searchFilter(self, obj, self.searchProcessToken)
-
-        if type_filter_state and search_state then
+        if utils.all({ searchState, typeState, categoryState }, true) then
             insert(filtered, obj)
+        end
+
+        -- types
+        local ic = obj[typeField]
+        local idc = obj[categoryField]
+        --types
+        if searchState and categoryState then
+            typCounts[ic] = typCounts[ic] and typCounts[ic] + 1 or 1
+        end
+
+        -- categories
+        if searchState and typeState then
+            if not catCounts[idc] then
+                insert(newCats, idc)
+                catCounts[idc] = 1
+            else
+                catCounts[idc] = catCounts[idc] + 1
+            end
         end
     end
     CHC_view.refreshObjList(self, filtered)
+
+    CHC_view.updateTypes(self, typCounts, curType)
+    local delayUpdateObj = CHC_view.updateCategories(self, catCounts, curCat, newCats)
+    if delayUpdateObj then
+        CHC_view.updateObjects(self, typeField, categoryField)
+    end
+end
+
+function CHC_view:updateTypes(typCounts, curType)
+    --nullify counts
+    for _, val in pairs(self.typeData) do val.count = 0 end
+    local allTypeCnt = 0
+    for typ, cnt in pairs(typCounts) do
+        self.typeData[typ].count = cnt
+        allTypeCnt = allTypeCnt + cnt
+    end
+    self.typeData.all.count = allTypeCnt
+
+    -- check if current has no entries and reset to default
+    if curType ~= 'all' and self.typeData[curType].count == 0 then
+        CHC_view.sortByType(self, 'all')
+    end
+end
+
+function CHC_view:updateCategories(catCounts, curCat, newCats)
+    local selCatData = self.categoryData[curCat]
+    local selector = self.filterRow.categorySelector
+    local defCatSelected = curCat == self.defaultCategory
+
+    --nullify counts
+    for _, val in pairs(self.categoryData) do val.count = 0 end
+    local allCatCnt = 0
+    for cat, cnt in pairs(catCounts) do
+        if not self.categoryData[cat] then
+            self.categoryData[cat] = { count = 0 }
+        end
+        self.categoryData[cat].count = cnt
+        allCatCnt = allCatCnt + cnt
+    end
+    self.categoryData[self.defaultCategory].count = allCatCnt
+
+    -- check if current has no entries and reset to default
+    local delayUpdateObj = false
+    if not defCatSelected and selCatData.count == 0 then
+        self.selectedCategory = self.defaultCategory
+        delayUpdateObj = true
+    end
+    -- remove existing categories all fill new ones
+    selector:clear()
+    selector:addOptionWithData(self.defaultCategory, { count = self.categoryData[self.defaultCategory].count })
+    sort(newCats)
+    for i = 1, #newCats do
+        selector:addOptionWithData(newCats[i], { count = catCounts[newCats[i]] })
+    end
+
+    selector:select(self.selectedCategory)
+    return delayUpdateObj
 end
 
 function CHC_view:updateTabNameWithCount(listSize)
@@ -180,8 +285,6 @@ function CHC_view:updateTabNameWithCount(listSize)
 end
 
 function CHC_view:updateCounts() --FIXME - category counts not updated when updating types
-    self.needUpdateCategories = true
-    self.needUpdateTypes = true
     CHC_view.updateTabNameWithCount(self)
 end
 
@@ -219,99 +322,6 @@ function CHC_view:refreshObjList(objects)
     self.objListSize = #objL.items
 end
 
-function CHC_view:updateTypes(categoryField)
-    local typCounts = {}
-    local objs
-    local suff = false
-    local currentCategory = self.selectedCategory
-    local defCategorySelected = self.selectedCategory == self.defaultCategory
-    if self.searchRow.searchBar:getInternalText() == "" then
-        objs = self.objSource
-    else
-        objs = self.objList.items
-        suff = true
-        if not objs or utils.empty(objs) then
-            objs = self.objSource
-            suff = false
-        end
-    end
-    for _, val in pairs(self.typeData) do
-        val.count = 0
-    end
-    for i = 1, #objs do
-        local obj = suff and objs[i].item or objs[i]
-        local ic = obj[categoryField]
-        local idc = obj.displayCategory
-        if idc == currentCategory or defCategorySelected then
-            if not typCounts[ic] then
-                typCounts[ic] = 1
-            else
-                typCounts[ic] = typCounts[ic] + 1
-            end
-        end
-    end
-
-    local allcnt = 0
-    for typ, cnt in pairs(typCounts) do
-        self.typeData[typ].count = cnt
-        allcnt = allcnt + cnt
-    end
-    self.typeData.all.count = allcnt
-
-
-    if self.typeFilter ~= 'all' and self.typeData[self.typeFilter].count == 0 then
-        CHC_view.sortByType(self, 'all')
-    end
-    if self.typeDataPrev ~= self.typeData then
-        self.needUpdateObjects = true
-    end
-    self.typeDataPrev = self.typeData
-end
-
-function CHC_view:updateCategories(categoryField)
-    local catCounts = {}
-    local newCats = {}
-    local selector = self.filterRow.categorySelector
-    local objs
-    local suff = false
-    local currentType = self.typeFilter
-    local defTypeSelected = self.typeFilter == 'all'
-
-    if self.searchRow.searchBar:getInternalText() == "" then
-        objs = self.objSource
-    else
-        objs = self.objList.items
-        suff = true
-        if not objs or utils.empty(objs) then
-            objs = self.objSource
-            suff = false
-        end
-    end
-
-    for i = 1, #objs do
-        local obj = suff and objs[i].item or objs[i]
-        local ic = obj[categoryField]
-        local idc = obj.displayCategory
-        if ic == currentType or defTypeSelected then
-            if not catCounts[idc] then
-                insert(newCats, idc)
-                catCounts[idc] = 1
-            else
-                catCounts[idc] = catCounts[idc] + 1
-            end
-        end
-    end
-
-    selector:clear()
-    selector:addOptionWithData(self.defaultCategory, { count = #objs })
-    sort(newCats)
-    for i = 1, #newCats do
-        selector:addOptionWithData(newCats[i], { count = catCounts[newCats[i]] })
-    end
-
-    selector:select(self.selectedCategory)
-end
-
 function CHC_view:handleFavorites(fav_ui_type)
     if self.ui_type == fav_ui_type then
         self.objSource = self.backRef[self.objGetter](self, true)
@@ -319,11 +329,9 @@ function CHC_view:handleFavorites(fav_ui_type)
     else
         self.backRef.updateQueue:push({
             targetView = fav_ui_type,
-            actions = { 'needUpdateFavorites', 'needUpdateObjects', 'needUpdateTypes' }
+            actions = { 'needUpdateFavorites', 'needUpdateObjects' }
         })
     end
-    self.needUpdateCategories = true
-    self.needUpdateTypes = true
 end
 
 -- endregion
@@ -362,13 +370,10 @@ end
 function CHC_view:onChangeCategory(_option, sl)
     self.parent.selectedCategory = sl or _option.options[_option.selected].text
     self.parent.needUpdateObjects = true
-    self.parent.needUpdateTypes = true
 end
 
 function CHC_view:onProcessSearch()
     self.needUpdateObjects = true
-    self.needUpdateCategories = true
-    self.needUpdateTypes = true
 end
 
 function CHC_view:onTextChange()
@@ -409,6 +414,10 @@ end
 
 function CHC_view:objTypeFilter(condition)
     return self.typeFilter == 'all' and true or self.typeFilter == condition
+end
+
+function CHC_view:objCategoryFilter(condition)
+    return self.selectedCategory == self.defaultCategory or self.selectedCategory == condition
 end
 
 function CHC_view:filterOrderSetTooltip()

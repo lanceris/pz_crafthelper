@@ -1,3 +1,4 @@
+require 'luautils'
 require 'ISUI/ISPanel'
 require 'ISUI/ISButton'
 require 'ISUI/ISModalRichText'
@@ -48,7 +49,7 @@ function CHC_search_bar:create()
     self.searchBarText = self.searchBarLastText
     self.searchBar.onTextChange = self.onTextChange
     self.searchBar.onOtherKey = CHC_search_bar.onOtherKey
-    -- self.searchBar.onRightMouseDown = self.onRightMouseDown
+    self.searchBar.onRightMouseDown = self.onRightMouseDown
 
     self:addChild(self.searchBtn)
     self:addChild(self.searchBar)
@@ -189,12 +190,27 @@ end
 --     end
 -- end
 
--- function CHC_search_bar:onRightMouseDown()
---     local s = self.parent
---     if s.onRightMouseDownSB then
---         s.onRightMouseDownSB(s.parent)
---     end
--- end
+function CHC_search_bar:onRightMouseDown()
+    local s = self.parent
+
+    local context
+
+    local function chcpaste(_, clip)
+        self:setText(clip)
+        s.parent:updateObjects()
+    end
+
+    local clip = Clipboard.getClipboard()
+    if clip and luautils.trim(clip) ~= '' then
+        clip = string.sub(clip, 1, 100)
+        context = ISContextMenu.get(0, getMouseX() + 10, getMouseY())
+        local name = context:addOption(getText('IGUI_chc_Paste') .. ' (' .. clip .. ')', self, chcpaste, clip)
+        name.iconTexture = getTexture('media/textures/CHC_paste_icon.png')
+    end
+    if s.onRightMouseDownSB then
+        s.onRightMouseDownSB(s.parent, context)
+    end
+end
 
 -- endregion
 

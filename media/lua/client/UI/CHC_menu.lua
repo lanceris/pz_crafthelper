@@ -50,7 +50,7 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
 	if type(itemsUsedInRecipes) == 'table' and #itemsUsedInRecipes > 0 then
 		local opt = context:addOption(getText('IGUI_chc_context_onclick'), itemsUsedInRecipes, CHC_menu.onCraftHelper,
 			player)
-		opt.iconTexture = getTexture("media/textures/CHC_ctx_icon.png")
+		opt.iconTexture = getTexture('media/textures/CHC_ctx_icon.png')
 		CHC_main.common.addTooltipNumRecipes(opt, item)
 	end
 	if isShiftKeyDown() and CHC_menu.CHC_window ~= nil then
@@ -59,15 +59,15 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
 		local optName = favStr .. ' (' .. getText('IGUI_chc_context_onclick') .. ')'
 		local favOpt = context:addOption(optName, items, CHC_menu.toggleItemFavorite)
 		if isFav then
-			favOpt.iconTexture = getTexture("media/textures/itemFavoriteStarOutline.png") -- FIXME
+			favOpt.iconTexture = getTexture('media/textures/CHC_item_favorite_star_outline.png')
 		else
-			favOpt.iconTexture = getTexture("media/textures/itemFavoriteStar.png")
+			favOpt.iconTexture = getTexture('media/textures/CHC_item_favorite_star.png')
 		end
 
 		local findOpt = context:addOption(
 			getText('IGUI_find_item') .. ' (' .. getText('IGUI_chc_context_onclick') .. ')', items,
 			CHC_menu.onCraftHelper, player, true)
-		findOpt.iconTexture = getTexture("media/textures/search_icon.png")
+		findOpt.iconTexture = getTexture('media/textures/search_icon.png')
 	end
 end
 
@@ -173,7 +173,7 @@ CHC_menu.toggleItemFavorite = function(items)
 	end
 	CHC_menu.CHC_window.updateQueue:push({
 		targetView = 'fav_items',
-		actions = { 'needUpdateFavorites', 'needUpdateObjects', 'needUpdateTypes', 'needUpdateCategories' }
+		actions = { 'needUpdateFavorites', 'needUpdateObjects' }
 	})
 end
 

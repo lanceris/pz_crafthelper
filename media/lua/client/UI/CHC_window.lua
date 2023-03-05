@@ -209,7 +209,7 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
     if existingView ~= nil then
         if existingView.item.fullType ~= ifn then -- same displayName, but different items
             nameForTab = nameForTab .. string.format(' (%s)', ifn)
-        else -- same displayName and same item
+        else                                      -- same displayName and same item
             self:refresh(nameForTab, nil, focusOnNew, focusOnTabIdx)
             return
         end
@@ -552,9 +552,7 @@ function CHC_window:onRMBDownObjList(x, y, item, isrecipe, context)
     end
 
     item = CHC_main.items[item.fullType]
-    local cX = getMouseX()
-    local cY = getMouseY()
-    local context = context or ISContextMenu.get(0, cX + 10, cY)
+    context = context or ISContextMenu.get(0, getMouseX() + 10, getMouseY())
 
     local function chccopy(_, param)
         if param then
@@ -564,6 +562,7 @@ function CHC_window:onRMBDownObjList(x, y, item, isrecipe, context)
 
     if isShiftKeyDown() then
         local name = context:addOption(getText('IGUI_chc_Copy') .. ' (' .. item.displayName .. ')', nil, nil)
+        name.iconTexture = getTexture('media/textures/CHC_copy_icon.png')
         local subMenuName = ISContextMenu:getNew(context)
         context:addSubMenu(name, subMenuName)
         local itemType
@@ -609,7 +608,7 @@ function CHC_window:getActiveSubView()
     if not self.panel or not self.panel.activeView then return end
     local view = self.panel.activeView -- search, favorites or itemname
     local subview
-    if not view.view.activeView then -- no subviews
+    if not view.view.activeView then   -- no subviews
         subview = view
     else
         subview = view.view.activeView
@@ -766,7 +765,7 @@ function CHC_window:onKeyRelease(key)
     if not ui.panel or not ui.panel.activeView then return end
     local view = ui.panel.activeView.view -- search, favorites or itemname
     local subview
-    if not view.activeView then -- no subviews
+    if not view.activeView then           -- no subviews
         subview = view
     else
         subview = view.activeView.view
@@ -915,7 +914,7 @@ function CHC_window:serializeWindowData()
         w = self:getWidth(),
         h = self:getHeight()
     }
-    local sref = vl.viewList[1].view -- search view
+    local sref = vl.viewList[1].view     -- search view
     local sref_i = sref.viewList[1].view -- search-items subview
     local sref_r = sref.viewList[2].view -- search-recipes subview
     CHC_settings.config.search = {
@@ -930,7 +929,7 @@ function CHC_window:serializeWindowData()
             filter_type = sref_r.typeFilter
         }
     }
-    local fref = vl.viewList[2].view -- favorites view
+    local fref = vl.viewList[2].view     -- favorites view
     local fref_i = fref.viewList[1].view -- favorites-items subview
     local fref_r = fref.viewList[2].view -- favorites-recipes subview
     CHC_settings.config.favorites = {

@@ -151,10 +151,8 @@ function CHC_uses_recipelist:addToFavorite(selectedIndex, fromKeyboard)
 	else
 		if parent.ui_type == 'fav_recipes' then
 			self:removeItemByIndex(selectedIndex)
-			parent.needUpdateCategories = true
 		end
 	end
-	parent.needUpdateTypes = true
 	parent.needUpdateFavorites = true
 end
 
@@ -174,9 +172,9 @@ function CHC_uses_recipelist:new(args)
 	o.backRef = args.backRef
 	o.modData = CHC_main.playerModData
 
-	o.favoriteStar = getTexture('media/ui/FavoriteStar.png')
-	o.favCheckedTex = getTexture('media/ui/FavoriteStarChecked.png')
-	o.favNotCheckedTex = getTexture('media/ui/FavoriteStarUnchecked.png')
+	o.favoriteStar = getTexture('media/textures/CHC_recipe_favorite_star.png')
+	o.favCheckedTex = getTexture('media/textures/CHC_recipe_favorite_star_checked.png')
+	o.favNotCheckedTex = getTexture('media/textures/CHC_recipe_favorite_star_outline.png')
 	o.mouseX = 0
 	o.mouseY = 0
 	o.yScroll = 0

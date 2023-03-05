@@ -73,6 +73,9 @@ function CHC_search:initialise()
             icon = CHC_main.items['Base.GunLight'].texture
         }
     }
+    self.categoryData = {}
+    self.categoryData[self.defaultCategory] = { count = 0 }
+
     self:create()
 end
 
@@ -92,8 +95,6 @@ function CHC_search:create()
     end
 
     self:updateObjects()
-    self:updateCategories()
-    self:updateTypes()
 
     self.initDone = true
     self.filterRow.categorySelector.popup.doDrawItem = CHC_filter_row.doDrawItemSelectorPopup
@@ -117,14 +118,6 @@ end
 
 function CHC_search:updateObjects()
     CHC_view.updateObjects(self, 'category')
-end
-
-function CHC_search:updateTypes()
-    CHC_view.updateTypes(self, 'category')
-end
-
-function CHC_search:updateCategories()
-    CHC_view.updateCategories(self, 'category')
 end
 
 -- endregion
@@ -315,7 +308,6 @@ function CHC_search:new(args)
     o.objListSize = 0
 
     o.needUpdateObjects = false
-    o.needUpdateTypes = false
     o.needUpdateFavorites = false
     o.needUpdateFont = false
     o.needUpdateScroll = false
