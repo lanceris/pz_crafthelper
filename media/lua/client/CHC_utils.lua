@@ -148,7 +148,7 @@ CHC_utils.compare = function(what, to, passAll)
                     end
                 end
             end
-            if isNegate and not empty(_states) then
+            if isNegate and not CHC_utils.empty(_states) then
                 state = CHC_utils.all(_states, false)
             end
         end
@@ -212,7 +212,9 @@ CHC_utils.startswith = function(txt, start)
 end
 
 CHC_utils.chcprint = function(txt)
-    print('[CraftHelperContinued] ' .. tostring(txt))
+    if getDebug() then
+        print('[CraftHelperContinued] ' .. tostring(txt))
+    end
 end
 
 function CHC_utils.empty(tab)

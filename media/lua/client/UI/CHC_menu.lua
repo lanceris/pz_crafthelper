@@ -50,16 +50,24 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
 	if type(itemsUsedInRecipes) == 'table' and #itemsUsedInRecipes > 0 then
 		local opt = context:addOption(getText('IGUI_chc_context_onclick'), itemsUsedInRecipes, CHC_menu.onCraftHelper,
 			player)
+		opt.iconTexture = getTexture('media/textures/CHC_ctx_icon.png')
 		CHC_main.common.addTooltipNumRecipes(opt, item)
 	end
 	if isShiftKeyDown() and CHC_menu.CHC_window ~= nil then
 		local isFav = CHC_main.playerModData[CHC_main.getFavItemModDataStr(item)] == true
 		local favStr = isFav and getText('ContextMenu_Unfavorite') or getText('IGUI_CraftUI_Favorite')
 		local optName = favStr .. ' (' .. getText('IGUI_chc_context_onclick') .. ')'
-		context:addOption(optName, items, CHC_menu.toggleItemFavorite)
+		local favOpt = context:addOption(optName, items, CHC_menu.toggleItemFavorite)
+		if isFav then
+			favOpt.iconTexture = getTexture('media/textures/CHC_item_favorite_star_outline.png')
+		else
+			favOpt.iconTexture = getTexture('media/textures/CHC_item_favorite_star.png')
+		end
 
-		context:addOption(getText('IGUI_find_item') .. ' (' .. getText('IGUI_chc_context_onclick') .. ')', items,
+		local findOpt = context:addOption(
+			getText('IGUI_find_item') .. ' (' .. getText('IGUI_chc_context_onclick') .. ')', items,
 			CHC_menu.onCraftHelper, player, true)
+		findOpt.iconTexture = getTexture('media/textures/search_icon.png')
 	end
 end
 
@@ -101,7 +109,7 @@ CHC_menu.onCraftHelperItem = function(window_inst, item)
 	window_inst:refresh(viewName) -- activate top level search view
 	local top = window_inst.panel.activeView
 	if top.name ~= viewName then
-		print("Top view incorrect in onCraftHelperItem")
+		error("Top view incorrect in onCraftHelperItem")
 		return
 	end
 	top.view:activateView(subViewName)
@@ -110,9 +118,9 @@ CHC_menu.onCraftHelperItem = function(window_inst, item)
 
 	local txt = string.format('#%s,%s', item.displayCategory, item.displayName)
 	txt = string.lower(txt)
-	view.searchRow.searchBar:setText(txt) -- set text to Items subview search bar
-	if not view["updateItems"] then return end
-	view:updateItems(view.selectedCategory)
+	view.searchRow.searchBar:setText(txt)
+	-- view.searchRow.searchBar:setText('') -- FIXME to change find item behaviour
+	view:updateObjects()
 	if #view.objList.items ~= 0 then
 		local it = view.objList.items
 		local c = 1
@@ -126,7 +134,6 @@ CHC_menu.onCraftHelperItem = function(window_inst, item)
 		view.objList:ensureVisible(c)
 		if view.objPanel then
 			view.objPanel:setObj(it[c].item)
-			-- view.needSyncFilters = true
 		end
 	end
 
@@ -166,7 +173,7 @@ CHC_menu.toggleItemFavorite = function(items)
 	end
 	CHC_menu.CHC_window.updateQueue:push({
 		targetView = 'fav_items',
-		actions = { 'needUpdateFavorites', 'needUpdateObjects', 'needUpdateTypes', 'needUpdateCategories' }
+		actions = { 'needUpdateFavorites', 'needUpdateObjects' }
 	})
 end
 

@@ -9,12 +9,14 @@ CHC_window = ISCollapsableWindow:derive('CHC_window')
 local utils = require('CHC_utils')
 local print = utils.chcprint
 local insert = table.insert
+local pairs = pairs
 
 -- region create
 
 function CHC_window:initialise()
     ISCollapsableWindow.initialise(self)
     self:create()
+    self.infoButton:setOnClick(CHC_window.onInfo, self)
 end
 
 function CHC_window:create()
@@ -80,10 +82,10 @@ function CHC_window:addSearchPanel()
     self.searchPanel:setAnchorBottom(true)
 
     -- region search items screen
-    local itemsData = self:getItems(CHC_main.itemsForSearch)
+    local itemsData = self:getItems()
     local items_screen_init = self.common_screen_data
     local items_extra = {
-        recipeSource = itemsData,
+        objSource = itemsData,
         itemSortAsc = options.search.items.filter_asc,
         typeFilter = options.search.items.filter_type,
         showHidden = options.show_hidden,
@@ -105,7 +107,7 @@ function CHC_window:addSearchPanel()
     local recipesData = self:getRecipes(false)
     local recipes_screen_init = self.common_screen_data
     local recipes_extra = {
-        recipeSource = recipesData,
+        objSource = recipesData,
         itemSortAsc = options.search.recipes.filter_asc,
         typeFilter = options.search.recipes.filter_type,
         showHidden = options.show_hidden,
@@ -142,10 +144,10 @@ function CHC_window:addFavoriteScreen()
     self.favPanel:setAnchorBottom(true)
 
     -- region fav items screen
-    local itemsData = self:getItems(CHC_main.itemsForSearch, nil, true)
+    local itemsData = self:getItems(true)
     local items_screen_init = self.common_screen_data
     local items_extra = {
-        recipeSource = itemsData,
+        objSource = itemsData,
         itemSortAsc = options.favorites.items.filter_asc,
         typeFilter = options.favorites.items.filter_type,
         showHidden = options.show_hidden,
@@ -164,11 +166,11 @@ function CHC_window:addFavoriteScreen()
     end
     -- endregion
 
-    -- region search recipes screen
+    -- region fav recipes screen
     local recipesData = self:getRecipes(false)
     local recipes_screen_init = self.common_screen_data
     local recipes_extra = {
-        recipeSource = recipesData,
+        objSource = recipesData,
         itemSortAsc = options.favorites.recipes.filter_asc,
         typeFilter = options.favorites.recipes.filter_type,
         showHidden = options.show_hidden,
@@ -207,7 +209,7 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
     if existingView ~= nil then
         if existingView.item.fullType ~= ifn then -- same displayName, but different items
             nameForTab = nameForTab .. string.format(' (%s)', ifn)
-        else -- same displayName and same item
+        else                                      -- same displayName and same item
             self:refresh(nameForTab, nil, focusOnNew, focusOnTabIdx)
             return
         end
@@ -254,7 +256,7 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
     --region uses screen
     local uses_screen_init = self.common_screen_data
     local uses_extra = {
-        recipeSource = usesData,
+        objSource = usesData,
         itemSortAsc = options.uses.filter_asc,
         typeFilter = options.uses.filter_type,
         showHidden = options.show_hidden,
@@ -279,7 +281,7 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
 
     local craft_screen_init = self.common_screen_data
     local craft_extra = {
-        recipeSource = craftData,
+        objSource = craftData,
         itemSortAsc = options.craft.filter_asc,
         typeFilter = options.craft.filter_type,
         showHidden = options.show_hidden,
@@ -304,9 +306,11 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
     self:refresh(nil, nil, focusOnNew, focusOnTabIdx)
 end
 
-function CHC_window:getItems(items, max, favOnly)
+function CHC_window:getItems(favOnly, max)
+    favOnly = favOnly or false
     local showHidden = CHC_settings.config.show_hidden
     local newItems = {}
+    local items = CHC_main.itemsForSearch
     local to = max or #items
 
     for i = 1, to do
@@ -324,11 +328,14 @@ end
 
 function CHC_window:getRecipes(favOnly)
     favOnly = favOnly or false
+    local showHidden = CHC_settings.config.show_hidden
     local recipes = {}
-    local allrec = CHC_main.allRecipes
-    local allevorec = CHC_main.allEvoRecipes
+    local allrec = CHC_main.allRecipes or {}
+    local allevorec = CHC_main.allEvoRecipes or {}
     for i = 1, #allrec do
-        if (favOnly and allrec[i].favorite) or (not favOnly) then
+        local isFav = allrec[i].favorite
+        if (not showHidden) and allrec[i].hidden then
+        elseif (favOnly and isFav) or (not favOnly) then
             insert(recipes, allrec[i])
         end
     end
@@ -336,6 +343,11 @@ function CHC_window:getRecipes(favOnly)
         if (favOnly and allevorec[i].favorite) or (not favOnly) then
             insert(recipes, allevorec[i])
         end
+    end
+
+    if not showHidden and not favOnly then
+        print(string.format('Removed %d hidden recipes in %s', #allrec + #allevorec - #recipes,
+            self.ui_type or "CHC_window"))
     end
     return recipes
 end
@@ -345,34 +357,69 @@ end
 -- region update
 
 function CHC_window:update()
-    if self.updateQueue and self.updateQueue.len > 0 then
+    if self.updateQueue.len > 0 then
         local toProcess = self.updateQueue:pop()
-        local targetViewObj = self.uiTypeToView[toProcess.targetView]
-        if not targetViewObj or not toProcess.actions then return end
-        local targetView = targetViewObj.view
-        local targetOriginName = targetViewObj.originName
-        for i = 1, #toProcess.actions do
-            local action = toProcess.actions[i]
-            if action == 'needUpdateSubViewName' then
-                local data = toProcess.data[action]
-                local viewObject
-                for j = 1, #targetView.parent.viewList do
-                    local view = targetView.parent.viewList[j]
-                    if view.originName == targetOriginName then
-                        viewObject = view
+        if not toProcess.actions then return end
+        local targetViewObjs = {}
+        if toProcess.targetView == "all" then
+            for _, view in pairs(self.uiTypeToView) do
+                if toProcess.exclude then
+                    if not toProcess.exclude[view.originName] then
+                        insert(targetViewObjs, view)
                     end
+                else
+                    insert(targetViewObjs, view)
                 end
-                if viewObject then
-                    if data then
-                        viewObject.name = string.format("%s (%s)", targetOriginName, data)
-                    else
-                        viewObject.name = targetOriginName
-                    end
-                    self.uiTypeToView[viewObject.view.ui_type].name = viewObject.name
-                end
-            else
-                targetView[action] = true
             end
+        else
+            insert(targetViewObjs, self.uiTypeToView[toProcess.targetView])
+        end
+        if utils.empty(targetViewObjs) then return end
+        for j = 1, #targetViewObjs do
+            local targetViewObj = targetViewObjs[j]
+            if not targetViewObj then return end
+            local targetView = targetViewObj.view
+            local targetOriginName = targetViewObj.originName
+
+            for i = 1, #toProcess.actions do
+                local action = toProcess.actions[i]
+                if action == 'needUpdateSubViewName' then
+                    local data = toProcess.data[action]
+                    local viewObject
+                    for k = 1, #targetView.parent.viewList do
+                        local _view = targetView.parent.viewList[k]
+                        if _view.originName == targetOriginName then
+                            viewObject = _view
+                        end
+                    end
+                    if viewObject then
+                        if data then
+                            viewObject.name = string.format("%s (%s)", targetOriginName, data)
+                        else
+                            viewObject.name = targetOriginName
+                        end
+                        self.uiTypeToView[viewObject.view.ui_type].name = viewObject.name
+                    end
+                else
+                    targetView[action] = true
+                end
+            end
+        end
+    end
+
+    local ms = UIManager.getMillisSinceLastRender()
+    for i = 1, #self.updRates do
+        local val = self.updRates[i]
+        if not val.cur then val.cur = 0 end
+        val.cur = val.cur + ms
+        if val.cur >= val.rate then
+            -- print("\n")
+            -- print("Time passed: " .. val.rate)
+            for _, view in pairs(self.uiTypeToView) do
+                -- print("Trigger " .. val.var .. " for " .. view.name)
+                view.view[val.var] = true
+            end
+            val.cur = 0
         end
     end
 end
@@ -430,7 +477,7 @@ end
 -- region render
 
 function CHC_window:resizeHeaders(headers)
-    if headers.nameHeader:getWidth() == headers.nameHeader.minimumWidth then
+    if headers.nameHeader.width == headers.nameHeader.minimumWidth then
         headers.nameHeader:setWidth(headers.nameHeader.minimumWidth)
         headers.typeHeader:setX(headers.nameHeader.width)
         headers.typeHeader:setWidth(self.width - headers.nameHeader.width)
@@ -484,6 +531,13 @@ end
 
 -- region logic
 
+function CHC_window:onInfo()
+    ISCollapsableWindow.onInfo(self)
+    if self.infoRichText and self.infoRichText.alwaysOnTop == true then
+        self.infoRichText.alwaysOnTop = false
+    end
+end
+
 -- Common options for RMBDown + init context
 function CHC_window:onRMBDownObjList(x, y, item, isrecipe, context)
     isrecipe = isrecipe and true or false
@@ -498,9 +552,7 @@ function CHC_window:onRMBDownObjList(x, y, item, isrecipe, context)
     end
 
     item = CHC_main.items[item.fullType]
-    local cX = getMouseX()
-    local cY = getMouseY()
-    local context = context or ISContextMenu.get(0, cX + 10, cY)
+    context = context or ISContextMenu.get(0, getMouseX() + 10, getMouseY())
 
     local function chccopy(_, param)
         if param then
@@ -510,9 +562,15 @@ function CHC_window:onRMBDownObjList(x, y, item, isrecipe, context)
 
     if isShiftKeyDown() then
         local name = context:addOption(getText('IGUI_chc_Copy') .. ' (' .. item.displayName .. ')', nil, nil)
+        name.iconTexture = getTexture('media/textures/CHC_copy_icon.png')
         local subMenuName = ISContextMenu:getNew(context)
         context:addSubMenu(name, subMenuName)
-        local itemType = self.parent.typeData and self.parent.typeData[item.category].tooltip or item.category
+        local itemType
+        if self.parent.isItemView then
+            itemType = self.parent.typeData[item.category].tooltip
+        else
+            itemType = item.category
+        end
 
         local ft = subMenuName:addOption('FullType', self, chccopy, item.fullType)
         local na = subMenuName:addOption('Name', self, chccopy, item.name)
@@ -550,7 +608,7 @@ function CHC_window:getActiveSubView()
     if not self.panel or not self.panel.activeView then return end
     local view = self.panel.activeView -- search, favorites or itemname
     local subview
-    if not view.view.activeView then -- no subviews
+    if not view.view.activeView then   -- no subviews
         subview = view
     else
         subview = view.view.activeView
@@ -562,6 +620,7 @@ function CHC_window:onActivateView(target)
     if not target.activeView or not target.activeView.view then return end
     local top = target.activeView -- top level tab
     local sub = top.view.activeView
+    if not sub then return end
     if sub.view.isItemView == false then
         sub.view.needUpdateFavorites = true
     end
@@ -706,7 +765,7 @@ function CHC_window:onKeyRelease(key)
     if not ui.panel or not ui.panel.activeView then return end
     local view = ui.panel.activeView.view -- search, favorites or itemname
     local subview
-    if not view.activeView then -- no subviews
+    if not view.activeView then           -- no subviews
         subview = view
     else
         subview = view.activeView.view
@@ -803,7 +862,7 @@ function CHC_window:onKeyRelease(key)
         if cs.selected > #cs.options then cs.selected = 1 end
     end
     if oldcsSel ~= cs.selected then
-        subview.onChangeCategory(subview.filterRow, nil, cs.options[cs.selected].text)
+        CHC_view.onChangeCategory(subview.filterRow, nil, cs.options[cs.selected].text)
         return
     end
     -- endregion
@@ -855,7 +914,7 @@ function CHC_window:serializeWindowData()
         w = self:getWidth(),
         h = self:getHeight()
     }
-    local sref = vl.viewList[1].view -- search view
+    local sref = vl.viewList[1].view     -- search view
     local sref_i = sref.viewList[1].view -- search-items subview
     local sref_r = sref.viewList[2].view -- search-recipes subview
     CHC_settings.config.search = {
@@ -870,7 +929,7 @@ function CHC_window:serializeWindowData()
             filter_type = sref_r.typeFilter
         }
     }
-    local fref = vl.viewList[2].view -- favorites view
+    local fref = vl.viewList[2].view     -- favorites view
     local fref_i = fref.viewList[1].view -- favorites-items subview
     local fref_r = fref.viewList[2].view -- favorites-recipes subview
     CHC_settings.config.favorites = {
@@ -953,6 +1012,11 @@ function CHC_window:new(args)
         getText('UI_infotext_item_mouse')
     )
     o:setWantKeyEvents(true)
+
+    o.updRates = {
+        { var = "needUpdateScroll",   rate = 50 }, -- TODO move to settings?
+        { var = "needUpdateMousePos", rate = 100 }
+    }
 
     return o
 end

@@ -1,3 +1,4 @@
+require 'luautils'
 require 'ISUI/ISPanel'
 require 'ISUI/ISButton'
 require 'ISUI/ISModalRichText'
@@ -39,6 +40,7 @@ function CHC_search_bar:create()
     self.searchBar = ISTextEntryBox:new('', x, 0, w - self.searchBtn.width, h)
     self.searchBar.font = UIFont.Small -- TODO: move to options
     self.searchBar:setTooltip(self.searchBarTooltip)
+    self.searchBar.onCommandEntered = self.onCommandEntered
     self.searchBar:initialise()
     self.searchBar:instantiate()
     self.searchBar:setText('')
@@ -47,7 +49,7 @@ function CHC_search_bar:create()
     self.searchBarText = self.searchBarLastText
     self.searchBar.onTextChange = self.onTextChange
     self.searchBar.onOtherKey = CHC_search_bar.onOtherKey
-    -- self.searchBar.onRightMouseDown = self.onRightMouseDown
+    self.searchBar.onRightMouseDown = self.onRightMouseDown
 
     self:addChild(self.searchBtn)
     self:addChild(self.searchBar)
@@ -80,7 +82,6 @@ end
 ---@return boolean isMultiSearch `true` if multiple tokens
 ---@return string|nil queryType type of search query ('AND' or 'OR'), `nil` if `isMultiSearch==false`
 function CHC_search_bar:parseTokens(txt, delim)
-
     delim = delim or { ',', '|' }
     local regex = '[^' .. concat(delim) .. ']+'
     local queryType
@@ -89,8 +90,11 @@ function CHC_search_bar:parseTokens(txt, delim)
     if not contains(txt, ',') and not contains(txt, '|') then
         return { txt }, false, nil
     end
-    if contains(txt, ',') then queryType = 'AND'
-    elseif contains(txt, '|') then queryType = 'OR' end
+    if contains(txt, ',') then
+        queryType = 'AND'
+    elseif contains(txt, '|') then
+        queryType = 'OR'
+    end
 
     local tokens = {}
     for token in txt:gmatch(regex) do
@@ -144,7 +148,14 @@ function CHC_search_bar:onTextChange()
     if s.onTextChangeSB ~= nil then
         s.onTextChangeSB(s.parent)
     end
+end
 
+function CHC_search_bar:onCommandEntered()
+    local s = self.parent
+
+    if s.onCommandEnteredSB ~= nil then
+        s.onCommandEnteredSB(s.parent)
+    end
 end
 
 function CHC_search_bar:onOtherKey(key)
@@ -179,18 +190,33 @@ end
 --     end
 -- end
 
--- function CHC_search_bar:onRightMouseDown()
---     local s = self.parent
---     if s.onRightMouseDownSB then
---         s.onRightMouseDownSB(s.parent)
---     end
--- end
+function CHC_search_bar:onRightMouseDown()
+    local s = self.parent
+
+    local context
+
+    local function chcpaste(_, clip)
+        self:setText(clip)
+        s.parent:updateObjects()
+    end
+
+    local clip = Clipboard.getClipboard()
+    if clip and luautils.trim(clip) ~= '' then
+        clip = string.sub(clip, 1, 100)
+        context = ISContextMenu.get(0, getMouseX() + 10, getMouseY())
+        local name = context:addOption(getText('IGUI_chc_Paste') .. ' (' .. clip .. ')', self, chcpaste, clip)
+        name.iconTexture = getTexture('media/textures/CHC_paste_icon.png')
+    end
+    if s.onRightMouseDownSB then
+        s.onRightMouseDownSB(s.parent, context)
+    end
+end
 
 -- endregion
 
 -- endregion
 
-function CHC_search_bar:new(args, searchBarTooltip, onTextChange, searchBtnOnClickText)
+function CHC_search_bar:new(args, searchBarTooltip, onTextChange, searchBtnOnClickText, onCommandEntered)
     local o = {};
     o = derivative:new(args.x, args.y, args.w, args.h)
 
@@ -201,6 +227,7 @@ function CHC_search_bar:new(args, searchBarTooltip, onTextChange, searchBtnOnCli
     o.background = false
     o.searchBtnOnClickText = searchBtnOnClickText
     o.onTextChangeSB = onTextChange
+    o.onCommandEnteredSB = onCommandEntered
     -- o.onRightMouseDownSB = onRightMouseDown
     o.searchBarTooltip = searchBarTooltip or string.sub(getText('IGUI_CraftUI_Name_Filter'), 1, -2)
     o.searchIcon = getTexture('media/textures/search_icon.png')

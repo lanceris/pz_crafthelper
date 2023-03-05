@@ -212,7 +212,9 @@ function CHC_items_panel:setObj(item)
     self.statsList:clear()
     self.statsList:setY(self.mainInfo.y + self.mainInfo:getBottom() + self.padY)
 
-    self.statsList:addSection(self.itemProps, getText('IGUI_ItemDetails_Attributes_tab'))
+    if self.itemProps.propData then
+        self.statsList:addSection(self.itemProps, self.attributeSectionName)
+    end
     -- self.statsList:addSection(self.itemDistrib, 'Distributions')
     -- self.statsList:addSection(self.itemFixing, 'Fixing')
 
@@ -220,12 +222,18 @@ function CHC_items_panel:setObj(item)
         self.statsList:expandSection(section)
     end
 
-    self.statsList:setVisible(true)
+    if self.statsList.sectionMap[self.attributeSectionName] then
+        local list_search_txt = self.parent.searchRow.searchBar:getInternalText()
+        if utils.startswith(list_search_txt, '$') then
+            -- self.itemProps.searchRow.searchBar:setText(list_search_txt:gsub('%$', ''))
+            self.itemProps:updateObjects()
+        end
+    end
 
-    local list_search_txt = self.parent.searchRow.searchBar:getInternalText()
-    if utils.startswith(list_search_txt, '$') then
-        -- self.itemProps.searchRow.searchBar:setText(list_search_txt:gsub('%$', ''))
-        self.itemProps.needUpdateObjects = true
+    if not utils.empty(self.statsList.sections) then
+        self.statsList:setVisible(true)
+    else
+        self.statsList:setVisible(false)
     end
 end
 
@@ -265,6 +273,8 @@ function CHC_items_panel:new(args)
     o.backRef = args.backRef
     o.item = nil
     o.itemImgTextureMultApplied = false
+
+    o.attributeSectionName = getText('IGUI_ItemDetails_Attributes_tab')
 
     return o
 end

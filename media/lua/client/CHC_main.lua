@@ -2,10 +2,14 @@ require 'luautils'
 
 CraftHelperContinued = {}
 CHC_main = CraftHelperContinued
-CHC_main.author = 'lanceris'
-CHC_main.previousAuthors = { 'Peanut', 'ddraigcymraeg', 'b1n0m' }
-CHC_main.modName = 'CraftHelperContinued'
-CHC_main.version = '1.6.6'
+CHC_main._meta = {
+	id = 'CraftHelperContinued',
+	workshopId = 2787291513,
+	name = 'Craft Helper Continued',
+	version = '1.7.0',
+	author = 'lanceris',
+	previousAuthors = { 'Peanut', 'ddraigcymraeg', 'b1n0m' },
+}
 CHC_main.allRecipes = {}
 CHC_main.recipesByItem = {}
 CHC_main.recipesForItem = {}
@@ -216,9 +220,7 @@ CHC_main.getItemProps = function(item, itemType, map)
 		end
 		if propVal then
 			propVal = rawToStr(propVal)
-			local val = tonumber(propVal)
-			if val then propVal = val end
-
+			if tonumber(propVal) then propVal = tonumber(propVal) end
 			if mul then propVal = propVal * mul end
 
 			propName, propVal = formatOutput(propName, propVal)
@@ -258,9 +260,9 @@ CHC_main.getItemProps = function(item, itemType, map)
 				dupedProps[prop.name] = true
 			end
 		end
-		if uniqueProps['ActualWeight'] and uniqueProps['Weight'] and
-			uniqueProps['Weight'].value == uniqueProps['ActualWeight'].value then
-			uniqueProps['ActualWeight'] = nil
+		if uniqueProps.ActualWeight and uniqueProps.Weight and
+			uniqueProps.Weight.value == uniqueProps.ActualWeight.value then
+			uniqueProps.ActualWeight = nil
 		end
 
 		for _, prop in pairs(uniqueProps) do
@@ -301,6 +303,18 @@ CHC_main.getItemProps = function(item, itemType, map)
 	return props, propsMap
 end
 
+CHC_main.getRecipeRequiredSkills = function(recipe, n)
+	local result = {}
+	for i = 1, n do
+		local skill = recipe:getRequiredSkill(i - 1)
+		local _perk = skill:getPerk()
+		local perk = PerkFactory.getPerk(_perk)
+		local perkName = perk and perk:getName() or _perk:name()
+		insert(result, { skill = perkName, level = skill:getLevel() })
+	end
+	return result
+end
+
 CHC_main.loadDatas = function()
 	CHC_main.playerModData = getPlayer():getModData()
 	CHC_main.CECData = _G['CraftingEnhancedCore']
@@ -319,7 +333,7 @@ CHC_main.loadDatas = function()
 	CHC_menu.createCraftHelper()
 end
 
-CHC_main.processOneItem = function(item)
+CHC_main.processOneItem = function(item, id)
 	local fullType = item:getFullName()
 
 	if CHC_main.items[fullType] then
@@ -330,6 +344,7 @@ CHC_main.processOneItem = function(item)
 	local itemDisplayCategory = invItem:getDisplayCategory()
 
 	local toinsert = {
+		_id = id,
 		itemObj = item,
 		item = invItem,
 		fullType = invItem:getFullType(),
@@ -343,8 +358,8 @@ CHC_main.processOneItem = function(item)
 		count = invItem:getCount() or 1,
 		category = item:getTypeString(),
 		displayCategory = itemDisplayCategory and
-		getTextOrNull('IGUI_ItemCat_' .. itemDisplayCategory) or
-		getText('IGUI_ItemCat_Item'),
+			getTextOrNull('IGUI_ItemCat_' .. itemDisplayCategory) or
+			getText('IGUI_ItemCat_Item'),
 		texture = invItem:getTex()
 	}
 	toinsert.props, toinsert.propsMap = CHC_main.getItemProps(invItem, toinsert.category)
@@ -352,7 +367,7 @@ CHC_main.processOneItem = function(item)
 	insert(CHC_main.itemsForSearch, toinsert)
 
 
-	if item:getTypeString() == 'Literature' then
+	if toinsert.category == 'Literature' then
 		local teachedRecipes = item:getTeachedRecipes()
 		if teachedRecipes ~= nil and teachedRecipes:size() > 0 then
 			for j = 0, teachedRecipes:size() - 1 do
@@ -360,7 +375,7 @@ CHC_main.processOneItem = function(item)
 				if CHC_main.itemsManuals[recipeString] == nil then
 					CHC_main.itemsManuals[recipeString] = {}
 				end
-				insert(CHC_main.itemsManuals[recipeString], CHC_main.items[fullType])
+				insert(CHC_main.itemsManuals[recipeString], CHC_main.items[toinsert.fullType])
 			end
 		end
 	end
@@ -376,7 +391,7 @@ CHC_main.loadAllItems = function(am)
 	for i = 0, amount do
 		local item = allItems:get(i)
 		if not item:getObsolete() then
-			CHC_main.processOneItem(item)
+			CHC_main.processOneItem(item, i)
 			nbItems = nbItems + 1
 		end
 	end
@@ -384,17 +399,31 @@ CHC_main.loadAllItems = function(am)
 	print(nbItems .. ' items loaded.')
 end
 
-CHC_main.processOneRecipe = function(recipe)
+CHC_main.processOneRecipe = function(recipe, id)
 	local newItem = {}
+	newItem._id = id
 	newItem.category = recipe:getCategory() or getText('IGUI_CraftCategory_General')
 	newItem.displayCategory = getTextOrNull('IGUI_CraftCategory_' .. newItem.category) or newItem.category
 	newItem.recipe = recipe
 	newItem.module = recipe:getModule():getName()
 	newItem.hidden = recipe:isHidden()
 	newItem.recipeData = {}
+	newItem.recipeData.lua = {}
+	newItem.recipeData.lua.onCanPerform = recipe:getCanPerform()
 	newItem.recipeData.category = newItem.category
 	newItem.recipeData.name = recipe:getName()
 	newItem.recipeData.nearItem = recipe:getNearItem()
+	newItem.recipeData.needToBeLearn = recipe:needToBeLearn()
+	newItem.recipeData.originalName = recipe:getOriginalname()
+	newItem.recipeData.requiredSkillCount = recipe:getRequiredSkillCount()
+	if newItem.recipeData.requiredSkillCount > 0 then
+		newItem.recipeData.requiredSkills = CHC_main.getRecipeRequiredSkills(recipe,
+			newItem.recipeData.requiredSkillCount)
+	end
+	if newItem.recipeData.nearItem == "Anvil" and
+		not getActivatedMods():contains("Blacksmith41") then
+		return
+	end
 
 	newItem.favorite = CHC_main.playerModData[CHC_main.getFavoriteRecipeModDataString(newItem)] or false
 
@@ -493,16 +522,17 @@ CHC_main.loadAllRecipes = function()
 	-- Go through recipes stack
 	for i = 0, allRecipes:size() - 1 do
 		local recipe = allRecipes:get(i)
-		CHC_main.processOneRecipe(recipe)
+		CHC_main.processOneRecipe(recipe, i)
 		nbRecipes = nbRecipes + 1
 	end
 	showTime(now, 'All Recipes')
 	print(nbRecipes .. ' recipes loaded.')
 end
 
-CHC_main.processOneEvolvedRecipe = function(recipe)
+CHC_main.processOneEvolvedRecipe = function(recipe, _id)
 	if recipe:isHidden() then return end
 	local data = {
+		_id = "e" .. tostring(_id),
 		isEvolved = true,
 		recipe = recipe,
 		category = getText('IGUI_CHC_RecipeCat_Evolved'),
@@ -545,7 +575,7 @@ CHC_main.processOneEvolvedRecipe = function(recipe)
 			-- check item for obsolete
 			local _item = CHC_main.getItemByFullType(itemData.fullType)
 			if _item then
-				if _item.propsMap["Spice"] and tostring(_item.propsMap["Spice"].value) == "true" then
+				if _item.propsMap and _item.propsMap["Spice"] and tostring(_item.propsMap["Spice"].value) == "true" then
 					itemData.isSpice = true
 				else
 					itemData.isSpice = false
@@ -592,7 +622,7 @@ CHC_main.loadAllEvolvedRecipes = function()
 	local allEvolvedRecipes = RecipeManager.getAllEvolvedRecipes()
 
 	for i = 0, allEvolvedRecipes:size() - 1 do
-		CHC_main.processOneEvolvedRecipe(allEvolvedRecipes:get(i))
+		CHC_main.processOneEvolvedRecipe(allEvolvedRecipes:get(i), i)
 		nbRecipes = nbRecipes + 1
 	end
 
@@ -828,6 +858,7 @@ CHC_main.getCECRecipes = function()
 
 	for tID, tData in pairs(CHC_main.CECData.tables) do
 		local newItem = {}
+		newItem._id = tID
 		newItem.category = 'CraftingEnhanced'
 		newItem.displayCategory = newItem.category
 		newItem.module = 'CraftingEnhancedCore'
@@ -836,6 +867,7 @@ CHC_main.getCECRecipes = function()
 		newItem.recipeData = {}
 		newItem.recipeData.category = newItem.category
 		newItem.recipeData.name = 'Build ' .. tData.displayName
+		newItem.recipeData.displayName = tData.displayName
 		newItem.recipeData.ingredients = tData.recipe
 		newItem.recipeData.isSynthetic = true
 		-- newItem.recipeData.nearItem = recipe:getNearItem()
@@ -904,11 +936,23 @@ end
 -- endregion
 
 function CHC_main.reloadMod(key)
-	if key == Keyboard.KEY_O then
-		CHC_main.loadDatas()
-		local all = CHC_main
-		-- error('debug')
-	end
+	-- if key == Keyboard.KEY_O then
+	-- 	CHC_main.loadDatas()
+	-- 	local all = CHC_main
+	-- 	-- error('debug')
+	-- end
+	-- if key == Keyboard.KEY_Z then
+	-- 	local items = {}
+	-- 	local num = 100
+	-- 	for i = 1, num, 1 do
+	-- 		insert(items, CHC_main.itemsForSearch[i])
+	-- 	end
+	-- 	local now = getTimestampMs()
+	-- 	for i = 1, #items do
+	-- 		CHC_main.getItemProps(items[i].item, items[i].category)
+	-- 	end
+	-- 	showTime(now, num .. "test props")
+	-- end
 end
 
 if CHC_main.isDebug then
@@ -917,9 +961,9 @@ end
 
 -- catch all lua changes to recipes/items/etc (DoParam and stuff)
 local ensureLoadedLast = function()
-	Events.OnGameStart.Add(function()
+	Events.OnLoad.Add(function()
 		CHC_main.loadDatas()
 	end)
 end
 
-Events.OnGameStart.Add(ensureLoadedLast)
+Events.OnLoad.Add(ensureLoadedLast)

@@ -52,6 +52,7 @@
 [*]Thai
 [*]Korean
 [*]Brazilian Portuguese
+[*]Traditional Chinese
 [/list]
 
 Если вы хотите помочь с переводом, пожалуйста, перейдите на страницу Crowdin:
