@@ -20,6 +20,8 @@ IGUI_EN = {
     IGUI_ShowRecipeModuleTooltip = "Display mod, where recipe came from. <LINE> Note: recipe 'mod' is just module, where this recipe was defined (in .txt file), some mods use default module ('Base')"
     IGUI_ShowAllItemProps = "Show all item attributes"
     IGUI_ShowAllItemPropsTooltip = "Most of item attributes with default values are hidden by default. If selected, all attributes will be shown"
+    IGUI_DelayedSearch = "Enable delayed search"
+    IGUI_DelayedSearchTooltip = "When active, search will be performed only after you press Enter"
 
     IGUI_CHC_ItemCat_AlarmClockClothing = "Wrist watch"
     IGUI_CHC_ItemCat_Drainable = "Drainable"
@@ -28,6 +30,8 @@ IGUI_EN = {
     IGUI_CHC_ItemCat_Normal = "Normal"
     IGUI_CHC_ItemCat_Radio = "Radio"
     IGUI_CHC_ItemCat_Key = "Key"
+    IGUI_CHC_RecipeCat_Evolved = "Evolved"
+    IGUI_CHC_Evolved_Max_Ingr = "(Max ingredients: %1)"
     IGUI_new_tab = "Open in new tab"
     IGUI_find_item = "Find item"
     IGUI_mod_chc = "Mod"
@@ -42,11 +46,13 @@ IGUI_EN = {
     IGUI_CopyNameProps_ctx = "Name"
     IGUI_CopyValueProps_ctx = "Value"
     IGUI_CopyValueSearchProps_ctx = "Value for search"
+    IGUI_chc_Paste = "Paste"
     IGUI_PinProps_ctx = "Pin"
     IGUI_UnpinProps_ctx = "Unpin"
     IGUI_BlacklistProps_ctx = "Blacklist"
     IGUI_UnblacklistProps_ctx = "Unblacklist"
     IGUI_ItemDetails_Attributes_tab = "Attributes"
-
-
+    IGUI_Synthetic_Recipe_result_tooltip = "Build via right clicking in world"
+    IGUI_Evolved_Recipe_result_tooltip = "Evolved recipe"
+    IGUI_DelayedSearchBarTooltip = "Press Enter to search"
 }

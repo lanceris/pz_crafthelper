@@ -15,7 +15,6 @@ Apart from item tab, there is also two common tabs:
 
 Safe to add/remove to/from existing saves
 Should be compatible with all mods and MP
-Does not support evolved recipes currently (soup, stew, salads etc.)
 
 [hr][/hr]
 [h2]Features:[/h2]
@@ -40,7 +39,8 @@ Does not support evolved recipes currently (soup, stew, salads etc.)
 [*] Show recipe origin (Mod) (ON)
 [*] Enable editable category selector (by default OFF)
 [*] Show favorite items in inventories (by default OFF)
-[*] Context menu option to toggle favorite status of item (Shift + Right click on item)
+[*] Context menu option to find and toggle favorite status of item (Shift + Right click on item)
+[*] Delayed search (Need to press Enter to perform search) (by default OFF)
 [/list]
 Also, with "Mod Options" you can set keybinds (Key bindings -> Craft Helper) for some actions.
 
@@ -53,6 +53,7 @@ Also, with "Mod Options" you can set keybinds (Key bindings -> Craft Helper) for
 [*]Thai
 [*]Korean
 [*]Brazilian Portuguese
+[*]Traditional Chinese
 [/list]
 
 If you would like to help with translation, please go to Crowdin page:

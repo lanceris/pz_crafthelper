@@ -18,25 +18,8 @@ function CHC_props_table:createChildren()
     local x = self.padX
     local y = self.padY
 
-    -- self.optionsUI = CHC_options_ui:new({ x = self.backRef.x + self.backRef.width, y = self.backRef.y, w = 100, h = 150,
-    --     backRef = self.backRef })
-    -- self.optionsUI:initialise()
-    -- self.optionsUI:setTitle('Temp title')
-    -- self.optionsUI:setResizable(false)
-    -- self.optionsUI:setVisible(false)
-
-    -- self.label = ISLabel:new(x, y, self.fonthgt, 'Attributes', 1, 1, 1, 1, self.font, true)
-    -- self.label:initialise()
-    -- y = y + self.padY + self.label.height
-
     -- region search bar row
     local h = 20
-    -- self.optionsBtn = ISButton:new(x, y, h, h, '', self, self.onOptionsMouseDown)
-    -- self.optionsBtn:initialise()
-    -- self.optionsBtn.borderColor.a = 0
-    -- self.optionsBtn:setImage(self.optionsBtnIcon)
-    -- self.optionsBtn:setTooltip('testTooltip')
-
 
     self.searchRow = CHC_search_bar:new({
             x = x,
@@ -45,8 +28,9 @@ function CHC_props_table:createChildren()
             h = h,
             backRef = self.backRef
         }, nil,
-            self.onTextChange, self.searchRowHelpText)
+        self.onTextChange, self.searchRowHelpText, self.onCommandEntered)
     self.searchRow:initialise()
+    if self.delayedSearch then self.searchRow:setTooltip(self.searchBarDelayedTooltip) end
     self.searchRow.drawBorder = false
     y = y + self.padY + self.searchRow.height
     -- endregion
@@ -79,12 +63,12 @@ end
 -- region update
 function CHC_props_table:update()
     if self.needUpdateObjects == true then
-        self:updatePropsList()
+        self:updateObjects()
         self.needUpdateObjects = false
     end
 end
 
-function CHC_props_table:updatePropsList()
+function CHC_props_table:updateObjects()
     local search_state
     local props = self.propData
     if not props then return end
@@ -132,7 +116,7 @@ function CHC_props_table:drawProps(y, item, alt)
     end
 
     if item.index == self.mouseoverselected then
-        local sc = { x = 0, y = y, w = self:getWidth(), h = item.height - 1, a = 0.2, r = 0.75, g = 0.5, b = 0.5 }
+        local sc = { x = 0, y = y, w = self.width, h = item.height - 1, a = 0.2, r = 0.75, g = 0.5, b = 0.5 }
         self:drawRect(sc.x, sc.y, sc.w, sc.h, 0.2, 0.5, sc.g, sc.b)
     end
 
@@ -149,9 +133,9 @@ function CHC_props_table:drawProps(y, item, alt)
         rectP = { a = 0.2, r = 0.75, g = 0.5, b = 0.5 }
     end
 
-    self:drawRect(0, (y), self:getWidth(), self.itemheight, rectP.a, rectP.r, rectP.g, rectP.b)
+    self:drawRect(0, (y), self.width, self.itemheight, rectP.a, rectP.r, rectP.g, rectP.b)
 
-    self:drawRectBorder(0, (y), self:getWidth(), self.itemheight, a, self.borderColor.r, self.borderColor.g,
+    self:drawRectBorder(0, (y), self.width, self.itemheight, a, self.borderColor.r, self.borderColor.g,
         self.borderColor.b)
 
     local clipX = self.columns[1].size
@@ -250,8 +234,8 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
 
     local maxTextLength = 1000 --FIXME
     -- region copy submenu
-    local name = context:addOption(getText('IGUI_chc_Copy'), nil
-            , nil)
+    local name = context:addOption(getText('IGUI_chc_Copy'), nil, nil)
+    name.iconTexture = getTexture('media/textures/CHC_copy_icon.png')
     local subMenuName = ISContextMenu:getNew(context)
     context:addSubMenu(name, subMenuName)
 
@@ -340,7 +324,6 @@ end
 
 function CHC_props_table:refreshObjList(props)
     self.objList:clear()
-    self.objList:setScrollHeight(0)
 
     local blacklisted = CHC_settings.mappings.ignoredItemProps
     local pinned = CHC_settings.mappings.pinnedItemProps
@@ -388,7 +371,15 @@ function CHC_props_table:processAddObjToObjList(prop)
 end
 
 function CHC_props_table:onTextChange()
-    self.needUpdateObjects = true
+    if not self.delayedSearch or self.searchRow.searchBar:getInternalText() == '' then
+        CHC_view.onTextChange(self)
+    end
+end
+
+function CHC_props_table:onCommandEntered()
+    if self.delayedSearch then
+        CHC_view.onCommandEntered(self)
+    end
 end
 
 -- search rules
@@ -467,6 +458,10 @@ function CHC_props_table:new(args)
     o.needUpdateObjects = false
     o.propData = nil
     o.savedPos = -1
+
+    o.delayedSearch = CHC_settings.config.delayed_search
+    o.needUpdateDelayedSearch = false
+    o.searchBarDelayedTooltip = getText('IGUI_DelayedSearchBarTooltip')
 
     return o
 end

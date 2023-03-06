@@ -1,5 +1,6 @@
 require 'luautils'
 require 'UI/CHC_menu'
+require 'CHC_config_apply_funcs'
 
 local utils = require('CHC_utils')
 
@@ -7,6 +8,7 @@ local config_name = 'craft_helper_config.json'
 local mappings_name = 'CHC_mappings.json'
 
 CHC_settings = {
+    f = {},
     config = {},
     keybinds = {
         move_up = { key = Keyboard.KEY_NONE, name = 'chc_move_up' },
@@ -52,6 +54,7 @@ local init_cfg = {
     show_hidden = false,
     close_all_on_exit = false,
     show_all_props = false,
+    delayed_search = false,
     main_window = { x = 100, y = 100, w = 1000, h = 600 },
     uses = { sep_x = 500, filter_asc = true, filter_type = 'all' },
     craft = { sep_x = 500, filter_asc = true, filter_type = 'all' },
@@ -70,7 +73,10 @@ local init_mappings = {
     pinnedItemProps = {}
 }
 
-local function onModOptionsApply(values)
+function CHC_settings.f.onModOptionsApply(values)
+    if CHC_settings.config.main_window == nil then
+        CHC_settings.Load()
+    end
     CHC_settings.config.show_recipe_module = values.settings.options.show_recipe_module
     CHC_settings.config.show_fav_items_inventory = values.settings.options.show_fav_items_inventory
     CHC_settings.config.editable_category_selector = values.settings.options.editable_category_selector
@@ -83,9 +89,7 @@ local function onModOptionsApply(values)
     CHC_settings.config.show_hidden = values.settings.options.show_hidden
     CHC_settings.config.close_all_on_exit = values.settings.options.close_all_on_exit
     CHC_settings.config.show_all_props = values.settings.options.show_all_props
-    if CHC_settings.config.main_window == nil then
-        CHC_settings.Load()
-    end
+    CHC_settings.config.delayed_search = values.settings.options.delayed_search
     CHC_settings.Save()
 end
 
@@ -96,40 +100,43 @@ if ModOptions and ModOptions.getInstance then
                 name = 'IGUI_AllowSpecialSearch',
                 tooltip = 'IGUI_AllowSpecialSearchTooltip',
                 default = true,
-                OnApplyMainMenu = onModOptionsApply,
-                OnApplyInGame = onModOptionsApply
+                OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
+                OnApplyInGame = CHC_settings.f.onModOptionsApply
             },
             show_icons = {
                 name = 'IGUI_ShowIcons',
                 tooltip = 'IGUI_ShowIconsTooltip',
                 default = true,
-                OnApplyMainMenu = onModOptionsApply,
-                OnApplyInGame = onModOptionsApply
+                OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
+                OnApplyInGame = CHC_main.config_apply_funcs.process
             },
             show_hidden = {
                 name = 'IGUI_ShowHidden',
                 tooltip = 'IGUI_ShowHiddenTooltip',
                 default = false,
-                OnApplyMainMenu = onModOptionsApply,
-                OnApplyInGame = onModOptionsApply
+                OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
+                OnApplyInGame = CHC_settings.f.onModOptionsApply
             },
             close_all_on_exit = {
                 name = 'IGUI_CloseAllOnExit',
                 tooltip = 'IGUI_CloseAllOnExitTooltip',
                 default = false,
-                OnApplyMainMenu = onModOptionsApply,
-                OnApplyInGame = onModOptionsApply
+                OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
+                OnApplyInGame = CHC_settings.f.onModOptionsApply
             },
             list_font_size = {
-                getText('UI_optionscreen_Small'), getText('UI_optionscreen_Medium'), getText('UI_optionscreen_Large'),
+                getText('UI_optionscreen_Small'),
+                getText('UI_optionscreen_Medium'),
+                getText('UI_optionscreen_Large'),
                 name = 'IGUI_ListFontSize',
                 tooltip = 'IGUI_ListFontSizeTooltip',
                 default = 3,
-                OnApplyMainMenu = onModOptionsApply,
-                OnApplyInGame = onModOptionsApply
+                OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
+                OnApplyInGame = CHC_main.config_apply_funcs.process
             },
             recipe_selector_modifier = {
-                getText('IGUI_None'), getText('UI_optionscreen_CycleContainerKey1'),
+                getText('IGUI_None'),
+                getText('UI_optionscreen_CycleContainerKey1'),
                 getText('UI_optionscreen_CycleContainerKey2'),
                 getText('UI_optionscreen_CycleContainerKey3'),
                 name = 'IGUI_RecipeSelectorModifier',
@@ -138,11 +145,12 @@ if ModOptions and ModOptions.getInstance then
                     getText('UI_optionscreen_binding_chc_move_down')
                 ),
                 default = 1,
-                OnApplyMainMenu = onModOptionsApply,
-                OnApplyInGame = onModOptionsApply
+                OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
+                OnApplyInGame = CHC_settings.f.onModOptionsApply
             },
             category_selector_modifier = {
-                getText('IGUI_None'), getText('UI_optionscreen_CycleContainerKey1'),
+                getText('IGUI_None'),
+                getText('UI_optionscreen_CycleContainerKey1'),
                 getText('UI_optionscreen_CycleContainerKey2'),
                 getText('UI_optionscreen_CycleContainerKey3'),
                 name = 'IGUI_CategorySelectorModifier',
@@ -151,11 +159,12 @@ if ModOptions and ModOptions.getInstance then
                     getText('UI_optionscreen_binding_chc_move_right')
                 ),
                 default = 1,
-                OnApplyMainMenu = onModOptionsApply,
-                OnApplyInGame = onModOptionsApply
+                OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
+                OnApplyInGame = CHC_settings.f.onModOptionsApply
             },
             tab_selector_modifier = {
-                getText('IGUI_None'), getText('UI_optionscreen_CycleContainerKey1'),
+                getText('IGUI_None'),
+                getText('UI_optionscreen_CycleContainerKey1'),
                 getText('UI_optionscreen_CycleContainerKey2'),
                 getText('UI_optionscreen_CycleContainerKey3'),
                 name = 'IGUI_TabSelectorModifier',
@@ -164,36 +173,43 @@ if ModOptions and ModOptions.getInstance then
                     getText('UI_optionscreen_binding_chc_move_tab_right')
                 ),
                 default = 1,
-                OnApplyMainMenu = onModOptionsApply,
-                OnApplyInGame = onModOptionsApply
+                OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
+                OnApplyInGame = CHC_settings.f.onModOptionsApply
             },
             show_recipe_module = {
                 name = 'IGUI_ShowRecipeModule',
                 tooltip = 'IGUI_ShowRecipeModuleTooltip',
                 default = true,
-                OnApplyMainMenu = onModOptionsApply,
-                OnApplyInGame = onModOptionsApply
+                OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
+                OnApplyInGame = CHC_main.config_apply_funcs.process
             },
             show_fav_items_inventory = {
                 name = 'IGUI_ShowFavItemsInventory',
                 tooltip = 'IGUI_ShowFavItemsInventoryTooltip',
                 default = false,
-                OnApplyMainMenu = onModOptionsApply,
-                OnApplyInGame = onModOptionsApply
+                OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
+                OnApplyInGame = CHC_settings.f.onModOptionsApply
             },
             editable_category_selector = {
                 name = 'IGUI_EditableCategorySelector',
                 tooltip = 'IGUI_EditableCategorySelectorTooltip',
                 default = false,
-                OnApplyMainMenu = onModOptionsApply,
-                OnApplyInGame = onModOptionsApply
+                OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
+                OnApplyInGame = CHC_settings.f.onModOptionsApply
             },
             show_all_props = {
                 name = 'IGUI_ShowAllItemProps',
                 tooltip = 'IGUI_ShowAllItemPropsTooltip',
                 default = false,
-                OnApplyMainMenu = onModOptionsApply,
-                OnApplyInGame = onModOptionsApply
+                OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
+                OnApplyInGame = CHC_settings.f.onModOptionsApply
+            },
+            delayed_search = {
+                name = 'IGUI_DelayedSearch',
+                tooltip = 'IGUI_DelayedSearchTooltip',
+                default = false,
+                OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
+                OnApplyInGame = CHC_main.config_apply_funcs.process
             }
         },
         mod_id = 'CraftHelperContinued',
@@ -207,7 +223,6 @@ if ModOptions and ModOptions.getInstance then
         ModOptions:AddKeyBinding(category, value)
     end
     ModOptions:loadFile()
-
 else
     -- defaults in case 'Mod Options' not installed
     CHC_settings.config.show_recipe_module = true
@@ -222,6 +237,7 @@ else
     CHC_settings.config.show_hidden = false
     CHC_settings.config.close_all_on_exit = false
     CHC_settings.config.show_all_props = false
+    CHC_settings.config.delayed_search = false
 end
 
 

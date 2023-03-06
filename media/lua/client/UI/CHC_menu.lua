@@ -38,9 +38,9 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
 		end
 
 		-- if item is used in any recipe OR there is a way to create this item - mark item as valid
-		local cond1 = type(CHC_main.recipesByItem[item:getFullType()]) == 'table'
-		local cond2 = type(CHC_main.recipesForItem[item:getFullType()]) == 'table'
-		if cond1 or cond2 then
+		local fullType = item:getFullType()
+		local isRecipes = CHC_main.common.areThereRecipesForItem(nil, fullType)
+		if isRecipes then
 			table.insert(itemsUsedInRecipes, item)
 		end
 	end
@@ -49,17 +49,25 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
 	-- we effectively add an option in the contextual menu
 	if type(itemsUsedInRecipes) == 'table' and #itemsUsedInRecipes > 0 then
 		local opt = context:addOption(getText('IGUI_chc_context_onclick'), itemsUsedInRecipes, CHC_menu.onCraftHelper,
-				player)
+			player)
+		opt.iconTexture = getTexture('media/textures/CHC_ctx_icon.png')
 		CHC_main.common.addTooltipNumRecipes(opt, item)
 	end
 	if isShiftKeyDown() and CHC_menu.CHC_window ~= nil then
 		local isFav = CHC_main.playerModData[CHC_main.getFavItemModDataStr(item)] == true
 		local favStr = isFav and getText('ContextMenu_Unfavorite') or getText('IGUI_CraftUI_Favorite')
 		local optName = favStr .. ' (' .. getText('IGUI_chc_context_onclick') .. ')'
-		context:addOption(optName, items, CHC_menu.toggleItemFavorite)
+		local favOpt = context:addOption(optName, items, CHC_menu.toggleItemFavorite)
+		if isFav then
+			favOpt.iconTexture = getTexture('media/textures/CHC_item_favorite_star_outline.png')
+		else
+			favOpt.iconTexture = getTexture('media/textures/CHC_item_favorite_star.png')
+		end
 
-		context:addOption(getText('IGUI_find_item') .. ' (' .. getText('IGUI_chc_context_onclick') .. ')', items,
+		local findOpt = context:addOption(
+			getText('IGUI_find_item') .. ' (' .. getText('IGUI_chc_context_onclick') .. ')', items,
 			CHC_menu.onCraftHelper, player, true)
+		findOpt.iconTexture = getTexture('media/textures/search_icon.png')
 	end
 end
 
@@ -67,7 +75,8 @@ CHC_menu.onCraftHelper = function(items, player, itemMode)
 	itemMode = itemMode and true or false
 	local inst = CHC_menu.CHC_window
 	if inst == nil then
-		inst = CHC_menu.createCraftHelper()
+		CHC_menu.createCraftHelper()
+		inst = CHC_menu.CHC_window
 	end
 
 	-- Show craft helper window
@@ -96,16 +105,23 @@ CHC_menu.onCraftHelper = function(items, player, itemMode)
 end
 
 CHC_menu.onCraftHelperItem = function(window_inst, item)
-	local backRef = window_inst
 	local viewName = getText('UI_search_tab_name')
-	backRef:refresh(viewName) -- activate top level search view
-	backRef:refresh(backRef.uiTypeToView['search_items'].name,
-		backRef.panel.activeView.view) -- activate Items subview
-	local view = backRef:getActiveSubView()
+	local subViewName = window_inst.uiTypeToView['search_items'].name
+	window_inst:refresh(viewName) -- activate top level search view
+	local top = window_inst.panel.activeView
+	if top.name ~= viewName then
+		error("Top view incorrect in onCraftHelperItem")
+		return
+	end
+	top.view:activateView(subViewName)
+	local sub = top.view.activeView
+	local view = sub.view
+
 	local txt = string.format('#%s,%s', item.displayCategory, item.displayName)
 	txt = string.lower(txt)
-	view.searchRow.searchBar:setText(txt) -- set text to Items subview search bar
-	view:updateItems(view.selectedCategory)
+	view.searchRow.searchBar:setText(txt)
+	-- view.searchRow.searchBar:setText('') -- FIXME to change find item behaviour
+	view:updateObjects()
 	if #view.objList.items ~= 0 then
 		local it = view.objList.items
 		local c = 1
@@ -119,9 +135,14 @@ CHC_menu.onCraftHelperItem = function(window_inst, item)
 		view.objList:ensureVisible(c)
 		if view.objPanel then
 			view.objPanel:setObj(it[c].item)
-			-- view.needSyncFilters = true
 		end
 	end
+
+	window_inst.updateQueue:push({
+		targetView = view.ui_type,
+		actions = { 'needUpdateSubViewName' },
+		data = { needUpdateSubViewName = view.objListSize }
+	})
 end
 
 --- window toggle logic
@@ -153,7 +174,7 @@ CHC_menu.toggleItemFavorite = function(items)
 	end
 	CHC_menu.CHC_window.updateQueue:push({
 		targetView = 'fav_items',
-		actions = { 'needUpdateFavorites', 'needUpdateObjects', 'needUpdateTypes', 'needUpdateCategories' }
+		actions = { 'needUpdateFavorites', 'needUpdateObjects' }
 	})
 end
 

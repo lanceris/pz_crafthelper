@@ -1,7 +1,7 @@
 require 'ISUI/ISInventoryPane'
 require 'CHC_main'
 
-local favTexOutline = getTexture('media/textures/itemFavoriteStarOutline.png')
+local favTexOutline = getTexture('media/textures/CHC_item_favorite_star_outline.png')
 
 local function renderdetailsCHC(self, doDragged)
     local y = 0
@@ -14,6 +14,7 @@ local function renderdetailsCHC(self, doDragged)
         for k2, v2 in ipairs(v.items) do
             local item = v2
             local chcItem = CHC_main.items[item:getFullType()]
+            if not chcItem or not CHC_main.playerModData then return end
             local isFav = CHC_main.playerModData[CHC_main.getFavItemModDataStr(item)] == true
             if chcItem and isFav then
                 local doIt = true
@@ -58,6 +59,6 @@ local old_render_details = ISInventoryPane.renderdetails
 function ISInventoryPane:renderdetails(doDragged)
     old_render_details(self, doDragged)
     if CHC_settings.config and CHC_settings.config.show_fav_items_inventory == true then
-        renderdetailsCHC(self, doDragged)
+        pcall(renderdetailsCHC, self, doDragged)
     end
 end

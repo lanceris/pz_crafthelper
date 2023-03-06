@@ -10,9 +10,8 @@ function CHC_tabs:initialise()
 end
 
 function CHC_tabs:create()
-
-	local fontHgtSmall = getTextManager():getFontHeight(UIFont.Medium)
-	local headerHgt = math.max(fontHgtSmall + 1, self.height)
+	local fontHgtSmall = getTextManager():getFontHeight(UIFont.Small)
+	local headerHgt = math.max(fontHgtSmall + 5, self.height)
 	-- region list
 	local nha = {
 		x = 0,
@@ -78,7 +77,6 @@ function CHC_tabs:prerender()
 end
 
 function CHC_tabs:render()
-
 	self:clearStencilRect();
 
 	local resize = self.nameHeader.resizing or self.nameHeader.mouseOverResize

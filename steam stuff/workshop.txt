@@ -1,4 +1,4 @@
-version=1.6.5.2
+version=1.6.6
 id=2787291513
 title=Craft Helper Continued
 tags=Build 41;Interface
@@ -20,7 +20,6 @@ description=[/list]
 description=
 description=Safe to add/remove to/from existing saves
 description=Should be compatible with all mods and MP
-description=Does not support evolved recipes currently (soup, stew, salads etc.)
 description=
 description=[hr][/hr]
 description=[h2]Features:[/h2]

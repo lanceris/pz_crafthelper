@@ -14,3 +14,5 @@ Contributors will be shown in order of first pull request / commit:
   - Korean translation
 - [Não é o Gui](https://steamcommunity.com/profiles/76561199131666750)
   - Brazilian Portuguese translation
+- [TW_Billy](https://steamcommunity.com/profiles/76561198001484294)
+  - Traditional Chinese translation
