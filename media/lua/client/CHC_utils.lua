@@ -212,9 +212,7 @@ CHC_utils.startswith = function(txt, start)
 end
 
 CHC_utils.chcprint = function(txt)
-    if getDebug() then
-        print('[CraftHelperContinued] ' .. tostring(txt))
-    end
+    print('[CraftHelperContinued] ' .. tostring(txt))
 end
 
 function CHC_utils.empty(tab)

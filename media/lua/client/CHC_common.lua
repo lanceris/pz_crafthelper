@@ -168,7 +168,10 @@ function CHC_main.common.isRecipeValid(recipe, player, containerList, knownRecip
     else
         if recipe.recipeData.lua.onCanPerform then
             -- print('lua')
-            return _G[recipe.recipeData.lua.onCanPerform](recipe, player, nil)
+            local luaCanPerformObj = _G[recipe.recipeData.lua.onCanPerform]
+            if luaCanPerformObj then
+                return luaCanPerformObj(recipe, player, nil)
+            end
         end
         return true
     end

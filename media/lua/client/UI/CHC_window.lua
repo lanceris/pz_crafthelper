@@ -268,7 +268,7 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
     for k, v in pairs(uses_extra) do uses_screen_init[k] = v end
     local usesScreen = CHC_uses:new(uses_screen_init)
 
-    if usesData and not utils.empty(usesData) then
+    if not utils.empty(usesData) then
         usesScreen:initialise()
         usesScreen.ui_type = usesScreen.ui_type .. '|' .. usesScreen.ID
         local iuvn = getText('UI_item_uses_tab_name')
@@ -293,7 +293,7 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
     for k, v in pairs(craft_extra) do craft_screen_init[k] = v end
     local craftScreen = CHC_uses:new(craft_screen_init)
 
-    if craftData and not utils.empty(craftData) then
+    if not utils.empty(craftData) then
         craftScreen:initialise()
         craftScreen.ui_type = craftScreen.ui_type .. '|' .. craftScreen.ID
         local icvn = getText('UI_item_craft_tab_name')
@@ -303,7 +303,11 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
     -- endregion
     --endregion
     self.itemPanel.infoText = getText(self.itemPanelInfo, itn.displayName) .. self.infotext_common_recipes
-    self:refresh(nil, nil, focusOnNew, focusOnTabIdx)
+    if not utils.empty(usesData) or not utils.empty(craftData) then
+        self:refresh(nil, nil, focusOnNew, focusOnTabIdx)
+    else
+        error("CHC_window:addItemView - empty usesData and craftData")
+    end
 end
 
 function CHC_window:getItems(favOnly, max)
@@ -426,11 +430,23 @@ end
 
 function CHC_window:refresh(viewName, panel, focusOnNew, focusOnTabIdx)
     panel = panel or self.panel
+    if not panel then
+        local msg = "Error in CHC_window:refresh, could not find panel"
+        print(msg)
+        error(msg)
+        return
+    end
     if viewName and (focusOnNew == nil or focusOnNew == true) then
         panel:activateView(viewName)
         return
     end
     local vl = panel.viewList
+    if not vl then
+        local msg = "Error in CHC_window:refresh, could not find panel viewList"
+        print(msg)
+        error(msg)
+        return
+    end
     if #vl > 2 then
         -- there is item selected
         viewName = vl[#vl].name

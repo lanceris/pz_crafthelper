@@ -75,7 +75,8 @@ CHC_menu.onCraftHelper = function(items, player, itemMode)
 	itemMode = itemMode and true or false
 	local inst = CHC_menu.CHC_window
 	if inst == nil then
-		inst = CHC_menu.createCraftHelper()
+		CHC_menu.createCraftHelper()
+		inst = CHC_menu.CHC_window
 	end
 
 	-- Show craft helper window
