@@ -1,5 +1,12 @@
 # CraftHelper updates
 
+## 1.7.1 (06.03.2023)
+
+### Bugfixes
+
+- Fixed errors when recipe CanPerform not found
+- Possible fix for missing CHC_window instance
+
 # 1.7 (05.03.2023)
 
 ### New features

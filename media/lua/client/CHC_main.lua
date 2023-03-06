@@ -6,7 +6,7 @@ CHC_main._meta = {
 	id = 'CraftHelperContinued',
 	workshopId = 2787291513,
 	name = 'Craft Helper Continued',
-	version = '1.7.0',
+	version = '1.7.1',
 	author = 'lanceris',
 	previousAuthors = { 'Peanut', 'ddraigcymraeg', 'b1n0m' },
 }
@@ -33,6 +33,8 @@ local sub = string.sub
 local rawToStr = KahluaUtil.rawTostring2
 local tonumber = tonumber
 
+CheckMyModTable = CheckMyModTable or {} -- Mod Checker
+CheckMyModTable[CHC_main._meta.id] = CHC_main._meta.workshopId
 local cacheFileName = 'CraftHelperLuaCache.json'
 local loadLua = false
 
@@ -331,6 +333,7 @@ CHC_main.loadDatas = function()
 
 	if loadLua then CHC_main.saveLuaCache() end
 	CHC_menu.createCraftHelper()
+	print("Initialised. Mod version: " .. CHC_main._meta.version)
 end
 
 CHC_main.processOneItem = function(item, id)
