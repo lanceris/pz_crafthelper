@@ -65,7 +65,7 @@ local function encode_table(val, stack)
 
     -- Koni: Quick Patch for next() which is missing in PZ
     -- We just want to know if val is empty or not
-    function empty(tab)
+    local function empty(tab)
         for _, _ in pairs(tab) do return false; end
         return true
     end
@@ -88,7 +88,6 @@ local function encode_table(val, stack)
         end
         stack[val] = nil
         return "[" .. table.concat(res, ",") .. "]"
-
     else
         -- Treat as an object
         for k, v in pairs(val) do
@@ -158,7 +157,7 @@ local delim_chars  = create_set(" ", "\t", "\r", "\n", "]", "}", ",")
 local escape_chars = create_set("\\", "/", '"', "b", "f", "n", "r", "t", "u")
 local literals     = create_set("true", "false", "null")
 
-local literal_map = {
+local literal_map  = {
     ["true"] = true,
     ["false"] = false,
     ["null"] = nil,
@@ -224,7 +223,6 @@ local function parse_string(str, i)
 
         if x < 32 then
             decode_error(str, j, "control character in string")
-
         elseif x == 92 then -- `\`: Escape
             res = res .. str:sub(k, j - 1)
             j = j + 1
@@ -242,7 +240,6 @@ local function parse_string(str, i)
                 res = res .. escape_char_map_inv[c]
             end
             k = j + 1
-
         elseif x == 34 then -- `"`: End of string
             res = res .. str:sub(k, j - 1)
             return res, j + 1

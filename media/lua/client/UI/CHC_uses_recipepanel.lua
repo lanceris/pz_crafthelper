@@ -687,8 +687,6 @@ function CHC_uses_recipepanel:getAvailableItemsType()
                 end
             end
         end
-    else
-        -- FIXME handle synthetic recipe available types
     end
     return result
 end
@@ -1224,7 +1222,7 @@ function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y, item)
     findOpt.iconTexture = getTexture("media/textures/search_icon.png")
 
     local newTabOption = context:addOption(getText('IGUI_new_tab'), backRef, backRef.addItemView, item.item,
-            true, 2)
+        true, 2)
 
     newTabOption.iconTexture = getTexture("media/textures/CHC_open_new_tab.png")
 
@@ -1299,9 +1297,9 @@ function CHC_uses_recipepanel:onCraftComplete(completedAction, recipe, container
             local item = items:get(i - 1)
             if item:getContainer() ~= self.player:getInventory() then
                 local action = ISInventoryTransferAction:new(
-                        self.player, item,
-                        item:getContainer(),
-                        self.player:getInventory(), nil)
+                    self.player, item,
+                    item:getContainer(),
+                    self.player:getInventory(), nil)
                 ISTimedActionQueue.addAfter(previousAction, action)
                 previousAction = action
                 insert(returnToContainer, item)
@@ -1339,8 +1337,8 @@ function CHC_uses_recipepanel:craft(button, all)
     end
 
     local action = ISCraftAction:new(self.player, itemsUsed[1],
-            selectedItem.recipe:getTimeToMake(),
-            selectedItem.recipe, container, self.containerList)
+        selectedItem.recipe:getTimeToMake(),
+        selectedItem.recipe, container, self.containerList)
     if all then
         action:setOnComplete(self.onCraftComplete, self, action, selectedItem.recipe, container, self.containerList)
     end

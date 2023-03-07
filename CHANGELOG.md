@@ -1,5 +1,19 @@
 # CraftHelper updates
 
+# 1.8 (XX.XX.2023)
+
+### New features
+
+-
+
+### Improvements
+
+- Don't show options to Unpin/Unblacklist all if there are no pinned/blacklisted attributes
+
+### Bugfixes
+
+- Fixed issue with corrupted CHC_mappings.json
+
 ## 1.7.1 (06.03.2023)
 
 ### Bugfixes

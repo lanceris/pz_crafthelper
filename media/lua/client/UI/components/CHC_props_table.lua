@@ -264,7 +264,7 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
         end
     end
     local newOpt = subMenuName:addOption(getText('IGUI_CopyValueProps_ctx') .. ' (' .. value .. ')', self, chccopy,
-            item.value)
+        item.value)
     CHC_main.common.setTooltipToCtx(newOpt, item.value, nil, nil, 100)
     handleLongText(newOpt, #tostring(item.value), maxTextLength,
         getText('IGUI_TextTooLongTooltip') .. '! (' .. #tostring(item.value) .. ' > ' .. maxTextLength .. ')', true)
@@ -308,10 +308,15 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
     end
 
     if isShiftKeyDown() then
-        context:addOption(getText('IGUI_UnpinProps_ctx') .. ' ' .. string.lower(getText('ContextMenu_All')), self,
-            unpinAll)
-        context:addOption(getText('IGUI_UnblacklistProps_ctx') .. ' ' .. string.lower(getText('ContextMenu_All')), self,
-            unblacklistAll)
+        if not utils.empty(pinned) then
+            context:addOption(getText('IGUI_UnpinProps_ctx') .. ' ' .. string.lower(getText('ContextMenu_All')), self,
+                unpinAll)
+        end
+        if not utils.empty(blacklisted) then
+            context:addOption(getText('IGUI_UnblacklistProps_ctx') .. ' ' .. string.lower(getText('ContextMenu_All')),
+                self,
+                unblacklistAll)
+        end
     end
 end
 
@@ -447,9 +452,9 @@ function CHC_props_table:new(args)
     o.backRef = args.backRef
 
     o.searchRowHelpText = getText('UI_searchrow_info',
-            getText('UI_searchrow_info_item_attributes_special'),
-            getText('UI_searchrow_info_item_attributes_examples')
-        )
+        getText('UI_searchrow_info_item_attributes_special'),
+        getText('UI_searchrow_info_item_attributes_examples')
+    )
     o.modData = CHC_main.playerModData
     -- o.optionsBtnIcon = getTexture('media/textures/options_icon.png')
 

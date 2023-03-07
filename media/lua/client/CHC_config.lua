@@ -272,12 +272,16 @@ end
 
 CHC_settings.SavePropsData = function(config)
     config = config or CHC_settings.mappings
-    utils.jsonutil.Save(mappings_name, config)
+    local status = pcall(utils.jsonutil.Save, mappings_name, config)
+    if not status then
+        -- config is corrupted, create new
+        CHC_settings.SavePropsData(init_mappings)
+    end
 end
 
 CHC_settings.LoadPropsData = function()
-    local config = utils.jsonutil.Load(mappings_name)
-    if not config then
+    local status, config = pcall(utils.jsonutil.Load, mappings_name)
+    if not config or not status then
         config = init_mappings
         CHC_settings.SavePropsData(config)
     end
