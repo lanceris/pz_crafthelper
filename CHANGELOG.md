@@ -9,10 +9,11 @@
 ### Improvements
 
 - Don't show options to Unpin/Unblacklist all if there are no pinned/blacklisted attributes
+- Improved error handling
 
 ### Bugfixes
 
-- Fixed issue with corrupted CHC_mappings.json
+- Fixed issue with corrupted configs
 
 ## 1.7.1 (06.03.2023)
 

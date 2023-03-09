@@ -7,6 +7,7 @@ require 'UI/CHC_search'
 
 CHC_window = ISCollapsableWindow:derive('CHC_window')
 local utils = require('CHC_utils')
+local error = utils.chcerror
 local print = utils.chcprint
 local insert = table.insert
 local pairs = pairs
@@ -306,7 +307,7 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
     if not utils.empty(usesData) or not utils.empty(craftData) then
         self:refresh(nil, nil, focusOnNew, focusOnTabIdx)
     else
-        error("CHC_window:addItemView - empty usesData and craftData")
+        error('Empty usesData and craftData', 'CHC_window:addItemView')
     end
 end
 
@@ -431,9 +432,7 @@ end
 function CHC_window:refresh(viewName, panel, focusOnNew, focusOnTabIdx)
     panel = panel or self.panel
     if not panel then
-        local msg = "Error in CHC_window:refresh, could not find panel"
-        print(msg)
-        error(msg)
+        error('Could not find panel', 'CHC_window:refresh')
         return
     end
     if viewName and (focusOnNew == nil or focusOnNew == true) then
@@ -442,9 +441,7 @@ function CHC_window:refresh(viewName, panel, focusOnNew, focusOnTabIdx)
     end
     local vl = panel.viewList
     if not vl then
-        local msg = "Error in CHC_window:refresh, could not find panel viewList"
-        print(msg)
-        error(msg)
+        error('Could not find viewList', 'CHC_window:refresh')
         return
     end
     if #vl > 2 then
@@ -761,10 +758,10 @@ function CHC_window:isModifierKeyDown(_type)
     elseif _type == 'tab' then
         modifier = modifierOptionToKey[CHC_settings.config.tab_selector_modifier]
     else
-        error('unknown modifier type')
+        error('Unknown modifier type', string.format('CHC_window:isModifierKeyDown(%s)', _type))
     end
 
-    if not modifier then error('no modifier found!') end
+    if not modifier then error('No modifier found!', 'CHC_window:isModifierKeyDown') end
 
     if modifier == 'none' then return true end
     if modifier == 'control' then return isCtrlKeyDown() end

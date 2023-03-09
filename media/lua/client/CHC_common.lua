@@ -3,6 +3,7 @@ require 'CHC_main'
 CHC_main.common = {}
 
 local utils = require('CHC_utils')
+local error = utils.chcerror
 local insert = table.insert
 local contains = string.contains
 local globalTextLimit = 1000 -- FIXME
@@ -285,7 +286,7 @@ end
 
 function CHC_main.common.compareContainersHash(current, prev)
     if not current then
-        error("No way to compare hashes")
+        error('No way to compare hashes', 'CHC_main.common.compareContainersHash')
     end
     if not prev then prev = 0 end
     return current == prev
