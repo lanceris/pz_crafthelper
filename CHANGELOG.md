@@ -14,6 +14,7 @@
 ### Bugfixes
 
 - Fixed issue with corrupted configs
+- Possible fix for bug in CHC_filter_row:doDrawItemSelectorPopup
 
 ## 1.7.1 (06.03.2023)
 
