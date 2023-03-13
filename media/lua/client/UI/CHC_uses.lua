@@ -147,6 +147,11 @@ end
 
 -- region render
 
+function CHC_uses:onResize()
+    ISPanel.onResize(self)
+    CHC_view.onResize(self)
+end
+
 function CHC_uses:prerender()
     local ms = UIManager.getMillisSinceLastRender()
     if not self.ms then self.ms = 0 end
@@ -405,6 +410,11 @@ function CHC_uses:new(args)
     o.needUpdateShowIcons = false
     o.needUpdateDelayedSearch = false
     o.needUpdateRecipeState = false
+
+    o.anchorTop = true
+    o.anchorBottom = true
+    o.anchorLeft = true
+    o.anchorRight = true
 
     o.selectedCategory = o.defaultCategory
     o.initDone = false

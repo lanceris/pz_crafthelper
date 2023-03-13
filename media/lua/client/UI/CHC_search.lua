@@ -124,6 +124,11 @@ end
 
 -- region render
 
+function CHC_search:onResize()
+    ISPanel.onResize(self)
+    CHC_view.onResize(self)
+end
+
 function CHC_search:render()
     CHC_view.render(self)
 end
@@ -289,9 +294,9 @@ function CHC_search:new(args)
 
     o.defaultCategory = getText('UI_All')
     o.searchRowHelpText = getText('UI_searchrow_info',
-            getText('UI_searchrow_info_items_special'),
-            getText('UI_searchrow_info_items_examples')
-        )
+        getText('UI_searchrow_info_items_special'),
+        getText('UI_searchrow_info_items_examples')
+    )
 
     o.selectedCategory = o.defaultCategory
     o.backRef = args.backRef
@@ -313,6 +318,11 @@ function CHC_search:new(args)
     o.needUpdateScroll = false
     o.needUpdateMousePos = false
     o.needUpdateDelayedSearch = false
+
+    o.anchorTop = true
+    o.anchorBottom = true
+    o.anchorLeft = true
+    o.anchorRight = true
 
     o.isItemView = true
     o.initDone = false

@@ -489,19 +489,6 @@ end
 
 -- region render
 
-function CHC_window:resizeHeaders(headers)
-    if headers.nameHeader.width == headers.nameHeader.minimumWidth then
-        headers.nameHeader:setWidth(headers.nameHeader.minimumWidth)
-        headers.typeHeader:setX(headers.nameHeader.width)
-        headers.typeHeader:setWidth(self.width - headers.nameHeader.width)
-        return
-    end
-
-    headers.typeHeader:setX(headers.proportion * self.width)
-    headers.nameHeader:setWidth(headers.proportion * self.width)
-    headers.typeHeader:setWidth((1 - headers.proportion) * self.width)
-    headers:setWidth(self.width - 1)
-end
 
 function CHC_window:onResize()
     ISCollapsableWindow.onResize(self)
@@ -510,29 +497,6 @@ function CHC_window:onResize()
     if not ui.panel or not ui.panel.activeView then return end
     ui.panel:setWidth(self.width)
     ui.panel:setHeight(self.height - 60)
-
-    for i = 1, #ui.panel.viewList do
-        local view = ui.panel.viewList[i].view
-        view:setWidth(self.width)
-        view:setHeight(self.height - ui.panel.tabHeight - 60)
-        local headers = view.headers
-        if headers then
-            self:resizeHeaders(headers)
-            view:onResizeHeaders()
-        end
-        if view.viewList then -- handle subviews
-            for j = 1, #view.viewList do
-                local subview = view.viewList[j].view
-                subview:setWidth(self.width)
-                subview:setHeight(self.height - 2 * view.tabHeight - 60)
-                local headers = subview.headers
-                if headers then
-                    self:resizeHeaders(headers)
-                    subview:onResizeHeaders()
-                end
-            end
-        end
-    end
 end
 
 function CHC_window:render()
@@ -996,18 +960,18 @@ function CHC_window:new(args)
     o.uiTypeToView = {}
 
     o.infotext_recipe_type_filter = getText('UI_infotext_recipe_types',
-            getText('UI_All'),
-            getText('UI_settings_av_valid'),
-            getText('UI_settings_av_known'),
-            getText('UI_settings_av_invalid')
-        )
+        getText('UI_All'),
+        getText('UI_settings_av_valid'),
+        getText('UI_settings_av_known'),
+        getText('UI_settings_av_invalid')
+    )
     o.searchPanelInfo = getText('UI_infotext_search')
     o.favPanelInfo = getText('UI_infotext_favorites')
     o.itemPanelInfo = getText('UI_infotext_itemtab',
-            '%1', -- item displayName
-            getText('UI_item_uses_tab_name'),
-            getText('UI_item_craft_tab_name')
-        )
+        '%1', -- item displayName
+        getText('UI_item_uses_tab_name'),
+        getText('UI_item_craft_tab_name')
+    )
 
     o.viewNameToInfoText = {
         [o.searchViewName] = o.searchPanelInfo,
@@ -1015,15 +979,15 @@ function CHC_window:new(args)
     }
 
     o.infotext_common_recipes = getText('UI_infotext_common',
-            o.infotext_recipe_type_filter,
-            getText('UI_infotext_recipe_details'),
-            getText('UI_infotext_recipe_mouse')
-        )
+        o.infotext_recipe_type_filter,
+        getText('UI_infotext_recipe_details'),
+        getText('UI_infotext_recipe_mouse')
+    )
     o.infotext_common_items = getText('UI_infotext_common',
-            getText('UI_infotext_item_types'),
-            getText('UI_infotext_item_details'),
-            getText('UI_infotext_item_mouse')
-        )
+        getText('UI_infotext_item_types'),
+        getText('UI_infotext_item_details'),
+        getText('UI_infotext_item_mouse')
+    )
     o:setWantKeyEvents(true)
 
     o.updRates = {

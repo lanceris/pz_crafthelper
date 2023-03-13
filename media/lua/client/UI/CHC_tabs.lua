@@ -55,6 +55,21 @@ function CHC_tabs:create()
 end
 
 -- render
+function CHC_tabs:onResize()
+	ISPanel.onResize(self)
+	if self.nameHeader.width == self.nameHeader.minimumWidth then
+		self.nameHeader:setWidth(self.nameHeader.minimumWidth)
+		self.typeHeader:setX(self.nameHeader.width)
+		self.typeHeader:setWidth(self.parent.width - self.nameHeader.width)
+		return
+	end
+
+	self.typeHeader:setX(self.proportion * self.parent.width)
+	self.nameHeader:setWidth(self.proportion * self.parent.width)
+	self.typeHeader:setWidth((1 - self.proportion) * self.parent.width)
+	self:setWidth(self.parent.width - 1)
+end
+
 function CHC_tabs:onResizeColumn(button)
 	if button == self.nameHeader then
 		self.typeHeader:setX(self.nameHeader.width)

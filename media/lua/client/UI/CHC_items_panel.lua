@@ -125,13 +125,6 @@ end
 function CHC_items_panel:onResize()
     self:setHeight(self.parent.height - self.parent.headers.height)
     self.mainInfo:setWidth(self.parent.headers.typeHeader.width - self.margin - self.mainInfo.x)
-    local children = self.mainInfo.children
-    for _, ch in pairs(children) do
-        if not ch.isButton then
-            ch:setName(ch.name)
-        end
-    end
-
     self.statsList:setWidth(self.parent.headers.typeHeader.width - self.margin - self.statsList.x)
     self.statsList:setHeight(self.height - self.mainInfo.height - 4 * self.padY)
 end
@@ -267,8 +260,6 @@ function CHC_items_panel:new(args)
     -- o:noBackground()
     o.padY = 5
     o.margin = 5
-    o.anchorTop = true
-    o.anchorBottom = false
 
     o.backRef = args.backRef
     o.item = nil

@@ -287,7 +287,9 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
 
     --endregion
 
+    -- endregion
 
+    -- region sort by
 
     -- endregion
 
@@ -463,6 +465,9 @@ function CHC_props_table:new(args)
     o.needUpdateObjects = false
     o.propData = nil
     o.savedPos = -1
+
+    o.anchorTop = true
+    o.anchorLeft = true
 
     o.delayedSearch = CHC_settings.config.delayed_search
     o.needUpdateDelayedSearch = false

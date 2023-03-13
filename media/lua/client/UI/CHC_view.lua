@@ -83,7 +83,6 @@ function CHC_view:create(filterRowOrderOnClickArgs, mainPanelsData)
     self.objPanel = mainPanelsData.panelCls:new({ x = rightX, y = y, w = rightW, h = iph, backRef = self.backRef })
     self.objPanel:initialise()
     self.objPanel:instantiate()
-    self.objPanel:setAnchorLeft(true)
     self.objPanel:setAnchorBottom(true)
 
     -- endregion
@@ -351,12 +350,16 @@ function CHC_view:render()
     end
 end
 
+function CHC_view:onResize()
+    CHC_view.onResizeHeaders(self)
+end
+
 function CHC_view:onResizeHeaders()
     self.filterRow:setWidth(self.headers.nameHeader.width)
     self.searchRow:setWidth(self.headers.nameHeader.width)
     self.objList:setWidth(self.headers.nameHeader.width)
-    self.objPanel:setWidth(self.headers.typeHeader.width)
     self.objPanel:setX(self.headers.typeHeader.x)
+    self.objPanel:setWidth(self.headers.typeHeader.width)
 end
 
 -- endregion
