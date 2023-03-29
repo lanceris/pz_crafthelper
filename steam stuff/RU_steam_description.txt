@@ -48,7 +48,7 @@
 [list]
 [*]English
 [*]Русский
-[*]Spanish (partial)
+[*]Spanish
 [*]Thai
 [*]Korean
 [*]Brazilian Portuguese

@@ -8,6 +8,7 @@ local sub = string.sub
 local insert = table.insert
 local contains = string.contains
 
+CHC_utils.configDir = "CraftHelperContinued" .. getFileSeparator()
 
 CHC_utils.chcprint = function(txt)
     print('[CraftHelperContinued] ' .. tostring(txt))
@@ -196,7 +197,7 @@ end
 --- Return true if any value of 't' == 'val'
 --
 ---@param t table Table to check
----@param val any Value to check, numerical keys only
+---@param val any Value to check, numerical keys only (if table)
 ---@param start? number Starting value (by default 1)
 ---@param stop? number Ending value (by default #t)
 ---@param step? number Step (by default 1)

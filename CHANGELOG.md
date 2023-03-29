@@ -8,8 +8,15 @@
 
 ### Improvements
 
-- Don't show options to Unpin/Unblacklist all if there are no pinned/blacklisted attributes
 - Improved error handling
+
+## 1.7.2 (29.03.2023)
+
+### Improvements
+
+- Updated Spanish translation (thanks to [El Gordo Argento](https://s.team/p/ffkv-jcwb/rcbnntrk))
+- Added support for non-numerical table keys to CHC_utils.any
+- Don't show options to Unpin/Unblacklist all if there are no pinned/blacklisted attributes
 
 ### Bugfixes
 
