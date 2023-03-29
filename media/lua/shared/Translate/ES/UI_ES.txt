@@ -1,11 +1,106 @@
 UI_ES = {
     UI_item_uses_tab_name = "Usos"
-    UI_item_craft_tab_name = "Craft"
+    UI_item_craft_tab_name = "Crear"
     UI_common_left_col_name = "Receta"
     UI_common_right_col_name = "Detalles"
+    UI_search_tab_name = "Búsqueda"
+    UI_search_items_tab_name = "Ítems"
+    UI_search_recipes_tab_name = "Recetas"
     UI_recipe_panel_required_book = "Libros requeridos (uno de)"
     UI_recipe_panel_near_item = "Equipo de elaboración requerido"
+    UI_settings_st_title = "Orden de clasificación"
+    UI_settings_av_title = "Disponibilidad"
     UI_settings_av_valid = "Válido"
     UI_settings_av_known = "Conocido"
     UI_settings_av_invalid = "Inválido"
+    UI_optionscreen_binding_chc_category_title = "Ayudante de Crafteo"
+    UI_optionscreen_binding_chc_move_up = "Seleccionar receta anterior"
+    UI_optionscreen_binding_chc_move_down = "Seleccionar siguiente receta"
+    UI_optionscreen_binding_chc_move_left = "Seleccionar categoría anterior"
+    UI_optionscreen_binding_chc_move_right = "Seleccionar siguiente categoría"
+    UI_optionscreen_binding_chc_craft_one = "Fabrica uno"
+    UI_optionscreen_binding_chc_craft_all = "Fabrica todo"
+    UI_optionscreen_binding_chc_favorite_recipe = "Receta favorita seleccionada"
+    UI_optionscreen_binding_chc_close_window = "Cerrar la ventana de Ayudante"
+    UI_optionscreen_binding_chc_toggle_window = "Alternar la ventana del Ayudante"
+    UI_optionscreen_binding_chc_toggle_uses_craft = "Alternar entre usos/crafteo"
+    UI_optionscreen_binding_chc_move_tab_left = "Seleccionar la pestaña anterior"
+    UI_optionscreen_binding_chc_move_tab_right = "Seleccionar siguiente pestaña"
+    UI_optionscreen_binding_chc_toggle_focus_search_bar = "Barra de búsqueda centrada"
+    UI_infotext_search = "<CENTRE><SIZE:medium> Pantalla de búsqueda <LINE><LINE> "..
+                         "<SIZE:small> <LEFT> Acá podés encontrar todos los ítems y recetas. <LINE><LINE> "
+    UI_infotext_favorites = "<CENTRE><SIZE:medium> Pantalla favorita <LINE><LINE> "..
+                            "<SIZE:small> <LEFT> Acá podés encontrar artículos y recetas favoritas. <LINE><LINE> "
+    UI_infotext_itemtab = "<CENTRE><SIZE:medium> Pantalla del ítem <LINE>"..
+                          "<SIZE:small> <LEFT> Acá podés encontrar información detallada sobre '%1' <LINE> "..
+                          "Primera pestaña (%2) muestra recetas, donde '%1' se usa como ingrediente. <LINE> "..
+                          "Segunda pestaña (%3) muestra recetas, de las cuales es '%1'. <LINE><LINE> "
+    UI_infotext_common = "<INDENT:0> La columna izquierda (receta) muestra la lista de ítems/recetas con algunos controles adicionales. La primera línea es la fila del filtro. <LINE><LINE> "..
+                         "<IMAGECENTRE:media/textures/info_filter_row.png> <LINE>"..
+                         "<INDENT:8>El botón 1 muestra el orden actual de los ítems/recetas. Haga clic en el botón para cambiar el orden. <LINE>"..
+                         "El botón 2 le permite seleccionar el tipo de salida deseada: <LINE>"..
+                         "<INDENT:16> %1 <LINE>"..
+                         "<INDENT:8> El elemento 3 es el selector de categorías, donde puede especificar la categoría deseada. <LINE><LINE>"..
+                         "Debajo de la fila del filtro hay una barra de búsqueda, donde puedes buscar por el nombre del ítem/receta o por reglas específicas, dependiendo de tu consulta. <LINE>"..
+                         "Para obtener más información sobre las reglas de búsqueda, haga clic en <IMAGE:media/textures/search_icon.png> <LINE><LINE>"..
+                         "<INDENT:0> La columna derecha (Detalles) muestra los detalles del ítem/receta: <LINE>"..
+                         "<INDENT:8> %2 <LINE><LINE>"..
+                         "<INDENT:0><SIZE:medium>Controles: <SIZE:small><LINE><LINE>"..
+                         "<INDENT:16> - Puedes cambiar el tamaño de las columnas de recetas y detalles arrastrando la línea entre sus nombres <LINE> "..
+                         " - Haga clic derecho en el nombre de la pestaña del ítem para abrir el menú contextual <LINE>"..
+                         "%3 <LINE>"..
+                         " - Con 'Mod Options' puede configurar teclas de acceso rápido para acciones frecuentes"
+    UI_infotext_recipe_types = "- <IMAGE:media/textures/type_filt_all.png> <SPACE>(%1): Todas las recetas <LINE> "..
+                               "- <IMAGE:media/textures/type_filt_valid.png> (%2): Recetas que puedes fabricar ahora mismo <LINE> "..
+                               "- <IMAGE:media/textures/type_filt_known.png> (%3): Recetas que conocés, pero no puedes fabricar (falta de habilidades/ítems) <LINE> "..
+                               "- <IMAGE:media/textures/type_filt_invalid.png> (%4): Recetas de las que no sabes nada. Mostrará libro(-s), de las que se puede aprender."
+    UI_infotext_item_types = " - Ropa <LINE> - Alimento <LINE> - Arma <LINE> - ..."
+    UI_infotext_recipe_details = " - Información sobre la categoría de recetas y el ítem resultante (-s) <LINE> "..
+                                 " - Ítems requeridos <LINE>"..
+                                 " - Otros requisitos (habilidades, libros, equipo de fabricación y tiempo de fabricación)"
+    UI_infotext_item_details = " - Información básica sobre el ítem y el número de recetas <LINE> "..
+                               " - Atributos del ítem<LINE> "..
+                               " - Cómo arreglar este ítem (si es posible) (WIP) <LINE>"..
+                               " - Dónde encontrar este ítem (WIP)"
+    UI_infotext_recipe_mouse = " - Haz clic izquierdo en el icono de la estrella (columna de la receta, el ratón sobre el elemento) para (des)favorecer recetas <LINE> "..
+                               " - Haga clic derecho en el icono de resultado de la receta (columna de Detalles) para abrir el menú contextual <LINE> "..
+                               " - Haga clic derecho en el ítem en "Ítems necesarios" (columna de Detalles) para abrir el menú contextual"
+    UI_infotext_item_mouse = " - Clic central en el ítem (columna receta) para abrir una nueva pestaña con un ítem clicado en segundo plano <LINE>"..
+                             " - Haga clic derecho en el ítem (columna receta) para abrir el menú contextual <LINE>"..
+                             " - Haga clic derecho en el icono del ítem (columna Detalles) para abrir el menú contextual <LINE>"..
+                             " - Shift + clic derecho en algunos elementos (ver arriba) mostrará opciones adicionales"
+    UI_searchrow_info = "<CENTRE><SIZE:medium> Pantalla de búsqueda <LINE><LINE> "..
+                        "<LEFT><SIZE:small> Esta barra de búsqueda soporta reglas personalizadas. Cada consulta separada (palabra) llamada Token. <LINE>"..
+                        "Puede buscar por múltiples consultas a la vez, usando SEPARATORES. <LINE>"..
+                        "Puede anteponer cada Token con SIMBOLOS ESPECIAL para especificar la regla de búsqueda para este Token. <LINE>"..
+                        "Con '"Mod Options' puedes configurar la tecla de acceso directo para centrar la barra de búsqueda. Desenfocar con ESC. <LINE><LINE>"..
+                        "<SIZE:medium> Separadores: <LINE> <SIZE:small> "..
+                        "<INDENT:8> <SIZE:medium> , <SIZE:small> <SPACE><SPACE>(coma) - combinar todos los resultados de las fichas (AND lógico), se pueden utilizar para filtrar muy específicamente <LINE> "..
+                        "<SIZE:medium> | <SIZE:small> <SPACE><SPACE>(barra vertical) - separa todas las fichas (OR lógico), puede utilizarse para buscar múltiples consultas por separado <LINE><LINE> "..
+                        "<INDENT:0><SIZE:medium> Símbolos especiales: <LINE> <SIZE:small> "..
+                        "<INDENT:8>%1"..
+                        "<SIZE:medium> ~ <SIZE:small> <SPACE><SPACE>(tilde) - excluye este token (ej. encontrar todo lo que NO Token; debe ser después del carácter especial, si se usan) <LINE><LINE>"..
+                        "<INDENT:0><SIZE:medium> <LEFT> Ejemplos: <LINE> <SIZE:small> "..
+                        "<INDENT:8>%2<LINE>"..
+                        "<INDENT:0><SIZE:medium> Limitaciones: <LINE> <SIZE:small> "..
+                        "<INDENT:8>- No se pueden usar ambos separadores (',' y '|') en una consulta <LINE> "
+    UI_searchrow_info_recipes_special = "<SIZE:medium> ! <SIZE:small> <SPACE><SPACE>(marca de exclamación) - buscar por categoría de receta <LINE>"..
+                                        "<SIZE:medium> @ <SIZE:small> <SPACE><SPACE>(sign) - buscar por nombre de mod del ítem resultante ('Proyecto Zomboid' para vanilla 'mod') <LINE>"..
+                                        "<SIZE:medium> # <SIZE:small> <SPACE><SPACE>(signo de número) - buscar por ingredientes de receta <LINE>"..
+                                        "<SIZE:medium> $ <SIZE:small> <SPACE><SPACE>(dólar) - búsqueda por categoría del elemento resultante (se muestra en el lado derecho del panel de inventario) <LINE>"..
+                                        "<SIZE:medium> % <SIZE:small> <SPACE><SPACE>(signo de porcentaje) - búsqueda por nombre del elemento resultante <LINE>"..
+                                        "<SIZE:medium> ^ <SIZE:small> <SPACE><SPACE>(caret) - buscar por recetas favoritas <LINE>"..
+                                        "<SIZE:medium> & <SIZE:small> <SPACE><SPACE>(ampersand) - busca por nombre de mod de receta ('Base' para vanilla 'mod') <LINE>"
+    UI_searchrow_info_items_special = "<SIZE:medium> ! <SIZE:small> <SPACE><SPACE>(signo de exclamación) - búsqueda por tipo <LINE>"..
+                                      "<SIZE:medium> @ <SIZE:small> <SPACE><SPACE>(sign) - buscar por nombre de mod del ítem ('Proyecto Zomboid' para vaina 'mod') <LINE>"..
+                                      "<SIZE:medium> # <SIZE:small> <SPACE><SPACE>(hashtag) - búsqueda por categoría de artículo (se muestra en el lado derecho del panel de inventario) <LINE>"..
+                                      "<SIZE:medium> $ <SIZE:small> <SPACE><SPACE>(dólar) - buscar por atributos de artículo <LINE>"
+    UI_searchrow_info_item_attributes_special = "<SIZE:medium> ! <SIZE:small> <SPACE><SPACE>(signo de exclamación) - buscar por nombre de atributo <LINE>"..
+                                                "<SIZE:medium> @ <SIZE:small> <SPACE><SPACE>(arroba) - buscar por valor de atributo <LINE>"
+    UI_searchrow_info_recipes_examples = "#hamm <SPACE><SPACE>- Muestra las recetas que incluyen los ingredientes con 'hamm' en el nombre <LINE>"..
+                                         "@hydrocra,!engineer,#saw <SPACE><SPACE>- muestra recetas de Hydrocraft (o similares) en la categoría de recetas de 'ingeniero', que tienen 'sierra' como ingrediente <LINE>"..
+                                         "%plank|!food <SPACE><SPACE>- muestra las recetas donde 'tablón' es el resultado, O recetas en la categoría de 'comida' <LINE> "
+    UI_searchrow_info_items_examples = "#tool,!~weapon <SPACE><SPACE>: muestra las herramientas que no son un arma (por ejemplo, aguja, sierra, tenazas) <LINE> "..
+                                       "$maxdamage>4,$maxdamage<5 <SPACE><SPACE>- mostrar objetos con atributo MaxDamage entre 4 y 5 <LINE> "
+    UI_searchrow_info_item_attributes_examples = "!>a,!<c <SPACE><SPACE>: muestra los atributos que empiezan con a o b <LINE> "
 }

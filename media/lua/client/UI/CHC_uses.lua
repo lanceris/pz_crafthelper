@@ -1,4 +1,5 @@
 require 'UI/CHC_tabs'
+require 'UI/CHC_view'
 
 local derivative = ISPanel
 CHC_uses = derivative:derive('CHC_uses')
@@ -59,7 +60,6 @@ function CHC_uses:create()
     self:updateObjects()
     self:updateRecipesState()
     self.initDone = true
-    self.filterRow.categorySelector.popup.doDrawItem = CHC_filter_row.doDrawItemSelectorPopup
 end
 
 -- endregion

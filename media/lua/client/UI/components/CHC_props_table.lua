@@ -308,10 +308,15 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
     end
 
     if isShiftKeyDown() then
-        context:addOption(getText('IGUI_UnpinProps_ctx') .. ' ' .. string.lower(getText('ContextMenu_All')), self,
-            unpinAll)
-        context:addOption(getText('IGUI_UnblacklistProps_ctx') .. ' ' .. string.lower(getText('ContextMenu_All')), self,
-            unblacklistAll)
+        if not utils.empty(pinned) then
+            context:addOption(getText('IGUI_UnpinProps_ctx') .. ' ' .. string.lower(getText('ContextMenu_All')), self,
+                unpinAll)
+        end
+        if not utils.empty(blacklisted) then
+            context:addOption(getText('IGUI_UnblacklistProps_ctx') .. ' ' .. string.lower(getText('ContextMenu_All')),
+                self,
+                unblacklistAll)
+        end
     end
 end
 

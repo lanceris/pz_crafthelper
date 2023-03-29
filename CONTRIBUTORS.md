@@ -16,3 +16,5 @@ Contributors will be shown in order of first pull request / commit:
   - Brazilian Portuguese translation
 - [TW_Billy](https://steamcommunity.com/profiles/76561198001484294)
   - Traditional Chinese translation
+- [El Gordo Argento](https://s.team/p/ffkv-jcwb/rcbnntrk)
+  - Spanish translation (+steam description translation)

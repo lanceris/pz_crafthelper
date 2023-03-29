@@ -4,11 +4,11 @@ CHC_sectioned_panel = ISPanel:derive('CHC_sectioned_panel')
 -----
 
 CHC_sectioned_panel_section = ISPanel:derive('CHC_sectioned_panel_section')
-local Section = CHC_sectioned_panel_section
+local CHC_section = CHC_sectioned_panel_section
 
 --region section
 
-function Section:createChildren()
+function CHC_section:createChildren()
     self.headerButton = ISButton:new(0, 0, self.width, 24, self.title, self, self.onHeaderClick)
     self.headerButton:initialise()
     self.headerButton:setFont(UIFont.Small)
@@ -47,7 +47,7 @@ function Section:createChildren()
     self:calculateHeights()
 end
 
-function Section:onHeaderClick()
+function CHC_section:onHeaderClick()
     self.expanded = not self.expanded
     if self.expanded then
         self.parent.expandedSections[self.title] = true
@@ -57,7 +57,7 @@ function Section:onHeaderClick()
     self:calculateHeights()
 end
 
-function Section:calculateHeights()
+function CHC_section:calculateHeights()
     local height = self.headerButton:getHeight()
     if self.panel then
         self.panel:setVisible(self.expanded)
@@ -68,18 +68,18 @@ function Section:calculateHeights()
     self:setHeight(height)
 end
 
-function Section:onResize()
+function CHC_section:onResize()
     self:setWidth(self.parent.width)
     self.headerButton:setWidth(self.parent.width)
     self.panel:setWidth(self.parent.width - 10)
     self:calculateHeights()
 end
 
-function Section:clear()
+function CHC_section:clear()
     self.enabled = false
 end
 
-function Section:prerender()
+function CHC_section:prerender()
     if self.panel and self.panelHeight ~= self.panel.height then
         self.panelHeight = self.panel.height
         self:calculateHeights()
@@ -94,11 +94,11 @@ function Section:prerender()
     self:setStencilRect(sx, sy, sx2 - sx, sy2 - sy)
 end
 
-function Section:render()
+function CHC_section:render()
     self:clearStencilRect()
 end
 
-function Section:new(x, y, width, height, panel, title, maxH)
+function CHC_section:new(x, y, width, height, panel, title, maxH)
     local o = {}
     o = ISPanel:new(x, y, width, height)
 
@@ -123,7 +123,7 @@ end
 
 function CHC_sectioned_panel:addSection(panel, title, maxH)
     local sbarWid = self.vscroll and 17 or 0
-    local section = Section:new(0, 0, self.width - sbarWid, 1, panel, title, maxH)
+    local section = CHC_section:new(0, 0, self.width - sbarWid, 1, panel, title, maxH)
     self:addChild(section)
     if self:getScrollChildren() then
         section:setScrollWithParent(true)

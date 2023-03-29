@@ -1,4 +1,5 @@
 require 'UI/CHC_tabs'
+require 'UI/CHC_view'
 
 CHC_search = ISPanel:derive('CHC_search')
 
@@ -97,7 +98,6 @@ function CHC_search:create()
     self:updateObjects()
 
     self.initDone = true
-    self.filterRow.categorySelector.popup.doDrawItem = CHC_filter_row.doDrawItemSelectorPopup
 end
 
 --endregion
