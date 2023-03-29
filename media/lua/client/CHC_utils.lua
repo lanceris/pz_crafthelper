@@ -2,11 +2,13 @@ local CHC_utils = {}
 
 local lower = string.lower
 local tostring = tostring
+local format = string.format
 local len = string.len
 local sub = string.sub
 local insert = table.insert
 local contains = string.contains
 
+CHC_utils.configDir = "CraftHelperContinued" .. getFileSeparator()
 
 CHC_utils.Deque = {}
 
@@ -176,27 +178,44 @@ end
 
 --- Return true if any value of 't' == 'val'
 --
----@param t table Table to check, numerical keys only
----@param val any Value to check
+---@param t table Table to check
+---@param val any Value to check, numerical keys only (if table)
 ---@param start? number Starting value (by default 1)
 ---@param stop? number Ending value (by default #t)
 ---@param step? number Step (by default 1)
-CHC_utils.any = function(t, val, start, stop, step)
+CHC_utils.any = function(t, val, start, stop, step, nonNum)
     start = start or 1
     stop = stop or #t
     step = step or 1
+    nonNum = nonNum or false
     if type(val) == 'table' then
         for j = 1, #val do
-            for i = start, stop, step do
-                if t[i] == val[j] then
-                    return true
+            if nonNum then
+                for _, value in pairs(t) do
+                    if value == val[j] then
+                        return true
+                    end
+                end
+            else
+                for i = start, stop, step do
+                    if t[i] == val[j] then
+                        return true
+                    end
                 end
             end
         end
     else
-        for i = start, stop, step do
-            if t[i] == val then
-                return true
+        if nonNum then
+            for _, value in pairs(t) do
+                if value == val then
+                    return true
+                end
+            end
+        else
+            for i = start, stop, step do
+                if t[i] == val then
+                    return true
+                end
             end
         end
     end
@@ -227,6 +246,7 @@ CHC_utils.jsonutil.Load = function(fname)
     if not fname then error('filename not set') end
     local res
     local fileReaderObj = getFileReader(fname, true)
+    if not fileReaderObj then error(format('File not found and cannot be created (%s)', fname)) end
     local json = ''
     local line = fileReaderObj:readLine()
     while line ~= nil do
@@ -236,7 +256,11 @@ CHC_utils.jsonutil.Load = function(fname)
     fileReaderObj:close()
 
     if json and json ~= '' then
-        res = JsonUtil.Decode(json)
+        local status = true
+        status, res = pcall(JsonUtil.Decode, json)
+        if not status then
+            error(format('Cannot decode json (%s)', res))
+        end
     end
     return res
 end
@@ -244,7 +268,13 @@ end
 CHC_utils.jsonutil.Save = function(fname, data)
     if not data then return end
     local fileWriterObj = getFileWriter(fname, true, false)
-    local json = JsonUtil.Encode(data)
+    if not fileWriterObj then
+        error(format('Cannot write to %s', fname))
+    end
+    local status, json = pcall(JsonUtil.Encode, data)
+    if not status then
+        error(format('Cannot encode json (%s)', json))
+    end
     fileWriterObj:write(json)
     fileWriterObj:close()
 end

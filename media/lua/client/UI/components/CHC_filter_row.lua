@@ -54,6 +54,8 @@ function CHC_filter_row:create()
     self:addChild(self.filterOrderBtn)
     self:addChild(self.filterTypeBtn)
     self:addChild(self.categorySelector)
+
+    self.categorySelector.popup.doDrawItem = self.doDrawItemSelectorPopup
 end
 
 function CHC_filter_row:prerenderSelector()
@@ -64,7 +66,7 @@ function CHC_filter_row:prerenderSelector()
     if self:isEditable() and self.editor and self.editor:isReallyVisible() then
     else
         local data = self:getOptionData(self.selected)
-        if not data or not data.count then return end
+        if not data or not data.count or type(data.count) ~= "number" then return end
         local texX = getTextManager():MeasureStringX(self.font, self:getOptionText(self.selected))
         local y = (self.height - getTextManager():getFontHeight(self.font)) / 2
         self:clampStencilRectToParent(0, 0, self.width - self.image:getWidthOrig() - 6, self.height)
@@ -78,7 +80,7 @@ end
 function CHC_filter_row:doDrawItemSelectorPopup(y, item, alt)
     y = ISComboBoxPopup.doDrawItem(self, y, item, alt)
     local data = self.parentCombo:getOptionData(item.index)
-    if not data or not data.count then return y end
+    if not data or not data.count or type(data.count) ~= "number" then return y end
     if self.parentCombo:hasFilterText() then
         if not item.text:lower():contains(self.parentCombo:getFilterText():lower()) then
             return y
