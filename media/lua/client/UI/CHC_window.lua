@@ -480,7 +480,10 @@ function CHC_window:close()
         vl:activateView(vl.viewList[2].name)
     end
     CHC_menu.toggleUI()
-    self:serializeWindowData()
+    local status, err = pcall(self.serializeWindowData, self)
+    if not status then
+        error(string.format("CHC_window:close - Cannot serialize window data (%s)", err))
+    end
     CHC_settings.Save()
     CHC_settings.SavePropsData()
 end
