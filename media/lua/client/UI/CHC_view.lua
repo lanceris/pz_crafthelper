@@ -466,11 +466,30 @@ function CHC_view._list:isMouseOverFavorite(x)
     return (x >= self.width - 40) and not self:isMouseOverScrollBar()
 end
 
+function CHC_view._list:handleCollapse(y, item, alt, collapsedBlock, uncollapsedNum)
+    local y2
+    if item.item.multipleHeader then
+        if item.item.collapsed then
+            collapsedBlock = item.item.sourceNum
+        end
+        y2 = self:doDrawItem(y, item, alt)
+        uncollapsedNum = uncollapsedNum + 1
+    else
+        if item.item.collapsed or item.item.sourceNum == collapsedBlock then
+            y2 = y
+        else
+            y2 = self:doDrawItem(y, item, alt)
+            uncollapsedNum = uncollapsedNum + 1
+        end
+    end
+    return y2, uncollapsedNum, collapsedBlock
+end
+
 function CHC_view._list:prerender()
     if not self.items then return end
     if utils.empty(self.items) then return end
 
-    if self.items and self.parent.objListSize > 1000 then
+    if self.items and self.parent.objListSize and self.parent.objListSize > 1000 then
         if self.needUpdateScroll then
             self.yScroll = self:getYScroll()
             self.needUpdateScroll = false
@@ -521,31 +540,45 @@ function CHC_view._list:prerender()
     local y = 0
     local alt = false
 
-    if self.selected ~= -1 and self.selected > #self.items then
-        self.selected = #self.items
-    end
+    -- if self.selected ~= -1 and self.selected > #self.items then
+    --     self.selected = #self.items
+    -- end
 
     self.listHeight = 0
+    local uncollapsedNum = 0
+    if not self.curFontData then
+        self.curFontData = { font = UIFont.NewSmall, icon = 20, pad = 3 }
+    end
     if not self.fontSize then
         self.fontSize = getTextManager():getFontHeight(self.curFontData.font)
     end
     local baseH = math.min(self.fontSize, self.curFontData.icon) + 2 * self.curFontData.pad
-    local i = 1
+    local collapsedBlock
     for j = 1, #self.items do
-        self.items[j].index = i
-        self.items[j].height = baseH
-        if not self.parent.isItemView and
-            CHC_settings.config.show_recipe_module and
-            self.items[j].item.module ~= 'Base' then
-            self.items[j].height = baseH + getTextManager():getFontHeight(UIFont.Small)
+        local item = self.items[j]
+        item.index = j
+
+        local y2
+        if item.item.sourceNum then
+            y2, uncollapsedNum, collapsedBlock = CHC_view._list.handleCollapse(self, y, item, alt, collapsedBlock,
+                uncollapsedNum)
+        else
+            y2 = self:doDrawItem(y, item, alt)
+            uncollapsedNum = uncollapsedNum + 1
         end
-        local y2 = self:doDrawItem(y, self.items[j], alt)
+
         self.listHeight = y2
-        self.items[j].height = y2 - y
+        item.height = y2 - y
         y = y2
         --alt = not alt
-        i = i + 1
+
+        local moduleCond = item.item.module and item.item.module ~= 'Base'
+        if not self.parent.isItemView and
+            CHC_settings.config.show_recipe_module and moduleCond then
+            item.height = baseH + getTextManager():getFontHeight(UIFont.Small)
+        end
     end
+    self.uncollapsedNum = uncollapsedNum
 
     self:setScrollHeight((y))
     self:clearStencilRect()

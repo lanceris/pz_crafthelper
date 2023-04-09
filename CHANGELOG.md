@@ -4,7 +4,7 @@
 
 ### New features
 
--
+- Folding for recipe sources
 
 ### Improvements
 

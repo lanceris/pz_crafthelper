@@ -85,6 +85,7 @@ function CHC_uses_recipepanel:createChildren()
     self.ingredientPanel:instantiate()
     self.ingredientPanel.onRightMouseDown = self.onRMBDownIngrPanel
     self.ingredientPanel:setOnMouseDownFunction(self, self.onIngredientMouseDown)
+    self.ingredientPanel.prerender = CHC_view._list.prerender
     self.ingredientPanel.itemheight = fhSmall + 2 * self.itemMargin
     self.ingredientPanel.font = UIFont.NewSmall
     self.ingredientPanel.doDrawItem = self.drawIngredient
@@ -551,6 +552,7 @@ function CHC_uses_recipepanel:refreshIngredientPanel()
             data.texture = item.texture
             data.fullType = item.fullType
             data.count = item.count
+            data.sourceNum = i
             data.recipe = selectedItem.recipe
             data.multiple = #source.items > 1
             local numTypes = selectedItem.typesAvailable[item.fullType]
@@ -565,12 +567,14 @@ function CHC_uses_recipepanel:refreshIngredientPanel()
 
         if #source.items > 1 then
             local data = {}
+            data.multipleHeader = true
             data.isDestroy = source.isDestroy
             data.isKeep = source.isKeep
             data.selectedItem = selectedItem
-            data.texture = self.TreeExpanded
-            data.multipleHeader = true
+            data.texture = self.treeexpicon
+            data.collapsed = false
             data.available = #available > 0
+            data.sourceNum = i
             local txt = getText('IGUI_CraftUI_OneOf')
             if data.isDestroy then
                 txt = txt .. ' (D) '
@@ -779,14 +783,14 @@ function CHC_uses_recipepanel:onResize()
 end
 
 function CHC_uses_recipepanel:drawFavoriteStar(y, item)
-    local favoriteStar = nil
+    local favoriteStar
     local favoriteAlpha = 0.9
-    local favYPos = self.width - 30
+    local favXPos = self.width - 30
     local parent = self.parent
     local isFav = CHC_main.playerModData[CHC_main.getFavItemModDataStr(item.item)] == true
 
     if item.index == self.mouseoverselected then
-        if self:getMouseX() >= favYPos - 20 then
+        if self:getMouseX() >= favXPos - 20 then
             favoriteStar = isFav and parent.itemFavCheckedTex or parent.itemFavNotCheckedTex
             favoriteAlpha = 0.9
         else
@@ -797,7 +801,7 @@ function CHC_uses_recipepanel:drawFavoriteStar(y, item)
         favoriteStar = parent.itemFavoriteStar
     end
     if favoriteStar then
-        self:drawTexture(favoriteStar, favYPos,
+        self:drawTexture(favoriteStar, favXPos,
             y + (item.height / 2 - favoriteStar:getHeight() / 2),
             favoriteAlpha, 1, 1, 1)
     end
@@ -808,11 +812,18 @@ end
 function CHC_uses_recipepanel:drawIngredient(y, item, alt)
     if self.parent.fastListReturn(self, y) then return y + self.itemheight end
     if item.item.multipleHeader then
+        local tex
         local r, g, b = 1, 1, 1
         if not item.item.available then
             r, g, b = 0.54, 0.54, 0.54
         end
         self:drawText(item.text, 12, y + 2, r, g, b, 1, self.font)
+        if item.item.collapsed then
+            tex = self.parent.treecolicon
+        else
+            tex = self.parent.treeexpicon
+        end
+        self:drawTexture(tex, 2, y + 2, 0.8)
     else
         local r, g, b
         local r2, g2, b2, a2
@@ -1082,12 +1093,12 @@ function CHC_uses_recipepanel:drawIngredients(x, y, item)
     self:drawText(getText('IGUI_CraftUI_RequiredItems'), x, y, 1, 1, 1, a, UIFont.Medium)
     y = y + fhMedium + 5
 
-
     self.ingredientPanel:setX(x + 5)
     self.ingredientPanel:setY(y)
     self.ingredientPanel:setWidth(self.width - 25)
     local m1 = self.height - y - self.bh
-    local ipH = math.min(m1, self.ingredientPanel.origH)
+    local ipH = math.max(1, math.min((self.ingredientPanel.uncollapsedNum) * self.ingredientPanel.itemheight,
+        self.ingredientPanel.origH))
 
     self.ingredientPanel:setHeight(ipH)
     y = y + self.ingredientPanel.height + self.margin
@@ -1249,7 +1260,7 @@ function CHC_uses_recipepanel:onIngredientMouseDown(item)
     if not item then return end
     local x = self:getMouseX()
 
-    if (x >= self.width - 40) then
+    if not item.multipleHeader and (x >= self.width - 40) then
         local isFav = self.modData[CHC_main.getFavItemModDataStr(item)] == true
         isFav = not isFav
         self.modData[CHC_main.getFavItemModDataStr(item)] = isFav or nil
@@ -1257,6 +1268,9 @@ function CHC_uses_recipepanel:onIngredientMouseDown(item)
             targetView = 'fav_items',
             actions = { 'needUpdateFavorites', 'needUpdateObjects' }
         })
+    end
+    if item.multipleHeader then
+        item.collapsed = not item.collapsed
     end
 end
 
@@ -1390,5 +1404,7 @@ function CHC_uses_recipepanel:new(args)
     o.itemFavoriteStar = getTexture('media/textures/CHC_item_favorite_star.png')
     o.itemFavCheckedTex = getTexture('media/textures/CHC_item_favorite_star_checked.png')
     o.itemFavNotCheckedTex = getTexture('media/textures/CHC_item_favorite_star_outline.png')
+    o.treeexpicon = getTexture("media/ui/TreeExpanded.png")
+    o.treecolicon = getTexture("media/ui/TreeCollapsed.png")
     return o;
 end
