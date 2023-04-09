@@ -163,7 +163,7 @@ function CHC_view:initTypesAndCategories(typeField, categoryField)
     CHC_view.updateCategories(self, catCounts, curCat, newCats)
 end
 
-function CHC_view:updateObjects(typeField, categoryField)
+function CHC_view:updateObjects(typeField, categoryField, filters)
     categoryField = categoryField or "displayCategory"
     if not self.initDone then
         CHC_view.initTypesAndCategories(self, typeField, categoryField)
@@ -191,8 +191,14 @@ function CHC_view:updateObjects(typeField, categoryField)
         local searchState = CHC_main.common.searchFilter(self, obj, self.searchProcessToken)
         local typeState = CHC_view.objTypeFilter(self, obj[typeField])
         local categoryState = CHC_view.objCategoryFilter(self, obj[categoryField])
+        local states = { searchState, typeState, categoryState }
+        if filters then
+            local filtersState = utils.all(CHC_view.extraFilters(self, obj, filters), true)
+            insert(states, filtersState)
+        end
 
-        if utils.all({ searchState, typeState, categoryState }, true) then
+
+        if utils.all(states, true) then
             insert(filtered, obj)
         end
 
@@ -287,7 +293,27 @@ function CHC_view:updateCounts() --FIXME - category counts not updated when upda
     CHC_view.updateTabNameWithCount(self)
 end
 
-function CHC_view:refreshObjList(objects)
+function CHC_view:extraFilters(obj, filters)
+    local res = {}
+    for i = 1, #filters do
+        insert(res, true)
+    end
+    return res
+end
+
+function CHC_view:refreshObjList(objects, conditions)
+    local function sort_on_values(t, a)
+        sort(t, function(u, v)
+            for i = 1, #a do
+                if u[a[i]] and v[a[i]] then
+                    if u[a[i]] > v[a[i]] then return false end
+                    if u[a[i]] < v[a[i]] then return true end
+                end
+                return false
+            end
+        end)
+    end
+
     local objL = self.objList
     local wasSelectedId = objL.items[objL.selected]
     if wasSelectedId then
@@ -298,7 +324,14 @@ function CHC_view:refreshObjList(objects)
     for i = 1, #objects do
         self:processAddObjToObjList(objects[i], self.modData)
     end
-    sort(objL.items, self.itemSortFunc)
+    if not conditions then
+        sort(objL.items, self.itemSortFunc)
+    else
+        sort_on_values(objL.items, conditions)
+    end
+
+
+
     if objL.items and #objL.items > 0 then
         local ix
         local ensureVisible = false

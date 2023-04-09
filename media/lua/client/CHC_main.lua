@@ -939,11 +939,11 @@ end
 -- endregion
 
 function CHC_main.reloadMod(key)
-	-- if key == Keyboard.KEY_O then
-	-- 	CHC_main.loadDatas()
-	-- 	local all = CHC_main
-	-- 	-- error('debug')
-	-- end
+	if key == Keyboard.KEY_O then
+		CHC_main.loadDatas()
+		local all = CHC_main
+		-- error('debug')
+	end
 	-- if key == Keyboard.KEY_Z then
 	-- 	local items = {}
 	-- 	local num = 100
