@@ -145,6 +145,7 @@ function CHC_uses_recipepanel:createChildren()
         h = self.height - self.mainInfo.height - 4 * self.padY,
         backRef = self.backRef,
     }
+    stats_args.origH = stats_args.h
 
     self.statsList = CHC_sectioned_panel:new(stats_args)
     self.statsList:initialise()
@@ -658,9 +659,8 @@ function CHC_uses_recipepanel:shouldUpdateIngredients(selectedItem)
         selectedItem.typesAvailable = self:getAvailableItemsType()
     end
     local c1 = not utils.areTablesDifferent(selectedItem.typesAvailable, self.lastAvailableTypes)
-    local c2 = self.ingredientPanel.origH
     local c3 = selectedItem._id == self.lastSelectedItem._id
-    if c1 and c2 and c3 then
+    if c1 and c3 then
         return false
     end
     self.lastAvailableTypes = selectedItem.typesAvailable
@@ -758,9 +758,6 @@ function CHC_uses_recipepanel:refreshIngredientPanel(selectedItem)
         end
     end
     -- endregion
-
-    local h = math.min(10, #self.ingredientPanel.items) * self.ingredientPanel.itemheight
-    self.ingredientPanel.origH = h
 end
 
 function CHC_uses_recipepanel:refreshSkillPanel(recipe)
@@ -1317,6 +1314,7 @@ end
 -- endregion
 
 function CHC_uses_recipepanel:updateButtons(obj)
+    local statsH = self.height - self.mainInfo.height - 3 * self.padY
     if obj.available then
         if obj.recipe.isEvolved then
             self.addRandomButton:setVisible(true)
@@ -1336,12 +1334,14 @@ function CHC_uses_recipepanel:updateButtons(obj)
         end
         -- draw buttons
         self.statsList:setY(self.addRandomButton.y + self.addRandomButton.height + self.padY)
+        statsH = statsH - self.addRandomButton.height - self.padY - 2
     else
         self.addRandomButton:setVisible(false)
         self.craftOneButton:setVisible(false)
         self.craftAllButton:setVisible(false)
         self.statsList:setY(self.mainInfo.y + self.mainInfo:getBottom() + self.padY)
     end
+    self.statsList:setHeight(statsH)
 end
 
 -- endregion

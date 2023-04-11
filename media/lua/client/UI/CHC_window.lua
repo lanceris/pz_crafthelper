@@ -75,7 +75,6 @@ function CHC_window:addSearchPanel()
 
     -- region search panel
     self.searchPanel = ISTabPanel:new(1, self.panelY, self.width, self.height - self.panelY)
-    self.searchPanel.tabPadX = self.width / 2 - self.width / 4
     self.searchPanel.onActivateView = CHC_window.onActivateSubView
     self.searchPanel.target = self
     self.searchPanel:initialise()
@@ -226,13 +225,12 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
     }
 
     --region item container
-    self.itemPanel = ISTabPanel:new(1, self.panelY, self.width, self.height - self.panelY)
-    self.itemPanel.tabPadX = self.width / 4
+    local itemPanel = ISTabPanel:new(1, self.panelY, self.width, self.height - self.panelY)
 
-    self.itemPanel:initialise()
-    self.itemPanel:setAnchorRight(true)
-    self.itemPanel:setAnchorBottom(true)
-    self.itemPanel.item = itn
+    itemPanel:initialise()
+    itemPanel:setAnchorRight(true)
+    itemPanel:setAnchorBottom(true)
+    itemPanel.item = itn
     -- endregion
     local usesData = {}
     local usesRec = CHC_main.recipesByItem[itn.fullType]
@@ -252,7 +250,7 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
     if craftEvoRec then
         for i = 1, #craftEvoRec do insert(craftData, craftEvoRec[i]) end
     end
-    self.panel:addView(nameForTab, self.itemPanel)
+    self.panel:addView(nameForTab, itemPanel)
 
     --region uses screen
     local uses_screen_init = self.common_screen_data
@@ -273,7 +271,7 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
         usesScreen:initialise()
         usesScreen.ui_type = usesScreen.ui_type .. '|' .. usesScreen.ID
         local iuvn = getText('UI_item_uses_tab_name')
-        self.addView(self.itemPanel, iuvn, usesScreen)
+        self.addView(itemPanel, iuvn, usesScreen)
         self.uiTypeToView[usesScreen.ui_type] = { view = usesScreen, name = iuvn, originName = iuvn }
     end
     --endregion
@@ -298,17 +296,18 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
         craftScreen:initialise()
         craftScreen.ui_type = craftScreen.ui_type .. '|' .. craftScreen.ID
         local icvn = getText('UI_item_craft_tab_name')
-        self.addView(self.itemPanel, icvn, craftScreen)
+        self.addView(itemPanel, icvn, craftScreen)
         self.uiTypeToView[craftScreen.ui_type] = { view = craftScreen, name = icvn, originName = icvn }
     end
     -- endregion
     --endregion
-    self.itemPanel.infoText = getText(self.itemPanelInfo, itn.displayName) .. self.infotext_common_recipes
+    itemPanel.infoText = getText(self.itemPanelInfo, itn.displayName) .. self.infotext_common_recipes
     if not utils.empty(usesData) or not utils.empty(craftData) then
         self:refresh(nil, nil, focusOnNew, focusOnTabIdx)
     else
         error('Empty usesData and craftData', 'CHC_window:addItemView')
     end
+    itemPanel.maxLength = self.width / #itemPanel.viewList - 2
 end
 
 function CHC_window:getItems(favOnly, max)
@@ -500,6 +499,10 @@ function CHC_window:onResize()
     if not ui.panel or not ui.panel.activeView then return end
     ui.panel:setWidth(self.width)
     ui.panel:setHeight(self.height - 60)
+
+    for _, value in pairs(ui.panel.children) do
+        value.maxLength = self.width / #value.viewList - 2
+    end
 end
 
 function CHC_window:render()

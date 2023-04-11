@@ -9,6 +9,7 @@
 ### Improvements
 
 - Improved error handling
+- Subview tabs (Items/Recipes | Uses/Craft) now fill whole space and rescale with window
 
 ## 1.7.2 (29.03.2023)
 

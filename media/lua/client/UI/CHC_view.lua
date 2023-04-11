@@ -568,6 +568,12 @@ function CHC_view._list:prerender()
         stencilX2 = self.vscroll.x + 3 -- +3 because the scrollbar texture is narrower than the scrollbar width
     end
 
+    if self.parent and self.parent:getScrollChildren() then
+        stencilX = self.javaObject:clampToParentX(self:getAbsoluteX() + stencilX) - self:getAbsoluteX()
+        stencilX2 = self.javaObject:clampToParentX(self:getAbsoluteX() + stencilX2) - self:getAbsoluteX()
+        stencilY = self.javaObject:clampToParentY(self:getAbsoluteY() + stencilY) - self:getAbsoluteY()
+        stencilY2 = self.javaObject:clampToParentY(self:getAbsoluteY() + stencilY2) - self:getAbsoluteY()
+    end
     self:setStencilRect(stencilX, stencilY, stencilX2 - stencilX, stencilY2 - stencilY)
 
     local y = 0
