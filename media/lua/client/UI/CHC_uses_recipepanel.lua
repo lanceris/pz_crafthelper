@@ -659,8 +659,9 @@ function CHC_uses_recipepanel:shouldUpdateIngredients(selectedItem)
         selectedItem.typesAvailable = self:getAvailableItemsType()
     end
     local c1 = not utils.areTablesDifferent(selectedItem.typesAvailable, self.lastAvailableTypes)
+    local c2 = #self.ingredientPanel.items > 0
     local c3 = selectedItem._id == self.lastSelectedItem._id
-    if c1 and c3 then
+    if c1 and c2 and c3 then
         return false
     end
     self.lastAvailableTypes = selectedItem.typesAvailable
