@@ -18,43 +18,15 @@ function CHC_section:createChildren()
     self.headerButton.backgroundColorMouseOver = self.headerBgColorMouseOver
     self.headerButton.borderColor = self.headerBorderColor
     self:addChild(self.headerButton)
-    local sbarWid = self.panel.vscroll and self.panel.vscroll.width or 0
 
-    if self.panel then
-        self.panel:setY(self.headerButton:getBottom())
-        self.panel:setWidth(self.width - sbarWid)
-        self.panel:setVisible(self.expanded)
-        self.panel:setScrollChildren(true)
+    -- if self.panel then
+    self.panel:setY(self.headerButton:getBottom())
+    self.panel:setWidth(self.width)
+    self.panel:setVisible(self.expanded)
+    self.panel:setScrollChildren(true)
 
-        local objList = self.panel.objList
-        -- if not objList then objList = self.panel end
-        local numItems = 8
-        if objList then
-            self.panel:setHeight(
-                3 * self.panel.padY +
-                self.panel.searchRow.height +
-                objList.itemheight +
-                objList.height
-            )
-        else
-            objList = self.panel
-            if #objList.items > numItems then
-                objList.vscroll:setX(objList.x + objList.width - sbarWid)
-            end
-        end
-        local mul = math.min(#objList.items, numItems)
-        local panelListH = objList.itemheight * mul
-        objList:setHeight(panelListH)
-        if #objList.items > numItems then
-            objList.vscroll:setVisible(true)
-        else
-            objList.vscroll:setVisible(false)
-        end
-        objList:setScrollHeight(objList.itemheight * numItems)
-        self:addChild(self.panel)
-    end
-
-
+    self:addChild(self.panel)
+    -- end
     self:calculateHeights()
 end
 
@@ -65,16 +37,43 @@ function CHC_section:onHeaderClick()
     else
         self.parent.expandedSections[self.title] = nil
     end
+    self.panel:setVisible(self.expanded)
     self:calculateHeights()
+end
+
+function CHC_section:calcHeightNonList(panel)
+    -- FIXME
+    local maxItems = 8
+    return 3 * panel.padY +
+        panel.searchRow.height +
+        math.min(#panel.objList.items, maxItems) * panel.objList.itemheight
+end
+
+function CHC_section:calcHeightList(objList, maxItems)
+    local numItems = #objList.items
+    if self.panel.uncollapsedNum then
+        numItems = self.panel.uncollapsedNum
+    end
+    return math.min(numItems, maxItems) * objList.itemheight
 end
 
 function CHC_section:calculateHeights()
     local height = self.headerButton:getHeight()
-    if self.panel then
-        self.panel:setVisible(self.expanded)
-        if self.expanded then
-            height = height + self.panel:getHeight()
+    local panel = self.panel
+
+    if self.expanded then
+        local listH
+        if panel.objList then -- item panels (attributes etc)
+            listH = self:calcHeightNonList(panel)
+        else                  -- recipe panels (ingredients etc)
+            local maxItems = 8
+            listH = self:calcHeightList(panel, maxItems)
+
+            panel.vscroll:setVisible(#panel.items > maxItems)
+            panel:setScrollHeight(listH)
         end
+        panel:setHeight(listH)
+        height = height + listH
     end
     self:setHeight(height)
 end
@@ -85,7 +84,9 @@ function CHC_section:onResize()
     self:setWidth(self.parent.width - parentSBarWid)
     self.headerButton:setWidth(self.width)
     self.panel:setWidth(self.width)
-    self:calculateHeights()
+    if self.panel.vscroll then
+        self.panel.vscroll:setX(self.width - 17)
+    end
 end
 
 function CHC_section:clear()
@@ -93,10 +94,6 @@ function CHC_section:clear()
 end
 
 function CHC_section:prerender()
-    if self.panel and self.panelHeight ~= self.panel.height then
-        self.panelHeight = self.panel.height
-        self:calculateHeights()
-    end
     local sx, sy, sx2, sy2 = 0, 0, self.width, self.height
     if true then
         sx = self.javaObject:clampToParentX(self:getAbsoluteX() + sx) - self:getAbsoluteX()
@@ -111,7 +108,7 @@ function CHC_section:render()
     self:clearStencilRect()
 end
 
-function CHC_section:new(x, y, width, height, panel, title, maxH, rightMargin, headerWidth)
+function CHC_section:new(x, y, width, height, panel, title, rightMargin, headerWidth)
     local o = {}
     o = ISPanel:new(x, y, width, height)
 
@@ -124,7 +121,6 @@ function CHC_section:new(x, y, width, height, panel, title, maxH, rightMargin, h
     o.title = title and title or '???'
     o.enabled = true
     o.expanded = true
-    o.maxHeight = maxH and maxH or 300
     o.rightMargin = rightMargin
     o.headerWidth = headerWidth
     if headerWidth == 'text' then
@@ -153,10 +149,10 @@ function CHC_sectioned_panel:initialise()
     ISPanel.initialise(self)
 end
 
-function CHC_sectioned_panel:addSection(panel, title, maxH)
+function CHC_sectioned_panel:addSection(panel, title)
     local sbarWid = self.vscroll and self.vscroll.width or 0
     local section = CHC_section:new(0, 0, self.width - sbarWid, 1,
-        panel, title, maxH, self.rightMargin, self.headerWidth)
+        panel, title, self.rightMargin, self.headerWidth)
     self:addChild(section)
     if self:getScrollChildren() then
         section:setScrollWithParent(true)
@@ -223,7 +219,6 @@ function CHC_sectioned_panel:onResize()
 end
 
 function CHC_sectioned_panel:render()
-    ISPanel.render(self)
     self:clearStencilRect()
 end
 

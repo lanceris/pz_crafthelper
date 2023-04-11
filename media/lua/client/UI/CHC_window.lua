@@ -565,9 +565,9 @@ function CHC_window:onRMBDownObjList(x, y, item, isrecipe, context)
 
     if getDebug() then
         if item and item.fullType then
-            local pInv = self.parent.player
-            if pInv then
-                pInv = pInv:getInventory()
+            local pInv = CHC_menu.CHC_window
+            if pInv and pInv.player then
+                pInv = pInv.player:getInventory()
                 local name = context:addOption('Add item', nil, nil)
                 local subMenuName = ISContextMenu:getNew(context)
                 context:addSubMenu(name, subMenuName)

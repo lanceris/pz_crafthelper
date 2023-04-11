@@ -57,7 +57,7 @@ function CHC_uses_recipepanel:createChildren()
     self.mainName:initialise()
 
     local timeText = "100000"
-    local timeX = 16 + getTextManager():MeasureStringX(mainSecFont, timeText)
+    local timeX = 16 + getTextManager():MeasureStringX(mainSecFont, timeText) -- FIXME too close to border
     self.mainTime = ISLabelWithIcon:new(self.width - timeX, mainY, fhSmall, nil, mr, mg, mb, ma, mainSecFont, true)
     self.mainTime.anchorLeft = false
     self.mainTime.anchorRight = true
@@ -99,7 +99,42 @@ function CHC_uses_recipepanel:createChildren()
     self.mainInfo:addChild(self.mainRes)
     self.mainInfo:addChild(self.mainMod)
 
-    y = y + self.mainInfo:getBottom()
+    y = y + self.mainInfo:getBottom() + self.padY
+    -- endregion
+
+    -- region buttons
+    local btnInfo = {
+        x = x,
+        y = y,
+        w = 50,
+        h = 25,
+        clicktgt = self
+    }
+    self.craftOneButton = ISButton:new(btnInfo.x, btnInfo.y, btnInfo.w, btnInfo.h, nil, btnInfo.clicktgt, self.craft);
+    self.craftOneButton:initialise()
+
+    -- TODO: change to icon
+    self.craftOneButton.title = getText('IGUI_CraftUI_ButtonCraftOne')
+    self.craftOneButton:setWidth(10 + getTextManager():MeasureStringX(UIFont.Small, self.craftOneButton.title))
+    self.craftOneButton:setVisible(false)
+
+    self.craftAllButton = ISButton:new(btnInfo.x, btnInfo.y, btnInfo.w, btnInfo.h, nil, btnInfo.clicktgt, self.craftAll);
+    self.craftAllButton:initialise()
+    self.craftAllButton.title = getText('IGUI_CraftUI_ButtonCraftOne')
+    self.craftAllButton:setVisible(false)
+
+    self.addRandomButton = ISButton:new(btnInfo.x, btnInfo.y, btnInfo.w, btnInfo.h, nil, btnInfo.clicktgt,
+        self.addRandomMenu)
+    self.addRandomButton:initialise()
+    self.addRandomButton.title = "Add Random..." -- FIXME translations
+    self.addRandomButton:setWidth(10 + getTextManager():MeasureStringX(UIFont.Small, self.addRandomButton.title))
+    self.addRandomButton:setVisible(false)
+    y = y + btnInfo.h + self.padY
+
+    -- self.debugGiveIngredientsButton = ISButton:new(0, 0, 50, 25, 'DBG: Give Ingredients', self, ISCraftingUI.debugGiveIngredients);
+    -- self.debugGiveIngredientsButton:initialise();
+    -- self:addChild(self.debugGiveIngredientsButton);
+
     -- endregion
 
     -- region stats list
@@ -120,33 +155,6 @@ function CHC_uses_recipepanel:createChildren()
     self.statsList:setVisible(false)
     -- endregion
 
-    -- region buttons
-    local btnInfo = {
-        x = 0,
-        y = self.height / 2,
-        w = 50,
-        h = 25,
-        clicktgt = self
-    }
-    self.craftOneButton = ISButton:new(btnInfo.x, btnInfo.y, btnInfo.w, btnInfo.h, nil, btnInfo.clicktgt, self.craft);
-    self.craftOneButton:initialise()
-
-    -- TODO: change to icon
-    self.craftOneButton.title = getText('IGUI_CraftUI_ButtonCraftOne')
-    self.craftOneButton:setWidth(5 + getTextManager():MeasureStringX(UIFont.Small, self.craftOneButton.title))
-    self.craftOneButton:setVisible(false)
-
-    self.craftAllButton = ISButton:new(btnInfo.x, btnInfo.y, btnInfo.w, btnInfo.h, nil, btnInfo.clicktgt, self.craftAll);
-    self.craftAllButton:initialise()
-    self.craftAllButton.title = getText('IGUI_CraftUI_ButtonCraftOne')
-    self.craftAllButton:setWidth(5 + getTextManager():MeasureStringX(UIFont.Small, self.craftAllButton.title))
-    self.craftAllButton:setVisible(false)
-
-    -- self.debugGiveIngredientsButton = ISButton:new(0, 0, 50, 25, 'DBG: Give Ingredients', self, ISCraftingUI.debugGiveIngredients);
-    -- self.debugGiveIngredientsButton:initialise();
-    -- self:addChild(self.debugGiveIngredientsButton);
-
-    -- endregion
 
     -- region ingredients
     self.ingredientPanel = ISScrollingListBox:new(1, 1, self.width - 20, 50)
@@ -208,6 +216,9 @@ function CHC_uses_recipepanel:createChildren()
     -- endregion
 
     self:addChild(self.mainInfo)
+    self:addChild(self.craftOneButton)
+    self:addChild(self.craftAllButton)
+    self:addChild(self.addRandomButton)
     self:addChild(self.statsList)
 
     self.statsList:setScrollChildren(true)
@@ -524,7 +535,8 @@ function CHC_uses_recipepanel:setObj(recipe)
 
     local statsListOpenedSections = self.statsList.expandedSections
     self.statsList:clear()
-    self.statsList:setY(self.mainInfo.y + self.mainInfo:getBottom() + self.padY)
+
+    self:updateButtons(obj)
 
     self:refreshIngredientPanel(obj)
     self.statsList:addSection(self.ingredientPanel, getText('IGUI_CraftUI_RequiredItems'))
@@ -549,6 +561,7 @@ function CHC_uses_recipepanel:setObj(recipe)
     end
 
     if not utils.empty(self.statsList.sections) then
+        self.needUpdateHeight = true
         self.statsList:setVisible(true)
     else
         self.statsList:setVisible(false)
@@ -816,11 +829,10 @@ function CHC_uses_recipepanel:onResize()
     --     self.statsList:setHeight(self.height - self.mainInfo.height - 4 * self.padY)
 end
 
-function CHC_uses_recipepanel:drawFavoriteStar(y, item)
+function CHC_uses_recipepanel:drawFavoriteStar(y, item, parent)
     local favoriteStar
     local favoriteAlpha = 0.9
     local favXPos = self.width - 30
-    local parent = self.parent
     local isFav = CHC_main.playerModData[CHC_main.getFavItemModDataStr(item.item)] == true
     if item.index == self.mouseoverselected then
         local mouseX = self:getMouseX()
@@ -854,9 +866,9 @@ function CHC_uses_recipepanel:drawIngredient(y, item, alt)
         end
         self:drawText(item.text, 12, y + 2, r, g, b, 1, self.font)
         if item.item.collapsed then
-            tex = self.parent.treecolicon
+            tex = self.recipepanel.treecolicon
         else
-            tex = self.parent.treeexpicon
+            tex = self.recipepanel.treeexpicon
         end
         self:drawTexture(tex, 2, y + 2, 0.8)
     else
@@ -1044,6 +1056,11 @@ function CHC_uses_recipepanel:render()
         self.equipmentPanel.mouseY = self.equipmentPanel:getMouseY()
         self.needUpdateMousePos = false
     end
+
+    if self.needUpdateHeight then
+        self.needUpdateHeight = false
+        self.statsList.sectionMap[getText('IGUI_CraftUI_RequiredItems')]:calculateHeights()
+    end
     local selectedItem = self.selectedObj
 
     -- region check if available
@@ -1059,7 +1076,7 @@ function CHC_uses_recipepanel:render()
             selectedItem.howManyCanCraft = 0
         elseif selectedItem.recipe.isEvolved then
             selectedItem.available = CHC_main.common.isEvolvedRecipeValid(selectedItem.recipe, self.containerList)
-            selectedItem.howManyCanCraft = 0 -- evolved recipes aren't craftable
+            selectedItem.howManyCanCraft = 0 -- evolved recipes aren't craftable (as normal recipes are)
         else
             selectedItem.available = RecipeManager.IsRecipeValid(selectedItem.recipe.recipe, self.player, nil,
                 self.containerList)
@@ -1068,6 +1085,9 @@ function CHC_uses_recipepanel:render()
                 self.containerList, nil
             )
         end
+
+        self:updateButtons(selectedItem)
+
         self:refreshIngredientPanel(selectedItem)
     end
 
@@ -1077,25 +1097,6 @@ function CHC_uses_recipepanel:render()
     end
 
     -- endregion
-end
-
-function CHC_uses_recipepanel:drawIngredients(x, y, item)
-    local sy = y
-    local a = 0.9
-    self:drawText(getText('IGUI_CraftUI_RequiredItems'), x, y, 1, 1, 1, a, UIFont.Medium)
-    y = y + fhMedium + 5
-
-    self.ingredientPanel:setX(x + 5)
-    self.ingredientPanel:setY(y)
-    self.ingredientPanel:setWidth(self.width - 25)
-    local m1 = self.height - y - self.bh
-    local ipH = math.max(1, math.min((self.ingredientPanel.uncollapsedNum) * self.ingredientPanel.itemheight,
-        self.ingredientPanel.origH))
-
-    self.ingredientPanel:setHeight(ipH)
-    y = y + self.ingredientPanel.height + self.margin
-
-    return y - sy
 end
 
 function CHC_uses_recipepanel:drawCraftButtons(x, y, item)
@@ -1217,6 +1218,7 @@ function CHC_uses_recipepanel:onIngredientMouseDown(item)
     end
     if item.multipleHeader then
         item.collapsed = not item.collapsed
+        self.needUpdateHeight = true
     end
 end
 
@@ -1226,12 +1228,12 @@ end
 function CHC_uses_recipepanel:transferItems()
     local result = {}
     local selectedItem = self.selectedObj;
-    local items = RecipeManager.getAvailableItemsNeeded(selectedItem.recipe, self.player, self.containerList, nil, nil);
+    local items = RecipeManager.getAvailableItemsNeeded(selectedItem.recipeObj, self.player, self.containerList, nil, nil);
     if items:isEmpty() then return result end
     for i = 1, items:size() do
         local item = items:get(i - 1)
         insert(result, item)
-        if not selectedItem.recipe:isCanBeDoneFromFloor() then
+        if not selectedItem.recipeObj:isCanBeDoneFromFloor() then
             if item:getContainer() ~= self.player:getInventory() then
                 ISTimedActionQueue.add(
                     ISInventoryTransferAction:new(
@@ -1275,8 +1277,8 @@ end
 function CHC_uses_recipepanel:craft(button, all)
     self.craftInProgress = false
     local selectedItem = self.selectedObj;
-    -- if selectedItem.evolved then return end -- add in #2
-    if not RecipeManager.IsRecipeValid(selectedItem.recipe, self.player, nil, self.containerList) then return end
+    -- if selectedItem.evolved then return end
+    if not RecipeManager.IsRecipeValid(selectedItem.recipeObj, self.player, nil, self.containerList) then return end
     if not getPlayer() then return end
     local itemsUsed = self:transferItems()
     if #itemsUsed == 0 then
@@ -1286,7 +1288,7 @@ function CHC_uses_recipepanel:craft(button, all)
 
     local returnToContainer = {}
     local container = itemsUsed[1]:getContainer()
-    if not selectedItem.recipe:isCanBeDoneFromFloor() then
+    if not selectedItem.recipeObj:isCanBeDoneFromFloor() then
         container = self.player:getInventory()
         for i = 1, #itemsUsed do
             local item = itemsUsed[i]
@@ -1297,8 +1299,8 @@ function CHC_uses_recipepanel:craft(button, all)
     end
 
     local action = ISCraftAction:new(self.player, itemsUsed[1],
-        selectedItem.recipe:getTimeToMake(),
-        selectedItem.recipe, container, self.containerList)
+        selectedItem.recipeObj:getTimeToMake(),
+        selectedItem.recipeObj, container, self.containerList)
     if all then
         action:setOnComplete(self.onCraftComplete, self, action, selectedItem.recipe, container, self.containerList)
     end
@@ -1314,6 +1316,33 @@ end
 
 -- endregion
 
+function CHC_uses_recipepanel:updateButtons(obj)
+    if obj.available then
+        if obj.recipe.isEvolved then
+            self.addRandomButton:setVisible(true)
+            self.craftOneButton:setVisible(false)
+            self.craftAllButton:setVisible(false)
+        else
+            self.addRandomButton:setVisible(false)
+            self.craftOneButton:setVisible(true)
+            if obj.howManyCanCraft > 1 then
+                self.craftAllButton:setTitle(getText("IGUI_CraftUI_ButtonCraftAllCount",
+                    obj.howManyCanCraft))
+                self.craftAllButton:setX(self.craftOneButton.x + self.craftOneButton.width + 5)
+                self.craftAllButton:setWidth(10 +
+                    getTextManager():MeasureStringX(UIFont.Small, self.craftAllButton.title))
+                self.craftAllButton:setVisible(true)
+            end
+        end
+        -- draw buttons
+        self.statsList:setY(self.addRandomButton.y + self.addRandomButton.height + self.padY)
+    else
+        self.addRandomButton:setVisible(false)
+        self.craftOneButton:setVisible(false)
+        self.craftAllButton:setVisible(false)
+        self.statsList:setY(self.mainInfo.y + self.mainInfo:getBottom() + self.padY)
+    end
+end
 
 -- endregion
 
@@ -1333,11 +1362,14 @@ function CHC_uses_recipepanel:new(args)
     o.player = player
     o.character = player
     o.playerNum = player and player:getPlayerNum() or -1
+
     o.needRefreshIngredientPanel = true
     o.needRefreshRecipeCounts = true
     o.needUpdateScroll = false
     o.needUpdateMousePos = false
-    o.recipe = nil;
+    o.needUpdateHeight = false
+
+    o.recipe = nil
     o.manualsSize = 0
     o.manualsEntries = nil
     o.modData = CHC_main.playerModData

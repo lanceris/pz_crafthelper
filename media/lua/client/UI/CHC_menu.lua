@@ -16,7 +16,8 @@ CHC_menu.createCraftHelper = function()
 		height = options.main_window.h,
 		backgroundColor = { r = 0, g = 0, b = 0, a = 1 },
 		minimumWidth = 400,
-		minimumHeight = 350
+		minimumHeight = 350,
+		player = getPlayer()
 	}
 	CHC_menu.CHC_window = CHC_window:new(args)
 	CHC_menu.CHC_window:initialise()
