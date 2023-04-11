@@ -5,6 +5,7 @@
 ### New features
 
 - Folding for recipe sources
+- Ability to add ingredients to evolved recipes (WIP)
 
 ### Improvements
 

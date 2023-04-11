@@ -126,9 +126,17 @@ function CHC_uses_recipepanel:createChildren()
     self.addRandomButton = ISButton:new(btnInfo.x, btnInfo.y, btnInfo.w, btnInfo.h, nil, btnInfo.clicktgt,
         self.addRandomMenu)
     self.addRandomButton:initialise()
-    self.addRandomButton.title = "Add Random..." -- FIXME translations
+    self.addRandomButton.title = "Add Random..." -- FIXME translation
     self.addRandomButton:setWidth(10 + getTextManager():MeasureStringX(UIFont.Small, self.addRandomButton.title))
     self.addRandomButton:setVisible(false)
+
+    self.selectSpecificButton = ISButton:new(btnInfo.x, btnInfo.y, btnInfo.w, btnInfo.h, nil, btnInfo.clicktgt,
+        self.selectSpecificMenu)
+    self.selectSpecificButton:initialise()
+    self.selectSpecificButton.title = "Select specific..." -- FIXME translation
+    self.selectSpecificButton:setWidth(10 +
+        getTextManager():MeasureStringX(UIFont.Small, self.selectSpecificButton.title))
+    self.selectSpecificButton:setVisible(false)
     y = y + btnInfo.h + self.padY
 
     -- self.debugGiveIngredientsButton = ISButton:new(0, 0, 50, 25, 'DBG: Give Ingredients', self, ISCraftingUI.debugGiveIngredients);
@@ -220,6 +228,7 @@ function CHC_uses_recipepanel:createChildren()
     self:addChild(self.craftOneButton)
     self:addChild(self.craftAllButton)
     self:addChild(self.addRandomButton)
+    self:addChild(self.selectSpecificButton)
     self:addChild(self.statsList)
 
     self.statsList:setScrollChildren(true)
@@ -316,6 +325,7 @@ function CHC_uses_recipepanel:getSources(recipe)
                 insert(sourceMain, item)
             end
         end
+        self.sourceSpice = sourceSpice
         local types = { sourceBase, sourceMain, sourceSpice }
         for order = 1, #types do
             local source = types[order]
@@ -357,6 +367,7 @@ function CHC_uses_recipepanel:getSources(recipe)
             insert(result, sourceInList)
         end
     else
+        self.sourceSpice = nil
         local sources = recipe.recipe:getSource()
         for x = 0, sources:size() - 1 do
             local source = sources:get(x);
@@ -1312,16 +1323,165 @@ function CHC_uses_recipepanel:craftAll()
     self:craft(nil, true);
 end
 
+function CHC_uses_recipepanel:addRandomMenu()
+    local context = ISContextMenu.get(0, getMouseX() + 10, getMouseY())
+
+    local typesAvailable = self.selectedObj.typesAvailable
+    local typesToShow = {}
+    local spices = {}
+
+    for fullType, _ in pairs(typesAvailable) do
+        local item = CHC_main.items[fullType]
+        if item then
+            local foodType = item.item:IsFood() and item.item:getFoodType()
+            if foodType then
+                if foodType == "NoExplicit" then
+                    insert(spices, item)
+                else
+                    if not typesToShow[foodType] then typesToShow[foodType] = {} end
+                    insert(typesToShow[foodType], item)
+                end
+            else
+                for i = 1, #self.sourceSpice do
+                    if self.sourceSpice[i].fullType == fullType then
+                        insert(spices, item)
+                    end
+                end
+            end
+        end
+    end
+
+    local types = {}
+    for foodType, items in pairs(typesToShow) do
+        insert(types, { name = foodType, items = items })
+    end
+
+    tsort(types, function(a, b) return not ssort(a.name, b.name) end)
+    tsort(spices, function(a, b) return not ssort(a.name, b.name) end)
+
+    -- region ingredient
+    local ingredientMenu = context:addOption('Ingredient', nil, nil)
+    local ingredientSubMenu = ISContextMenu:getNew(context)
+    context:addSubMenu(ingredientMenu, ingredientSubMenu)
+    ingredientSubMenu:addOption('Random (All)', self, CHC_uses_recipepanel.addRandomCategory, types, nil, true)
+    ingredientSubMenu:addOption('Random (One)', self, CHC_uses_recipepanel.addRandomCategory, types)
+    for i = 1, #types do
+        local optName = getText("ContextMenu_FoodType_" .. types[i].name) .. " (" .. #types[i].items .. ")"
+        local opt = ingredientSubMenu:addOption(optName, self, CHC_uses_recipepanel.addRandomIngredient, types[i].items)
+
+        if #types[i].items == 1 then
+            local item = types[i].items[1]
+            local val = item.displayName .. " x " .. round(typesAvailable[item.fullType], 0)
+            opt.name = getText("ContextMenu_FoodType_" .. types[i].name) .. " (" .. val .. ")"
+        else
+            local ingredientCategorySubMenu = ISContextMenu:getNew(ingredientSubMenu)
+            ingredientSubMenu:addSubMenu(opt, ingredientCategorySubMenu)
+            for j = 1, #types[i].items do
+                local item = types[i].items[j]
+                ingredientCategorySubMenu:addOption(item.displayName .. " x " .. round(typesAvailable[item.fullType], 0),
+                    self, CHC_uses_recipepanel.addItemInEvolvedRecipe, item)
+            end
+        end
+    end
+
+    -- endregion
+
+    -- region condiment
+    local condimentMenu = context:addOption('Condiment', nil, nil)
+    local condimentSubMenu = ISContextMenu:getNew(context)
+    context:addSubMenu(condimentMenu, condimentSubMenu)
+    condimentSubMenu:addOption('Random (All)', self, CHC_uses_recipepanel.addRandomCategory, spices, nil, true)
+    condimentSubMenu:addOption('Random (One)', self, CHC_uses_recipepanel.addRandomIngredient, spices)
+    for i = 1, #spices do
+        local opt = condimentSubMenu:addOption(
+            spices[i].displayName .. " x " .. round(typesAvailable[spices[i].fullType], 0), self,
+            CHC_uses_recipepanel.addItemInEvolvedRecipe, spices[i])
+    end
+    -- endregion
+end
+
+function CHC_uses_recipepanel:addRandomCategory(options, func, all)
+    -- TODO: ISInventoryPaneContextMenu.getRealEvolvedItemUse
+    if all then
+        local a = self.selectedObj
+        -- selectSpecificMenu
+        df:df()
+        -- getItemsList
+        -- get remaining slots
+    end
+    local opt = options[ZombRand(1, #options + 1)]
+    if opt.items then
+        self.addRandomIngredient(self, opt.items, func)
+    else
+        self.addItemInEvolvedRecipe(opt)
+    end
+end
+
+function CHC_uses_recipepanel:addRandomIngredient(options, func)
+    func = func or self.addItemInEvolvedRecipe
+    local opt = options[ZombRand(1, #options + 1)]
+    func(self, opt)
+end
+
+function CHC_uses_recipepanel:addItemInEvolvedRecipe(item)
+    --TODO
+    print(item.displayName)
+end
+
+function CHC_uses_recipepanel:selectSpecificMenu()
+    local context = ISContextMenu.get(0, getMouseX() + 10, getMouseY())
+
+    local max = self.selectedObj.recipe.recipeData.maxItems
+    local choices = self.evolvedChoices
+    for i = 1, #choices do
+        local ch = choices[i]
+        local optName = ch.itemObj.displayName
+        local optText
+        local used = 0
+        -- if used == max can only add spices
+
+        if ch.extraItems then
+            used = #ch.extraItems
+            local contains = { "Contains:" }
+            for c = 1, used do
+                insert(contains, "- " .. "<IMAGE:" .. ch.extraItems[c].texture:getName() .. ">" .. ch.extraItems[c]
+                    .displayName)
+            end
+            optText = table.concat(contains, '\n')
+        end
+        optName = optName .. " (" .. used .. "/" .. max .. ")"
+        local opt = context:addOption(optName, self, nil)
+        opt.iconTexture = ch.itemObj.texture
+        if optText then
+            CHC_main.common.setTooltipToCtx(opt, optText)
+        end
+    end
+end
+
 -- endregion
 
 function CHC_uses_recipepanel:updateButtons(obj)
     local statsH = self.height - self.mainInfo.height - 3 * self.padY
     if obj.available then
         if obj.recipe.isEvolved then
+            -- local items = CHC_main.common.getNearbyItems(self.containerList) -- getExtraItems
+            -- getEvolvedRecipe
+            local baseItemToCheck = obj.recipe.recipeData.baseItem
+            local baseItemToCheck2 = obj.recipe.recipeData.fullResultItem
+            local items = CHC_main.common.getNearbyItems(self.containerList, { baseItemToCheck, baseItemToCheck2 })
+            self.evolvedChoices = items
+            if not utils.empty(items) and #items > 1 then
+                self.selectSpecificButton:setX(self.addRandomButton.x + self.addRandomButton.width + 5)
+                self.selectSpecificButton:setVisible(true)
+            else
+                self.selectSpecificButton:setVisible(false)
+            end
             self.addRandomButton:setVisible(true)
             self.craftOneButton:setVisible(false)
             self.craftAllButton:setVisible(false)
         else
+            self.evolvedChoices = nil
+            self.selectSpecificButton:setVisible(false)
             self.addRandomButton:setVisible(false)
             self.craftOneButton:setVisible(true)
             if obj.howManyCanCraft > 1 then
@@ -1331,12 +1491,15 @@ function CHC_uses_recipepanel:updateButtons(obj)
                 self.craftAllButton:setWidth(10 +
                     getTextManager():MeasureStringX(UIFont.Small, self.craftAllButton.title))
                 self.craftAllButton:setVisible(true)
+            else
+                self.craftAllButton:setVisible(false)
             end
         end
         -- draw buttons
         self.statsList:setY(self.addRandomButton.y + self.addRandomButton.height + self.padY)
         statsH = statsH - self.addRandomButton.height - self.padY - 2
     else
+        self.selectSpecificButton:setVisible(false)
         self.addRandomButton:setVisible(false)
         self.craftOneButton:setVisible(false)
         self.craftAllButton:setVisible(false)

@@ -180,18 +180,28 @@ end
 
 function CHC_main.common.isEvolvedRecipeValid(recipe, containerList)
     local check = CHC_main.common.playerHasItemNearby
-    local typesAvailable = {}
+    -- local typesAvailable = {}
+    local onlySpices = true
+
     for i = 1, #recipe.recipeData.possibleItems do
-        if check(recipe.recipeData.possibleItems[i], containerList) then
-            typesAvailable[recipe.recipeData.possibleItems[i].fullType] = true
-            break
+        local item = recipe.recipeData.possibleItems[i]
+        if check(item, containerList) then
+            -- typesAvailable[item.fullType] = true
+            if not item.isSpice then
+                onlySpices = false
+                break
+            end
         end
     end
 
-    local haveBaseOrResult = (check(CHC_main.items[recipe.recipeData.baseItem], containerList) or
-        check(recipe.recipeData.result, containerList))
-    local result = haveBaseOrResult and not utils.empty(typesAvailable)
-    return result
+    local cond1 = check(CHC_main.items[recipe.recipeData.baseItem], containerList) and not onlySpices
+    local cond2 = check(CHC_main.items[recipe.recipeData.fullResultItem], containerList)
+    local isValid = cond1 or cond2
+
+    -- local haveBaseOrResult = (check(CHC_main.items[recipe.recipeData.baseItem], containerList) or
+    --     check(recipe.recipeData.result, containerList))
+    -- local result = haveBaseOrResult and not utils.empty(typesAvailable)
+    return isValid
 end
 
 function CHC_main.common.playerHasItemNearby(item, containerList)
@@ -248,6 +258,29 @@ function CHC_main.common.getPlayerSkills(player)
         end
     end
     return result
+end
+
+function CHC_main.common.getNearbyItems(containerList, fullTypesToCheck)
+    local items = {}
+    for i = 0, containerList:size() - 1 do
+        for x = 0, containerList:get(i):getItems():size() - 1 do
+            local item = containerList:get(i):getItems():get(x)
+            local fullType = item:getFullType()
+            local result = { item = item, itemObj = CHC_main.items[fullType] }
+            if not fullTypesToCheck or utils.any(fullTypesToCheck, fullType) then
+                local extraItems = item:getExtraItems()
+                if extraItems then
+                    local extraItemObjs = {}
+                    for j = 0, extraItems:size() - 1 do
+                        insert(extraItemObjs, CHC_main.items[extraItems:get(j)])
+                    end
+                    result.extraItems = extraItemObjs
+                end
+                insert(items, result)
+            end
+        end
+    end
+    return items
 end
 
 function CHC_main.common.getNearbyIsoObjectNames(player)
