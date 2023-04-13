@@ -10,6 +10,7 @@ local utils = require('CHC_utils')
 local insert = table.insert
 local ssort = string.sort
 local tsort = table.sort
+local sformat = string.format
 
 CHC_uses_recipepanel = ISPanel:derive('CHC_uses_recipepanel')
 
@@ -1170,14 +1171,52 @@ end
 function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y, item)
     local backRef = self.parent.parent.backRef
     local context = backRef.onRMBDownObjList(self, x, y, item)
+    local row = self:rowAt(x, y)
     if not item then
-        local row = self:rowAt(x, y)
         if row == -1 or not row then return end
         item = self.items[row]
         if not item then return end
         item = item.item
     end
-    if not item.fullType then return end
+
+    local function getItemsToAdd()
+        local itemsToAdd = {}
+        local itemsToAddMissing = {}
+        for i = row + 1, #self.items do
+            local _item = self.items[i].item
+            if _item.multipleHeader then
+                break
+            end
+            insert(itemsToAdd, _item.fullType)
+            if (self.recipepanel.selectedObj.typesAvailable and
+                not self.recipepanel.selectedObj.typesAvailable[_item.fullType]) then
+                insert(itemsToAddMissing, _item.fullType)
+            end
+        end
+        return itemsToAdd, itemsToAddMissing
+    end
+
+    local function addItems(_, items)
+        local pInv = CHC_menu.CHC_window.player:getInventory()
+        for i = 1, #items do
+            pInv:AddItem(items[i])
+        end
+    end
+
+    if not item.fullType then
+        if item.multipleHeader and getDebug() then
+            local itemsToAdd, itemsToAddMissing = getItemsToAdd()
+
+            if not utils.empty(itemsToAdd) then
+                context:addOption(sformat("Add all (%d)", #itemsToAdd), self, addItems, itemsToAdd)
+            end
+            if not utils.empty(itemsToAddMissing) then
+                context:addOption(sformat("Add missing (%d)", #itemsToAddMissing), self, addItems, itemsToAddMissing)
+            end
+        else
+            return
+        end
+    end
     -- -- check if there is recipes for item
 
     item = CHC_main.items[item.fullType]

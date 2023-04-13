@@ -6,6 +6,7 @@
 
 - Folding for recipe sources
 - Ability to add ingredients to evolved recipes (WIP)
+- Ability to add all (and missing only) ingredients in "One of:" block (debug only)
 
 ### Improvements
 
