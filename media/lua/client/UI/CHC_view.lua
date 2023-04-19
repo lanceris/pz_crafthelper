@@ -100,13 +100,13 @@ end
 
 function CHC_view:update()
     if self.needUpdateFont then
+        self.needUpdateFont = false
         self.curFontData = CHC_main.common.fontSizeToInternal[CHC_settings.config.list_font_size]
         self.objList.curFontData = self.curFontData
         if self.objList.font ~= self.curFontData.font then
             self.objList:setFont(self.curFontData.font, self.curFontData.pad)
             self.objList.fontSize = getTextManager():getFontHeight(self.curFontData.font)
         end
-        self.needUpdateFont = false
     end
     if self.needUpdateShowIcons then
         self.needUpdateShowIcons = false
@@ -499,23 +499,28 @@ function CHC_view._list:isMouseOverFavorite(x)
     return (x >= self.width - 40) and not self:isMouseOverScrollBar()
 end
 
-function CHC_view._list:handleCollapse(y, item, alt, collapsedBlock, uncollapsedNum)
+function CHC_view._list:handleCollapse(y, item, alt, collapsedBlock, uncollapsedNum, hiddenBlock)
     local y2
     if item.item.multipleHeader then
         if item.item.collapsed then
             collapsedBlock = item.item.sourceNum
         end
+        if item.item.isBlockHidden then
+            hiddenBlock = { num = item.item.sourceNum, state = item.item.blockHiddenState }
+        end
         y2 = self:doDrawItem(y, item, alt)
         uncollapsedNum = uncollapsedNum + 1
     else
-        if item.item.collapsed or item.item.sourceNum == collapsedBlock then
+        if item.item.collapsed or item.item.sourceNum == collapsedBlock or
+            (item.item.sourceNum == hiddenBlock.num and hiddenBlock.state == "un" and item.item.available) or
+            (item.item.sourceNum == hiddenBlock.num and hiddenBlock.state == "av" and not item.item.available) then
             y2 = y
         else
             y2 = self:doDrawItem(y, item, alt)
             uncollapsedNum = uncollapsedNum + 1
         end
     end
-    return y2, uncollapsedNum, collapsedBlock
+    return y2, uncollapsedNum, collapsedBlock, hiddenBlock
 end
 
 function CHC_view._list:prerender()
@@ -593,29 +598,31 @@ function CHC_view._list:prerender()
     end
     local baseH = math.min(self.fontSize, self.curFontData.icon) + 2 * self.curFontData.pad
     local collapsedBlock
+    local hiddenBlock = {}
     for j = 1, #self.items do
         local item = self.items[j]
         item.index = j
 
         local y2
         if item.item.sourceNum then
-            y2, uncollapsedNum, collapsedBlock = CHC_view._list.handleCollapse(self, y, item, alt, collapsedBlock,
-                uncollapsedNum)
+            y2, uncollapsedNum, collapsedBlock, hiddenBlock = CHC_view._list.handleCollapse(self, y, item, alt,
+                collapsedBlock,
+                uncollapsedNum, hiddenBlock)
         else
             y2 = self:doDrawItem(y, item, alt)
             uncollapsedNum = uncollapsedNum + 1
         end
 
         self.listHeight = y2
-        item.height = y2 - y
-        y = y2
-        --alt = not alt
 
         local moduleCond = item.item.module and item.item.module ~= 'Base'
-        if not self.parent.isItemView and
-            CHC_settings.config.show_recipe_module and moduleCond then
+        if CHC_settings.config.show_recipe_module and moduleCond then
             item.height = baseH + getTextManager():getFontHeight(UIFont.Small)
+        else
+            item.height = y2 - y
         end
+        y = y2
+        --alt = not alt
     end
     self.uncollapsedNum = uncollapsedNum
 

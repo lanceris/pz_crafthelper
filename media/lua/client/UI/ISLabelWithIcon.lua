@@ -8,7 +8,7 @@ function ISLabelWithIcon:initialise()
     ISLabel.initialise(self)
 end
 
-function ISLabelWithIcon:setName(name)
+function ISLabelWithIcon:setName(name, setOrig)
     if self.name == name then return end
     self.name = name
     self:setX(self.originalX)
@@ -20,6 +20,9 @@ function ISLabelWithIcon:setName(name)
     self:setWidth(width)
     if self.left ~= true and not self.center then
         self:setX(self.x - self.width)
+    end
+    if setOrig then
+        self.origName = name
     end
 end
 
@@ -83,13 +86,6 @@ function ISLabelWithIcon:prerender()
     end
 
     if not self.center then
-        -- print(self.width .. "|" .. self.maxWidth) --FIXME
-        if self.width > self.maxWidth then
-            -- while self.width > self.maxWidth do
-            --     local name = sub(self.name, 1, #self.name - 3) .. '...'
-            --     self:setName(name)
-            -- end
-        end
         self:drawText(txt, x, y, self.r, self.g, self.b, self.a, self.font)
     else
         self:drawTextCentre(txt, x, y, self.r, self.g, self.b, self.a, self.font)
@@ -181,7 +177,6 @@ function ISLabelWithIcon:new(x, y, height, name, r, g, b, a, font, bLeft, icon)
         width = width + o.iconSize + 3
     end
     o.width = width
-    o.maxWidth = width
     o.iconR = 1
     o.iconG = 1
     o.iconB = 1

@@ -18,3 +18,7 @@ Contributors will be shown in order of first pull request / commit:
   - Traditional Chinese translation
 - [El Gordo Argento](https://s.team/p/ffkv-jcwb/rcbnntrk)
   - Spanish translation (+steam description translation)
+- [☛DOM.0☚](https://steamcommunity.com/profiles/76561198035031242)
+  - Polish translaiton
+- [brudermusslos](https://steamcommunity.com/id/FlyeTaubeBurr/)
+  - Deutsch translation

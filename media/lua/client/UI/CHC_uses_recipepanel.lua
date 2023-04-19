@@ -15,6 +15,12 @@ local sformat = string.format
 CHC_uses_recipepanel = ISPanel:derive('CHC_uses_recipepanel')
 
 -- region create
+local blockHiddenStateSelector = {
+    "all",
+    "av",
+    "un"
+}
+
 local texMan = getTextManager()
 local fhMedium = texMan:getFontHeight(UIFont.Medium) -- mediumFontHeight
 local fhSmall = texMan:getFontHeight(UIFont.Small)   -- smallFontHeight
@@ -48,8 +54,8 @@ function CHC_uses_recipepanel:createChildren()
     self.mainInfo:setVisible(false)
 
     -- region mainInfo
-    self.mainInfoNameLine = ISPanel:new(0, 0, self.mainInfo.width, fntm + 2 * mainPadY)
-    self.mainInfoNameLine.anchorRight = true
+    self.mainInfoNameLine = ISPanel:new(0, 0, self.mainInfo.width - 2 * self.margin, fntm + 2 * mainPadY)
+    self.mainInfoNameLine.anchorRight = false
     local minlc = 0.45
     self.mainInfoNameLine.backgroundColor = { r = minlc, g = minlc, b = minlc, a = 0.9 }
     self.mainInfoNameLine:initialise()
@@ -58,7 +64,7 @@ function CHC_uses_recipepanel:createChildren()
     self.mainName:initialise()
 
     local timeText = "100000"
-    local timeX = 16 + getTextManager():MeasureStringX(mainSecFont, timeText) -- FIXME too close to border
+    local timeX = 16 + getTextManager():MeasureStringX(mainSecFont, timeText)
     self.mainTime = ISLabelWithIcon:new(self.width - timeX, mainY, fhSmall, nil, mr, mg, mb, ma, mainSecFont, true)
     self.mainTime.anchorLeft = false
     self.mainTime.anchorRight = true
@@ -77,17 +83,37 @@ function CHC_uses_recipepanel:createChildren()
     self.mainImg.onRightMouseDown = self.onRMBDownItemIcon
     local mainX = self.mainImg.width + self.margin
 
-    self.mainCat = ISLabel:new(mainX, mainY, fhSmall, nil, mr, mg, mb, ma, mainSecFont, true)
+    self.mainCat = ISLabelWithIcon:new(mainX, mainY, fhSmall, nil, mr, mg, mb, ma, mainSecFont, true)
     self.mainCat:initialise()
+    self.mainCat:setIcon(getTexture('media/textures/CHC_recipepanel_category.png'))
+    self.mainCat.origTooltip = getText("IGUI_invpanel_Category")
+    self.mainCat:setTooltip(self.mainCat.origTooltip)
     mainY = mainY + self.mainCat.height + mainPadY
 
-    self.mainRes = ISLabel:new(mainX, mainY, fhSmall, nil, mr, mg, mb, ma, mainSecFont, true)
+    self.mainRes = ISLabelWithIcon:new(mainX, mainY, fhSmall, nil, mr, mg, mb, ma, mainSecFont, true)
     self.mainRes:initialise()
+    self.mainRes:setIcon(getTexture('media/textures/CHC_recipepanel_output.png'))
+    self.mainRes.origTooltip = getText("IGUI_RecipeResult")
+    self.mainRes:setTooltip(self.mainRes.origTooltip)
     mainY = mainY + self.mainRes.height + mainPadY
 
-    self.mainMod = ISLabel:new(mainX, mainY, fhSmall, nil, mr, mg, mb, ma, mainSecFont, true)
+    self.mainMod = ISLabelWithIcon:new(mainX, mainY, fhSmall, nil, mr, mg, mb, ma, mainSecFont, true)
     self.mainMod:initialise()
+    self.mainMod:setIcon(getTexture('media/textures/CHC_mod.png'))
+    self.mainMod:setTooltip(getText("IGUI_mod_chc"))
     mainY = mainY + self.mainMod.height + mainPadY
+
+    local mainExtraW = 300
+    self.mainExtraData = ISPanel:new(self.mainInfo.width - mainExtraW - self.margin, self.mainImg.y, mainExtraW,
+        self.mainImg.height)
+    self.mainExtraData.borderColor = self.mainImg.borderColor
+    -- self.mainExtraData.anchorLeft = false
+    -- self.mainExtraData.anchorRight = true
+    self.mainExtraData:initialise()
+    self.mainExtraData:setVisible(false)
+
+    self.mainName.maxWidth = self.mainInfoNameLine.width - self.mainTime.width - 10
+
     -- endregion
 
     self.mainInfo:setHeight(mainY + mainPadY)
@@ -99,6 +125,7 @@ function CHC_uses_recipepanel:createChildren()
     self.mainInfo:addChild(self.mainCat)
     self.mainInfo:addChild(self.mainRes)
     self.mainInfo:addChild(self.mainMod)
+    self.mainInfo:addChild(self.mainExtraData)
 
     y = y + self.mainInfo:getBottom() + self.padY
     -- endregion
@@ -127,14 +154,14 @@ function CHC_uses_recipepanel:createChildren()
     self.addRandomButton = ISButton:new(btnInfo.x, btnInfo.y, btnInfo.w, btnInfo.h, nil, btnInfo.clicktgt,
         self.addRandomMenu)
     self.addRandomButton:initialise()
-    self.addRandomButton.title = "Add Random..." -- FIXME translation
+    self.addRandomButton.title = getText("IGUI_PlayerStats_Add") .. "..."
     self.addRandomButton:setWidth(10 + getTextManager():MeasureStringX(UIFont.Small, self.addRandomButton.title))
     self.addRandomButton:setVisible(false)
 
     self.selectSpecificButton = ISButton:new(btnInfo.x, btnInfo.y, btnInfo.w, btnInfo.h, nil, btnInfo.clicktgt,
         self.selectSpecificMenu)
     self.selectSpecificButton:initialise()
-    self.selectSpecificButton.title = "Select specific..." -- FIXME translation
+    self.selectSpecificButton.title = getText("IGUI_Evolved_SelectSpecific") .. "..."
     self.selectSpecificButton:setWidth(10 +
         getTextManager():MeasureStringX(UIFont.Small, self.selectSpecificButton.title))
     self.selectSpecificButton:setVisible(false)
@@ -148,7 +175,7 @@ function CHC_uses_recipepanel:createChildren()
 
     -- region stats list
     local stats_args = {
-        x = 0,
+        x = self.margin,
         y = y,
         w = self.width - 2 * self.margin,
         h = self.height - self.mainInfo.height - 4 * self.padY,
@@ -159,6 +186,7 @@ function CHC_uses_recipepanel:createChildren()
     self.statsList = CHC_sectioned_panel:new(stats_args)
     self.statsList:initialise()
     self.statsList:instantiate()
+    self.statsList.borderColor.a = 0
     self.statsList:setAnchorRight(true)
     self.statsList:setAnchorBottom(true)
     self.statsList.maintainHeight = false
@@ -177,7 +205,7 @@ function CHC_uses_recipepanel:createChildren()
     self.ingredientPanel.itemheight = fhSmall + 2 * self.itemMargin
     self.ingredientPanel.font = UIFont.NewSmall
     self.ingredientPanel.yScroll = 0
-    self.ingredientPanel.drawBorder = true
+    self.ingredientPanel.drawBorder = false
     self.ingredientPanel.borderColor = listBorderColor
     self.ingredientPanel.vscroll.borderColor = listBorderColor
     self.ingredientPanel:setVisible(false)
@@ -192,7 +220,7 @@ function CHC_uses_recipepanel:createChildren()
     self.skillPanel.itemheight = fhSmall + 2 * self.itemMargin
     self.skillPanel.doDrawItem = self.drawSkill
     self.skillPanel.yScroll = 0
-    self.skillPanel.drawBorder = true
+    self.skillPanel.drawBorder = false
     self.skillPanel.borderColor = listBorderColor
     self.skillPanel.vscroll.borderColor = listBorderColor
     -- endregion
@@ -206,7 +234,7 @@ function CHC_uses_recipepanel:createChildren()
     self.booksPanel.itemheight = fhSmall + 2 * self.itemMargin
     self.booksPanel.doDrawItem = self.drawBook
     self.booksPanel.yScroll = 0
-    self.booksPanel.drawBorder = true
+    self.booksPanel.drawBorder = false
     self.booksPanel.borderColor = listBorderColor
     self.booksPanel.vscroll.borderColor = listBorderColor
     -- endregion
@@ -218,9 +246,9 @@ function CHC_uses_recipepanel:createChildren()
     self.equipmentPanel.onRightMouseDown = self.onRMBDownIngrPanel
     self.equipmentPanel:setOnMouseDownFunction(self, self.onIngredientMouseDown)
     self.equipmentPanel.itemheight = fhSmall + 2 * self.itemMargin
-    self.equipmentPanel.doDrawItem = self.drawEquipment --FIXME
+    self.equipmentPanel.doDrawItem = self.drawEquipment
     self.equipmentPanel.yScroll = 0
-    self.equipmentPanel.drawBorder = true
+    self.equipmentPanel.drawBorder = false
     self.equipmentPanel.borderColor = listBorderColor
     self.equipmentPanel.vscroll.borderColor = listBorderColor
     -- endregion
@@ -433,6 +461,8 @@ function CHC_uses_recipepanel:setResultObj(resultItem, recipe)
 
     if resultItem.tooltip then
         res.tooltip = getTextOrNull(resultItem.tooltip) --FIXME
+    elseif recipe.isEvolved and self.evolvedSelected then
+        res.tooltip = self:getTooltipForEvolvedItem(self.evolvedSelected)
     end
     res.itemName = resultItem.displayName
 
@@ -474,8 +504,10 @@ function CHC_uses_recipepanel:setObj(recipe)
         obj.timeToMake = 0 -- FIXME
         obj.howManyCanCraft = 0
         obj.needToBeLearn = false
+
+        self:getEvolvedChoices(obj, self.containerList)
     else
-        obj.available = RecipeManager.IsRecipeValid(recipe.recipe, self.player, nil, self.containerList) --FIXME
+        obj.available = RecipeManager.IsRecipeValid(recipe.recipe, self.player, nil, self.containerList)
         obj.requiredSkillCount = recipe.recipe:getRequiredSkillCount()
         obj.isKnown = self.player:isRecipeKnown(recipe.recipe)
         obj.nearItem = recipe.recipeData.nearItem
@@ -487,50 +519,7 @@ function CHC_uses_recipepanel:setObj(recipe)
         obj.needToBeLearn = recipe.recipe:needToBeLearn()
     end
 
-    -- region main info
-    local recipeName
-    if recipe.isEvolved then
-        recipeName = recipe.recipe:getName() .. ' ' .. getText('IGUI_CHC_Evolved_Max_Ingr', recipe.recipeData.maxItems)
-    else
-        recipeName = recipe.recipe:getName()
-    end
-    self.mainName:setName(recipeName)
-
-    self.mainTime:setName(tostring(obj.timeToMake))
-    self.mainTime:setX(self.mainInfoNameLine.width - self.mainTime.width - self.margin)
-    self.mainTime:setTooltip(luautils.split(getText('IGUI_CraftUI_RequiredTime', 0), ':')[1])
-    self.mainName.maxWidth = self.mainInfoNameLine.width - self.mainTime.width
-
-    local resultItem = recipe.recipeData.result
-    local resultData
-    if resultItem then
-        resultData = self:setResultObj(resultItem, recipe)
-    end
-    if resultData then
-        self.mainImg.forcedWidthImage = resultData.forcedWidthImage
-        self.mainImg.forcedHeightImage = resultData.forcedHeightImage
-        self.mainImg:setImage(resultItem.texture)
-        self.mainImg:setTooltip(resultData.tooltip)
-
-        self.mainRes:setName('Result: ' .. resultData.itemName) -- FIXME
-        self.mainRes:setTooltip(string.format('%s <LINE>%s', resultItem.name, resultItem.fullType))
-
-        if resultItem.modname and not resultItem.isVanilla then
-            local c = { r = 0.392, g = 0.584, b = 0.929 } -- CornFlowerBlue
-            self.mainMod:setName('Mod: ' .. resultItem.modname)
-            self.mainMod:setColor(c.r, c.g, c.b)
-        else
-            self.mainMod:setName(nil)
-        end
-    end
-
-    local catName = getTextOrNull('IGUI_CraftCategory_' .. recipe.category) or recipe.category
-    self.mainCat:setName(getText('IGUI_invpanel_Category') .. ': ' .. catName)
-
-    local maxY = self.mainMod.y + self.mainMod.height + 2
-    self.mainInfo:setHeight(math.max(74, maxY))
-    self.mainInfo:setVisible(true)
-    -- endregion
+    self:updateMainInfo(obj)
 
     obj.hydrocraftEquipment = recipe.recipeData.hydroFurniture
     obj.cecEquipment = recipe.recipeData.CECFurniture
@@ -579,6 +568,8 @@ function CHC_uses_recipepanel:setObj(recipe)
     else
         self.statsList:setVisible(false)
     end
+
+    self.evolvedOpt = nil
 end
 
 -- endregion
@@ -732,8 +723,10 @@ function CHC_uses_recipepanel:refreshIngredientPanel(selectedItem)
             data.multiple = #source.items > 1
             local numTypes = selectedItem.typesAvailable[item.fullType]
             if selectedItem.typesAvailable and (not numTypes or numTypes < item.count) then
+                data.available = false
                 insert(unavailable, data)
             else
+                data.available = true
                 insert(available, data)
             end
         end
@@ -748,8 +741,12 @@ function CHC_uses_recipepanel:refreshIngredientPanel(selectedItem)
             data.selectedItem = selectedItem
             data.texture = self.treeexpicon
             data.collapsed = false -- FIXME
+            data.blockHiddenState = blockHiddenStateSelector[1]
             data.sourceNum = i
             data.available = #available > 0
+            data.totalNum = #available + #unavailable
+            data.availableNum = #available
+            data.unavailableNum = #unavailable
             local txt = getText('IGUI_CraftUI_OneOf')
             if data.isDestroy then
                 txt = txt .. ' (D) '
@@ -759,6 +756,11 @@ function CHC_uses_recipepanel:refreshIngredientPanel(selectedItem)
             end
             txt = txt .. ' (' .. #available .. '/' .. #available + #unavailable .. ') '
             self.ingredientPanel:addItem(txt, data)
+
+            if data.availableNum == data.totalNum or data.unavailableNum == data.totalNum then
+                data.blockHiddenState = blockHiddenStateSelector[1]
+                data.blockHiddenStateLocked = true
+            end
         end
 
         handleDismantleWatch(available, unavailable)
@@ -828,15 +830,161 @@ function CHC_uses_recipepanel:refreshEquipmentPanel(recipe)
     self.equipmentPanel:setHeight(math.min(1, #self.equipmentPanel.items) * self.equipmentPanel.itemheight)
 end
 
+function CHC_uses_recipepanel:updateMainInfo(obj)
+    local recipe = obj.recipe
+    self.evolvedSelected = nil
+    self.mainExtraData:setVisible(false)
+    self.mainExtraData:clearChildren()
+
+    local recipeName = recipe.recipe:getName()
+    if recipe.isEvolved then
+        local used = 0
+        local max = recipe.recipeData.maxItems
+        if not utils.empty(self.evolvedChoices) or self.evolvedOpt then
+            local ch = self.evolvedOpt or self.evolvedChoices[1]
+            self.evolvedSelected = ch
+            if ch.extraItems then
+                used = #ch.extraItems
+                recipeName = ch.displayNameExtra
+            end
+        end
+        recipeName = recipeName .. " (" .. used .. "/" .. max .. ")"
+
+        -- region food data
+        self:updateExtraData(self.evolvedSelected)
+        self.mainExtraData:setVisible(true)
+        -- endregion
+    end
+
+    self.mainName:setName(recipeName, true)
+    self.mainName:setTooltip(nil)
+
+    self.mainTime:setName(tostring(obj.timeToMake), true)
+    self.mainTime:setX(self.mainInfoNameLine.width - self.mainTime.width - self.margin)
+    self.mainTime:setTooltip(luautils.split(getText('IGUI_CraftUI_RequiredTime', 0), ':')[1])
+    self.mainImg:setTooltip(nil)
+
+    local resultItem = recipe.recipeData.result
+    local resultData
+    if resultItem then
+        resultData = self:setResultObj(resultItem, recipe)
+    end
+    if resultData then
+        self.mainImg.forcedWidthImage = resultData.forcedWidthImage
+        self.mainImg.forcedHeightImage = resultData.forcedHeightImage
+        self.mainImg:setImage(resultItem.texture)
+        self.mainImg:setTooltip(resultData.tooltip)
+
+        self.mainRes:setName(resultData.itemName, true)
+        self.mainRes:setTooltip(self.mainRes.origTooltip)
+
+        if resultItem.modname and not resultItem.isVanilla then
+            local c = { r = 0.392, g = 0.584, b = 0.929 } -- CornFlowerBlue
+            self.mainMod:setName(resultItem.modname, true)
+            self.mainMod:setColor(c.r, c.g, c.b)
+        else
+            self.mainMod:setName(nil)
+        end
+        self.mainMod:setVisible(self.mainMod.name ~= nil)
+    end
+
+    local catName = getTextOrNull('IGUI_CraftCategory_' .. recipe.category) or recipe.category
+    self.mainCat:setName(catName, true)
+    self.mainCat:setTooltip(self.mainCat.origTooltip)
+
+
+    local maxY = self.mainMod.y + self.mainMod.height + 2
+    self.mainInfo:setHeight(math.max(74, maxY))
+
+    self:handleOverflow(self.mainName, self.mainInfoNameLine.width - self.mainTime.width - 10)
+    if recipe.isEvolved then
+        local maxW = self.mainInfo.width - self.mainImg.width - self.mainExtraData.width - 2 * self.margin
+        self:handleOverflow(self.mainCat, maxW)
+        self:handleOverflow(self.mainRes, maxW)
+        if self.mainMod.name then
+            self:handleOverflow(self.mainMod, maxW)
+        end
+    end
+    self.mainInfo:setVisible(true)
+end
+
+function CHC_uses_recipepanel:updateExtraData(ch)
+    if not ch then return end
+
+    local function btnRender(s)
+        s:drawTextureScaledAspect(s.image,
+            (s.width / 2) - (s.iconSize / 2),
+            2, s.iconSize, s.iconSize, 1)
+        s:drawText(s.title, s.width / 2 - s.textW / 2,
+            s.iconSize - 3,
+            s.textColor.r, s.textColor.g,
+            s.textColor.b, s.textColor.a, s.font)
+    end
+
+    local foodData = self:getFoodData(ch)
+    local margin = 5
+    local innerMar = 3
+    local padding = 2
+    local x = margin
+    local y = margin
+    local w = 24 + 2 * padding
+    local h = self.mainExtraData.height - 2 * margin
+
+    local numBtn = 0
+    for i = 1, #foodData do
+        local item = foodData[i]
+        if not item.isCal then
+            local btn = ISButton:new(x, y, w, h, item.value)
+            x = x + w + innerMar
+            btn.borderColor = { r = 0.18, g = 0.18, b = 0.18, a = 1 }
+            btn.textColor = item.color
+            btn.iconSize = 24
+            btn.margin = margin
+            btn:initialise()
+            btn.width = w
+            btn.textW = getTextManager():MeasureStringX(btn.font, btn.title)
+            btn:setImage(item.icon)
+            local tooltip = item.title
+            if item.valPrecise then tooltip = tooltip .. " <SPACE> (" .. item.valPrecise .. ")" end
+            btn:setTooltip(tooltip)
+            btn.render = btnRender
+
+            self.mainExtraData:addChild(btn)
+            numBtn = numBtn + 1
+        end
+    end
+
+    local mainExtraW = 2 * margin + math.min(8, numBtn) * (w + innerMar) - innerMar
+    self.mainExtraData:setWidth(mainExtraW)
+    self.mainExtraData:setX(self.mainInfo.width - mainExtraW - 2 * self.margin)
+end
+
 -- endregion
 
 -- region render
 
 function CHC_uses_recipepanel:onResize()
     ISPanel.onResize(self)
-    self.mainInfo:setWidth(self.width)
-    -- self.statsList:setWidth(self.parent.headers.typeHeader.width - self.margin - self.statsList.x)
-    --     self.statsList:setHeight(self.height - self.mainInfo.height - 4 * self.padY)
+    self.mainInfo:setWidth(self.parent.headers.typeHeader.width)
+
+    self.mainInfoNameLine:setWidth(self.mainInfo.width - 2 * self.margin)
+    self.mainExtraData:setX(self.mainInfo.width - self.mainExtraData.width - 2 * self.margin)
+    self.statsList:setWidth(self.parent.headers.typeHeader.width - self.margin - self.statsList.x)
+    local statsH = self.height - self.mainInfo.height - 5 * self.padY
+    if self.buttonVisible then
+        statsH = statsH - self.craftOneButton.height - self.padY
+    end
+    self.statsList:setHeight(statsH)
+
+    self:handleOverflow(self.mainName, self.mainInfoNameLine.width - self.mainTime.width - 10)
+    if self.selectedObj.recipe.isEvolved then
+        local maxW = self.mainInfo.width - self.mainImg.width - self.mainExtraData.width - 2 * self.margin
+        self:handleOverflow(self.mainCat, maxW)
+        self:handleOverflow(self.mainRes, maxW)
+        if self.mainMod.name then
+            self:handleOverflow(self.mainMod, maxW)
+        end
+    end
 end
 
 function CHC_uses_recipepanel:drawFavoriteStar(y, item, parent)
@@ -869,18 +1017,43 @@ function CHC_uses_recipepanel:drawIngredient(y, item, alt)
     end
     if self.recipepanel.fastListReturn(self, y) then return y + self.itemheight end
     if item.item.multipleHeader then
-        local tex
+        --region One of: text
         local r, g, b = 1, 1, 1
         if not item.item.available then
             r, g, b = 0.54, 0.54, 0.54
         end
         self:drawText(item.text, 12, y + 2, r, g, b, 1, self.font)
+        --endregion
+
+        -- region fold icon
+        local tex
         if item.item.collapsed then
             tex = self.recipepanel.treecolicon
         else
             tex = self.recipepanel.treeexpicon
         end
         self:drawTexture(tex, 2, y + 2, 0.8)
+        -- endregion
+
+        --region show/hide unavailable icon
+        if item.index == self.mouseoverselected then
+            if not item.item.blockHiddenStateLocked then
+                local hideTex
+                if item.item.blockHiddenState == "av" then
+                    hideTex = self.recipepanel.blockAVIcon
+                elseif item.item.blockHiddenState == "un" then
+                    hideTex = self.recipepanel.blockUNIcon
+                elseif item.item.blockHiddenState == "all" then
+                    hideTex = self.recipepanel.blockAllIcon
+                else
+                    error("Unknown blockHiddenState")
+                end
+                self:drawTextureScaledAspect(hideTex, self.width - 30, y, -- + (item.height / 2 - hideTex:getHeight() / 2),
+                    item.height - 2,
+                    item.height - 2, 1)
+            end
+        end
+        -- endregion
     else
         local r, g, b
         local r2, g2, b2, a2
@@ -1096,6 +1269,8 @@ function CHC_uses_recipepanel:render()
             )
         end
 
+        self:getEvolvedChoices(selectedItem, self.containerList)
+        self:updateMainInfo(selectedItem)
         self:updateButtons(selectedItem)
 
         self:refreshIngredientPanel(selectedItem)
@@ -1109,64 +1284,11 @@ function CHC_uses_recipepanel:render()
     -- endregion
 end
 
-function CHC_uses_recipepanel:drawCraftButtons(x, y, item)
-    --if not self.selectedObj then return 0 end
-    local sy = y
-    if not item.available or item.isEvolved then
-        self.craftOneButton:setVisible(false)
-        self.craftAllButton:setVisible(false)
-        return 0
-    end
-
-    self.craftOneButton:setY(y)
-    self.craftAllButton:setY(y)
-    if not self.craftOneButton:isVisible() then
-        self.craftOneButton:setX(x)
-
-        self.craftOneButton:setVisible(true)
-    end
-
-    --region all
-    local title = getText('IGUI_CraftUI_ButtonCraftAll')
-    local count = item.howManyCanCraft
-    if count > 1 then
-        title = getText('IGUI_CraftUI_ButtonCraftAllCount', count)
-    elseif count == 1 then
-        self.craftAllButton:setVisible(false)
-    end
-    if title ~= self.craftAllButton:getTitle() then
-        self.craftAllButton:setTitle(title)
-        self.craftAllButton:setWidthToTitle()
-    end
-
-    if not self.craftAllButton:isVisible() and count > 1 then
-        self.craftAllButton:setX(self.craftOneButton.x + 5 + self.craftOneButton.width)
-        self.craftAllButton:setVisible(true)
-    end
-    --endregion
-
-    y = y + self.craftOneButton.height + 3
-
-    if self.player:isDriving() then
-        self.craftOneButton.enable = false
-        self.craftOneButton.tooltip = getText('Tooltip_CantCraftDriving')
-        self.craftAllButton.enable = false
-        self.craftAllButton.tooltip = getText('Tooltip_CantCraftDriving')
-    else
-        self.craftOneButton.tooltip = nil
-        self.craftAllButton.tooltip = nil
-        self.craftOneButton.enable = true
-        self.craftAllButton.enable = true
-    end
-    return y - sy
-end
-
 -- endregion
 
 -- region logic
 
 -- region event handlers
-
 
 function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y, item)
     local backRef = self.parent.parent.backRef
@@ -1265,8 +1387,21 @@ function CHC_uses_recipepanel:onIngredientMouseDown(item)
         })
     end
     if item.multipleHeader then
-        item.collapsed = not item.collapsed
-        self.needUpdateHeight = true
+        if (x >= favXPos) then
+            item.blockHiddenState = CHC_main.common.getNextState(blockHiddenStateSelector, item.blockHiddenState)
+            if item.availableNum == item.totalNum or item.unavailableNum == item.totalNum then
+                item.blockHiddenState = blockHiddenStateSelector[1]
+                item.blockHiddenStateLocked = true
+            end
+            if item.blockHiddenState == blockHiddenStateSelector[1] then
+                item.isBlockHidden = false
+            else
+                item.isBlockHidden = true
+            end
+        else
+            item.collapsed = not item.collapsed
+            self.needUpdateHeight = true
+        end
     end
 end
 
@@ -1362,79 +1497,70 @@ function CHC_uses_recipepanel:craftAll()
     self:craft(nil, true);
 end
 
+-- region evolved
 function CHC_uses_recipepanel:addRandomMenu()
     local context = ISContextMenu.get(0, getMouseX() + 10, getMouseY())
 
     local typesAvailable = self.selectedObj.typesAvailable
-    local typesToShow = {}
-    local spices = {}
+    local used = self.evolvedSelected.extraItems and #self.evolvedSelected.extraItems or 0
+    local max = self.selectedObj.recipe.recipeData.maxItems
 
-    for fullType, _ in pairs(typesAvailable) do
-        local item = CHC_main.items[fullType]
-        if item then
-            local foodType = item.item:IsFood() and item.item:getFoodType()
-            if foodType then
-                if foodType == "NoExplicit" then
-                    insert(spices, item)
-                else
-                    if not typesToShow[foodType] then typesToShow[foodType] = {} end
-                    insert(typesToShow[foodType], item)
-                end
-            else
-                for i = 1, #self.sourceSpice do
-                    if self.sourceSpice[i].fullType == fullType then
-                        insert(spices, item)
-                    end
-                end
-            end
-        end
-    end
-
-    local types = {}
-    for foodType, items in pairs(typesToShow) do
-        insert(types, { name = foodType, items = items })
-    end
-
-    tsort(types, function(a, b) return not ssort(a.name, b.name) end)
-    tsort(spices, function(a, b) return not ssort(a.name, b.name) end)
+    local types, spices = self:getValidEvolvedIngredients(typesAvailable)
 
     -- region ingredient
-    local ingredientMenu = context:addOption('Ingredient', nil, nil)
-    local ingredientSubMenu = ISContextMenu:getNew(context)
-    context:addSubMenu(ingredientMenu, ingredientSubMenu)
-    ingredientSubMenu:addOption('Random (All)', self, CHC_uses_recipepanel.addRandomCategory, types, nil, true)
-    ingredientSubMenu:addOption('Random (One)', self, CHC_uses_recipepanel.addRandomCategory, types)
-    for i = 1, #types do
-        local optName = getText("ContextMenu_FoodType_" .. types[i].name) .. " (" .. #types[i].items .. ")"
-        local opt = ingredientSubMenu:addOption(optName, self, CHC_uses_recipepanel.addRandomIngredient, types[i].items)
+    if used < max and not utils.empty(types) then
+        tsort(types, function(a, b) return not ssort(a.name, b.name) end)
+        local ingredientMenu = context:addOption(getText("IGUI_Evolved_Ingredient"), nil, nil)
+        local ingredientSubMenu = ISContextMenu:getNew(context)
+        context:addSubMenu(ingredientMenu, ingredientSubMenu)
+        if #types > 1 then
+            ingredientSubMenu:addOption(sformat("%s (%s)", getText("IGUI_Evolved_Random"), getText("UI_All")), self,
+                CHC_uses_recipepanel.addRandomCategory, types, nil, true)
+            ingredientSubMenu:addOption(sformat("%s (%s)", getText("IGUI_Evolved_Random"), getText("ContextMenu_One")),
+                self,
+                CHC_uses_recipepanel.addRandomCategory, types)
+        end
+        for i = 1, #types do
+            local optName = getText("ContextMenu_FoodType_" .. types[i].name) .. " (" .. #types[i].items .. ")"
+            local opt = ingredientSubMenu:addOption(optName, self, CHC_uses_recipepanel.addRandomIngredient,
+                types[i].items)
 
-        if #types[i].items == 1 then
-            local item = types[i].items[1]
-            local val = item.displayName .. " x " .. round(typesAvailable[item.fullType], 0)
-            opt.name = getText("ContextMenu_FoodType_" .. types[i].name) .. " (" .. val .. ")"
-        else
-            local ingredientCategorySubMenu = ISContextMenu:getNew(ingredientSubMenu)
-            ingredientSubMenu:addSubMenu(opt, ingredientCategorySubMenu)
-            for j = 1, #types[i].items do
-                local item = types[i].items[j]
-                ingredientCategorySubMenu:addOption(item.displayName .. " x " .. round(typesAvailable[item.fullType], 0),
-                    self, CHC_uses_recipepanel.addItemInEvolvedRecipe, item)
+            if #types[i].items == 1 then
+                local item = types[i].items[1]
+                local val = item.displayName .. " x " .. round(typesAvailable[item.fullType], 0)
+                opt.name = getText("ContextMenu_FoodType_" .. types[i].name) .. " (" .. val .. ")"
+            else
+                local ingredientCategorySubMenu = ISContextMenu:getNew(ingredientSubMenu)
+                ingredientSubMenu:addSubMenu(opt, ingredientCategorySubMenu)
+                for j = 1, #types[i].items do
+                    local item = types[i].items[j]
+                    ingredientCategorySubMenu:addOption(
+                        item.displayName .. " x " .. round(typesAvailable[item.fullType], 0),
+                        self, CHC_uses_recipepanel.addItemInEvolvedRecipe, item)
+                end
             end
         end
     end
-
     -- endregion
 
     -- region condiment
-    local condimentMenu = context:addOption('Condiment', nil, nil)
-    local condimentSubMenu = ISContextMenu:getNew(context)
-    context:addSubMenu(condimentMenu, condimentSubMenu)
-    condimentSubMenu:addOption('Random (All)', self, CHC_uses_recipepanel.addRandomCategory, spices, nil, true)
-    condimentSubMenu:addOption('Random (One)', self, CHC_uses_recipepanel.addRandomIngredient, spices)
-    for i = 1, #spices do
-        local opt = condimentSubMenu:addOption(
-            spices[i].displayName .. " x " .. round(typesAvailable[spices[i].fullType], 0), self,
-            CHC_uses_recipepanel.addItemInEvolvedRecipe, spices[i])
+    if used > 0 and not utils.empty(spices) then
+        tsort(spices, function(a, b) return not ssort(a.name, b.name) end)
+        local condimentMenu = context:addOption(getText("ContextMenu_FoodType_NoExplicit"), nil, nil)
+        local condimentSubMenu = ISContextMenu:getNew(context)
+        context:addSubMenu(condimentMenu, condimentSubMenu)
+        if #spices > 1 then
+            condimentSubMenu:addOption(sformat("%s (%s)", getText("IGUI_Evolved_Random"), getText("UI_All")), self,
+                CHC_uses_recipepanel.addRandomCategory, spices, nil, true)
+            condimentSubMenu:addOption(sformat("%s (%s)", getText("IGUI_Evolved_Random"), getText("ContextMenu_One")),
+                self,
+                CHC_uses_recipepanel.addRandomIngredient, spices)
+        end
+        for i = 1, #spices do
+            local opt = condimentSubMenu:addOption(
+                spices[i].displayName .. " x " .. round(typesAvailable[spices[i].fullType], 0), self,
+                CHC_uses_recipepanel.addItemInEvolvedRecipe, spices[i])
+        end
     end
     -- endregion
 end
@@ -1467,6 +1593,99 @@ function CHC_uses_recipepanel:addItemInEvolvedRecipe(item)
     print(item.displayName)
 end
 
+function CHC_uses_recipepanel:setSpecificEvolvedItem(evolvedOpt)
+    self.evolvedOpt = evolvedOpt
+    self:setObj(self.selectedObj.recipe)
+end
+
+function CHC_uses_recipepanel:getFoodData(ch)
+    local res = {}
+    local immersive = false
+    local playerTraits = CHC_menu.CHC_window.player:getTraits()
+    local canShowNutriData = not immersive or
+        ch.item:isPackaged() or
+        playerTraits:contains("Nutritionist") or
+        playerTraits:contains("Nutritionist2")
+
+    for name, data in pairs(ch.foodData) do
+        local isNutri = utils.startswith(name, "nutr_")
+        local isCal = utils.startswith(name, "nutr_cal_")
+        local title = data.text
+        local value = tostring(data.val)
+        local rgb = { r = 1, g = 1, b = 1 }
+
+        if not isNutri then
+            if (data.val >= 0 or data.posGood == false) and
+                (data.val <= 0 or data.posGood == true) then
+                rgb = { r = 0.3, g = 1, b = 0.2 }
+            else
+                rgb = { r = 0.8, g = 0.3, b = 0.2 }
+            end
+        end
+
+        if data.val == 0 then rgb = { r = 1, g = 1, b = 1 } end
+
+        if data.val > 0 and not isNutri then
+            value = "+" .. value
+        end
+
+        rgb.a = 1
+        if not isNutri or canShowNutriData then
+            local item = { title = title, color = rgb, value = value, isCal = isCal, valPrecise = data.valPrecise }
+            if not isCal then
+                item.icon = data.icon
+            end
+            insert(res, item)
+        end
+    end
+    return res
+end
+
+function CHC_uses_recipepanel:getTooltipForEvolvedItem(ch)
+    local function collectOptions(options, contains)
+        local itemCounts = {}
+        local counts = {}
+        for c = 1, #options do
+            local item = options[c]
+            if not itemCounts[item.fullType] then
+                itemCounts[item.fullType] = { item = item, count = 1 }
+            else
+                itemCounts[item.fullType].count = itemCounts[item.fullType].count + 1
+            end
+        end
+
+        for _, value in pairs(itemCounts) do
+            insert(counts, value)
+        end
+        tsort(counts, function(a, b) return a.item.displayName < b.item.displayName end)
+
+        for i = 1, #counts do
+            local value = counts[i]
+            local label = "- " .. "<IMAGE:" .. value.item.texture:getName() .. ",32,32>" .. value.item.displayName
+            if value.count > 1 then
+                label = label .. " x " .. value.count
+            end
+            insert(contains, label)
+        end
+    end
+
+    local contains = {}
+    insert(contains, ch.displayNameExtra)
+
+    if ch.extraItems then
+        insert(contains, "<RGB:0.5,0.5,0.5>_______________ <RGB:1,1,1>")
+        insert(contains, sformat("<RGB:0.8,0.8,0.8> %s <RGB:1,1,1>", getText("Tooltip_item_Contains")))
+        collectOptions(ch.extraItems, contains)
+
+        if ch.extraSpices then
+            insert(contains, sformat("<RGB:0.8,0.8,0.8> %s <RGB:1,1,1>", getText("Tooltip_item_Spices")))
+            collectOptions(ch.extraSpices, contains)
+        end
+    end
+    insert(contains, "")
+    return table.concat(contains, '\n')
+end
+
 function CHC_uses_recipepanel:selectSpecificMenu()
     local context = ISContextMenu.get(0, getMouseX() + 10, getMouseY())
 
@@ -1475,21 +1694,10 @@ function CHC_uses_recipepanel:selectSpecificMenu()
     for i = 1, #choices do
         local ch = choices[i]
         local optName = ch.itemObj.displayName
-        local optText
-        local used = 0
-        -- if used == max can only add spices
-
-        if ch.extraItems then
-            used = #ch.extraItems
-            local contains = { "Contains:" }
-            for c = 1, used do
-                insert(contains, "- " .. "<IMAGE:" .. ch.extraItems[c].texture:getName() .. ">" .. ch.extraItems[c]
-                    .displayName)
-            end
-            optText = table.concat(contains, '\n')
-        end
+        local used = ch.extraItems and #ch.extraItems or 0
+        local optText = self:getTooltipForEvolvedItem(ch)
         optName = optName .. " (" .. used .. "/" .. max .. ")"
-        local opt = context:addOption(optName, self, nil)
+        local opt = context:addOption(optName, self, self.setSpecificEvolvedItem, ch)
         opt.iconTexture = ch.itemObj.texture
         if optText then
             CHC_main.common.setTooltipToCtx(opt, optText)
@@ -1499,52 +1707,154 @@ end
 
 -- endregion
 
+-- endregion
+
+function CHC_uses_recipepanel:getValidEvolvedIngredients(typesAvailable)
+    local typesToShow = {}
+    local spices = {}
+    local containsSpices = {}
+    local baseItem = self.selectedObj.recipe.recipeData.baseItem
+
+    if self.evolvedSelected then
+        containsSpices = self.evolvedSelected.extraSpicesMap or {}
+    end
+
+    for fullType, _ in pairs(typesAvailable) do
+        local item = CHC_main.items[fullType]
+        if item and item.fullType ~= baseItem then
+            local foodType = item.item:IsFood() and item.item:getFoodType()
+            if foodType then
+                local concreteItem = CHC_main.common.getNearbyItems(self.containerList, { item.fullType })
+                concreteItem = concreteItem[1].item
+                local evoRecipe = self.selectedObj.recipeObj
+                -- source: ISInventoryPaneContextMenu.addItemInEvoRecipe
+                local isValidCooked = false
+                local isInvalidFrozen = true
+                if concreteItem then
+                    isValidCooked = evoRecipe:needToBeCooked(concreteItem)
+                    isInvalidFrozen = concreteItem:getFreezingTime() > 0 and (not evoRecipe:isAllowFrozenItem())
+                end
+                local isSpice = item.propsMap and item.propsMap["Spice"] and
+                    tostring(item.propsMap["Spice"].value) == "true"
+
+                if isValidCooked and not isInvalidFrozen then -- TODO add tooltip
+                    if (foodType == "NoExplicit" or isSpice) and not containsSpices[item.fullType] then
+                        insert(spices, item)
+                    else
+                        if not typesToShow[foodType] then typesToShow[foodType] = {} end
+                        insert(typesToShow[foodType], item)
+                    end
+                end
+            else
+                local sourceSpice = self.sourceSpice or {}
+                for i = 1, #sourceSpice do
+                    if sourceSpice[i].fullType == fullType and not containsSpices[item.fullType] then
+                        insert(spices, item)
+                    end
+                end
+            end
+        end
+    end
+
+    local types = {}
+    for foodType, items in pairs(typesToShow) do
+        insert(types, { name = foodType, items = items })
+    end
+    return types, spices
+end
+
 function CHC_uses_recipepanel:updateButtons(obj)
-    local statsH = self.height - self.mainInfo.height - 3 * self.padY
+    self.buttonVisible = false
+    local statsY = self.mainInfo.y + self.mainInfo:getBottom() + self.padY
+    local statsH = self.height - self.mainInfo.height - 5 * self.padY
+
+    local buttonStates = {
+        craftOne = false,
+        craftAll = false,
+        evoSpecific = false,
+        evoIngr = false
+    }
+
     if obj.available then
         if obj.recipe.isEvolved then
-            -- local items = CHC_main.common.getNearbyItems(self.containerList) -- getExtraItems
-            -- getEvolvedRecipe
-            local baseItemToCheck = obj.recipe.recipeData.baseItem
-            local baseItemToCheck2 = obj.recipe.recipeData.fullResultItem
-            local items = CHC_main.common.getNearbyItems(self.containerList, { baseItemToCheck, baseItemToCheck2 })
-            self.evolvedChoices = items
-            if not utils.empty(items) and #items > 1 then
-                self.selectSpecificButton:setX(self.addRandomButton.x + self.addRandomButton.width + 5)
-                self.selectSpecificButton:setVisible(true)
-            else
-                self.selectSpecificButton:setVisible(false)
+            if not obj.typesAvailable then
+                obj.typesAvailable = self:getAvailableItemsType()
             end
-            self.addRandomButton:setVisible(true)
-            self.craftOneButton:setVisible(false)
-            self.craftAllButton:setVisible(false)
+            if not utils.empty(self.evolvedChoices) and #self.evolvedChoices > 1 then
+                buttonStates.evoSpecific = true
+            end
+            if not utils.empty(obj.typesAvailable) then
+                if self.evolvedSelected then
+                    local types, spices = self:getValidEvolvedIngredients(obj.typesAvailable)
+                    local isIngr = not utils.empty(types)
+                    local isSpices = not utils.empty(spices)
+                    local isExtra = self.evolvedSelected.extraItems
+                    local c1 = isExtra and #self.evolvedSelected.extraItems == obj.maxItems and isSpices
+                    local c2 = isExtra and #self.evolvedSelected.extraItems < obj.maxItems and (isIngr or isSpices)
+                    local c3 = not isExtra and isIngr
+                    if c1 or c2 or c3 then
+                        local rndButX = 5
+                        if buttonStates.evoSpecific then
+                            rndButX = rndButX + self.selectSpecificButton.x + self.selectSpecificButton.width
+                        end
+                        self.addRandomButton:setX(rndButX)
+                        buttonStates.evoIngr = true
+                    end
+                end
+            end
         else
-            self.evolvedChoices = nil
-            self.selectSpecificButton:setVisible(false)
-            self.addRandomButton:setVisible(false)
-            self.craftOneButton:setVisible(true)
+            buttonStates.craftOne = true
             if obj.howManyCanCraft > 1 then
                 self.craftAllButton:setTitle(getText("IGUI_CraftUI_ButtonCraftAllCount",
                     obj.howManyCanCraft))
                 self.craftAllButton:setX(self.craftOneButton.x + self.craftOneButton.width + 5)
                 self.craftAllButton:setWidth(10 +
                     getTextManager():MeasureStringX(UIFont.Small, self.craftAllButton.title))
-                self.craftAllButton:setVisible(true)
-            else
-                self.craftAllButton:setVisible(false)
+
+                buttonStates.craftAll = true
             end
         end
         -- draw buttons
-        self.statsList:setY(self.addRandomButton.y + self.addRandomButton.height + self.padY)
-        statsH = statsH - self.addRandomButton.height - self.padY - 2
-    else
-        self.selectSpecificButton:setVisible(false)
-        self.addRandomButton:setVisible(false)
-        self.craftOneButton:setVisible(false)
-        self.craftAllButton:setVisible(false)
-        self.statsList:setY(self.mainInfo.y + self.mainInfo:getBottom() + self.padY)
+        if utils.any({
+                buttonStates.craftOne,
+                buttonStates.craftAll,
+                buttonStates.evoSpecific,
+                buttonStates.evoIngr
+            }, true) then
+            self.buttonVisible = true
+            statsY = statsY + self.addRandomButton.height + self.padY
+            statsH = statsH - self.addRandomButton.height - self.padY - 2
+        end
     end
+
+    self.craftOneButton:setVisible(buttonStates.craftOne)
+    self.craftAllButton:setVisible(buttonStates.craftAll)
+    self.selectSpecificButton:setVisible(buttonStates.evoSpecific)
+    self.addRandomButton:setVisible(buttonStates.evoIngr)
+
+    self.statsList:setY(statsY)
     self.statsList:setHeight(statsH)
+end
+
+function CHC_uses_recipepanel:handleOverflow(label, maxWidth)
+    if label.name ~= label.origName or label.width > maxWidth then
+        local newName = CHC_main.common.handleTextOverflow(label, maxWidth)
+        label:setName(newName)
+        if not label.origTooltip then
+            label:setTooltip(label.origName)
+        else
+            label:setTooltip(label.origTooltip .. "\n" .. label.origName)
+        end
+    end
+    if label.name == label.origName then
+        label:setTooltip(label.origTooltip)
+    end
+end
+
+function CHC_uses_recipepanel:getEvolvedChoices(obj, containerList)
+    local recipeData = obj.recipe.recipeData
+    self.evolvedChoices = CHC_main.common.getNearbyItems(containerList,
+        { recipeData.baseItem, recipeData.fullResultItem })
 end
 
 -- endregion
@@ -1590,5 +1900,8 @@ function CHC_uses_recipepanel:new(args)
     o.itemFavNotCheckedTex = getTexture('media/textures/CHC_item_favorite_star_outline.png')
     o.treeexpicon = getTexture("media/ui/TreeExpanded.png")
     o.treecolicon = getTexture("media/ui/TreeCollapsed.png")
+    o.blockAVIcon = getTexture("media/textures/CHC_blockAV.png")
+    o.blockUNIcon = getTexture("media/textures/CHC_blockUN.png")
+    o.blockAllIcon = getTexture("media/textures/type_filt_all.png")
     return o;
 end

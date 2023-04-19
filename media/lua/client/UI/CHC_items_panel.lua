@@ -83,9 +83,11 @@ function CHC_items_panel:createChildren()
 
     self.statsList = CHC_sectioned_panel:new(stats_args)
     self.statsList:initialise()
+    self.statsList:instantiate()
+    self.statsList:setAnchorRight(true)
+    self.statsList:setAnchorBottom(true)
     self.statsList.maintainHeight = false
-    self.statsList:addScrollBars()
-    self.statsList:setScrollChildren(true)
+    -- self.statsList:addScrollBars()
     self.statsList:setVisible(false)
     -- endregion
 
@@ -94,7 +96,7 @@ function CHC_items_panel:createChildren()
         x = self.margin,
         y = y,
         w = self.width - 2 * self.margin,
-        h = 1, --self.height - self.mainInfo.height - self.padY,
+        h = self.height - self.mainInfo.height - self.padY,
         backRef = self.backRef
     }
     self.itemProps = CHC_props_table:new(props_table_args)
@@ -114,6 +116,8 @@ function CHC_items_panel:createChildren()
 
     self:addChild(self.mainInfo)
     self:addChild(self.statsList)
+
+    self.statsList:setScrollChildren(true)
 
     self.mainX = mainX
     self.mainY = mainY

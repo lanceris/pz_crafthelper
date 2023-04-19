@@ -10,7 +10,7 @@ local CHC_section = CHC_sectioned_panel_section
 
 function CHC_section:createChildren()
     local btnH = math.max(24, getTextManager():MeasureStringY(self.font, self.title) + 2 * self.padY)
-    self.headerButton = ISButton:new(self.padY, 0, self.headerButtonWidth, btnH, self.title, self,
+    self.headerButton = ISButton:new(0, 0, self.headerButtonWidth, btnH, self.title, self,
         self.onHeaderClick)
     self.headerButton:initialise()
     self.headerButton:setFont(self.font)
@@ -42,11 +42,10 @@ function CHC_section:onHeaderClick()
 end
 
 function CHC_section:calcHeightNonList(panel)
-    -- FIXME
     local maxItems = 8
     return 3 * panel.padY +
         panel.searchRow.height +
-        math.min(#panel.objList.items, maxItems) * panel.objList.itemheight
+        (math.min(#panel.objList.items, maxItems) + 1) * panel.objList.itemheight
 end
 
 function CHC_section:calcHeightList(objList, maxItems)
@@ -130,8 +129,8 @@ function CHC_section:new(x, y, width, height, panel, title, rightMargin, headerW
     else
         o.headerButtonWidth = headerWidth
     end
-    o.headerBgColor = { r = 0.44, g = 0.44, b = 0.79, a = 0.8 }
-    o.headerBgColorMouseOver = { r = 0.44, g = 0.44, b = 0.79, a = 0.6 }
+    o.headerBgColor = { r = 0.15, g = 0.15, b = 0.15, a = 0.8 }
+    o.headerBgColorMouseOver = { r = 0.2, g = 0.2, b = 0.2, a = 0.8 }
     o.headerBorderColor = { r = 1, g = 1, b = 1, a = 0.3 }
     return o
 end
@@ -211,11 +210,6 @@ function CHC_sectioned_panel:prerender()
         sy2 = self.javaObject:clampToParentY(self:getAbsoluteY() + sy2) - self:getAbsoluteY()
     end
     self:setStencilRect(sx, sy, sx2 - sx, sy2 - sy)
-end
-
-function CHC_sectioned_panel:onResize()
-    ISPanel.onResize(self)
-    self:setWidth(self.parent.width - self.padY)
 end
 
 function CHC_sectioned_panel:render()

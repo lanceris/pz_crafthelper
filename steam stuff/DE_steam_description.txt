@@ -1,0 +1,93 @@
+[h1]Craft Helper für Build 41.65+[/h1]
+
+Dies ist eine aktualisierte Version von [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2186592938]Craft Helper (41.x) von b1n0m[/url] mit zusätzlichen Funktionen und verbesserter Benutzeroberfläche.
+
+Diese Mod fügt eine "Craft Helper" Option im Kontextmenü hinzu, wenn man mit der rechten Maustaste auf einen Gegenstand mit zugehörigen Rezepten klickt.
+Diese Mod fügt eine "Craft Helper" Option im Kontextmenü hinzu, wenn man mit der rechten Maustaste auf einen Gegenstand mit zugehörigen Rezepten klickt.
+Die Auswahl dieser Option wird eine UI mit einer Liste von Rezepten aufrufen, zu denen dieser Gegenstand gehört, sowie Möglichkeiten zur Herstellung dieses Gegenstands.
+Wenn du ein Rezept auswählst, werden Informationen dazu angezeigt (benötigte Gegenstände, Fähigkeiten usw.). Das Ergebnissymbol und die erforderlichen Gegenstände sind mit der rechten Maustaste anklickbar.
+Ausführliche Informationen zur Oberfläche findest Du unter dem ⓘ (Info) Symbol neben der Schließtaste.
+
+Neben der Registerkarte "Gegenstände" gibt es auch zwei allgemeine Registerkarten:
+[list]
+[*] Registerkarte "Suche", in der du alle Gegenstände und Rezepte finden kannst (kann bei vielen Mods stocken)
+[*] Registerkarte "Favoriten", wo du alle Lieblingsartikel und -rezepte finden kannst
+[/list]
+
+Sicheres Hinzufügen/Entfernen zu/von vorhandenen Spielständen
+Sollte mit allen Mods und Multiplayer kompatibel sein
+
+[hr][/hr]
+[h2]Funktionen[/h2]
+[list]
+[*]Fenster schließen mit ESC
+[*]Kategorieauswahl. Wähle die gewünschte Kategorie und filtere die riesige Liste der Rezepte.
+[*]Fensterposition in der Konfiguration gespeichert. Kein Ärger mehr mit Größenänderungen/Verschiebungen!
+[*]Suchleiste. Unterstützt benutzerdefinierte Regeln (Klick auf Lupe)
+[*]Schaltflächen zur Sortierung der Liste nach Name oder Typ
+[*]Die Möglichkeit, Rezepte und Artikel zu favorisieren. Sogar unbekannte!
+[/list]
+
+[hr][/hr]
+[h2]Optionen ([url=https://steamcommunity.com/workshop/filedetails/?id=2169435993]Mod-Optionen[/url] zum Ändern erforderlich):[/h2]
+[list]
+[*] Unterstützung für benutzerdefinierte Regeln aktivieren (standardmäßig EIN)
+[*] Symbole in der Liste anzeigen (AN)
+[*] Versteckte Artikel/Rezepte anzeigen (AUS)
+[*] Alle Tabs beim Schließen schließen (OFF)
+[*] Schriftgröße für Gegenstände in der Liste auswählen (Groß)
+[*] Modifikatortasten (Shift, Ctrl) für einige Tastenkombinationen (alle Keine)
+[*] Rezeptursprung anzeigen (Mod) (ON)
+[*] Aktiviere editierbare Kategorieauswahl (standardmäßig AUS)
+[*] Favoritengegenstände im Inventar anzeigen (standardmäßig AUS)
+[*] Option im Kontextmenü zum Auswählen und Umschalten des Favoritenstatus eines Gegenstands (Umschalt + Rechtsklick auf den Gegenstand)
+[*] Verzögerte Suche ("Eingabe" muss gedrückt werden, um die Suche durchzuführen) (standardmäßig AUS)
+[/list]
+Außerdem kannst du unter "Mod-Optionen" für einige Aktionen Tastenkombinationen festlegen (Tastenkombinationen -> Craft Helper).
+
+[hr][/hr]
+[h3]Unterstützte Sprachen:[/h3]
+[list]
+[*]Englisch
+[*]Russisch
+[*]Spanisch (teilweise)
+[*]Thailändisch
+[*]Koreanisch
+[*]Brasilianisches Portugiesisch
+[*]Traditionelles Chinesisch
+[*]Polnische
+[*]Deutsche
+[/list]
+
+Falls Du bei der Übersetzung helfen möchtest, gehe bitte auf die Crowdin-Seite:
+[url=https://crowdin.com/project/craft-helper-continued][img]https://i.postimg.cc/0NPptXbN/localization-at-white-rounded-bordered-1x.png[/img][/url]
+
+
+[h3]Vielen Dank an alle, die diese Mod verbessert haben![/h3]
+[list][*][url=https://github.com/lanceris/pz_crafthelper/blob/main/CONTRIBUTORS.md]List of contributors[/url][/list]
+
+[h3]Zukünftige Pläne:[/h3]
+[list][*][url=https://trello.com/b/KmLQqo32/craft-helper-continued]Trello[/url][/list]
+
+[url=https://github.com/lanceris/pz_crafthelper]Source code[/url]
+
+[h2]Wenn dir dieser Mod gefällt, like, favorisiere ihn bitte und überlege dir, ob du mich mit einem Kaffee unterstützen willst :) [/h2]
+[IMG]https://i.imgur.com/6OBlYju.gif[/IMG]
+[url=https://www.buymeacoffee.com/lanceris][img]https://i.postimg.cc/T20N6mr1/default-yellow.png[/img][/url]
+
+
+[hr][/hr]
+[quote]Mod permission according to TIS policy: [url=https://theindiestone.com/forums/index.php?/topic/2530-mod-permissions/&tab=comments#comment-36478]Ask for permission[/url]
+This mod can only be added to and extended with the express permission from the original creator. Having received permission, credit must be given to the original creator, both within the files of the mod and wherever the mod roams online.
+If no permission is received you may not alter the mod, and it must be treated as a mod that is 'On Lockdown'.
+
+This item is not authorized for posting on Steam, except under the Steam account [url=https://steamcommunity.com/id/lanceris]Lanceris[/url], or with the copyright holder explicit permission.
+
+One exception for the above rule is redistribution of this mod (and/or modified versions) as part of the server modpack (collection of multiple mods bundled and configured together as one workshop item).
+Support will NOT be provided for users, while they are using such modpacks.
+
+© 2022 Lanceris
+[/quote]
+
+Workshop ID: 2787291513
+Mod ID: CraftHelperContinued

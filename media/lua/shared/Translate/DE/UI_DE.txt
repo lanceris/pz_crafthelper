@@ -1,0 +1,106 @@
+UI_DE = {
+    UI_item_uses_tab_name = "Verwendet"
+    UI_item_craft_tab_name = "Herstellen"
+    UI_common_left_col_name = "Rezept"
+    UI_common_right_col_name = "Details"
+    UI_search_tab_name = "Suchen"
+    UI_search_items_tab_name = "Gegenstände"
+    UI_search_recipes_tab_name = "Rezepte"
+    UI_recipe_panel_required_book = "Erforderliche Bücher (eines von)"
+    UI_recipe_panel_near_item = "Erforderliches Bau-Equipment"
+    UI_settings_st_title = "Sortierreihenfolge"
+    UI_settings_av_title = "Verfügbarkeit"
+    UI_settings_av_valid = "Gültig"
+    UI_settings_av_known = "Bekannt"
+    UI_settings_av_invalid = "Ungültig"
+    UI_optionscreen_binding_chc_category_title = "Craft Helper"
+    UI_optionscreen_binding_chc_move_up = "Vorheriges Rezept auswählen"
+    UI_optionscreen_binding_chc_move_down = "Nächstes Rezept auswählen"
+    UI_optionscreen_binding_chc_move_left = "Vorherige Kategorie auswählen"
+    UI_optionscreen_binding_chc_move_right = "Nächste Kategorie auswählen"
+    UI_optionscreen_binding_chc_craft_one = "Einen herstellen"
+    UI_optionscreen_binding_chc_craft_all = "Alle herstellen"
+    UI_optionscreen_binding_chc_favorite_recipe = "Ausgewähltes Rezept favorisieren"
+    UI_optionscreen_binding_chc_close_window = "Craft Helper Fenster schließen"
+    UI_optionscreen_binding_chc_toggle_window = "Aktiviere Craft Helper Fenster"
+    UI_optionscreen_binding_chc_toggle_uses_craft = "Umschalten zwischen Nutzungen/Handwerk"
+    UI_optionscreen_binding_chc_move_tab_left = "Vorherigen Tab auswählen"
+    UI_optionscreen_binding_chc_move_tab_right = "Nächsten Tab wählen"
+    UI_optionscreen_binding_chc_toggle_focus_search_bar = "Suchleiste fokussieren"
+    UI_infotext_search = "<CENTRE><SIZE:medium> Suchbildschirm <LINE><LINE> "..
+                         "<SIZE:small> <LEFT> Hier findest du alle Gegenstände und Rezepte. <LINE><LINE> "
+    UI_infotext_favorites = "<CENTRE><SIZE:medium> Favoritenbildschirm <LINE><LINE> "..
+                            "<SIZE:small> <LEFT> Hier findest du favorisierte Gegenstände und Rezepte. <LINE><LINE> "
+    UI_infotext_itemtab = "<CENTRE><SIZE:medium>Gegenstandsbildschirm <LINE>"..
+                          "<SIZE:small> <LEFT> Hier finden Sie detaillierte Informationen über '%1' <LINE> "..
+                          "Der erste Tab (%2) zeigt Rezepte, wo '%1' als Zutat verwendet wird. <LINE> "..
+                          "Der zweite Tab (%3) zeigt Rezepte, deren Ergebnis '%1' ist. <LINE><LINE> "
+    UI_infotext_common = "<INDENT:0> Die linke Spalte (Rezept) zeigt die Liste der Gegenstände/Rezepte mit zusätzlichen Steuerelementen. Die erste Zeile ist die Filterzeile. <LINE><LINE> "..
+                         "<IMAGECENTRE:media/textures/info_filter_row.png> <LINE>"..
+                         "<INDENT:8>Knopf 1 zeigt die aktuelle Sortierreihenfolge der Gegenstände/Rezepte. Klicke auf den Knopf, um die Reihenfolge zu ändern. <LINE>"..
+                         "Knopf 2 erlaubt die Auswahl der Art der gewünschten Ausgabe: <LINE>"..
+                         "<INDENT:16> %1 <LINE>"..
+                         "<INDENT:8> Element 3 ist die Kategorieauswahl, wo Sie die gewünschte Kategorie angeben können. <LINE><LINE>"..
+                         "Unter der Filterzeile befindet sich die Suchleiste, in der Sie je nach Artikel/Rezeptnamen oder nach bestimmten Regeln suchen können. <LINE>"..
+                         "Um mehr über Suchregeln zu erfahren, klicken Sie auf <IMAGE:media/textures/search_icon.png> <LINE><LINE>"..
+                         "<INDENT:0> Die rechte Spalte (Details) zeigt die Details des Gegenstandes/Rezepts an: <LINE>"..
+                         "<INDENT:8> %2 <LINE><LINE>"..
+                         "<INDENT:0><SIZE:medium>Steuerung: <SIZE:small><LINE><LINE>"..
+                         "<INDENT:16> - Sie können die Größe von Rezept- und Detailspalten durch Ziehen der Linie zwischen deren Namen ändern <LINE> "..
+                         " - Rechtsklick auf den Namen der Registerkarte um das Kontextmenü zu öffnen <LINE>"..
+                         "%3 <LINE>"..
+                         " Mit 'Mod Options' können Sie Hotkeys für häufige Aktionen festlegen"
+    UI_infotext_recipe_types = "<IMAGE:media/textures/type_filt_all.png> <SPACE>(%1): Alle Rezepte <LINE> "..
+                               "<IMAGE:media/textures/type_filt_valid.png> (%2): Rezepte, die Du sofort herstellen kannst <LINE> "..
+                               "- <IMAGE:media/textures/type_filt_known.png> (%3): Rezepte, die Du kennst, aber nicht herstellen kannst (Mangel an Fähigkeiten/Gegenständen) <LINE> "..
+                               "- <IMAGE:media/textures/type_filt_invalid.png> (%4): Rezepte, von denen Sie nichts wissen. Zeigt Bücher, aus denen man es lernen kann."
+    UI_infotext_item_types = " - Kleidung <LINE> - Nahrung <LINE> - Waffe <LINE> - ..."
+    UI_infotext_recipe_details = " - Informationen über die Rezeptkategorie und die daraus resultierende(n) Objekte(n) <LINE> "..
+                                 " - Erforderliche Gegenstände <LINE>"..
+                                 " - Sonstige Anforderungen (Fähigkeiten, Bücher, Werkzeuge und Zeit zum Basteln)"
+    UI_infotext_item_details = " - Grundlegende Informationen über den Gegenstand und die Anzahl der Rezepte <LINE> "..
+                               " - Gegenstandseigenschaften <LINE> "..
+                               " - Wie man diesen Gegenstand repariert (falls möglich) (WIP) <LINE>"..
+                               " - Wo man diesen Gegenstand findet (WIP)"
+    UI_infotext_recipe_mouse = " - Linksklick auf das Sternsymbol (Rezept-Spalte, Maus über Element) zum (Un-)Lieblingsrezept <LINE> "..
+                               " - Rechtsklick auf das Symbol für das Rezeptergebnis (Detailspalte), um das Kontextmenü zu öffnen <LINE> "..
+                               " - Rechtsklick auf ein Gegenstand in der Spalte "Erforderliche Gegenstände" (Details), um das Kontextmenü zu öffnen"
+    UI_infotext_item_mouse = " - Mittlere Maustaste auf ein Gegenstand (Rezeptspalte), um eine neue Registerkarte mit dem angeklickten Objekt im Hintergrund zu öffnen <LINE>"..
+                             " - Rechtsklick auf ein Gegenstand (Rezeptspalte), um das Kontextmenü zu öffnen <LINE>"..
+                             " - Rechtsklick auf das Gegenstandssymbol (Detailspalte), um das Kontextmenü zu öffnen <LINE>"..
+                             " - Umschalt + Rechtsklick auf einige Elemente (siehe oben) zeigt zusätzliche Optionen an"
+    UI_searchrow_info = "<CENTRE><SIZE:medium> Suchhilfe <LINE><LINE> "..
+                        "<LEFT><SIZE:small> Diese Suchleiste unterstützt benutzerdefinierte Regeln. Jede getrennte Abfrage (Wort) heißt Token. <LINE>"..
+                        "Du kannst nach mehreren Suchanfragen gleichzeitig suchen, indem du Trennzeichen verwendest. <LINE>"..
+                        "Du kannst jedem Token Sonderzeichen voranstellen, um Suchregeln für dieses Token festzulegen. <LINE>"..
+                        "Mit 'Mod Options' kannst Du einen Hotkey zum Fokussieren der Suchleiste festlegen. Aufheben der Fokussierung mit ESC. <LINE><LINE>"..
+                        "<SIZE:medium> Trennzeichen: <LINE> <SIZE:small> "..
+                        "<INDENT:8> <SIZE:medium> , <SIZE:small> <SPACE><SPACE>(Komma) - kombiniert alle Token-Ergebnisse (logisches UND), kann für sehr spezifische Filterung verwendet werden <LINE> "..
+                        "<SIZE:medium> | <SIZE:small> <SPACE><SPACE>(vertikaler Balken) - trennt alle Token (logisches ODER), kann verwendet werden, um mehrere Abfragen getrennt zu suchen <LINE><LINE> "..
+                        "<INDENT:0><SIZE:medium> Sonderzeichen: <LINE> <SIZE:small> "..
+                        "<INDENT:8>%1"..
+                        "<SIZE:medium> ~ <SIZE:small> <SPACE><SPACE>(Tilde) - schließt dieses Token aus (d.h. findet alles, was NICHT zum Token gehört; muss nach dem Sonderzeichen stehen, wenn es verwendet wird) <LINE><LINE>"..
+                        "<INDENT:0><SIZE:medium> <LEFT> Beispiele: <LINE> <SIZE:small> "..
+                        "<INDENT:8>%2<LINE>"..
+                        "<INDENT:0><SIZE:medium> Beschränkungen: <LINE><SIZE:small> "..
+                        "<INDENT:8>- Kann nicht beide Trennzeichen (',' und '|') in einer Abfrage verwenden <LINE> "
+    UI_searchrow_info_recipes_special = "<SIZE:medium> ! <SIZE:small> <SPACE><SPACE>(Ausrufezeichen) - Suche nach Rezeptkategorie <LINE>"..
+                                        "<SIZE:medium> @ <SIZE:small> <SPACE><SPACE>(At-Zeichen) - Suche nach dem Mod-Namen des resultierenden Objekts ('Project Zomboid' für Vanilla 'mod') <LINE>"..
+                                        "<SIZE:medium> # <SIZE:small> <SPACE><SPACE>(Nummernzeichen) - Suche nach Rezeptzutaten <LINE>"..
+                                        "<SIZE:medium> $ <SIZE:small> <SPACE><SPACE>(Dollar-Zeichen) - Suche nach der Kategorie des resultierenden Gegenstands (wird auf der rechten Seite des Inventarbereichs angezeigt) <LINE>"..
+                                        "<SIZE:medium> % <SIZE:small> <SPACE><SPACE>(Prozentzeichen) - Suche nach dem Namen des resultierenden Gegenstands <LINE>"..
+                                        "<SIZE:medium> ^ <SIZE:small> <SPACE><SPACE>(Zirkumflex) - Suche nach bevorzugten Rezepten <LINE>"..
+                                        "<SIZE:medium> & <SIZE:small> <SPACE><SPACE>(Et-Zeichen) - Suche nach dem Mod-Namen des Rezepts ("Base" für Vanilla-"Mod") <LINE>"
+    UI_searchrow_info_items_special = "<SIZE:medium> ! <SIZE:small> <SPACE><SPACE>(Ausrufezeichen) - Suche nach Objekttyp <LINE>"..
+                                      "<SIZE:medium> @ <SIZE:small> <SPACE><SPACE>(At-Zeichen) - Suche nach dem Mod-Namen des Gegenstands ('Projekt Zomboid' für Vanilla-'Mod') <LINE>"..
+                                      "<SIZE:medium> # <SIZE:small> <SPACE><SPACE>(Nummernzeichen) - Suche nach Gegenstandskategorie (rechts neben dem Inventar-Panel) <LINE>"..
+                                      "<SIZE:medium> $ <SIZE:small> <SPACE><SPACE>(Dollarzeichen) - Suche nach Gegenstandseigenschaften <LINE>"
+    UI_searchrow_info_item_attributes_special = "<SIZE:medium> ! <SIZE:small> <SPACE><SPACE>(Ausrufezeichen) - Suche nach Attributnamen <LINE>"..
+                                                "<SIZE:medium> @ <SIZE:small> <SPACE><SPACE>(At-Zeichen) - Suche nach Attributwert <LINE>"
+    UI_searchrow_info_recipes_examples = "#hamm <SPACE><SPACE>- Rezepte anzeigen, deren Zutaten etwas mit "hamm" im Namen enthalten<LINE>"..
+                                         "@hydrocra,!engineer,#saw <SPACE><SPACE>- Rezepte von Hydrocraft (oder ähnlichem) in der Rezeptkategorie "Ingenieur" anzeigen, die "Säge" als Zutat haben <LINE>"..
+                                         "%plank|!food <SPACE><SPACE>- Rezepte anzeigen, wo 'plank' das Ergebnis ist, ODER Rezepte in 'food' Kategorie <LINE> "
+    UI_searchrow_info_items_examples = "#tool,!~Waffe <SPACE><SPACE>: Zeige Werkzeuge, die keine Waffe sind (z. B. Nadel, Säge, Zange) <LINE> "..
+                                       "$maxdamage>4,$maxdamage<5 <SPACE><SPACE>- Elemente mit MaxDamage Attribut zwischen 4 und 5 anzeigen <LINE> "
+    UI_searchrow_info_item_attributes_examples = "!>a,!<c <SPACE><SPACE>: Zeigt Attribute an, deren Name von a oder b beginnt <LINE> "
+}

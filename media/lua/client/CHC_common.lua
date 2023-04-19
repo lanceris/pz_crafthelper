@@ -268,13 +268,94 @@ function CHC_main.common.getNearbyItems(containerList, fullTypesToCheck)
             local fullType = item:getFullType()
             local result = { item = item, itemObj = CHC_main.items[fullType] }
             if not fullTypesToCheck or utils.any(fullTypesToCheck, fullType) then
+                result.displayNameExtra = item:getDisplayName()
                 local extraItems = item:getExtraItems()
                 if extraItems then
                     local extraItemObjs = {}
+                    local extraItemMap = {}
                     for j = 0, extraItems:size() - 1 do
-                        insert(extraItemObjs, CHC_main.items[extraItems:get(j)])
+                        local obj = CHC_main.items[extraItems:get(j)]
+                        if obj then
+                            extraItemMap[obj.fullType] = true
+                            insert(extraItemObjs, obj)
+                        end
                     end
+                    result.extraItemsMap = extraItemMap
                     result.extraItems = extraItemObjs
+                end
+                if instanceof(item, "Food") then
+                    local foodData = {
+                        hunger = {
+                            text = getText("Tooltip_food_Hunger"),
+                            val = round(item:getHungerChange() * 100, 0),
+                            posGood = false,
+                            icon = getTexture("media/textures/evolved_food_data/CHC_hunger.png")
+                        },
+                        thirst = {
+                            text = getText("Tooltip_food_Thirst"),
+                            val = round(item:getThirstChange() * 100, 0),
+                            posGood = false,
+                            icon = getTexture("media/textures/evolved_food_data/CHC_evolved_thirst.png")
+                        },
+                        endurance = {
+                            text = getText("Tooltip_food_Endurance"),
+                            val = round(item:getEnduranceChange() * 100, 0),
+                            posGood = true,
+                            icon = getTexture("media/textures/evolved_food_data/CHC_endurance.png")
+                        },
+                        stress = {
+                            text = getText("Tooltip_food_Stress"),
+                            val = round(item:getStressChange() * 100, 0),
+                            posGood = false,
+                            icon = getTexture("media/textures/evolved_food_data/CHC_stress.png")
+                        },
+                        boredom = {
+                            text = getText("Tooltip_food_Boredom"),
+                            val = round(item:getBoredomChange(), 0),
+                            posGood = false,
+                            icon = getTexture("media/textures/evolved_food_data/CHC_boredom.png")
+                        },
+                        unhappy = {
+                            text = getText("Tooltip_food_Unhappiness"),
+                            val = round(item:getUnhappyChange(), 0),
+                            posGood = false,
+                            icon = getTexture("media/textures/evolved_food_data/CHC_unhappiness.png")
+                        },
+                        nutr_calories = {
+                            text = getText("Tooltip_food_Calories"),
+                            val = round(item:getCalories(), 0),
+                            valPrecise = round(item:getCalories(), 2),
+                            icon = getTexture("media/textures/evolved_food_data/CHC_calories.png")
+                        },
+                        nutr_cal_carbs = {
+                            text = getText("Tooltip_food_Carbs"),
+                            val = round(item:getCarbohydrates(), 2)
+                        },
+                        nutr_cal_proteins = {
+                            text = getText("Tooltip_food_Prots"),
+                            val = round(item:getProteins(), 2)
+                        },
+                        nutr_cal_lipids = {
+                            text = getText("Tooltip_food_Fat"),
+                            val = round(item:getLipids(), 2)
+                        }
+                    }
+                    result.foodData = foodData
+
+                    local extraSpices = item:getSpices()
+                    if extraSpices then
+                        local extraSpiceObjs = {}
+                        local extraSpiceMap = {}
+                        for j = 0, extraSpices:size() - 1 do
+                            local obj = CHC_main.items[extraSpices:get(j)]
+                            if obj then
+                                extraSpiceMap[obj.fullType] = true
+                                insert(extraSpiceObjs, obj)
+                            end
+                        end
+                        result.extraSpicesMap = extraSpiceMap
+                        result.extraSpices = extraSpiceObjs
+                    end
                 end
                 insert(items, result)
             end
@@ -323,4 +404,49 @@ function CHC_main.common.compareContainersHash(current, prev)
     end
     if not prev then prev = 0 end
     return current == prev
+end
+
+function CHC_main.common.handleTextOverflow(labelObj, limit)
+    local text = labelObj.name
+    local newText = text
+    local iconW = labelObj.icon and labelObj.iconSize + 3 or 0
+    local ma = 100
+    local textLen = round(getTextManager():MeasureStringX(labelObj.font, newText) + 3, 0) + iconW
+    limit = round(limit, 0)
+
+    if textLen > limit or textLen < limit - 5 then
+        if textLen < limit then
+            while textLen < limit do
+                if ma < 0 or #newText >= #labelObj.origName then break end
+                newText = labelObj.origName:sub(1, #newText + 1)
+                textLen = getTextManager():MeasureStringX(labelObj.font, newText) + iconW
+                ma = ma - 1
+            end
+        else
+            while textLen > limit do
+                if ma < 0 then break end
+                newText = newText:sub(1, #newText - 1)
+                textLen = getTextManager():MeasureStringX(labelObj.font, newText) + iconW
+                ma = ma - 1
+            end
+        end
+    end
+    return newText
+end
+
+function CHC_main.common.getNextState(states, cur)
+    if type(cur) ~= "number" then
+        for key, value in pairs(states) do
+            if value == cur then
+                cur = key
+                break
+            end
+        end
+    end
+    if type(cur) ~= "number" then error("Could not determine current state index") end
+    local newStateIx = cur + 1
+    if #states < newStateIx then
+        newStateIx = 1
+    end
+    return states[newStateIx]
 end

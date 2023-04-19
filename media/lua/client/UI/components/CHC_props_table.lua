@@ -29,12 +29,13 @@ function CHC_props_table:createChildren()
             backRef = self.backRef
         }, nil,
         self.onTextChange, self.searchRowHelpText, self.onCommandEntered)
+    self.searchRow.anchorRight = false
     self.searchRow:initialise()
     if self.delayedSearch then self.searchRow:setTooltip(self.searchBarDelayedTooltip) end
     self.searchRow.drawBorder = false
     y = y + self.padY + self.searchRow.height
     -- endregion
-    local props_h = self.height - self.searchRow.height - 4 * self.padY -- - self.label.height
+    local props_h = self.height - self.searchRow.height - 4 * self.padY
     self.objList = ISScrollingListBox:new(x, y, self.width - 2 * self.padX, props_h)
     self.objList:setFont(self.font)
 
@@ -43,8 +44,6 @@ function CHC_props_table:createChildren()
     self.objList:instantiate()
 
     self.objList:setY(self.objList.y + self.objList.itemheight)
-    self.objList:setHeight(self.objList.height - self.objList.itemheight)
-    self.objList.vscroll:setHeight(self.objList.height)
     self.objList.drawBorder = false
     self.objList.doDrawItem = self.drawProps
     self.objList.doRepaintStencil = true
@@ -152,14 +151,10 @@ function CHC_props_table:drawProps(y, item, alt)
     return y + self.itemheight
 end
 
-function CHC_props_table:render()
-    ISPanel.render(self)
-end
-
 function CHC_props_table:onResize()
     -- ISPanel.onResize(self)
-    self.searchRow:setWidth(self.width - 2 * self.padX)
-    self.objList:setWidth(self.width - 2 * self.padX)
+    self.searchRow:setWidth(self.width - self.searchRow.x - 2 * self.padX)
+    self.objList:setWidth(self.width - self.objList.x - 2 * self.padX)
     self.objList.columns[2].size = self.objList.width * 0.4
 end
 
@@ -369,6 +364,7 @@ function CHC_props_table:refreshObjList(props)
         self:processAddObjToObjList(items[i])
     end
     -- TODO: add filter button
+    self.objList:setHeight(2 + math.min(#items, 8) * self.objList.itemheight)
 end
 
 function CHC_props_table:processAddObjToObjList(prop)

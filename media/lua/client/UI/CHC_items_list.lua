@@ -37,7 +37,7 @@ function CHC_items_list:doDrawItem(y, item, alt)
     -- region icons
     if self.shouldShowIcons then
         local itemIcon = itemObj.texture
-        self:drawTextureScaled(itemIcon, 6, y + 6, self.curFontData.icon, self.curFontData.icon, 1)
+        self:drawTextureScaledAspect(itemIcon, 3, y, self.itemheight - 2, self.itemheight - 2, 1)
     end
     --endregion
 
@@ -45,7 +45,7 @@ function CHC_items_list:doDrawItem(y, item, alt)
     local itemPadY = self.itemPadY or (item.height - self.fontHgt) / 2
     local clr = {
         txt = item.text,
-        x = self.shouldShowIcons and (self.curFontData.icon + 8) or 15,
+        x = self.shouldShowIcons and (self.itemheight - 2 + 5) or 15,
         y = y + itemPadY,
         r = 1,
         g = 1,

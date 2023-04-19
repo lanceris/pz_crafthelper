@@ -1,0 +1,106 @@
+UI_PL = {
+    UI_item_uses_tab_name = "Zastosowania"
+    UI_item_craft_tab_name = "Wytwórz"
+    UI_common_left_col_name = "Przepis"
+    UI_common_right_col_name = "Szczegóły"
+    UI_search_tab_name = "Wyszukaj"
+    UI_search_items_tab_name = "Przedmioty"
+    UI_search_recipes_tab_name = "Przepisy"
+    UI_recipe_panel_required_book = "Wymagane książki (jeden z)"
+    UI_recipe_panel_near_item = "Wymagane Wyposażenie Rzemieślnicze"
+    UI_settings_st_title = "Kolejność sortowania"
+    UI_settings_av_title = "Dostępność"
+    UI_settings_av_valid = "Poprawny"
+    UI_settings_av_known = "Znany"
+    UI_settings_av_invalid = "Niepoprawny"
+    UI_optionscreen_binding_chc_category_title = "Craft Helper"
+    UI_optionscreen_binding_chc_move_up = "Wybierz poprzedni przepis"
+    UI_optionscreen_binding_chc_move_down = "Wybierz następny przepis"
+    UI_optionscreen_binding_chc_move_left = "Wybierz poprzednią kategorię"
+    UI_optionscreen_binding_chc_move_right = "Wybierz następną kategorię"
+    UI_optionscreen_binding_chc_craft_one = "Wytwórz jeden"
+    UI_optionscreen_binding_chc_craft_all = "Wytwórz wszystkie"
+    UI_optionscreen_binding_chc_favorite_recipe = "Ulubiony wybrany przepis"
+    UI_optionscreen_binding_chc_close_window = "Zamknij okno Craft Helper"
+    UI_optionscreen_binding_chc_toggle_window = "Przełącz okno Craft Helper"
+    UI_optionscreen_binding_chc_toggle_uses_craft = "Przełącz między Zastosowania/Wytwórz"
+    UI_optionscreen_binding_chc_move_tab_left = "Wybierz poprzednią kartę"
+    UI_optionscreen_binding_chc_move_tab_right = "Wybierz następną kartę"
+    UI_optionscreen_binding_chc_toggle_focus_search_bar = "Przejdź do paska wyszukiwania"
+    UI_infotext_search = "<CENTRE><SIZE:medium> Ekran wyszukiwania <LINE><LINE> "..
+                         "<SIZE:small> <LEFT> Tutaj znajdziesz wszystkie przedmioty i przepisy. <LINE><LINE> "
+    UI_infotext_favorites = "<CENTRE><SIZE:medium> Ulubiony Ekran <LINE><LINE> "..
+                            "<SIZE:small> <LEFT> Tutaj znajdziesz wszystkie ulubione przedmioty i przepisy. <LINE><LINE> "
+    UI_infotext_itemtab = "<CENTRE><SIZE:medium> Ekran Przedmiotu <LINE>"..
+                          "<SIZE:small> <LEFT> Tutaj znajdziesz szczegółowe informacje o '%1' <LINE> "..
+                          "Pierwsza karta (%2) pokazuje przepisy, gdzie '%1' jest używany jako składnik. <LINE> "..
+                          "Druga karta (%3) pokazuje przepisy, których wynikiem jest '%1'. <LINE><LINE> "
+    UI_infotext_common = "<INDENT:0> Lewa kolumna (Przepis) pokazuje listę przedmiotów/przepisów z kilkoma dodatkowymi kontrolami. Pierwszym wierszem jest filtrowanie. <LINE><LINE> "..
+                         "<IMAGECENTRE:media/textures/info_filter_row.png> <LINE>"..
+                         "<INDENT:8>Przycisk 1 pokazuje bieżącą kolejność sortowania przedmiotów/przepisów. Kliknij przycisk, aby zmienić kolejność. <LINE>"..
+                         "Przycisk 2 pozwala wybrać pożądany typ wyniku: <LINE>"..
+                         "<INDENT:16> %1 <LINE>"..
+                         "<INDENT:8> Element 3 to selektor kategorii, w którym można określić żądaną kategorię. <LINE><LINE>"..
+                         "Pod wierszem filtru znajduje się pasek wyszukiwania, w którym można wyszukiwać według nazwy przedmiotu/przepisu lub określonych reguł, w zależności od zapytania. <LINE>"..
+                         "Aby dowiedzieć się więcej o regułach wyszukiwania, kliknij <IMAGE:media/textures/search_icon.png> <LINE><LINE>"..
+                         "<INDENT:0> Prawa kolumna (Szczegóły) pokazuje szczegóły przedmiotu/przepisu: <LINE>"..
+                         "<INDENT:8> %2 <LINE><LINE>"..
+                         "<INDENT:0><SIZE:medium>Sterowanie: <SIZE:small><LINE><LINE>"..
+                         "<INDENT:16> - Możesz zmienić rozmiar kolumn Przepis i Szczegóły przeciągając linię pomiędzy ich nazwami <LINE> "..
+                         " - Kliknij prawym przyciskiem myszy na nazwę karty przedmiotu, aby otworzyć menu kontekstowe <LINE>"..
+                         "%3 <LINE>"..
+                         " - Za pomocą "Mod Options" możesz ustawić skróty klawiszowe dla często wykonywanych akcji"
+    UI_infotext_recipe_types = "- <IMAGE:media/textures/type_filt_all.png> <SPACE>(%1): Wszystkie przepisy <LINE> "..
+                               "- <IMAGE:media/textures/type_filt_valid.png> (%2): Przepisy, które możesz teraz stworzyć <LINE> "..
+                               "- <IMAGE:media/textures/type_filt_known.png> (%3): Przepisy, o których wiesz, ale nie możesz z nich wytworzyć (brak umiejętności/przedmiotów) <LINE> "..
+                               "- <IMAGE:media/textures/type_filt_invalid.png> (%4): Przepisy, o których nic nie wiesz. Pokaże książkę(-i), z których można się nauczyć."
+    UI_infotext_item_types = " - Odzież <LINE> - Żywność <LINE> - Broń <LINE> - ..."
+    UI_infotext_recipe_details = " - Informacje o kategorii przepisu i wyszukanym przedmiocie (-tach) <LINE> "..
+                                 " - Wymagane przedmioty <LINE>"..
+                                 " - Inne wymagania (umiejętności, książki, sprzęt rzemieślniczy i czas do wytworzenia)"
+    UI_infotext_item_details = " - Podstawowe informacje na temat przedmiotu i liczby przepisów <LINE> "..
+                               " - Atrybuty przedmiotu <LINE> "..
+                               " - Jak naprawić ten przedmiot (jeśli to możliwe) (WIP) <LINE>"..
+                               " - Gdzie znaleźć ten przedmiot (WIP)"
+    UI_infotext_recipe_mouse = " - Kliknij lewym przyciskiem myszy na ikonę gwiazdki (kolumna przepisu, mysz nad elementem), aby dodać do ulubionych<LINE> "..
+                               " - Kliknij prawym przyciskiem myszy na ikonę wyniku przepisu (kolumna Szczegóły), aby otworzyć menu kontekstowe <LINE> "..
+                               " - Kliknij prawym przyciskiem myszy na przedmiot w 'Wymagane przedmioty' (kolumna Szczegóły), aby otworzyć menu kontekstowe"
+    UI_infotext_item_mouse = " - Kliknij środkowy przycisk myszy na przedmiot (kolumna Przepis), aby otworzyć nową kartę z klikniętym przedmiotem w tle <LINE>"..
+                             " - Kliknij prawym przyciskiem myszy na przedmiot (kolumna Przepis), aby otworzyć menu kontekstowe <LINE>"..
+                             " - Kliknij prawym przyciskiem myszy na ikonę przedmiotu (kolumna Szczegóły), aby otworzyć menu kontekstowe <LINE>"..
+                             " - Shift + Prawy przycisk myszy na niektóre elementy (patrz powyżej) aby wyświetlić dodatkowe opcje"
+    UI_searchrow_info = "<CENTRE><SIZE:medium> Pomocnik Wyszukiwania <LINE><LINE> "..
+                        "<LEFT><SIZE:small> Ten pasek wyszukiwania obsługuje własne reguły. Każde oddzielone zapytanie (słowo) zwane Tokenem. <LINE>"..
+                        "Możesz wyszukiwać według wielu zapytań jednocześnie, używając SEPARATORÓW. <LINE>"..
+                        "Możesz dodać każdy token za pomocą SPECJALNEGO SYMBOLU, aby określić regułę wyszukiwania dla tego Tokenu. <LINE>"..
+                        "Za pomocą "Mod Options" możesz ustawić klawisz skrótu, aby skupić się na pasku wyszukiwania. Cofnij za pomocą ESC. <LINE><LINE>"..
+                        "<SIZE:medium> Separatory: <LINE> <SIZE:small> "..
+                        "<INDENT:8> <SIZE:medium> , <SIZE:small> <SPACE><SPACE>(przecinek) - połączenie wszystkich wyników Tokenów (logiczny ORAZ), może być użyte do bardzo specyficznego filtrowania <LINE> "..
+                        "<SIZE:medium> | <SIZE:small> <SPACE><SPACE>(półpauza) - oddziel wszystkie Tokeny (logiczne LUB), mogą być użyte do wyszukiwania wielu zapytań osobno <LINE><LINE> "..
+                        "<INDENT:0><SIZE:medium> Symbole specjalne: <LINE> <SIZE:small> "..
+                        "<INDENT:8> %1"..
+                        "<SIZE:medium> ~ <SIZE:small> <SPACE><SPACE>(Tylda) - wyklucza dany Token (tj. znajdź wszystko co NIE JEST Tokenem; musi być po znaku specjalnym, jeśli ich używasz) <LINE><LINE>"..
+                        "<INDENT:0><SIZE:medium> <LEFT> Przykłady: <LINE> <SIZE:small> "..
+                        "<INDENT:8> %2 <LINE>"..
+                        "<INDENT:0><SIZE:medium> Ograniczenia: <LINE> <SIZE:small> "..
+                        "<INDENT:8>- Nie można użyć obu separatorów (',' i '|') w jednym zapytaniu <LINE> "
+    UI_searchrow_info_recipes_special = "<SIZE:medium> ! <SIZE:small> <SPACE><SPACE>(znak wynikowy) - szukaj według kategorii przepisu<LINE>"..
+                                        "<SIZE:medium> @ <SIZE:small> <SPACE><SPACE>(małpa) - szukaj według nazwy moda wynikowego przedmiotu ('Project Zomboid' dla vanilla 'mod') <LINE>"..
+                                        "<SIZE:medium> # <SIZE:small> <SPACE><SPACE>(kratka) - szukaj według składników przepisu<LINE>"..
+                                        "<SIZE:medium> $ <SIZE:small> <SPACE><SPACE>(znak dolara) - wyszukiwanie według kategorii przedmiotów wynikowych (pokazanych po prawej stronie panelu ekwipunku) <LINE>"..
+                                        "<SIZE:medium> % <SIZE:small> <SPACE><SPACE>(znak procentowy) - szukaj według nazwy wynikowego przedmiotu <LINE>"..
+                                        "<SIZE:medium> ^ <SIZE:small> <SPACE><SPACE>(znak Karety) - wyszukiwanie według ulubionych przepisów <LINE>"..
+                                        "<SIZE:medium> & <SIZE:small> <SPACE><SPACE>(znak Etka) - szukaj według nazwy przepisu z moda ('Base' dla vanilla 'mod') <LINE>"
+    UI_searchrow_info_items_special = "<SIZE:medium> ! <SIZE:small> <SPACE><SPACE>(Wykrzyknik) - szukaj według typu przedmiotu <LINE>"..
+                                      "<SIZE:medium> @ <SIZE:small> <SPACE><SPACE>(małpa) - szukaj według nazwy przedmiotu z moda('Project Zomboid' dla vanilla 'mod') <LINE>"..
+                                      "<SIZE:medium> # <SIZE:small> <SPACE><SPACE>(kratka) - wyszukiwanie według kategorii przedmiotu (pokazane po prawej stronie panelu ekwipunku) <LINE>"..
+                                      "<SIZE:medium> $ <SIZE:small> <SPACE><SPACE>(znak dolara) - wyszukiwanie według atrybutów przedmiotu <LINE>"
+    UI_searchrow_info_item_attributes_special = "<SIZE:medium> ! <SIZE:small> <SPACE><SPACE>(Wykrzyknik) - szukaj według nazwy atrybutu <LINE>"..
+                                                "<SIZE:medium> @ <SIZE:small> <SPACE><SPACE>(małpka) - szukaj według wartości atrybutu <LINE>"
+    UI_searchrow_info_recipes_examples = "#hamm <SPACE><SPACE>- pokaż przepisy, które zawierają 'hamm' w nazwie <LINE>"..
+                                         "@hydrocra,!engineer,#saw <SPACE><SPACE>- pokaż przepisy z Hydrocraft (lub podobne) w kategorii "inżynieria", które mają 'piła' jako składnik <LINE>"..
+                                         "%plank|!food <SPACE><SPACE>- pokaż receptury, gdzie 'deska' jest wynikiem, LUB przepisy w kategorii 'jedzenie' <LINE> "
+    UI_searchrow_info_items_examples = "#narzędzia,!~piła<SPACE><SPACE>: pokaż narzędzia, które nie są bronią (np. igła, piła, szczypce) <LINE> "..
+                                       "$maxdamage>4,$maxdamage<5 <SPACE><SPACE>- pokaż przedmioty z atrybutem MaxDamage między 4 a 5 <LINE> "
+    UI_searchrow_info_item_attributes_examples = "!>a,!<c <SPACE><SPACE>: pokaż atrybuty, które zaczynają się od a lub b <LINE> "
+}

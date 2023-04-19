@@ -25,7 +25,7 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 
 	local clr = {
 		txt = item.text,
-		x = self.shouldShowIcons and (self.curFontData.icon + 8) or 15, --FIXME
+		x = self.shouldShowIcons and (self.itemheight - 2 + 5) or 15,
 		y = y + itemPadY,
 		a = 0.9,
 		font = self.font
@@ -37,8 +37,7 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 		if resultItem then
 			local tex = resultItem.texture
 			if tex then
-				self:drawTextureScaled(tex, 6, y - 2 + self.curFontData.icon / 2,
-					self.curFontData.icon, self.curFontData.icon, 1)
+				self:drawTextureScaledAspect(tex, 3, y, self.itemheight - 2, self.itemheight - 2, 1)
 			end
 		end
 	end
@@ -65,10 +64,10 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 		end
 	end
 	if self.shouldDrawMod and item.item.module ~= 'Base' then
-		self:drawText(clr.txt, clr.x, clr.y, clr.r, clr.g, clr.b, clr.a, clr.font)
 		local modY = self.curFontData.pad + getTextManager():getFontHeight(UIFont.Small)
-		self:drawText('Mod: ' .. item.item.module, clr.x + self.curFontData.pad, clr.y + modY, 1, 1, 1, 0.8, UIFont
-			.Small)
+		self:drawText(clr.txt, clr.x, clr.y - modY / 4, clr.r, clr.g, clr.b, clr.a, clr.font)
+		self:drawText('Mod: ' .. item.item.module, clr.x + self.curFontData.pad, clr.y + modY / 2, 1, 1, 1, 0.8,
+			UIFont.Small)
 	else
 		self:drawText(clr.txt, clr.x, clr.y, clr.r, clr.g, clr.b, clr.a, clr.font)
 	end
