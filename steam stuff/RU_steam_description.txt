@@ -53,6 +53,8 @@
 [*]Korean
 [*]Brazilian Portuguese
 [*]Traditional Chinese
+[*]Polish
+[*]German
 [/list]
 
 Если вы хотите помочь с переводом, пожалуйста, перейдите на страницу Crowdin:
