@@ -2,9 +2,8 @@
 
 Dies ist eine aktualisierte Version von [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2186592938]Craft Helper (41.x) von b1n0m[/url] mit zusätzlichen Funktionen und verbesserter Benutzeroberfläche.
 
-Diese Mod fügt eine "Craft Helper" Option im Kontextmenü hinzu, wenn man mit der rechten Maustaste auf einen Gegenstand mit zugehörigen Rezepten klickt.
-Diese Mod fügt eine "Craft Helper" Option im Kontextmenü hinzu, wenn man mit der rechten Maustaste auf einen Gegenstand mit zugehörigen Rezepten klickt.
-Die Auswahl dieser Option wird eine UI mit einer Liste von Rezepten aufrufen, zu denen dieser Gegenstand gehört, sowie Möglichkeiten zur Herstellung dieses Gegenstands.
+Dieser Mod fügt beim Rechtsklick auf einen Gegenstand mit verfügbaren Rezepten eine "Craft Helper"-Option im Kontextmenü hinzu.
+Bei Auswahl dieser Option erscheint eine Benutzeroberfläche mit einer Liste von Rezepten, zu denen dieser Gegenstand gehört, und Möglichkeiten zur Herstellung dieses Gegenstands.
 Wenn du ein Rezept auswählst, werden Informationen dazu angezeigt (benötigte Gegenstände, Fähigkeiten usw.). Das Ergebnissymbol und die erforderlichen Gegenstände sind mit der rechten Maustaste anklickbar.
 Ausführliche Informationen zur Oberfläche findest Du unter dem ⓘ (Info) Symbol neben der Schließtaste.
 
@@ -50,13 +49,13 @@ Außerdem kannst du unter "Mod-Optionen" für einige Aktionen Tastenkombinatione
 [list]
 [*]Englisch
 [*]Russisch
-[*]Spanisch (teilweise)
+[*]Spanisch
 [*]Thailändisch
 [*]Koreanisch
 [*]Brasilianisches Portugiesisch
 [*]Traditionelles Chinesisch
-[*]Polnische
-[*]Deutsche
+[*]Polnisch
+[*]Deutsch
 [/list]
 
 Falls Du bei der Übersetzung helfen möchtest, gehe bitte auf die Crowdin-Seite:

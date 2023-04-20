@@ -14,7 +14,7 @@
 - Improved error handling
 - Subview tabs (Items/Recipes | Uses/Craft) now fill whole space and rescale with window
 - Added Polish translation (thanks to [☛DOM.0☚](https://steamcommunity.com/profiles/76561198035031242))
-- Added Deutsch translation (thanks to [brudermusslos](https://steamcommunity.com/id/FlyeTaubeBurr/))
+- Added German translation (thanks to [brudermusslos](https://steamcommunity.com/id/FlyeTaubeBurr) and [iTravel](https://steamcommunity.com/id/iTravel))
 
 ## 1.7.2 (29.03.2023)
 
