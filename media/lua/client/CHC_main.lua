@@ -6,7 +6,7 @@ CHC_main._meta = {
 	id = 'CraftHelperContinued',
 	workshopId = 2787291513,
 	name = 'Craft Helper Continued',
-	version = '1.7.2',
+	version = '1.7.3',
 	author = 'lanceris',
 	previousAuthors = { 'Peanut', 'ddraigcymraeg', 'b1n0m' },
 }
@@ -216,7 +216,7 @@ CHC_main.getItemProps = function(item, itemType, map)
 		local isIgnoreDefVal = prop.ignoreDefault
 		if isSpecial then
 			propVal = item[prop.path]
-			if prop.path2 then propVal = propVal[prop.path2] end
+			if propVal and prop.path2 then propVal = propVal[prop.path2] end
 		else
 			propVal = item[propName] and item[propName](item) or nil
 		end

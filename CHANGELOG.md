@@ -1,5 +1,18 @@
 # CraftHelper updates
 
+## 1.7.3 (XX.XX.2023)
+
+### Improvements
+
+- Added BodyLocation to list of props (thanks to [piromasta](https://steamcommunity.com/id/piromasta))
+- Added Polish translation (thanks to [☛DOM.0☚](https://steamcommunity.com/profiles/76561198035031242))
+- Added German translation (thanks to [brudermusslos](https://steamcommunity.com/id/FlyeTaubeBurr) and [iTravel](https://steamcommunity.com/id/iTravel))
+- Updated Spanish translation (thanks to [lucas154](https://crowdin.com/profile/musso777))
+
+### Bugfixes
+
+- Fixed bug in CHC_main.getItemProps related to CraftingEnhancedCore item props parsing
+
 ## 1.7.2 (29.03.2023)
 
 ### Improvements
