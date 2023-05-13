@@ -54,6 +54,8 @@ Además, con "Mod Options" podés hacer keybinds (Asignar teclas -> Craft Helper
 [*]Coreano
 [*]Portugués/Brasileño
 [*]Chino tradicional
+[*]Polaco
+[*]Alemán
 [/list]
 
 Si quieres ayudar con la traducción, ve a la página de Crowdin:

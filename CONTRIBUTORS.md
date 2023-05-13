@@ -17,4 +17,13 @@ Contributors will be shown in order of first pull request / commit:
 - [TW_Billy](https://steamcommunity.com/profiles/76561198001484294)
   - Traditional Chinese translation
 - [El Gordo Argento](https://s.team/p/ffkv-jcwb/rcbnntrk)
-  - Spanish translation (+steam description translation)
+  - Spanish translation
+- [☛DOM.0☚](https://steamcommunity.com/profiles/76561198035031242)
+  - Polish translaiton
+- [brudermusslos](https://steamcommunity.com/id/FlyeTaubeBurr)
+  - German translation
+- [iTravel](https://steamcommunity.com/id/iTravel)
+  - German translation
+- [lucas154](https://crowdin.com/profile/musso777)
+  - Spanish translation
+- [piromasta](https://steamcommunity.com/id/piromasta)
