@@ -24,3 +24,6 @@ Contributors will be shown in order of first pull request / commit:
   - German translation
 - [iTravel](https://steamcommunity.com/id/iTravel)
   - German translation
+- [lucas154](https://crowdin.com/profile/musso777)
+  - Spanish translation
+- [piromasta](https://steamcommunity.com/id/piromasta)

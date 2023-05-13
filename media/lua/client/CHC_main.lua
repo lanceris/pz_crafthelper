@@ -216,7 +216,7 @@ CHC_main.getItemProps = function(item, itemType, map)
 		local isIgnoreDefVal = prop.ignoreDefault
 		if isSpecial then
 			propVal = item[prop.path]
-			if prop.path2 then propVal = propVal[prop.path2] end
+			if propVal and prop.path2 then propVal = propVal[prop.path2] end
 		else
 			propVal = item[propName] and item[propName](item) or nil
 		end

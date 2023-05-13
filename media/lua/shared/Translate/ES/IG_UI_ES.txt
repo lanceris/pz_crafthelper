@@ -1,5 +1,5 @@
 IGUI_ES = {
-    IGUI_chc_context_onclick = "Ayudante de Crafteo"
+    IGUI_chc_context_onclick = "Ayudante de Fabricación"
     IGUI_AllowSpecialSearch = "Comandos especiales"
     IGUI_AllowSpecialSearchTooltip = "Los comandos se utilizan en las búsquedas (haga clic en la lupa izquierda de la barra de búsqueda para aprender más)"
     IGUI_ShowIcons = "Mostrar iconos de elementos"
@@ -54,4 +54,9 @@ IGUI_ES = {
     IGUI_Synthetic_Recipe_result_tooltip = "Construir con clic derecho en el mundo"
     IGUI_Evolved_Recipe_result_tooltip = "Receta mejorada"
     IGUI_DelayedSearchBarTooltip = "Pulsa Enter para buscar"
+    IGUI_RecipeResult = "Resultado"
+    IGUI_Evolved_Ingredient = "Ingrediente"
+    IGUI_Evolved_Random = "Aleatorio"
+    IGUI_Evolved_SelectSpecific = "Seleccionar una en específico"
+    IGUI_AllOf = "Todo:"
 }

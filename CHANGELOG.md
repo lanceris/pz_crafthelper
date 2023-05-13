@@ -13,8 +13,19 @@
 
 - Improved error handling
 - Subview tabs (Items/Recipes | Uses/Craft) now fill whole space and rescale with window
+
+## 1.7.3 (13.05.2023)
+
+### Improvements
+
+- Added BodyLocation to list of props (thanks to [piromasta](https://steamcommunity.com/id/piromasta))
 - Added Polish translation (thanks to [☛DOM.0☚](https://steamcommunity.com/profiles/76561198035031242))
 - Added German translation (thanks to [brudermusslos](https://steamcommunity.com/id/FlyeTaubeBurr) and [iTravel](https://steamcommunity.com/id/iTravel))
+- Updated Spanish translation (thanks to [lucas154](https://crowdin.com/profile/musso777))
+
+### Bugfixes
+
+- Fixed bug in CHC_main.getItemProps related to CraftingEnhancedCore item props parsing
 
 ## 1.7.2 (29.03.2023)
 
