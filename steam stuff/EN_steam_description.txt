@@ -54,6 +54,8 @@ Also, with "Mod Options" you can set keybinds (Key bindings -> Craft Helper) for
 [*]Korean
 [*]Brazilian Portuguese
 [*]Traditional Chinese
+[*]Polish
+[*]German
 [/list]
 
 If you would like to help with translation, please go to Crowdin page:

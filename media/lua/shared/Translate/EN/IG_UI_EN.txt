@@ -55,4 +55,9 @@ IGUI_EN = {
     IGUI_Synthetic_Recipe_result_tooltip = "Build via right clicking in world"
     IGUI_Evolved_Recipe_result_tooltip = "Evolved recipe"
     IGUI_DelayedSearchBarTooltip = "Press Enter to search"
+    IGUI_RecipeResult = "Result"
+    IGUI_Evolved_Ingredient = "Ingredient"
+    IGUI_Evolved_Random = "Random"
+    IGUI_Evolved_SelectSpecific = "Select specific"
+    IGUI_AllOf = "All of:"
 }
