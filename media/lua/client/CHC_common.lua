@@ -364,11 +364,19 @@ function CHC_main.common.getNearbyItems(containerList, fullTypesToCheck)
     return items
 end
 
+function CHC_main.common.getConcreteItem(containerList, fullType)
+    local item = CHC_main.common.getNearbyItems(containerList, { fullType })
+    if not item then return end
+    item = item[1]
+    if not item then return end
+    return item.item
+end
+
 function CHC_main.common.getNearbyIsoObjectNames(player)
     local nearItemRadius = 2
     local plX, plY, plZ = player:getX(), player:getY(), player:getZ()
     local square
-    local res = { [1] = {},[2] = {} }
+    local res = { [1] = {}, [2] = {} }
     for x = -nearItemRadius, nearItemRadius do
         for y = -nearItemRadius, nearItemRadius do
             square = player:getCell():getGridSquare(plX + x, plY + y, plZ)

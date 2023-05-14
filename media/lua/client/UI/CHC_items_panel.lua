@@ -87,7 +87,7 @@ function CHC_items_panel:createChildren()
     self.statsList:setAnchorRight(true)
     self.statsList:setAnchorBottom(true)
     self.statsList.maintainHeight = false
-    -- self.statsList:addScrollBars()
+    self.statsList:addScrollBars()
     self.statsList:setVisible(false)
     -- endregion
 
