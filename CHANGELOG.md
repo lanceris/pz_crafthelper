@@ -5,12 +5,13 @@
 ### New features
 
 - Folding for recipe sources
-- Ability to add ingredients to evolved recipes (WIP)
+- Ability to add ingredients to evolved recipes
 - Ability to add all (and missing only) ingredients in "One of:" block (debug only)
 - Food stats panel for evolved recipes
 
 ### Improvements
 
+- New design for recipe ingredients screen
 - Improved error handling
 - Subview tabs (Items/Recipes | Uses/Craft) now fill whole space and rescale with window
 - Updated Traditional Chinese translation

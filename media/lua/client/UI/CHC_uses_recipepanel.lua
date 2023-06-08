@@ -17,7 +17,7 @@ local sformat = string.format
 -- TODO: explore folding for item/recipe list (left side)
 
 
--- NotlocScrollView
+-- check out NotlocScrollView for scrollable panel example
 
 CHC_uses_recipepanel = ISPanel:derive('CHC_uses_recipepanel')
 
@@ -487,6 +487,12 @@ function CHC_uses_recipepanel:setResultObj(resultItem, recipe)
 end
 
 function CHC_uses_recipepanel:setObj(recipe)
+    if self.evolvedSelected then
+        self.evolvedOpt = nil
+    end
+    self.evolvedSelectedIx = 1
+    self.collapsedData = {}
+    self.blockStateData = {}
     if not self.containerList then
         self.parent.getContainers(self)
     end
@@ -578,8 +584,6 @@ function CHC_uses_recipepanel:setObj(recipe)
     else
         self.statsList:setVisible(false)
     end
-
-    self.evolvedOpt = nil
 end
 
 -- endregion
@@ -674,7 +678,8 @@ function CHC_uses_recipepanel:shouldUpdateIngredients(selectedItem)
     local c1 = not utils.areTablesDifferent(selectedItem.typesAvailable, self.lastAvailableTypes)
     local c2 = #self.ingredientPanel.items > 0
     local c3 = selectedItem._id == self.lastSelectedItem._id
-    if c1 and c2 and c3 then
+    local c4 = self.selectedObj.recipe.isEvolved
+    if c1 and c2 and (c3 and not c4) then
         return false
     end
     self.lastAvailableTypes = selectedItem.typesAvailable
@@ -731,8 +736,26 @@ function CHC_uses_recipepanel:refreshIngredientPanel(selectedItem)
             data.sourceNum = i
             data.recipe = selectedItem.recipe
             data.multiple = #source.items > 1
+            local evolvedState = true
+            if selectedItem.isEvolved and self.evolvedSelected then
+                local isSpice = CHC_main.items[item.fullType].propsMap["Spice"]
+                local usedSpice = self.evolvedSelected.extraSpicesMap and
+                    self.evolvedSelected.extraSpicesMap[item.fullType]
+
+                local used = self.evolvedSelected.extraItems and #self.evolvedSelected.extraItems
+                if not used then used = 0 end
+                local max = self.selectedObj.recipe.recipeData.maxItems
+                if (used < max and not isSpice) or (used ~= 0 and isSpice and not usedSpice) then
+                    evolvedState = true
+                else
+                    evolvedState = false
+                end
+            end
             local numTypes = selectedItem.typesAvailable[item.fullType]
-            if selectedItem.typesAvailable and (not numTypes or numTypes < item.count) then
+            if selectedItem.isEvolved and not evolvedState then
+                data.available = false
+                insert(unavailable, data)
+            elseif selectedItem.typesAvailable and (not numTypes or numTypes < item.count) then
                 data.available = false
                 insert(unavailable, data)
             else
@@ -750,8 +773,14 @@ function CHC_uses_recipepanel:refreshIngredientPanel(selectedItem)
             data.isKeep = source.isKeep
             data.selectedItem = selectedItem
             data.texture = self.treeexpicon
-            data.collapsed = false -- FIXME
-            data.blockHiddenState = blockHiddenStateSelector[1]
+            if not self.collapsedData[i] then
+                self.collapsedData[i] = false
+            end
+            data.collapsed = self.collapsedData[i]
+            if not self.blockStateData[i] then
+                self.blockStateData[i] = blockHiddenStateSelector[1]
+            end
+            data.blockHiddenState = self.blockStateData[i]
             data.sourceNum = i
             data.available = #available > 0
             data.totalNum = #available + #unavailable
@@ -768,9 +797,11 @@ function CHC_uses_recipepanel:refreshIngredientPanel(selectedItem)
             self.ingredientPanel:addItem(txt, data)
 
             if data.availableNum == data.totalNum or data.unavailableNum == data.totalNum then
-                data.blockHiddenState = blockHiddenStateSelector[1]
+                self.blockStateData[i] = blockHiddenStateSelector[1]
+                data.blockHiddenState = self.blockStateData[i]
                 data.blockHiddenStateLocked = true
             end
+            data.isBlockHidden = data.blockHiddenState ~= blockHiddenStateSelector[1]
         end
 
         handleDismantleWatch(available, unavailable)
@@ -850,17 +881,26 @@ function CHC_uses_recipepanel:updateMainInfo(obj)
     if recipe.isEvolved then
         local used = 0
         local max = recipe.recipeData.maxItems
-        if not utils.empty(self.evolvedChoices) or self.evolvedOpt then
-            local ch = self.evolvedOpt or self.evolvedChoices[1]
+        local ch
+        if self.evolvedOpt then
+            ch = self.evolvedOpt
+        elseif not utils.empty(self.evolvedChoices) then
+            ch = self.evolvedChoices[1]
+        else
+            self:getEvolvedChoices(obj, self.containerList)
+            ch = self.evolvedChoices[1]
+        end
+        if ch then
             self.evolvedSelected = ch
             if ch.extraItems then
                 used = #ch.extraItems
                 recipeName = ch.displayNameExtra
             end
+            recipeName = recipeName .. " (" .. used .. "/" .. max .. ")"
         end
-        recipeName = recipeName .. " (" .. used .. "/" .. max .. ")"
 
         -- region food data
+        -- TODO: call updateExtraData when hovering over add button in list of ingredients
         self:updateExtraData(self.evolvedSelected)
         if not utils.empty(self.mainExtraData.children) then
             self.mainExtraData:setVisible(true)
@@ -1008,7 +1048,7 @@ function CHC_uses_recipepanel:drawFavoriteStar(y, item, parent)
     local isFav = CHC_main.playerModData[CHC_main.getFavItemModDataStr(item.item)] == true
     if item.index == self.mouseoverselected then
         local mouseX = self:getMouseX()
-        if mouseX >= favXPos - 20 and mouseX <= favXPos + 20 then
+        if mouseX >= favXPos - 5 and mouseX <= favXPos + 16 then
             favoriteStar = isFav and parent.itemFavCheckedTex or parent.itemFavNotCheckedTex
             favoriteAlpha = 0.9
         else
@@ -1031,6 +1071,7 @@ function CHC_uses_recipepanel:drawAddToEvolved(y, item, parent, dx)
     local icon
     if item.index == self.mouseoverselected then
         local mouseX = self:getMouseX()
+        --TODO: update fooddata with selected item
         if mouseX >= addXPos and mouseX <= addW then -- hovered over
             icon = parent.addEvolvedHoveredTex
         else
@@ -1080,8 +1121,7 @@ function CHC_uses_recipepanel:drawIngredient(y, item, alt)
         if not item.item.blockHiddenStateLocked then
             local hoveredX = item.index == self.mouseoverselected
             local a = 0.5
-            -- FIXME: inconsistent click location
-            local x = self.width - 40 - self.recipepanel.statsList.x
+            local x = self.width - 17 - 16
             local mouseX = self:getMouseX()
             if hoveredX and mouseX >= x then
                 a = 1
@@ -1098,9 +1138,9 @@ function CHC_uses_recipepanel:drawIngredient(y, item, alt)
         local r2, g2, b2, a2
         local typesAvailable = item.item.selectedItem.typesAvailable
         local numTypes = typesAvailable[item.item.fullType]
-        local itemNotAvailable = (
+        local lowAmount = (
             not numTypes or numTypes < item.item.count)
-        if typesAvailable and itemNotAvailable then
+        if (typesAvailable and lowAmount) or not item.item.available then
             r, g, b = 0.54, 0.54, 0.54;
             r2, g2, b2, a2 = 1, 1, 1, 1;
         else
@@ -1132,14 +1172,8 @@ function CHC_uses_recipepanel:drawIngredient(y, item, alt)
         self.recipepanel.drawFavoriteStar(self, y, item, self.recipepanel)
         --endregion
 
-        if item.item.recipe.isEvolved and item.item.available and not (item.item.isKeep or item.item.isDestroy) then
-            local used = self.recipepanel.evolvedSelected.extraItems and #self.recipepanel.evolvedSelected.extraItems
-            if not used then used = 0 end
-            local max = self.recipepanel.selectedObj.recipe.recipeData.maxItems
-            --FIXME: check for existing spices
-            if used < max then
-                self.recipepanel.drawAddToEvolved(self, y, item, self.recipepanel, dx)
-            end
+        if self.recipepanel.evolvedSelected and item.item.available then
+            self.recipepanel.drawAddToEvolved(self, y, item, self.recipepanel, dx)
         end
 
         if item.index == self.mouseoverselected then
@@ -1424,10 +1458,11 @@ end
 function CHC_uses_recipepanel:onIngredientMouseDown(item)
     if not item then return end
     local x = self:getMouseX()
-    local favXPos = self.width - 40 - self.statsList.x
+    local favXPos = self.width - 50 - self.statsList.x
     local addW = 16 + self.statsList.x
 
     if not item.multipleHeader then
+        -- favorite handler
         if (x >= favXPos) then
             local isFav = self.modData[CHC_main.getFavItemModDataStr(item)] == true
             isFav = not isFav
@@ -1437,15 +1472,8 @@ function CHC_uses_recipepanel:onIngredientMouseDown(item)
                 actions = { 'needUpdateFavorites', 'needUpdateObjects' }
             })
         end
-        if item.recipe and item.recipe.isEvolved and
-            item.available and
-            not (item.isKeep or item.isDestroy) and
-            x <= addW then
-            local used = self.evolvedSelected.extraItems and #self.evolvedSelected.extraItems
-            if not used then used = 0 end
-            local max = self.selectedObj.recipe.recipeData.maxItems
-            --FIXME: check for existing spices
-            if used < max then
+        if x <= addW then
+            if self.evolvedSelected and item.available then
                 self:addItemInEvolvedRecipe({ item = CHC_main.items[item.fullType] })
             end
         end
@@ -1462,8 +1490,10 @@ function CHC_uses_recipepanel:onIngredientMouseDown(item)
             else
                 item.isBlockHidden = true
             end
+            self.blockStateData[item.sourceNum] = item.blockHiddenState
         else
             item.collapsed = not item.collapsed
+            self.collapsedData[item.sourceNum] = item.collapsed
             self.needUpdateHeight = true
         end
     end
@@ -1569,7 +1599,9 @@ function CHC_uses_recipepanel:addRandomMenu()
     local used = self.evolvedSelected.extraItems and #self.evolvedSelected.extraItems or 0
     local max = self.selectedObj.recipe.recipeData.maxItems
 
-    local types, spices = self:getValidEvolvedIngredients(typesAvailable)
+    self.evolvedValidTypes, self.evolvedValidSpices = self:getValidEvolvedIngredients(typesAvailable)
+    local types = self.evolvedValidTypes
+    local spices = self.evolvedValidSpices
 
     -- region ingredient
     if used < max and types and not utils.empty(types) then
@@ -1578,16 +1610,17 @@ function CHC_uses_recipepanel:addRandomMenu()
         local ingredientSubMenu = ISContextMenu:getNew(context)
         context:addSubMenu(ingredientMenu, ingredientSubMenu)
         if #types > 1 then
+            -- TODO: add random (all w/o dupes)
             ingredientSubMenu:addOption(sformat("%s (%s)", getText("IGUI_Evolved_Random"), getText("UI_All")), self,
-                CHC_uses_recipepanel.addRandomCategory, types, nil, true)
+                CHC_uses_recipepanel.addRandomCategory, types, true, false)
             ingredientSubMenu:addOption(sformat("%s (%s)", getText("IGUI_Evolved_Random"), getText("ContextMenu_One")),
-                self,
-                CHC_uses_recipepanel.addRandomCategory, types)
+                self, CHC_uses_recipepanel.addRandomCategory, types, false, false)
         end
         for i = 1, #types do
             local _type = types[i]
             local optName = getText("ContextMenu_FoodType_" .. _type.name) .. " (" .. #_type.items .. ")"
-            local opt = ingredientSubMenu:addOption(optName, self, CHC_uses_recipepanel.addRandomIngredient, _type.items)
+            local opt = ingredientSubMenu:addOption(optName, self, CHC_uses_recipepanel.addRandomIngredient, _type.items,
+                false, false)
 
             if #_type.items == 1 then
                 local item = _type.items[1]
@@ -1600,7 +1633,7 @@ function CHC_uses_recipepanel:addRandomMenu()
                     local item = types[i].items[j]
                     ingredientCategorySubMenu:addOption(
                         item.item.displayName .. " x " .. item.uses,
-                        self, CHC_uses_recipepanel.addItemInEvolvedRecipe, item)
+                        self, CHC_uses_recipepanel.addItemInEvolvedRecipe, item, false, false)
                 end
             end
         end
@@ -1615,72 +1648,71 @@ function CHC_uses_recipepanel:addRandomMenu()
         context:addSubMenu(condimentMenu, condimentSubMenu)
         if #spices > 1 then
             condimentSubMenu:addOption(sformat("%s (%s)", getText("IGUI_Evolved_Random"), getText("UI_All")), self,
-                CHC_uses_recipepanel.addRandomCategory, spices, nil, true, true)
+                CHC_uses_recipepanel.addRandomCategory, spices, true, true)
             condimentSubMenu:addOption(sformat("%s (%s)", getText("IGUI_Evolved_Random"), getText("ContextMenu_One")),
-                self,
-                CHC_uses_recipepanel.addRandomIngredient, spices)
+                self, CHC_uses_recipepanel.addRandomIngredient, spices, false, true)
         end
         for i = 1, #spices do
             local _spice = spices[i]
-            --FIXME: check for existing spices
             local opt = condimentSubMenu:addOption(
                 _spice.item.displayName .. " x " .. _spice.uses, self,
-                CHC_uses_recipepanel.addItemInEvolvedRecipe, _spice)
+                CHC_uses_recipepanel.addItemInEvolvedRecipe, _spice, false, true)
         end
     end
     -- endregion
 end
 
-function CHC_uses_recipepanel:addRandomCategory(options, func, all, isSpice)
-    -- TODO: ISInventoryPaneContextMenu.getRealEvolvedItemUse
+function CHC_uses_recipepanel:addRandomCategory(options, all, isSpice)
+    local opt = CHC_main.common.getRandom(options)
+    if opt.items then
+        self.addRandomIngredient(self, opt.items, all, isSpice)
+    else
+        self.addItemInEvolvedRecipe(self, opt, all, isSpice)
+    end
+end
 
-    local function selectRandomOption(_options)
-        local opt = _options[ZombRand(1, #_options + 1)]
-        if opt.items then
-            self.addRandomIngredient(self, opt.items, func)
-        else
-            self.addItemInEvolvedRecipe(opt)
-        end
+function CHC_uses_recipepanel:addRandomIngredient(options, all, isSpice)
+    local opt = CHC_main.common.getRandom(options)
+    self.addItemInEvolvedRecipe(self, opt, all, isSpice)
+end
+
+function CHC_uses_recipepanel:addItemInEvolvedRecipe(item, all, isSpice)
+    local function updateSelected(self)
+        self.parent.getContainers(self)
+        CHC_uses_recipepanel.getEvolvedChoices(self, self.selectedObj, self.containerList)
+        CHC_uses_recipepanel.setSpecificEvolvedItem(self, self.evolvedChoices[self.evolvedSelectedIx])
     end
 
-    isSpice = isSpice or false
-    local choicesLeft = 1
-    if all then
-        local used = self.evolvedSelected.extraItems and #self.evolvedSelected.extraItems
-        if not used then used = 0 end
+    local function onComplete(self, completedAction, isSpice)
+        local used = self.evolvedSelected.extraItems and #self.evolvedSelected.extraItems or 0
         local max = self.selectedObj.recipe.recipeData.maxItems
-        if isSpice then
-            choicesLeft = #options
-        else
-            choicesLeft = max - used
-        end
-    end
-    while choicesLeft > 0 do
-        selectRandomOption(options)
-        local types, spices = self:getValidEvolvedIngredients(self.selectedObj.typesAvailable)
-        options = isSpice and spices or types
-        local totalCount = 0
-        for i = 1, #options do
-            local option = options[i]
-            if option.items then
-                for j = 1, #option.items do
-                    totalCount = totalCount + option.items[j].uses
-                end
-            else
-                totalCount = totalCount + option.uses
-            end
-        end
-        choicesLeft = math.min(choicesLeft - 1, #options)
-    end
-end
+        if used >= max and not isSpice then return end
 
-function CHC_uses_recipepanel:addRandomIngredient(options, func)
-    func = func or self.addItemInEvolvedRecipe
-    local opt = options[ZombRand(1, #options + 1)]
-    func(self, opt)
-end
+        self.evolvedValidTypes, self.evolvedValidSpices = CHC_uses_recipepanel.getValidEvolvedIngredients(self,
+            self.selectedObj.typesAvailable)
 
-function CHC_uses_recipepanel:addItemInEvolvedRecipe(item)
+        local options = isSpice and self.evolvedValidSpices or self.evolvedValidTypes
+        if utils.empty(options) then return end
+        local item = CHC_main.common.getRandom(options)
+        if item.items then
+            item = CHC_main.common.getRandom(item.items)
+        end
+
+        local previousAction = completedAction
+        local returnToContainer = {}
+        local itemObj = CHC_main.common.getConcreteItem(self.containerList, item.item.fullType)
+        local baseItem = self.evolvedSelected.item
+        local ch = self.player
+        local action = CHC_ISAddItemInRecipe:new(ch,
+            self.selectedObj.recipeObj, baseItem,
+            itemObj, self.selectedObj.timeToMake
+        )
+        action:setOnComplete(updateSelected, self)
+        action:setOnComplete2(onComplete, self, action, isSpice)
+        ISTimedActionQueue.addAfter(previousAction, action)
+        ISCraftingUI.ReturnItemsToOriginalContainer(ch, returnToContainer)
+    end
+
     -- Adapted from ISCraftingUI:addItemInEvolvedRecipe
     local returnToContainer = {}
     local ch = self.player
@@ -1697,15 +1729,26 @@ function CHC_uses_recipepanel:addItemInEvolvedRecipe(item)
         ISTimedActionQueue.add(ISInventoryTransferAction:new(ch, baseItem, baseItem:getContainer(), inv, nil))
         table.insert(returnToContainer, baseItem)
     end
-    ISTimedActionQueue.add(ISAddItemInRecipe:new(ch, self.selectedObj.recipeObj, baseItem, itemObj,
-        self.selectedObj.timeToMake))
+    local action = CHC_ISAddItemInRecipe:new(ch, self.selectedObj.recipeObj, baseItem, itemObj,
+        self.selectedObj.timeToMake)
+    action:setOnComplete(updateSelected, self)
+    if all then
+        action:setOnComplete2(onComplete, self, action, isSpice)
+    end
+    ISTimedActionQueue.add(action)
     self.craftInProgress = true
     ISCraftingUI.ReturnItemsToOriginalContainer(ch, returnToContainer)
 end
 
 function CHC_uses_recipepanel:setSpecificEvolvedItem(evolvedOpt)
     self.evolvedOpt = evolvedOpt
-    self:setObj(self.selectedObj.recipe)
+    -- TODO: might be inconsistent, need to test
+    self.evolvedSelectedIx = evolvedOpt.index
+    self.selectedObj.typesAvailable = self:getAvailableItemsType()
+    self:updateMainInfo(self.selectedObj)
+    self:updateButtons(self.selectedObj)
+
+    self:refreshIngredientPanel(self.selectedObj)
 end
 
 function CHC_uses_recipepanel:getFoodData(ch)
@@ -1908,9 +1951,9 @@ function CHC_uses_recipepanel:updateButtons(obj)
             end
             if not utils.empty(obj.typesAvailable) then
                 if self.evolvedSelected then
-                    local types, spices = self:getValidEvolvedIngredients(obj.typesAvailable)
-                    local isIngr = not utils.empty(types)
-                    local isSpices = not utils.empty(spices)
+                    self.evolvedValidTypes, self.evolvedValidSpices = self:getValidEvolvedIngredients(obj.typesAvailable)
+                    local isIngr = not utils.empty(self.evolvedValidTypes)
+                    local isSpices = not utils.empty(self.evolvedValidSpices)
                     local isExtra = self.evolvedSelected.extraItems
                     local c1 = isExtra and #self.evolvedSelected.extraItems == obj.maxItems and isSpices
                     local c2 = isExtra and #self.evolvedSelected.extraItems < obj.maxItems and (isIngr or isSpices)
@@ -1978,6 +2021,9 @@ function CHC_uses_recipepanel:getEvolvedChoices(obj, containerList)
     local recipeData = obj.recipe.recipeData
     self.evolvedChoices = CHC_main.common.getNearbyItems(containerList,
         { recipeData.baseItem, recipeData.fullResultItem })
+    for i = 1, #self.evolvedChoices do
+        self.evolvedChoices[i].index = i
+    end
 end
 
 -- endregion

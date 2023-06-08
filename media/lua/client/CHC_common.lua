@@ -458,3 +458,7 @@ function CHC_main.common.getNextState(states, cur)
     end
     return states[newStateIx]
 end
+
+function CHC_main.common.getRandom(options)
+    return options[ZombRand(1, #options + 1)]
+end
