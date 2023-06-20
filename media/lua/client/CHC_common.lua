@@ -151,6 +151,7 @@ function CHC_main.common.isRecipeValid(recipe, player, containerList, knownRecip
         return true
     end
 
+    if not recipe or not player then return false end
     if not recipe.recipeData.result or utils.empty(recipe.recipeData.result) then
         -- print('result')
         return false
@@ -284,77 +285,9 @@ function CHC_main.common.getNearbyItems(containerList, fullTypesToCheck)
                     result.extraItems = extraItemObjs
                 end
                 if instanceof(item, "Food") then
-                    local foodData = {
-                        hunger = {
-                            text = getText("Tooltip_food_Hunger"),
-                            val = round(item:getHungerChange() * 100, 0),
-                            posGood = false,
-                            icon = getTexture("media/textures/evolved_food_data/CHC_hunger.png")
-                        },
-                        thirst = {
-                            text = getText("Tooltip_food_Thirst"),
-                            val = round(item:getThirstChange() * 100, 0),
-                            posGood = false,
-                            icon = getTexture("media/textures/evolved_food_data/CHC_evolved_thirst.png")
-                        },
-                        endurance = {
-                            text = getText("Tooltip_food_Endurance"),
-                            val = round(item:getEnduranceChange() * 100, 0),
-                            posGood = true,
-                            icon = getTexture("media/textures/evolved_food_data/CHC_endurance.png")
-                        },
-                        stress = {
-                            text = getText("Tooltip_food_Stress"),
-                            val = round(item:getStressChange() * 100, 0),
-                            posGood = false,
-                            icon = getTexture("media/textures/evolved_food_data/CHC_stress.png")
-                        },
-                        boredom = {
-                            text = getText("Tooltip_food_Boredom"),
-                            val = round(item:getBoredomChange(), 0),
-                            posGood = false,
-                            icon = getTexture("media/textures/evolved_food_data/CHC_boredom.png")
-                        },
-                        unhappy = {
-                            text = getText("Tooltip_food_Unhappiness"),
-                            val = round(item:getUnhappyChange(), 0),
-                            posGood = false,
-                            icon = getTexture("media/textures/evolved_food_data/CHC_unhappiness.png")
-                        },
-                        nutr_calories = {
-                            text = getText("Tooltip_food_Calories"),
-                            val = round(item:getCalories(), 0),
-                            valPrecise = round(item:getCalories(), 2),
-                            icon = getTexture("media/textures/evolved_food_data/CHC_calories.png")
-                        },
-                        nutr_cal_carbs = {
-                            text = getText("Tooltip_food_Carbs"),
-                            val = round(item:getCarbohydrates(), 2)
-                        },
-                        nutr_cal_proteins = {
-                            text = getText("Tooltip_food_Prots"),
-                            val = round(item:getProteins(), 2)
-                        },
-                        nutr_cal_lipids = {
-                            text = getText("Tooltip_food_Fat"),
-                            val = round(item:getLipids(), 2)
-                        }
-                    }
-                    result.foodData = foodData
-
-                    local extraSpices = item:getSpices()
-                    if extraSpices then
-                        local extraSpiceObjs = {}
-                        local extraSpiceMap = {}
-                        for j = 0, extraSpices:size() - 1 do
-                            local obj = CHC_main.items[extraSpices:get(j)]
-                            if obj then
-                                extraSpiceMap[obj.fullType] = true
-                                insert(extraSpiceObjs, obj)
-                            end
-                        end
-                        result.extraSpicesMap = extraSpiceMap
-                        result.extraSpices = extraSpiceObjs
+                    local foodData = CHC_main.common.getFoodData(item)
+                    for k, v in pairs(foodData) do
+                        result[k] = v
                     end
                 end
                 insert(items, result)
@@ -362,6 +295,139 @@ function CHC_main.common.getNearbyItems(containerList, fullTypesToCheck)
         end
     end
     return items
+end
+
+function CHC_main.common._getFoodDataTemplate()
+    return {
+        hunger = {
+            text = getText("Tooltip_food_Hunger"),
+            posGood = false,
+            icon = getTexture("media/textures/evolved_food_data/CHC_hunger.png")
+        },
+        thirst = {
+            text = getText("Tooltip_food_Thirst"),
+            posGood = false,
+            icon = getTexture("media/textures/evolved_food_data/CHC_evolved_thirst.png")
+        },
+        endurance = {
+            text = getText("Tooltip_food_Endurance"),
+            posGood = true,
+            icon = getTexture("media/textures/evolved_food_data/CHC_endurance.png")
+        },
+        stress = {
+            text = getText("Tooltip_food_Stress"),
+            posGood = false,
+            icon = getTexture("media/textures/evolved_food_data/CHC_stress.png")
+        },
+        boredom = {
+            text = getText("Tooltip_food_Boredom"),
+            posGood = false,
+            icon = getTexture("media/textures/evolved_food_data/CHC_boredom.png")
+        },
+        unhappy = {
+            text = getText("Tooltip_food_Unhappiness"),
+            posGood = false,
+            icon = getTexture("media/textures/evolved_food_data/CHC_unhappiness.png")
+        },
+        nutr_calories = {
+            text = getText("Tooltip_food_Calories"),
+            icon = getTexture("media/textures/evolved_food_data/CHC_calories.png")
+        },
+        nutr_cal_carbs = {
+            text = getText("Tooltip_food_Carbs")
+        },
+        nutr_cal_proteins = {
+            text = getText("Tooltip_food_Prots")
+        },
+        nutr_cal_lipids = {
+            text = getText("Tooltip_food_Fat")
+        }
+    }
+end
+
+function CHC_main.common.getFoodData(item)
+    local foodDataMapping = {
+        hunger = { val = round(item:getHungerChange() * 100, 0) },
+        thirst = { val = round(item:getThirstChange() * 100, 0) },
+        endurance = { val = round(item:getEnduranceChange() * 100, 0) },
+        stress = { val = round(item:getStressChange() * 100, 0) },
+        boredom = { val = round(item:getBoredomChange(), 0) },
+        unhappy = { val = round(item:getUnhappyChange(), 0) },
+        nutr_calories = {
+            val = round(item:getCalories(), 0),
+            valPrecise = round(item:getCalories(), 2)
+        },
+        nutr_cal_carbs = { val = round(item:getCarbohydrates(), 2) },
+        nutr_cal_proteins = { val = round(item:getProteins(), 2) },
+        nutr_cal_lipids = { val = round(item:getLipids(), 2) }
+
+    }
+    local foodData = CHC_main.common._getFoodDataTemplate()
+    for key, value in pairs(foodDataMapping) do
+        for _k, _v in pairs(value) do
+            foodData[key][_k] = _v
+        end
+    end
+    local result = {}
+    result.foodData = foodData
+
+    local extraSpices = item:getSpices()
+    if extraSpices then
+        local extraSpiceObjs = {}
+        local extraSpiceMap = {}
+        for j = 0, extraSpices:size() - 1 do
+            local obj = CHC_main.items[extraSpices:get(j)]
+            if obj then
+                extraSpiceMap[obj.fullType] = true
+                insert(extraSpiceObjs, obj)
+            end
+        end
+        result.extraSpicesMap = extraSpiceMap
+        result.extraSpices = extraSpiceObjs
+    end
+    return result
+end
+
+function CHC_main.common.getFoodDataSpice(baseItem, item, evoRecipe, cookLvl)
+    -- zombie.scripting.objects.EvolvedRecipe.addItem
+    local use = evoRecipe:getItemRecipe(item):getUse() / 100
+    local var7 = cookLvl / 15 + 1
+
+    local hung = baseItem:getHungChange()
+    local var8 = math.abs(use / hung)
+    if var8 > 1 then var8 = 1 end
+    local calories = 0 --item:getCalories() * var7 * var8
+    local proteins = 0 --item:getProteins() * var7 * var8
+    local carbs = 0    -- item:getCarbohydrates() * var7 * var8
+    local lipids = 0   -- item:getProteins() * var7 * var8
+    local boredom = -use * 200
+    local unhappy = -use * 200
+    --TODO: handle if baseItem rotten (cookLvl > 8)
+    local foodDataMapping = {
+        hunger = { val = 0 },
+        thirst = { val = 0 },
+        endurance = { val = 0 },
+        stress = { val = 0 },
+        boredom = { val = boredom },
+        unhappy = { val = unhappy },
+        nutr_calories = {
+            val = round(calories, 0),
+            valPrecise = round(calories, 2)
+        },
+        nutr_cal_carbs = { val = carbs },
+        nutr_cal_proteins = { val = proteins },
+        nutr_cal_lipids = { val = lipids }
+
+    }
+    local foodData = CHC_main.common._getFoodDataTemplate()
+    for key, value in pairs(foodDataMapping) do
+        for _k, _v in pairs(value) do
+            foodData[key][_k] = _v
+        end
+    end
+    local result = {}
+    result.foodData = foodData
+    return result
 end
 
 function CHC_main.common.getConcreteItem(containerList, fullType)

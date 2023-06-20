@@ -12,10 +12,7 @@ local ssort = string.sort
 local tsort = table.sort
 local sformat = string.format
 
--- TODO: add button to add hovered-over ingredient to selected evolved recipe
--- when hovered over add button - update extra data with new info (after item is added)
 -- TODO: explore folding for item/recipe list (left side)
-
 
 -- check out NotlocScrollView for scrollable panel example
 
@@ -209,6 +206,7 @@ function CHC_uses_recipepanel:createChildren()
     self.ingredientPanel:initialise()
     self.ingredientPanel:instantiate()
     self.ingredientPanel.onRightMouseDown = self.onRMBDownIngrPanel
+    -- self.ingredientPanel.onMouseMove = self.onIngredientMouseMove
     self.ingredientPanel:setOnMouseDownFunction(self, self.onIngredientMouseDown)
     self.ingredientPanel.prerender = CHC_view._list.prerender
     self.ingredientPanel.doDrawItem = self.drawIngredient
@@ -488,6 +486,7 @@ end
 
 function CHC_uses_recipepanel:setObj(recipe)
     if self.evolvedSelected then
+        self.evolvedSelected = nil
         self.evolvedOpt = nil
     end
     self.evolvedSelectedIx = 1
@@ -507,7 +506,7 @@ function CHC_uses_recipepanel:setObj(recipe)
         obj.requiredSkillCount = 0
         obj.isKnown = true
         obj.nearItem = nil
-        obj.timeToMake = 100 -- FIXME
+        obj.timeToMake = 0 -- FIXME
         obj.howManyCanCraft = 0
         obj.needToBeLearn = false
     elseif recipe.isEvolved then
@@ -718,6 +717,7 @@ function CHC_uses_recipepanel:refreshIngredientPanel(selectedItem)
     tsort(sortedSources, function(a, b) return #a.items == 1 and #b.items > 1 end)
 
     -- region abc
+    local recipeData = self.selectedObj.recipe.recipeData
     for i = 1, #sortedSources do
         local source = sortedSources[i]
         local available = {}
@@ -739,6 +739,7 @@ function CHC_uses_recipepanel:refreshIngredientPanel(selectedItem)
             local evolvedState = true
             if selectedItem.isEvolved and self.evolvedSelected then
                 local isSpice = CHC_main.items[item.fullType].propsMap["Spice"]
+                data.isSpice = isSpice
                 local usedSpice = self.evolvedSelected.extraSpicesMap and
                     self.evolvedSelected.extraSpicesMap[item.fullType]
 
@@ -747,6 +748,10 @@ function CHC_uses_recipepanel:refreshIngredientPanel(selectedItem)
                 local max = self.selectedObj.recipe.recipeData.maxItems
                 if (used < max and not isSpice) or (used ~= 0 and isSpice and not usedSpice) then
                     evolvedState = true
+
+                    if utils.any({ recipeData.baseItem, recipeData.fullResultItem }, item.fullType) then
+                        data.isEvolvedBaseItem = true
+                    end
                 else
                     evolvedState = false
                 end
@@ -897,15 +902,18 @@ function CHC_uses_recipepanel:updateMainInfo(obj)
                 recipeName = ch.displayNameExtra
             end
             recipeName = recipeName .. " (" .. used .. "/" .. max .. ")"
-        end
 
-        -- region food data
-        -- TODO: call updateExtraData when hovering over add button in list of ingredients
-        self:updateExtraData(self.evolvedSelected)
-        if not utils.empty(self.mainExtraData.children) then
-            self.mainExtraData:setVisible(true)
+
+            -- region food data
+            -- self.origFoodData = nil
+            local foodData = self:getFoodData(ch)
+            self:updateExtraData(foodData)
+            -- self.origFoodData = copyTable(ch.foodData)
+            if not utils.empty(self.mainExtraData.children) then
+                self.mainExtraData:setVisible(true)
+            end
+            -- endregion
         end
-        -- endregion
     end
 
     self.mainName:setName(recipeName, true)
@@ -960,9 +968,7 @@ function CHC_uses_recipepanel:updateMainInfo(obj)
     self.mainInfo:setVisible(true)
 end
 
-function CHC_uses_recipepanel:updateExtraData(ch)
-    if not ch or utils.empty(ch) then return end
-
+function CHC_uses_recipepanel:updateExtraData(foodData)
     local function btnRender(s)
         s:drawTextureScaledAspect(s.image,
             (s.width / 2) - (s.iconSize / 2),
@@ -973,7 +979,6 @@ function CHC_uses_recipepanel:updateExtraData(ch)
             s.textColor.b, s.textColor.a, s.font)
     end
 
-    local foodData = self:getFoodData(ch)
     if not foodData then return end
     local margin = 5
     local innerMar = 3
@@ -1071,7 +1076,6 @@ function CHC_uses_recipepanel:drawAddToEvolved(y, item, parent, dx)
     local icon
     if item.index == self.mouseoverselected then
         local mouseX = self:getMouseX()
-        --TODO: update fooddata with selected item
         if mouseX >= addXPos and mouseX <= addW then -- hovered over
             icon = parent.addEvolvedHoveredTex
         else
@@ -1172,7 +1176,7 @@ function CHC_uses_recipepanel:drawIngredient(y, item, alt)
         self.recipepanel.drawFavoriteStar(self, y, item, self.recipepanel)
         --endregion
 
-        if self.recipepanel.evolvedSelected and item.item.available then
+        if self.recipepanel.evolvedSelected and item.item.available and not item.item.isEvolvedBaseItem then
             self.recipepanel.drawAddToEvolved(self, y, item, self.recipepanel, dx)
         end
 
@@ -1373,6 +1377,62 @@ end
 
 -- region event handlers
 
+-- function CHC_uses_recipepanel:onIngredientMouseMove(x, y)
+--     local ix = self.mouseoverselected
+--     local panel = self.recipepanel
+
+--     ISScrollingListBox.onMouseMove(self, x, y)
+--     if not panel.evolvedSelected then return end
+--     if not panel.evolvedSelected.foodData then return end
+--     if ix == self.mouseoverselected then return end
+
+--     local item = self.items[self.mouseoverselected]
+--     local recipeData = item.item and item.item.recipe and item.item.recipe.recipeData
+--     local origFoodData = panel.origFoodData
+--     if ix == -1 or
+--         item.item.multipleHeader or
+--         not item.item.available or
+--         (item.item.fullType and
+--             utils.any({ recipeData.baseItem, recipeData.fullResultItem }, item.item.fullType)) then
+--         local foodData = CHC_uses_recipepanel.getFoodData(panel,
+--             { item = panel.evolvedSelected.item, foodData = origFoodData })
+--         panel.mainExtraData:setVisible(false)
+--         panel.mainExtraData:clearChildren()
+--         CHC_uses_recipepanel.updateExtraData(panel, foodData)
+--         panel.mainExtraData:setVisible(true)
+--         return
+--     end
+--     local concreteItem = CHC_main.common.getConcreteItem(panel.containerList, item.item.fullType)
+--     if not concreteItem then return end
+--     local concreteBaseItem = CHC_main.common.getConcreteItem(panel.containerList, panel.evolvedSelected.itemObj.fullType)
+--     local addedFoodData
+--     if item.item.isSpice then
+--         addedFoodData = CHC_main.common.getFoodDataSpice(
+--             concreteBaseItem,
+--             concreteItem,
+--             item.item.selectedItem.recipeObj,
+--             panel.player:getPerkLevel(Perks.Cooking)
+--         )
+--     else
+--         addedFoodData = CHC_main.common.getFoodData(concreteItem)
+--     end
+
+--     local newFoodData = {}
+--     for key, value in pairs(addedFoodData.foodData) do
+--         newFoodData[key] = copyTable(origFoodData[key])
+--         newFoodData[key].val = origFoodData[key].val + value.val
+--         if value.valPrecise then
+--             newFoodData[key].valPrecise = origFoodData[key].valPrecise + value.valPrecise
+--         end
+--     end
+--     local foodData = CHC_uses_recipepanel.getFoodData(panel,
+--         { item = panel.evolvedSelected.item, foodData = newFoodData })
+--     panel.mainExtraData:setVisible(false)
+--     panel.mainExtraData:clearChildren()
+--     CHC_uses_recipepanel.updateExtraData(panel, foodData)
+--     panel.mainExtraData:setVisible(true)
+-- end
+
 function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y, item)
     local backRef = self.parent.parent.backRef
     local context = backRef.onRMBDownObjList(self, x, y, item)
@@ -1473,7 +1533,7 @@ function CHC_uses_recipepanel:onIngredientMouseDown(item)
             })
         end
         if x <= addW then
-            if self.evolvedSelected and item.available then
+            if self.evolvedSelected and item.available and not item.isEvolvedBaseItem then
                 self:addItemInEvolvedRecipe({ item = CHC_main.items[item.fullType] })
             end
         end
@@ -1741,6 +1801,7 @@ function CHC_uses_recipepanel:addItemInEvolvedRecipe(item, all, isSpice)
 end
 
 function CHC_uses_recipepanel:setSpecificEvolvedItem(evolvedOpt)
+    if not evolvedOpt then return end
     self.evolvedOpt = evolvedOpt
     -- TODO: might be inconsistent, need to test
     self.evolvedSelectedIx = evolvedOpt.index
