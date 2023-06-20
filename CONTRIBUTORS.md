@@ -27,3 +27,5 @@ Contributors will be shown in order of first pull request / commit:
 - [lucas154](https://crowdin.com/profile/musso777)
   - Spanish translation
 - [piromasta](https://steamcommunity.com/id/piromasta)
+- [{9GU}Eternity](https://steamcommunity.com/id/Eternity84)
+  - Italian translation

@@ -15,6 +15,7 @@
 - Improved error handling
 - Subview tabs (Items/Recipes | Uses/Craft) now fill whole space and rescale with window
 - Updated Traditional Chinese translation
+- Added Italian translation (thanks to [{9GU}Eternity](https://steamcommunity.com/id/Eternity84))
 
 ## 1.7.3 (13.05.2023)
 
