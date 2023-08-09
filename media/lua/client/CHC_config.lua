@@ -44,7 +44,7 @@ CHC_settings = {
 
 local init_cfg = {
     show_recipe_module = true,
-    show_fav_items_inventory = false,
+    show_fav_items_inventory = true,
     editable_category_selector = false,
     recipe_selector_modifier = 1, -- none
     category_selector_modifier = 1,
@@ -56,6 +56,7 @@ local init_cfg = {
     close_all_on_exit = false,
     show_all_props = false,
     delayed_search = false,
+    require_shift_on_context_click = false,
     main_window = { x = 100, y = 100, w = 1000, h = 600 },
     uses = { sep_x = 500, filter_asc = true, filter_type = 'all' },
     craft = { sep_x = 500, filter_asc = true, filter_type = 'all' },
@@ -91,6 +92,7 @@ function CHC_settings.f.onModOptionsApply(values)
     CHC_settings.config.close_all_on_exit = values.settings.options.close_all_on_exit
     CHC_settings.config.show_all_props = values.settings.options.show_all_props
     CHC_settings.config.delayed_search = values.settings.options.delayed_search
+    CHC_settings.config.require_shift_on_context_click = values.settings.options.require_shift_on_context_click
     CHC_settings.Save()
 end
 
@@ -187,7 +189,7 @@ if ModOptions and ModOptions.getInstance then
             show_fav_items_inventory = {
                 name = 'IGUI_ShowFavItemsInventory',
                 tooltip = 'IGUI_ShowFavItemsInventoryTooltip',
-                default = false,
+                default = true,
                 OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
                 OnApplyInGame = CHC_settings.f.onModOptionsApply
             },
@@ -211,6 +213,13 @@ if ModOptions and ModOptions.getInstance then
                 default = false,
                 OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
                 OnApplyInGame = CHC_main.config_apply_funcs.process
+            },
+            require_shift_on_context_click = {
+                name = 'IGUI_RequireShiftOnContextClick',
+                tooltip = 'IGUI_RequireShiftOnContextClickTooltip',
+                default = false,
+                OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
+                OnApplyInGame = CHC_settings.f.onModOptionsApply
             }
         },
         mod_id = 'CraftHelperContinued',
@@ -227,7 +236,7 @@ if ModOptions and ModOptions.getInstance then
 else
     -- defaults in case 'Mod Options' not installed
     CHC_settings.config.show_recipe_module = true
-    CHC_settings.config.show_fav_items_inventory = false
+    CHC_settings.config.show_fav_items_inventory = true
     CHC_settings.config.editable_category_selector = false
     CHC_settings.config.recipe_selector_modifier = 1
     CHC_settings.config.category_selector_modifier = 1
@@ -239,6 +248,7 @@ else
     CHC_settings.config.close_all_on_exit = false
     CHC_settings.config.show_all_props = false
     CHC_settings.config.delayed_search = false
+    CHC_settings.config.require_shift_on_context_click = false
 end
 
 
@@ -262,6 +272,7 @@ CHC_settings.Load = function()
         CHC_settings.Save(config)
     end
     CHC_settings.checkConfig(config)
+    config = CHC_settings.validateConfig(config)
     CHC_settings.config = config
 end
 
@@ -276,6 +287,27 @@ CHC_settings.checkConfig = function(config)
     if shouldReSave == true then
         CHC_settings.Save(config)
     end
+end
+
+CHC_settings.validateConfig = function(config)
+    local win = config.main_window
+    if not win then return config end
+    local init = init_cfg.main_window
+    local screenW = getCore():getScreenWidth()
+    local screenH = getCore():getScreenHeight()
+    if win.x > screenW or win.x < 0 then
+        win.x = init.x
+    end
+    if win.y > screenH or win.y < 0 then
+        win.y = init.y
+    end
+    if win.w > screenW or win.w < 0 then
+        win.w = init.w
+    end
+    if win.h > screenH or win.h < 0 then
+        win.h = init.h
+    end
+    return config
 end
 
 

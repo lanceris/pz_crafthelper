@@ -57,7 +57,7 @@ function CHC_items_list:doDrawItem(y, item, alt)
     --endregion
 
     --region favorite handler
-    local isFav = self.modData[CHC_main.getFavItemModDataStr(item.item)] == true
+    local isFav = item.item.favorite
     local favYPos = self.width - 30
     if item.index == self.mouseoverselected then
         if self.mouseX >= favYPos - 20 and self.mouseX <= favYPos + 20 then
@@ -158,9 +158,10 @@ function CHC_items_list:addToFavorite(selectedIndex, fromKeyboard)
     if not selectedItem then return end
     local parent = self.parent
 
-    local favStr = CHC_main.getFavItemModDataStr(selectedItem.item)
+    local favStr = CHC_main.common.getFavItemModDataStr(selectedItem.item)
     local isFav = self.modData[favStr] == true
     isFav = not isFav
+    selectedItem.item.favorite = isFav
     self.modData[favStr] = isFav or nil
     if not isFav and parent.ui_type == 'fav_items' then
         self:removeItemByIndex(selectedIndex)

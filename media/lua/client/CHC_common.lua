@@ -528,3 +528,34 @@ end
 function CHC_main.common.getRandom(options)
     return options[ZombRand(1, #options + 1)]
 end
+
+CHC_main.common.getFavItemModDataStr = function(item)
+    local fullType
+    if item.fullType then
+        fullType = item.fullType
+    elseif instanceof(item, 'InventoryItem') then
+        fullType = item:getFullType()
+    elseif type(item) == 'string' then
+        fullType = item
+    end
+    local text = 'itemFavoriteCHC:' .. fullType
+    return text
+end
+
+CHC_main.common.getFavoriteRecipeModDataString = function(recipe)
+    if recipe.recipeData.isSynthetic then return 'testCHC' .. recipe.recipe:getOriginalname() end
+    recipe = recipe.recipe
+    local text = 'craftingFavorite:' .. recipe:getOriginalname()
+    if instanceof(recipe, 'EvolvedRecipe') then
+        text = text .. ':' .. recipe:getBaseItem()
+        text = text .. ':' .. recipe:getResultItem()
+    else
+        for i = 0, recipe:getSource():size() - 1 do
+            local source = recipe:getSource():get(i)
+            for j = 1, source:getItems():size() do
+                text = text .. ':' .. source:getItems():get(j - 1)
+            end
+        end
+    end
+    return text
+end

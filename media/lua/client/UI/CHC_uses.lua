@@ -352,7 +352,7 @@ end
 
 function CHC_uses:processAddObjToObjList(recipe, modData) --FIXME
     local name = recipe.recipeData.name
-    recipe.favorite = modData[CHC_main.getFavoriteRecipeModDataString(recipe)] or false
+    recipe.favorite = modData[CHC_main.common.getFavoriteRecipeModDataString(recipe)] or false
     if self.shouldDrawMod and recipe.module ~= 'Base' then
         recipe.height = recipe.height + 2 + fhs
     else

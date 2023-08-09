@@ -1050,7 +1050,7 @@ function CHC_uses_recipepanel:drawFavoriteStar(y, item, parent)
     local favoriteStar
     local favoriteAlpha = 0.9
     local favXPos = self.width - 30
-    local isFav = CHC_main.playerModData[CHC_main.getFavItemModDataStr(item.item)] == true
+    local isFav = CHC_main.items[item.item.fullType].favorite
     if item.index == self.mouseoverselected then
         local mouseX = self:getMouseX()
         if mouseX >= favXPos - 5 and mouseX <= favXPos + 16 then
@@ -1524,9 +1524,11 @@ function CHC_uses_recipepanel:onIngredientMouseDown(item)
     if not item.multipleHeader then
         -- favorite handler
         if (x >= favXPos) then
-            local isFav = self.modData[CHC_main.getFavItemModDataStr(item)] == true
+            local _item = CHC_main.items[item.fullType]
+            local isFav = _item.favorite == true
             isFav = not isFav
-            self.modData[CHC_main.getFavItemModDataStr(item)] = isFav or nil
+            _item.favorite = isFav
+            self.modData[CHC_main.common.getFavItemModDataStr(item)] = isFav or nil
             self.backRef.updateQueue:push({
                 targetView = 'fav_items',
                 actions = { 'needUpdateFavorites', 'needUpdateObjects' }
@@ -1616,7 +1618,7 @@ function CHC_uses_recipepanel:craft(button, all)
     local selectedItem = self.selectedObj;
     -- if selectedItem.evolved then return end
     if not RecipeManager.IsRecipeValid(selectedItem.recipeObj, self.player, nil, self.containerList) then return end
-    if not getPlayer() then return end
+    if not self.player then return end
     local itemsUsed = self:transferItems()
     if #itemsUsed == 0 then
         -- self:refresh()

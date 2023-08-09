@@ -54,8 +54,10 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
 		opt.iconTexture = getTexture('media/textures/CHC_ctx_icon.png')
 		CHC_main.common.addTooltipNumRecipes(opt, item)
 	end
-	if isShiftKeyDown() and CHC_menu.CHC_window ~= nil then
-		local isFav = CHC_main.playerModData[CHC_main.getFavItemModDataStr(item)] == true
+	local cond1 = options.require_shift_on_context_click and isShiftKeyDown()
+	local cond2 = not options.require_shift_on_context_click --FIXME add way to update ingame
+	if (cond1 or cond2) and CHC_menu.CHC_window ~= nil then
+		local isFav = CHC_menu.playerModData[CHC_main.common.getFavItemModDataStr(item)] == true
 		local favStr = isFav and getText('ContextMenu_Unfavorite') or getText('IGUI_CraftUI_Favorite')
 		local optName = favStr .. ' (' .. getText('IGUI_chc_context_onclick') .. ')'
 		local favOpt = context:addOption(optName, items, CHC_menu.toggleItemFavorite)
@@ -169,9 +171,10 @@ CHC_menu.toggleItemFavorite = function(items)
 		else
 			item = items[i]
 		end
-		local isFav = modData[CHC_main.getFavItemModDataStr(item)] == true
+		local isFav = modData[CHC_main.common.getFavItemModDataStr(item)] == true
 		isFav = not isFav
-		modData[CHC_main.getFavItemModDataStr(item)] = isFav or nil
+		modData[CHC_main.common.getFavItemModDataStr(item)] = isFav or nil
+		CHC_main.items[item:getFullType()].favorite = isFav
 	end
 	CHC_menu.CHC_window.updateQueue:push({
 		targetView = 'fav_items',

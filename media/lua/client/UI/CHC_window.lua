@@ -42,6 +42,7 @@ function CHC_window:create()
         h = self.panel.height - self.panelY - 4
     }
 
+    self:updateFavorites()
     self:addSearchPanel()
     self:addFavoriteScreen()
 
@@ -318,10 +319,11 @@ function CHC_window:getItems(favOnly, max)
     local to = max or #items
 
     for i = 1, to do
-        local isFav = self.modData[CHC_main.getFavItemModDataStr(items[i])] == true
-        if (not showHidden) and (items[i].hidden == true) then
+        local item = items[i]
+        local isFav = item.favorite
+        if (not showHidden) and (item.hidden == true) then
         elseif (favOnly and isFav) or (not favOnly) then
-            insert(newItems, items[i])
+            insert(newItems, item)
         end
     end
     if not showHidden and not max and not favOnly then
@@ -354,6 +356,31 @@ function CHC_window:getRecipes(favOnly)
             self.ui_type or "CHC_window"))
     end
     return recipes
+end
+
+function CHC_window:updateFavorites(modData)
+    modData = modData or self.modData
+    local showHidden = CHC_settings.config.show_hidden
+    local allrec = CHC_main.allRecipes or {}
+    local allevorec = CHC_main.allEvoRecipes or {}
+    local items = CHC_main.itemsForSearch
+
+    for i = 1, #items do
+        local favStr = CHC_main.common.getFavItemModDataStr(items[i])
+        items[i].favorite = modData[favStr] or false
+    end
+    for i = 1, #allrec do
+        local recipe = allrec[i]
+        if (not showHidden) and recipe.hidden then
+        else
+            local favStr = CHC_main.common.getFavoriteRecipeModDataString(recipe)
+            recipe.favorite = modData[favStr] or false
+        end
+    end
+    for i = 1, #allevorec do
+        local favStr = CHC_main.common.getFavoriteRecipeModDataString(allevorec[i])
+        allevorec[i].favorite = modData[favStr] or false
+    end
 end
 
 -- endregion
@@ -780,7 +807,9 @@ function CHC_window:onKeyRelease(key)
         local idx
         if vl and #vl == 2 then
             idx = view:getActiveViewIndex() == 1 and 2 or 1
-            self:refresh(vl[idx].name, view)
+            if vl[idx] and vl[idx].name then
+                self:refresh(vl[idx].name, view)
+            end
         end
     end
 
@@ -795,7 +824,9 @@ function CHC_window:onKeyRelease(key)
         if newvSel > #pTabs then newvSel = 1 end
     end
     if newvSel ~= oldvSel then
-        self:refresh(pTabs[newvSel].name)
+        if pTabs[newvSel] and pTabs[newvSel].name then
+            self:refresh(pTabs[newvSel].name)
+        end
         return
     end
     -- endregion

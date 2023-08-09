@@ -217,7 +217,7 @@ function CHC_search:searchProcessToken(token, item)
     local whatCompare
     if not token then return true end
     if isAllowSpecialSearch and char == '^' then
-        if not self.modData[CHC_main.getFavItemModDataStr(item)] then return false end
+        if not item.favorite then return false end
         whatCompare = string.lower(item.displayName)
     end
     if isSpecialSearch then
