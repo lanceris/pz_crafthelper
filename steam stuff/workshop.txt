@@ -1,4 +1,4 @@
-version=1.7.3
+version=1.8.0
 id=2787291513
 title=Craft Helper Continued
 tags=Build 41;Interface
@@ -61,6 +61,7 @@ description=[*]Brazilian Portuguese
 description=[*]Traditional Chinese
 description=[*]Polish
 description=[*]German
+description=[*]Italian
 description=[/list]
 description=
 description=If you would like to help with translation, please go to Crowdin page:
