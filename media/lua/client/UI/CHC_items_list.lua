@@ -26,6 +26,7 @@ function CHC_items_list:prerender()
 end
 
 function CHC_items_list:doDrawItem(y, item, alt)
+    if not item.height then item.height = self.itemheight end
     if self:fastListReturn(y) then return y + self.itemheight end
 
     local itemObj = item.item
@@ -34,14 +35,6 @@ function CHC_items_list:doDrawItem(y, item, alt)
     local favoriteStar = nil
     local favoriteAlpha = a
 
-    -- region icons
-    if self.shouldShowIcons then
-        local itemIcon = itemObj.texture
-        self:drawTextureScaledAspect(itemIcon, 3, y, self.itemheight - 2, self.itemheight - 2, 1)
-    end
-    --endregion
-
-    --region text
     local itemPadY = self.itemPadY or (item.height - self.fontHgt) / 2
     local clr = {
         txt = item.text,
@@ -53,6 +46,22 @@ function CHC_items_list:doDrawItem(y, item, alt)
         a = 0.9,
         font = self.font,
     }
+
+    -- region icons
+    if self.shouldShowIcons then
+        local itemIcon = itemObj.texture
+        if itemIcon then
+            if itemObj.textureMult then
+                self:drawTextureScaled(itemIcon, 3, clr.y, self.itemheight - 2, self.itemheight - 2, 1)
+            else
+                self:drawTextureScaledAspect(itemIcon, 3, clr.y, self.itemheight - 2, self.itemheight - 2, 1)
+            end
+        end
+    end
+    --endregion
+
+    --region text
+
     self:drawText(clr.txt, clr.x, clr.y, clr.r, clr.g, clr.b, clr.a, clr.font)
     --endregion
 
@@ -192,13 +201,12 @@ function CHC_items_list:new(args)
     o.favorite.notChecked.height = o.favorite.notChecked.tex:getHeight()
     o.onmiddlemousedown = args.onmiddlemousedown
     o.needmmb = false
-    o.modData = CHC_main.playerModData
+    o.modData = CHC_menu.playerModData
 
     o.yScroll = 0
     o.needUpdateScroll = true
     o.needUpdateMousePos = true
     o.shouldShowIcons = CHC_settings.config.show_icons
 
-    o.player = getPlayer()
     return o
 end

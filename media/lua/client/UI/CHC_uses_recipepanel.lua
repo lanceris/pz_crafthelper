@@ -206,7 +206,6 @@ function CHC_uses_recipepanel:createChildren()
     self.ingredientPanel:initialise()
     self.ingredientPanel:instantiate()
     self.ingredientPanel.onRightMouseDown = self.onRMBDownIngrPanel
-    -- self.ingredientPanel.onMouseMove = self.onIngredientMouseMove
     self.ingredientPanel:setOnMouseDownFunction(self, self.onIngredientMouseDown)
     self.ingredientPanel.prerender = CHC_view._list.prerender
     self.ingredientPanel.doDrawItem = self.drawIngredient
@@ -569,7 +568,7 @@ function CHC_uses_recipepanel:setObj(recipe)
     end
 
     if obj.hydrocraftEquipment or obj.cecEquipment or obj.nearItem then
-        self:refreshEquipmentPanel(recipe)
+        self:refreshEquipmentPanel(obj)
         self.statsList:addSection(self.equipmentPanel, getText('UI_recipe_panel_near_item') .. ': ')
     end
 
@@ -809,7 +808,7 @@ function CHC_uses_recipepanel:refreshIngredientPanel(selectedItem)
             data.isBlockHidden = data.blockHiddenState ~= blockHiddenStateSelector[1]
         end
 
-        handleDismantleWatch(available, unavailable)
+        -- handleDismantleWatch(available, unavailable) -- FIXME refactor?
 
         for j = 1, #available do
             self.ingredientPanel:addItem(available[j].name, available[j])
@@ -1281,12 +1280,10 @@ function CHC_uses_recipepanel:drawEquipment(y, item, alt)
             local tH = 20
             local ttY = tY
             if item.item.textureMult then
-                tW = tW * item.item.textureMult
-                tH = tH * item.item.textureMult
-                ttY = tY - tH / 4
-                tX = tX + tW / 2
+                self:drawTextureScaled(item.item.texture, tX, ttY, tW, tH, 1)
+            else
+                self:drawTextureScaledAspect(item.item.texture, tX, ttY, tW, tH, a, 1, 1, 1)
             end
-            self:drawTextureScaledAspect(item.item.texture, tX, ttY, tW, tH, a, 1, 1, 1)
             tX = tX + tW + 5
         end
         self:drawText(item.item.name, tX, tY, r, g, b, a, UIFont.Small)
@@ -1641,7 +1638,7 @@ function CHC_uses_recipepanel:craft(button, all)
         selectedItem.recipeObj:getTimeToMake(),
         selectedItem.recipeObj, container, self.containerList)
     if all then
-        action:setOnComplete(self.onCraftComplete, self, action, selectedItem.recipe, container, self.containerList)
+        action:setOnComplete(self.onCraftComplete, self, action, selectedItem.recipeObj, container, self.containerList)
     end
     ISTimedActionQueue.add(action)
     self.craftInProgress = true
@@ -2103,10 +2100,8 @@ function CHC_uses_recipepanel:new(args)
     o.padY = 5
     o.margin = 5
     o.backRef = args.backRef
-    local player = getPlayer()
-    o.player = player
-    o.character = player
-    o.playerNum = player and player:getPlayerNum() or -1
+    o.player = CHC_menu.player
+    o.character = o.player
 
     o.needRefreshIngredientPanel = true
     o.needRefreshRecipeCounts = true
@@ -2117,7 +2112,7 @@ function CHC_uses_recipepanel:new(args)
     o.recipe = nil
     o.manualsSize = 0
     o.manualsEntries = nil
-    o.modData = CHC_main.playerModData
+    o.modData = CHC_menu.playerModData
     o.lastAvailableTypes = {}
 
     o.anchorTop = true

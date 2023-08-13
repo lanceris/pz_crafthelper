@@ -203,6 +203,11 @@ function CHC_sectioned_panel:prerender()
     end
 
     local sx, sy, sx2, sy2 = 0, 0, self.width, self.height
+
+    if self:isVScrollBarVisible() then
+        sx2 = self.vscroll.x + 3 -- +3 because the scrollbar texture is narrower than the scrollbar width
+    end
+
     if self.parent and self.parent:getScrollChildren() then
         sx = self.javaObject:clampToParentX(self:getAbsoluteX() + sx) - self:getAbsoluteX()
         sx2 = self.javaObject:clampToParentX(self:getAbsoluteX() + sx2) - self:getAbsoluteX()
@@ -210,10 +215,17 @@ function CHC_sectioned_panel:prerender()
         sy2 = self.javaObject:clampToParentY(self:getAbsoluteY() + sy2) - self:getAbsoluteY()
     end
     self:setStencilRect(sx, sy, sx2 - sx, sy2 - sy)
+
+    self:updateScrollbars()
 end
 
 function CHC_sectioned_panel:render()
+    ISPanel.render(self)
     self:clearStencilRect()
+end
+
+function CHC_sectioned_panel:onResize()
+    self:updateScrollbars()
 end
 
 function CHC_sectioned_panel:onMouseWheel(del)

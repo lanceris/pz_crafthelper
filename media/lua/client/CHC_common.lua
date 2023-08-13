@@ -10,7 +10,7 @@ local globalTextLimit = 1000 -- FIXME
 
 
 CHC_main.common.fontSizeToInternal = {
-    { font = UIFont.Small,  pad = 2, icon = 10, ymin = 2 },
+    { font = UIFont.Small,  pad = 4, icon = 10, ymin = 2 },
     { font = UIFont.Medium, pad = 4, icon = 18, ymin = -2 },
     { font = UIFont.Large,  pad = 6, icon = 24, ymin = -4 }
 }

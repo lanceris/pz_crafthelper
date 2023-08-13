@@ -432,6 +432,7 @@ function CHC_window:update()
                         self.uiTypeToView[viewObject.view.ui_type].name = viewObject.name
                     end
                 else
+                    utils.chcprint("Trigger " .. action .. " for " .. targetViewObj.name)
                     targetView[action] = true
                 end
             end
@@ -983,8 +984,8 @@ function CHC_window:new(args)
     o.rh = o:resizeWidgetHeight()
     local fontHgtSmall = getTextManager():getFontHeight(UIFont.Small);
     o.headerHgt = fontHgtSmall + 1
-    o.player = args.player or nil
-    o.modData = CHC_main.playerModData
+    o.player = CHC_menu.player
+    o.modData = CHC_menu.playerModData
 
     o.searchViewName = getText('UI_search_tab_name')
     o.favViewName = getText('IGUI_CraftCategory_Favorite')

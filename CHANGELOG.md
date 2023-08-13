@@ -16,6 +16,14 @@
 - Subview tabs (Items/Recipes | Uses/Craft) now fill whole space and rescale with window
 - Updated Traditional Chinese translation
 - Added Italian translation (thanks to [{9GU}Eternity](https://steamcommunity.com/id/Eternity84))
+- Favorited items now will be shown in inventory (can be disabled in options)
+- Added option to require shift pressed to show extra options (find and (un-)favorite) (by default OFF) (WIP)
+
+### Bugfixes
+
+- Fixed bug when mod stopped working after player death and respawn w/o exiting to menu
+- Various UI fixes
+- Fixed major slowdown with large recipes (e.g hydrocraft compost)
 
 ## 1.7.3 (13.05.2023)
 

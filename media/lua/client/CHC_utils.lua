@@ -10,8 +10,11 @@ local contains = string.contains
 
 CHC_utils.configDir = "CraftHelperContinued" .. getFileSeparator()
 
-CHC_utils.chcprint = function(txt)
-    print('[CraftHelperContinued] ' .. tostring(txt))
+CHC_utils.chcprint = function(txt, debugOnly)
+    if debugOnly == nil then debugOnly = true end
+    if not debugOnly or (debugOnly and getDebug()) then
+        print('[CraftHelperContinued] ' .. tostring(txt))
+    end
 end
 
 ---@param txt string error message

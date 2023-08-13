@@ -24,7 +24,7 @@ end
 CHC_main.config_apply_funcs.onChangeListFontSize = function(inst)
     inst.updateQueue:push({
         targetView = 'all',
-        actions = { 'needUpdateFont' }
+        actions = { 'needUpdateFont', 'needUpdateObjects' }
     })
 end
 

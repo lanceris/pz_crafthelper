@@ -289,8 +289,6 @@ function CHC_search:new(args)
 
     o.ui_type = args.ui_type
     o.sep_x = args.sep_x
-    o.player = getPlayer()
-    o.modData = CHC_main.playerModData
 
     o.defaultCategory = getText('UI_All')
     o.searchRowHelpText = getText('UI_searchrow_info',
@@ -300,6 +298,8 @@ function CHC_search:new(args)
 
     o.selectedCategory = o.defaultCategory
     o.backRef = args.backRef
+    o.player = CHC_menu.player
+    o.modData = CHC_menu.playerModData
 
     o.objSource = args.objSource
     o.itemSortAsc = args.itemSortAsc

@@ -2,7 +2,18 @@ require 'CHC_main'
 
 CHC_menu = {}
 
+local function setPlayer()
+	CHC_menu.player = getPlayer()
+	CHC_menu.playerNum = CHC_menu.player:getPlayerNum()
+	CHC_menu.playerModData = CHC_menu.player:getModData()
+end
+
 --- called just after CHC_main.loadDatas
+CHC_menu.init = function()
+	setPlayer()
+	CHC_menu.createCraftHelper()
+end
+
 --- loads config and creates window instance
 CHC_menu.createCraftHelper = function()
 	CHC_settings.Load()
@@ -17,7 +28,6 @@ CHC_menu.createCraftHelper = function()
 		backgroundColor = { r = 0, g = 0, b = 0, a = 1 },
 		minimumWidth = 400,
 		minimumHeight = 350,
-		player = getPlayer()
 	}
 	CHC_menu.CHC_window = CHC_window:new(args)
 	CHC_menu.CHC_window:initialise()
@@ -77,9 +87,8 @@ end
 CHC_menu.onCraftHelper = function(items, player, itemMode)
 	itemMode = itemMode and true or false
 	local inst = CHC_menu.CHC_window
-	if inst == nil then
-		CHC_menu.createCraftHelper()
-		inst = CHC_menu.CHC_window
+	if not inst then
+		error("Craft Helper failed to open")
 	end
 
 	-- Show craft helper window
@@ -159,11 +168,13 @@ CHC_menu.toggleUI = function(ui)
 			ui:setVisible(true)
 			ui:addToUIManager()
 		end
+	else
+		error("No UI found in CHC_menu.toggleUI")
 	end
 end
 
 CHC_menu.toggleItemFavorite = function(items)
-	local modData = CHC_main.playerModData
+	local modData = CHC_menu.playerModData
 	for i = 1, #items do
 		local item
 		if not instanceof(items[i], 'InventoryItem') then
@@ -185,7 +196,7 @@ end
 ---Show/hide Craft Helper window keybind listener
 ---@param key number key code
 CHC_menu.onPressKey = function(key)
-	if not MainScreen.instance or not MainScreen.instance.inGame or MainScreen.instance:getIsVisible() then
+	if not MainScreen.instance or not MainScreen.instance.inGame or MainScreen.instance:getIsVisible() or not CHC_menu.CHC_window then
 		return
 	end
 	if key == CHC_settings.keybinds.toggle_window.key then

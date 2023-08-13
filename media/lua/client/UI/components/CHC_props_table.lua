@@ -453,7 +453,7 @@ function CHC_props_table:new(args)
         getText('UI_searchrow_info_item_attributes_special'),
         getText('UI_searchrow_info_item_attributes_examples')
     )
-    o.modData = CHC_main.playerModData
+    o.modData = CHC_menu.playerModData
     -- o.optionsBtnIcon = getTexture('media/textures/options_icon.png')
 
     o.isOptionsOpen = false
