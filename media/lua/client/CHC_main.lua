@@ -563,7 +563,24 @@ CHC_main.processOneEvolvedRecipe = function(recipe, _id)
 		isAllowFrozenItem = recipe:isAllowFrozenItem()
 	}
 	if not recipeData.baseItem:contains('.') then
-		recipeData.baseItem = "Base." .. recipeData.baseItem
+		local baseItem = recipeData.baseItem
+		local module
+		local noDot = CHC_main.items[baseItem]
+		local withBase = CHC_main.items["Base." .. baseItem]
+		local withResult = CHC_main.items[recipeData.fullResultItem]
+		if noDot then
+			module = noDot.itemObj:getModule():getName()
+		elseif withResult then
+			module = withResult.itemObj:getModule():getName()
+			if module == "farming" then
+				module = "Base"
+			end
+		elseif withBase then
+			module = "Base"
+		else
+			error("Could not determine baseItem for evolved recipe: " .. recipeData.name)
+		end
+		recipeData.baseItem = module .. "." .. recipeData.baseItem
 	end
 	if not recipeData.fullResultItem:contains('.') then
 		recipeData.fullResultItem = "Base." .. recipeData.fullResultItem

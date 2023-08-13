@@ -74,7 +74,7 @@ function CHC_uses_recipepanel:createChildren()
     self.mainTime.anchorRight = true
     self.mainTime:initialise()
     self.mainTime:setIcon(getTexture('media/textures/CHC_recipe_required_time.png'))
-    self.mainTime.iconSize = 20
+    self.mainTime.iconSize = 24
     mainY = mainY + self.mainInfoNameLine.height + self.margin
 
     self.mainImg = ISButton:new(0, mainY, 52, 52, '', self, nil)

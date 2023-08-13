@@ -64,8 +64,8 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
 		opt.iconTexture = getTexture('media/textures/CHC_ctx_icon.png')
 		CHC_main.common.addTooltipNumRecipes(opt, item)
 	end
-	local cond1 = options.require_shift_on_context_click and isShiftKeyDown()
-	local cond2 = not options.require_shift_on_context_click --FIXME add way to update ingame
+	local cond1 = CHC_settings.config.require_shift_on_context_click and isShiftKeyDown()
+	local cond2 = not CHC_settings.config.require_shift_on_context_click
 	if (cond1 or cond2) and CHC_menu.CHC_window ~= nil then
 		local isFav = CHC_menu.playerModData[CHC_main.common.getFavItemModDataStr(item)] == true
 		local favStr = isFav and getText('ContextMenu_Unfavorite') or getText('IGUI_CraftUI_Favorite')

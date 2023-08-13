@@ -62,10 +62,10 @@ function CHC_section:calculateHeights()
 
     if self.expanded then
         local listH
-        if panel.objList then -- item panels (attributes etc)
+        if panel.objList then   -- item panels (attributes etc)
             listH = self:calcHeightNonList(panel)
-        else                  -- recipe panels (ingredients etc)
-            local maxItems = 8
+        else                    -- recipe panels (ingredients etc)
+            local maxItems = 10 --FIXME allow configuration
             listH = self:calcHeightList(panel, maxItems)
 
             panel.vscroll:setVisible(#panel.items > maxItems)

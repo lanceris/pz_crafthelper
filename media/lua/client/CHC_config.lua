@@ -216,7 +216,9 @@ if ModOptions and ModOptions.getInstance then
             },
             require_shift_on_context_click = {
                 name = 'IGUI_RequireShiftOnContextClick',
-                tooltip = 'IGUI_RequireShiftOnContextClickTooltip',
+                tooltip = getText('IGUI_RequireShiftOnContextClickTooltip',
+                    getText('IGUI_CraftUI_Favorite'),
+                    getText('IGUI_find_item')),
                 default = false,
                 OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
                 OnApplyInGame = CHC_settings.f.onModOptionsApply
