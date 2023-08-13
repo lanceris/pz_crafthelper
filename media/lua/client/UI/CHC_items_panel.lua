@@ -83,9 +83,11 @@ function CHC_items_panel:createChildren()
 
     self.statsList = CHC_sectioned_panel:new(stats_args)
     self.statsList:initialise()
+    self.statsList:instantiate()
+    self.statsList:setAnchorRight(true)
+    self.statsList:setAnchorBottom(true)
     self.statsList.maintainHeight = false
     self.statsList:addScrollBars()
-    self.statsList:setScrollChildren(true)
     self.statsList:setVisible(false)
     -- endregion
 
@@ -94,7 +96,7 @@ function CHC_items_panel:createChildren()
         x = self.margin,
         y = y,
         w = self.width - 2 * self.margin,
-        h = 1, --self.height - self.mainInfo.height - self.padY,
+        h = self.height - self.mainInfo.height - self.padY,
         backRef = self.backRef
     }
     self.itemProps = CHC_props_table:new(props_table_args)
@@ -115,6 +117,8 @@ function CHC_items_panel:createChildren()
     self:addChild(self.mainInfo)
     self:addChild(self.statsList)
 
+    self.statsList:setScrollChildren(true)
+
     self.mainX = mainX
     self.mainY = mainY
 end
@@ -125,13 +129,6 @@ end
 function CHC_items_panel:onResize()
     self:setHeight(self.parent.height - self.parent.headers.height)
     self.mainInfo:setWidth(self.parent.headers.typeHeader.width - self.margin - self.mainInfo.x)
-    local children = self.mainInfo.children
-    for _, ch in pairs(children) do
-        if not ch.isButton then
-            ch:setName(ch.name)
-        end
-    end
-
     self.statsList:setWidth(self.parent.headers.typeHeader.width - self.margin - self.statsList.x)
     self.statsList:setHeight(self.height - self.mainInfo.height - 4 * self.padY)
 end
@@ -267,8 +264,6 @@ function CHC_items_panel:new(args)
     -- o:noBackground()
     o.padY = 5
     o.margin = 5
-    o.anchorTop = true
-    o.anchorBottom = false
 
     o.backRef = args.backRef
     o.item = nil

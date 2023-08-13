@@ -124,6 +124,11 @@ end
 
 -- region render
 
+function CHC_search:onResize()
+    ISPanel.onResize(self)
+    CHC_view.onResize(self)
+end
+
 function CHC_search:render()
     CHC_view.render(self)
 end
@@ -212,7 +217,7 @@ function CHC_search:searchProcessToken(token, item)
     local whatCompare
     if not token then return true end
     if isAllowSpecialSearch and char == '^' then
-        if not self.modData[CHC_main.getFavItemModDataStr(item)] then return false end
+        if not item.favorite then return false end
         whatCompare = string.lower(item.displayName)
     end
     if isSpecialSearch then
@@ -284,8 +289,6 @@ function CHC_search:new(args)
 
     o.ui_type = args.ui_type
     o.sep_x = args.sep_x
-    o.player = getPlayer()
-    o.modData = CHC_main.playerModData
 
     o.defaultCategory = getText('UI_All')
     o.searchRowHelpText = getText('UI_searchrow_info',
@@ -295,6 +298,8 @@ function CHC_search:new(args)
 
     o.selectedCategory = o.defaultCategory
     o.backRef = args.backRef
+    o.player = CHC_menu.player
+    o.modData = CHC_menu.playerModData
 
     o.objSource = args.objSource
     o.itemSortAsc = args.itemSortAsc
@@ -313,6 +318,11 @@ function CHC_search:new(args)
     o.needUpdateScroll = false
     o.needUpdateMousePos = false
     o.needUpdateDelayedSearch = false
+
+    o.anchorTop = true
+    o.anchorBottom = true
+    o.anchorLeft = true
+    o.anchorRight = true
 
     o.isItemView = true
     o.initDone = false

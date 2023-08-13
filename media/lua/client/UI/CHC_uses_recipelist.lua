@@ -16,19 +16,27 @@ end
 
 function CHC_uses_recipelist:doDrawItem(y, item, alt)
 	if self:fastListReturn(y) then return y + item.height end
+	if not item.height then item.height = self.itemheight end
+	if not item.defaultHeight then
+		item.defaultHeight = self.itemheight
+	end
+	if item.item.drawMod then
+		local baseH = math.min(self.fontSize, self.curFontData.icon) + self.fontSize + self.curFontData.pad
+		item.height = baseH
+	end
 
 	local recipe = item.item
 	local a = 0.9
 	local favoriteStar = nil
 	local favoriteAlpha = a
-	local itemPadY = self.itemPadY or (item.height - self.fontHgt) / 2
+	local itemPadY = self.itemPadY or (item.height - self.fontSize) / 2
 
 	local clr = {
 		txt = item.text,
-		x = self.shouldShowIcons and (self.curFontData.icon + 8) or 15, --FIXME
+		x = 15,
 		y = y + itemPadY,
 		a = 0.9,
-		font = self.font
+		font = self.curFontData.font
 	}
 
 	-- region icons
@@ -37,8 +45,14 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 		if resultItem then
 			local tex = resultItem.texture
 			if tex then
-				self:drawTextureScaled(tex, 6, y - 2 + self.curFontData.icon / 2,
-					self.curFontData.icon, self.curFontData.icon, 1)
+				local texW = math.min(self.fontSize, item.height) - 2
+				local texH = texW
+				clr.x = texW + 5
+				if resultItem.textureMult then
+					self:drawTextureScaled(tex, 3, clr.y, texW, texH, 1)
+				else
+					self:drawTextureScaledAspect(tex, 3, clr.y, texW, texH, 1)
+				end
 			end
 		end
 	end
@@ -64,11 +78,14 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 			clr['r'], clr['g'], clr['b'] = 0.7, 0, 0
 		end
 	end
-	if self.shouldDrawMod and item.item.module ~= 'Base' then
-		self:drawText(clr.txt, clr.x, clr.y, clr.r, clr.g, clr.b, clr.a, clr.font)
-		local modY = self.curFontData.pad + getTextManager():getFontHeight(UIFont.Small)
-		self:drawText('Mod: ' .. item.item.module, clr.x + self.curFontData.pad, clr.y + modY, 1, 1, 1, 0.8, UIFont
-			.Small)
+	if item.item.drawMod then
+		local modFont = UIFont.NewSmall
+		local modY = self.curFontData.pad + getTextManager():getFontHeight(modFont)
+		local tY = clr.y - modY / 4
+		self:drawText(clr.txt, clr.x, tY, clr.r, clr.g, clr.b, clr.a, clr.font)
+		tY = tY + self.fontSize - self.curFontData.pad
+		self:drawText('Mod: ' .. item.item.module, clr.x + self.curFontData.pad, tY, clr.r, clr.g, clr.b,
+			clr.a, modFont)
 	else
 		self:drawText(clr.txt, clr.x, clr.y, clr.r, clr.g, clr.b, clr.a, clr.font)
 	end
@@ -88,7 +105,8 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 		favoriteStar = self.favoriteStar
 	end
 	if favoriteStar then
-		self:drawTexture(favoriteStar, favYPos, y + (item.height / 2 - favoriteStar:getHeight() / 2), favoriteAlpha, 1, 1,
+		self:drawTexture(favoriteStar, favYPos, y + (item.height / 2 - favoriteStar:getHeight() / 2), favoriteAlpha,
+			1, 1,
 			1);
 	end
 	--endregion
@@ -148,7 +166,7 @@ function CHC_uses_recipelist:addToFavorite(selectedIndex, fromKeyboard)
 	if not fav_idx then return end
 	local fav_recipes = allr[fav_idx].recipes.items
 	selectedItem.item.favorite = not selectedItem.item.favorite
-	local favStr = CHC_main.getFavoriteRecipeModDataString(selectedItem.item)
+	local favStr = CHC_main.common.getFavoriteRecipeModDataString(selectedItem.item)
 	self.modData[favStr] = selectedItem.item.favorite
 	if selectedItem.item.favorite then
 		table.insert(fav_recipes, selectedItem)
@@ -174,7 +192,7 @@ function CHC_uses_recipelist:new(args)
 	o.anchorTop = true
 	o.anchorBottom = true
 	o.backRef = args.backRef
-	o.modData = CHC_main.playerModData
+	o.modData = CHC_menu.playerModData
 
 	o.favoriteStar = getTexture('media/textures/CHC_recipe_favorite_star.png')
 	o.favCheckedTex = getTexture('media/textures/CHC_recipe_favorite_star_checked.png')
@@ -187,6 +205,8 @@ function CHC_uses_recipelist:new(args)
 
 	o.shouldDrawMod = CHC_settings.config.show_recipe_module
 	o.shouldShowIcons = CHC_settings.config.show_icons
+	o.curFontData = CHC_main.common.fontSizeToInternal[CHC_settings.config.list_font_size]
+	o.fontSize = getTextManager():getFontHeight(o.curFontData.font)
 
 	o.needUpdateScroll = false
 	o.needUpdateMousePos = false

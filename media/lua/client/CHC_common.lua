@@ -3,13 +3,14 @@ require 'CHC_main'
 CHC_main.common = {}
 
 local utils = require('CHC_utils')
+local error = utils.chcerror
 local insert = table.insert
 local contains = string.contains
 local globalTextLimit = 1000 -- FIXME
 
 
 CHC_main.common.fontSizeToInternal = {
-    { font = UIFont.Small,  pad = 2, icon = 10, ymin = 2 },
+    { font = UIFont.Small,  pad = 4, icon = 10, ymin = 2 },
     { font = UIFont.Medium, pad = 4, icon = 18, ymin = -2 },
     { font = UIFont.Large,  pad = 6, icon = 24, ymin = -4 }
 }
@@ -150,6 +151,7 @@ function CHC_main.common.isRecipeValid(recipe, player, containerList, knownRecip
         return true
     end
 
+    if not recipe or not player then return false end
     if not recipe.recipeData.result or utils.empty(recipe.recipeData.result) then
         -- print('result')
         return false
@@ -179,18 +181,28 @@ end
 
 function CHC_main.common.isEvolvedRecipeValid(recipe, containerList)
     local check = CHC_main.common.playerHasItemNearby
-    local typesAvailable = {}
+    -- local typesAvailable = {}
+    local onlySpices = true
+
     for i = 1, #recipe.recipeData.possibleItems do
-        if check(recipe.recipeData.possibleItems[i], containerList) then
-            typesAvailable[recipe.recipeData.possibleItems[i].fullType] = true
-            break
+        local item = recipe.recipeData.possibleItems[i]
+        if check(item, containerList) then
+            -- typesAvailable[item.fullType] = true
+            if not item.isSpice then
+                onlySpices = false
+                break
+            end
         end
     end
 
-    local haveBaseOrResult = (check(CHC_main.items[recipe.recipeData.baseItem], containerList) or
-        check(recipe.recipeData.result, containerList))
-    local result = haveBaseOrResult and not utils.empty(typesAvailable)
-    return result
+    local cond1 = check(CHC_main.items[recipe.recipeData.baseItem], containerList) and not onlySpices
+    local cond2 = check(CHC_main.items[recipe.recipeData.fullResultItem], containerList)
+    local isValid = cond1 or cond2
+
+    -- local haveBaseOrResult = (check(CHC_main.items[recipe.recipeData.baseItem], containerList) or
+    --     check(recipe.recipeData.result, containerList))
+    -- local result = haveBaseOrResult and not utils.empty(typesAvailable)
+    return isValid
 end
 
 function CHC_main.common.playerHasItemNearby(item, containerList)
@@ -249,11 +261,188 @@ function CHC_main.common.getPlayerSkills(player)
     return result
 end
 
+function CHC_main.common.getNearbyItems(containerList, fullTypesToCheck)
+    local items = {}
+    for i = 0, containerList:size() - 1 do
+        for x = 0, containerList:get(i):getItems():size() - 1 do
+            local item = containerList:get(i):getItems():get(x)
+            local fullType = item:getFullType()
+            local result = { item = item, itemObj = CHC_main.items[fullType] }
+            if not fullTypesToCheck or utils.any(fullTypesToCheck, fullType) then
+                result.displayNameExtra = item:getDisplayName()
+                local extraItems = item:getExtraItems()
+                if extraItems then
+                    local extraItemObjs = {}
+                    local extraItemMap = {}
+                    for j = 0, extraItems:size() - 1 do
+                        local obj = CHC_main.items[extraItems:get(j)]
+                        if obj then
+                            extraItemMap[obj.fullType] = true
+                            insert(extraItemObjs, obj)
+                        end
+                    end
+                    result.extraItemsMap = extraItemMap
+                    result.extraItems = extraItemObjs
+                end
+                if instanceof(item, "Food") then
+                    local foodData = CHC_main.common.getFoodData(item)
+                    for k, v in pairs(foodData) do
+                        result[k] = v
+                    end
+                end
+                insert(items, result)
+            end
+        end
+    end
+    return items
+end
+
+function CHC_main.common._getFoodDataTemplate()
+    return {
+        hunger = {
+            text = getText("Tooltip_food_Hunger"),
+            posGood = false,
+            icon = getTexture("media/textures/evolved_food_data/CHC_hunger.png")
+        },
+        thirst = {
+            text = getText("Tooltip_food_Thirst"),
+            posGood = false,
+            icon = getTexture("media/textures/evolved_food_data/CHC_evolved_thirst.png")
+        },
+        endurance = {
+            text = getText("Tooltip_food_Endurance"),
+            posGood = true,
+            icon = getTexture("media/textures/evolved_food_data/CHC_endurance.png")
+        },
+        stress = {
+            text = getText("Tooltip_food_Stress"),
+            posGood = false,
+            icon = getTexture("media/textures/evolved_food_data/CHC_stress.png")
+        },
+        boredom = {
+            text = getText("Tooltip_food_Boredom"),
+            posGood = false,
+            icon = getTexture("media/textures/evolved_food_data/CHC_boredom.png")
+        },
+        unhappy = {
+            text = getText("Tooltip_food_Unhappiness"),
+            posGood = false,
+            icon = getTexture("media/textures/evolved_food_data/CHC_unhappiness.png")
+        },
+        nutr_calories = {
+            text = getText("Tooltip_food_Calories"),
+            icon = getTexture("media/textures/evolved_food_data/CHC_calories.png")
+        },
+        nutr_cal_carbs = {
+            text = getText("Tooltip_food_Carbs")
+        },
+        nutr_cal_proteins = {
+            text = getText("Tooltip_food_Prots")
+        },
+        nutr_cal_lipids = {
+            text = getText("Tooltip_food_Fat")
+        }
+    }
+end
+
+function CHC_main.common.getFoodData(item)
+    local foodDataMapping = {
+        hunger = { val = round(item:getHungerChange() * 100, 0) },
+        thirst = { val = round(item:getThirstChange() * 100, 0) },
+        endurance = { val = round(item:getEnduranceChange() * 100, 0) },
+        stress = { val = round(item:getStressChange() * 100, 0) },
+        boredom = { val = round(item:getBoredomChange(), 0) },
+        unhappy = { val = round(item:getUnhappyChange(), 0) },
+        nutr_calories = {
+            val = round(item:getCalories(), 0),
+            valPrecise = round(item:getCalories(), 2)
+        },
+        nutr_cal_carbs = { val = round(item:getCarbohydrates(), 2) },
+        nutr_cal_proteins = { val = round(item:getProteins(), 2) },
+        nutr_cal_lipids = { val = round(item:getLipids(), 2) }
+
+    }
+    local foodData = CHC_main.common._getFoodDataTemplate()
+    for key, value in pairs(foodDataMapping) do
+        for _k, _v in pairs(value) do
+            foodData[key][_k] = _v
+        end
+    end
+    local result = {}
+    result.foodData = foodData
+
+    local extraSpices = item:getSpices()
+    if extraSpices then
+        local extraSpiceObjs = {}
+        local extraSpiceMap = {}
+        for j = 0, extraSpices:size() - 1 do
+            local obj = CHC_main.items[extraSpices:get(j)]
+            if obj then
+                extraSpiceMap[obj.fullType] = true
+                insert(extraSpiceObjs, obj)
+            end
+        end
+        result.extraSpicesMap = extraSpiceMap
+        result.extraSpices = extraSpiceObjs
+    end
+    return result
+end
+
+function CHC_main.common.getFoodDataSpice(baseItem, item, evoRecipe, cookLvl)
+    -- zombie.scripting.objects.EvolvedRecipe.addItem
+    local use = evoRecipe:getItemRecipe(item):getUse() / 100
+    local var7 = cookLvl / 15 + 1
+
+    local hung = baseItem:getHungChange()
+    local var8 = math.abs(use / hung)
+    if var8 > 1 then var8 = 1 end
+    local calories = 0 --item:getCalories() * var7 * var8
+    local proteins = 0 --item:getProteins() * var7 * var8
+    local carbs = 0    -- item:getCarbohydrates() * var7 * var8
+    local lipids = 0   -- item:getProteins() * var7 * var8
+    local boredom = -use * 200
+    local unhappy = -use * 200
+    --TODO: handle if baseItem rotten (cookLvl > 8)
+    local foodDataMapping = {
+        hunger = { val = 0 },
+        thirst = { val = 0 },
+        endurance = { val = 0 },
+        stress = { val = 0 },
+        boredom = { val = boredom },
+        unhappy = { val = unhappy },
+        nutr_calories = {
+            val = round(calories, 0),
+            valPrecise = round(calories, 2)
+        },
+        nutr_cal_carbs = { val = carbs },
+        nutr_cal_proteins = { val = proteins },
+        nutr_cal_lipids = { val = lipids }
+
+    }
+    local foodData = CHC_main.common._getFoodDataTemplate()
+    for key, value in pairs(foodDataMapping) do
+        for _k, _v in pairs(value) do
+            foodData[key][_k] = _v
+        end
+    end
+    local result = {}
+    result.foodData = foodData
+    return result
+end
+
+function CHC_main.common.getConcreteItem(containerList, fullType)
+    local item = CHC_main.common.getNearbyItems(containerList, { fullType })
+    if not item then return end
+    item = item[1]
+    if not item then return end
+    return item.item
+end
+
 function CHC_main.common.getNearbyIsoObjectNames(player)
     local nearItemRadius = 2
     local plX, plY, plZ = player:getX(), player:getY(), player:getZ()
     local square
-    local res = { [1] = {},[2] = {} }
+    local res = { [1] = {}, [2] = {} }
     for x = -nearItemRadius, nearItemRadius do
         for y = -nearItemRadius, nearItemRadius do
             square = player:getCell():getGridSquare(plX + x, plY + y, plZ)
@@ -285,8 +474,88 @@ end
 
 function CHC_main.common.compareContainersHash(current, prev)
     if not current then
-        error("No way to compare hashes")
+        error('No way to compare hashes', 'CHC_main.common.compareContainersHash')
     end
     if not prev then prev = 0 end
     return current == prev
+end
+
+function CHC_main.common.handleTextOverflow(labelObj, limit)
+    local text = labelObj.name
+    local newText = text
+    local iconW = labelObj.icon and labelObj.iconSize + 3 or 0
+    local ma = 100
+    local textLen = round(getTextManager():MeasureStringX(labelObj.font, newText) + 3, 0) + iconW
+    limit = round(limit, 0)
+
+    if textLen > limit or textLen < limit - 5 then
+        if textLen < limit then
+            while textLen < limit do
+                if ma < 0 or #newText >= #labelObj.origName then break end
+                newText = labelObj.origName:sub(1, #newText + 1)
+                textLen = getTextManager():MeasureStringX(labelObj.font, newText) + iconW
+                ma = ma - 1
+            end
+        else
+            while textLen > limit do
+                if ma < 0 then break end
+                newText = newText:sub(1, #newText - 1)
+                textLen = getTextManager():MeasureStringX(labelObj.font, newText) + iconW
+                ma = ma - 1
+            end
+        end
+    end
+    return newText
+end
+
+function CHC_main.common.getNextState(states, cur)
+    if type(cur) ~= "number" then
+        for key, value in pairs(states) do
+            if value == cur then
+                cur = key
+                break
+            end
+        end
+    end
+    if type(cur) ~= "number" then error("Could not determine current state index") end
+    local newStateIx = cur + 1
+    if #states < newStateIx then
+        newStateIx = 1
+    end
+    return states[newStateIx]
+end
+
+function CHC_main.common.getRandom(options)
+    return options[ZombRand(1, #options + 1)]
+end
+
+CHC_main.common.getFavItemModDataStr = function(item)
+    local fullType
+    if item.fullType then
+        fullType = item.fullType
+    elseif instanceof(item, 'InventoryItem') then
+        fullType = item:getFullType()
+    elseif type(item) == 'string' then
+        fullType = item
+    end
+    local text = 'itemFavoriteCHC:' .. fullType
+    return text
+end
+
+CHC_main.common.getFavoriteRecipeModDataString = function(recipe)
+    if recipe.recipeData.isSynthetic then return 'testCHC' .. recipe.recipe:getOriginalname() end
+    recipe = recipe.recipe
+    local text = 'craftingFavorite:' .. recipe:getOriginalname()
+    if instanceof(recipe, 'EvolvedRecipe') then
+        text = text .. ':' .. recipe:getBaseItem()
+        text = text .. ':' .. recipe:getResultItem()
+    else
+        for i = 0, recipe:getSource():size() - 1 do
+            local source = recipe:getSource():get(i)
+            for j = 1, source:getItems():size() do
+                text = text .. ':' .. source:getItems():get(j - 1)
+            end
+        end
+    end
+    return text
 end

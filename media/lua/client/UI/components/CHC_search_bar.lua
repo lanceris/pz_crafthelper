@@ -231,5 +231,9 @@ function CHC_search_bar:new(args, searchBarTooltip, onTextChange, searchBtnOnCli
     -- o.onRightMouseDownSB = onRightMouseDown
     o.searchBarTooltip = searchBarTooltip or string.sub(getText('IGUI_CraftUI_Name_Filter'), 1, -2)
     o.searchIcon = getTexture('media/textures/search_icon.png')
+
+    o.anchorLeft = true
+    o.anchorRight = true
+
     return o
 end

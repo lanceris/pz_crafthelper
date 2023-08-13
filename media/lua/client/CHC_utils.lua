@@ -10,6 +10,27 @@ local contains = string.contains
 
 CHC_utils.configDir = "CraftHelperContinued" .. getFileSeparator()
 
+CHC_utils.chcprint = function(txt, debugOnly)
+    if debugOnly == nil then debugOnly = true end
+    if not debugOnly or (debugOnly and getDebug()) then
+        print('[CraftHelperContinued] ' .. tostring(txt))
+    end
+end
+
+---@param txt string error message
+---@param loc string? location of error
+---@param line number? line number of error
+CHC_utils.chcerror = function(txt, loc, line)
+    local msg = format('[CraftHelperContinued] %s', txt)
+    if loc then
+        msg = msg .. format(' at %s', loc)
+    end
+    if line then
+        msg = msg .. format(':%d', line)
+    end
+    error(msg)
+end
+
 CHC_utils.Deque = {}
 
 function CHC_utils.Deque:new()
@@ -28,7 +49,7 @@ function CHC_utils.Deque:new()
 
     function CHC_utils.Deque:_popr()
         local last = self.last
-        if self.first > last then error('deque empty') end
+        if self.first > last then CHC_utils.chcerror('Deque empty', 'CHC_utils.Deque:_popr') end
         local val = self.data[last]
         self.data[last] = nil
         self.last = last - 1
@@ -45,7 +66,7 @@ function CHC_utils.Deque:new()
 
     function CHC_utils.Deque:pop()
         local first = self.first
-        if first > self.last then error('deque empty') end
+        if first > self.last then CHC_utils.chcerror('Deque empty', 'CHC_utils.Deque:pop') end
         local val = self.data[first]
         self.data[first] = nil
         self.first = first + 1
@@ -230,23 +251,25 @@ CHC_utils.startswith = function(txt, start)
     return sub(txt, 1, len(start)) == start
 end
 
-CHC_utils.chcprint = function(txt)
-    print('[CraftHelperContinued] ' .. tostring(txt))
-end
-
 function CHC_utils.empty(tab)
     for _, _ in pairs(tab) do return false; end
     return true
 end
 
+CHC_utils.configDir = "CraftHelperContinued" .. getFileSeparator()
+-- CHC_utils.cacheDir = CHC_utils.configDir .. "cache" .. getFileSeparator()
+
 local JsonUtil = require('CHC_json')
 
 CHC_utils.jsonutil = {}
 CHC_utils.jsonutil.Load = function(fname)
-    if not fname then error('filename not set') end
+    local func = 'CHC_utils.jsonutil.Load'
+    if not fname then CHC_utils.chcerror('Filename not set', func) end
     local res
     local fileReaderObj = getFileReader(fname, true)
-    if not fileReaderObj then error(format('File not found and cannot be created (%s)', fname)) end
+    if not fileReaderObj then
+        CHC_utils.chcerror(format('File not found and cannot be created (%s)', fname), func)
+    end
     local json = ''
     local line = fileReaderObj:readLine()
     while line ~= nil do
@@ -259,7 +282,7 @@ CHC_utils.jsonutil.Load = function(fname)
         local status = true
         status, res = pcall(JsonUtil.Decode, json)
         if not status then
-            error(format('Cannot decode json (%s)', res))
+            CHC_utils.chcerror(format('Cannot decode json (%s)', res), func)
         end
     end
     return res
@@ -269,11 +292,11 @@ CHC_utils.jsonutil.Save = function(fname, data)
     if not data then return end
     local fileWriterObj = getFileWriter(fname, true, false)
     if not fileWriterObj then
-        error(format('Cannot write to %s', fname))
+        CHC_utils.chcerror(format('Cannot write to %s', fname), 'CHC_utils.jsonutil.Save')
     end
     local status, json = pcall(JsonUtil.Encode, data)
     if not status then
-        error(format('Cannot encode json (%s)', json))
+        CHC_utils.chcerror(format('Cannot encode json (%s)', json), 'CHC_utils.jsonutil.Save')
     end
     fileWriterObj:write(json)
     fileWriterObj:close()

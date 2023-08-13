@@ -26,6 +26,7 @@ function CHC_items_list:prerender()
 end
 
 function CHC_items_list:doDrawItem(y, item, alt)
+    if not item.height then item.height = self.itemheight end
     if self:fastListReturn(y) then return y + self.itemheight end
 
     local itemObj = item.item
@@ -34,18 +35,10 @@ function CHC_items_list:doDrawItem(y, item, alt)
     local favoriteStar = nil
     local favoriteAlpha = a
 
-    -- region icons
-    if self.shouldShowIcons then
-        local itemIcon = itemObj.texture
-        self:drawTextureScaled(itemIcon, 6, y + 6, self.curFontData.icon, self.curFontData.icon, 1)
-    end
-    --endregion
-
-    --region text
     local itemPadY = self.itemPadY or (item.height - self.fontHgt) / 2
     local clr = {
         txt = item.text,
-        x = self.shouldShowIcons and (self.curFontData.icon + 8) or 15,
+        x = self.shouldShowIcons and (self.itemheight - 2 + 5) or 15,
         y = y + itemPadY,
         r = 1,
         g = 1,
@@ -53,11 +46,27 @@ function CHC_items_list:doDrawItem(y, item, alt)
         a = 0.9,
         font = self.font,
     }
+
+    -- region icons
+    if self.shouldShowIcons then
+        local itemIcon = itemObj.texture
+        if itemIcon then
+            if itemObj.textureMult then
+                self:drawTextureScaled(itemIcon, 3, clr.y, self.itemheight - 2, self.itemheight - 2, 1)
+            else
+                self:drawTextureScaledAspect(itemIcon, 3, clr.y, self.itemheight - 2, self.itemheight - 2, 1)
+            end
+        end
+    end
+    --endregion
+
+    --region text
+
     self:drawText(clr.txt, clr.x, clr.y, clr.r, clr.g, clr.b, clr.a, clr.font)
     --endregion
 
     --region favorite handler
-    local isFav = self.modData[CHC_main.getFavItemModDataStr(item.item)] == true
+    local isFav = item.item.favorite
     local favYPos = self.width - 30
     if item.index == self.mouseoverselected then
         if self.mouseX >= favYPos - 20 and self.mouseX <= favYPos + 20 then
@@ -158,9 +167,10 @@ function CHC_items_list:addToFavorite(selectedIndex, fromKeyboard)
     if not selectedItem then return end
     local parent = self.parent
 
-    local favStr = CHC_main.getFavItemModDataStr(selectedItem.item)
+    local favStr = CHC_main.common.getFavItemModDataStr(selectedItem.item)
     local isFav = self.modData[favStr] == true
     isFav = not isFav
+    selectedItem.item.favorite = isFav
     self.modData[favStr] = isFav or nil
     if not isFav and parent.ui_type == 'fav_items' then
         self:removeItemByIndex(selectedIndex)
@@ -191,13 +201,12 @@ function CHC_items_list:new(args)
     o.favorite.notChecked.height = o.favorite.notChecked.tex:getHeight()
     o.onmiddlemousedown = args.onmiddlemousedown
     o.needmmb = false
-    o.modData = CHC_main.playerModData
+    o.modData = CHC_menu.playerModData
 
     o.yScroll = 0
     o.needUpdateScroll = true
     o.needUpdateMousePos = true
     o.shouldShowIcons = CHC_settings.config.show_icons
 
-    o.player = getPlayer()
     return o
 end

@@ -7,6 +7,7 @@ require 'UI/CHC_search'
 
 CHC_window = ISCollapsableWindow:derive('CHC_window')
 local utils = require('CHC_utils')
+local error = utils.chcerror
 local print = utils.chcprint
 local insert = table.insert
 local pairs = pairs
@@ -41,6 +42,7 @@ function CHC_window:create()
         h = self.panel.height - self.panelY - 4
     }
 
+    self:updateFavorites()
     self:addSearchPanel()
     self:addFavoriteScreen()
 
@@ -74,7 +76,6 @@ function CHC_window:addSearchPanel()
 
     -- region search panel
     self.searchPanel = ISTabPanel:new(1, self.panelY, self.width, self.height - self.panelY)
-    self.searchPanel.tabPadX = self.width / 2 - self.width / 4
     self.searchPanel.onActivateView = CHC_window.onActivateSubView
     self.searchPanel.target = self
     self.searchPanel:initialise()
@@ -225,13 +226,12 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
     }
 
     --region item container
-    self.itemPanel = ISTabPanel:new(1, self.panelY, self.width, self.height - self.panelY)
-    self.itemPanel.tabPadX = self.width / 4
+    local itemPanel = ISTabPanel:new(1, self.panelY, self.width, self.height - self.panelY)
 
-    self.itemPanel:initialise()
-    self.itemPanel:setAnchorRight(true)
-    self.itemPanel:setAnchorBottom(true)
-    self.itemPanel.item = itn
+    itemPanel:initialise()
+    itemPanel:setAnchorRight(true)
+    itemPanel:setAnchorBottom(true)
+    itemPanel.item = itn
     -- endregion
     local usesData = {}
     local usesRec = CHC_main.recipesByItem[itn.fullType]
@@ -251,7 +251,7 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
     if craftEvoRec then
         for i = 1, #craftEvoRec do insert(craftData, craftEvoRec[i]) end
     end
-    self.panel:addView(nameForTab, self.itemPanel)
+    self.panel:addView(nameForTab, itemPanel)
 
     --region uses screen
     local uses_screen_init = self.common_screen_data
@@ -272,7 +272,7 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
         usesScreen:initialise()
         usesScreen.ui_type = usesScreen.ui_type .. '|' .. usesScreen.ID
         local iuvn = getText('UI_item_uses_tab_name')
-        self.addView(self.itemPanel, iuvn, usesScreen)
+        self.addView(itemPanel, iuvn, usesScreen)
         self.uiTypeToView[usesScreen.ui_type] = { view = usesScreen, name = iuvn, originName = iuvn }
     end
     --endregion
@@ -297,17 +297,18 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
         craftScreen:initialise()
         craftScreen.ui_type = craftScreen.ui_type .. '|' .. craftScreen.ID
         local icvn = getText('UI_item_craft_tab_name')
-        self.addView(self.itemPanel, icvn, craftScreen)
+        self.addView(itemPanel, icvn, craftScreen)
         self.uiTypeToView[craftScreen.ui_type] = { view = craftScreen, name = icvn, originName = icvn }
     end
     -- endregion
     --endregion
-    self.itemPanel.infoText = getText(self.itemPanelInfo, itn.displayName) .. self.infotext_common_recipes
+    itemPanel.infoText = getText(self.itemPanelInfo, itn.displayName) .. self.infotext_common_recipes
     if not utils.empty(usesData) or not utils.empty(craftData) then
         self:refresh(nil, nil, focusOnNew, focusOnTabIdx)
     else
-        error("CHC_window:addItemView - empty usesData and craftData")
+        error('Empty usesData and craftData', 'CHC_window:addItemView')
     end
+    itemPanel.maxLength = self.width / #itemPanel.viewList - 2
 end
 
 function CHC_window:getItems(favOnly, max)
@@ -318,10 +319,11 @@ function CHC_window:getItems(favOnly, max)
     local to = max or #items
 
     for i = 1, to do
-        local isFav = self.modData[CHC_main.getFavItemModDataStr(items[i])] == true
-        if (not showHidden) and (items[i].hidden == true) then
+        local item = items[i]
+        local isFav = item.favorite
+        if (not showHidden) and (item.hidden == true) then
         elseif (favOnly and isFav) or (not favOnly) then
-            insert(newItems, items[i])
+            insert(newItems, item)
         end
     end
     if not showHidden and not max and not favOnly then
@@ -354,6 +356,31 @@ function CHC_window:getRecipes(favOnly)
             self.ui_type or "CHC_window"))
     end
     return recipes
+end
+
+function CHC_window:updateFavorites(modData)
+    modData = modData or self.modData
+    local showHidden = CHC_settings.config.show_hidden
+    local allrec = CHC_main.allRecipes or {}
+    local allevorec = CHC_main.allEvoRecipes or {}
+    local items = CHC_main.itemsForSearch
+
+    for i = 1, #items do
+        local favStr = CHC_main.common.getFavItemModDataStr(items[i])
+        items[i].favorite = modData[favStr] or false
+    end
+    for i = 1, #allrec do
+        local recipe = allrec[i]
+        if (not showHidden) and recipe.hidden then
+        else
+            local favStr = CHC_main.common.getFavoriteRecipeModDataString(recipe)
+            recipe.favorite = modData[favStr] or false
+        end
+    end
+    for i = 1, #allevorec do
+        local favStr = CHC_main.common.getFavoriteRecipeModDataString(allevorec[i])
+        allevorec[i].favorite = modData[favStr] or false
+    end
 end
 
 -- endregion
@@ -405,6 +432,7 @@ function CHC_window:update()
                         self.uiTypeToView[viewObject.view.ui_type].name = viewObject.name
                     end
                 else
+                    utils.chcprint("Trigger " .. action .. " for " .. targetViewObj.name)
                     targetView[action] = true
                 end
             end
@@ -431,9 +459,7 @@ end
 function CHC_window:refresh(viewName, panel, focusOnNew, focusOnTabIdx)
     panel = panel or self.panel
     if not panel then
-        local msg = "Error in CHC_window:refresh, could not find panel"
-        print(msg)
-        error(msg)
+        error('Could not find panel', 'CHC_window:refresh')
         return
     end
     if viewName and (focusOnNew == nil or focusOnNew == true) then
@@ -442,9 +468,7 @@ function CHC_window:refresh(viewName, panel, focusOnNew, focusOnTabIdx)
     end
     local vl = panel.viewList
     if not vl then
-        local msg = "Error in CHC_window:refresh, could not find panel viewList"
-        print(msg)
-        error(msg)
+        error('Could not find viewList', 'CHC_window:refresh')
         return
     end
     if #vl > 2 then
@@ -483,7 +507,10 @@ function CHC_window:close()
         vl:activateView(vl.viewList[2].name)
     end
     CHC_menu.toggleUI()
-    self:serializeWindowData()
+    local status, err = pcall(self.serializeWindowData, self)
+    if not status then
+        error(string.format("CHC_window:close - Cannot serialize window data (%s)", err))
+    end
     CHC_settings.Save()
     CHC_settings.SavePropsData()
 end
@@ -492,19 +519,6 @@ end
 
 -- region render
 
-function CHC_window:resizeHeaders(headers)
-    if headers.nameHeader.width == headers.nameHeader.minimumWidth then
-        headers.nameHeader:setWidth(headers.nameHeader.minimumWidth)
-        headers.typeHeader:setX(headers.nameHeader.width)
-        headers.typeHeader:setWidth(self.width - headers.nameHeader.width)
-        return
-    end
-
-    headers.typeHeader:setX(headers.proportion * self.width)
-    headers.nameHeader:setWidth(headers.proportion * self.width)
-    headers.typeHeader:setWidth((1 - headers.proportion) * self.width)
-    headers:setWidth(self.width - 1)
-end
 
 function CHC_window:onResize()
     ISCollapsableWindow.onResize(self)
@@ -514,27 +528,8 @@ function CHC_window:onResize()
     ui.panel:setWidth(self.width)
     ui.panel:setHeight(self.height - 60)
 
-    for i = 1, #ui.panel.viewList do
-        local view = ui.panel.viewList[i].view
-        view:setWidth(self.width)
-        view:setHeight(self.height - ui.panel.tabHeight - 60)
-        local headers = view.headers
-        if headers then
-            self:resizeHeaders(headers)
-            view:onResizeHeaders()
-        end
-        if view.viewList then -- handle subviews
-            for j = 1, #view.viewList do
-                local subview = view.viewList[j].view
-                subview:setWidth(self.width)
-                subview:setHeight(self.height - 2 * view.tabHeight - 60)
-                local headers = subview.headers
-                if headers then
-                    self:resizeHeaders(headers)
-                    subview:onResizeHeaders()
-                end
-            end
-        end
+    for _, value in pairs(ui.panel.children) do
+        value.maxLength = self.width / #value.viewList - 2
     end
 end
 
@@ -601,9 +596,9 @@ function CHC_window:onRMBDownObjList(x, y, item, isrecipe, context)
 
     if getDebug() then
         if item and item.fullType then
-            local pInv = self.parent.player
-            if pInv then
-                pInv = pInv:getInventory()
+            local pInv = CHC_menu.CHC_window
+            if pInv and pInv.player then
+                pInv = pInv.player:getInventory()
                 local name = context:addOption('Add item', nil, nil)
                 local subMenuName = ISContextMenu:getNew(context)
                 context:addSubMenu(name, subMenuName)
@@ -761,10 +756,10 @@ function CHC_window:isModifierKeyDown(_type)
     elseif _type == 'tab' then
         modifier = modifierOptionToKey[CHC_settings.config.tab_selector_modifier]
     else
-        error('unknown modifier type')
+        error('Unknown modifier type', string.format('CHC_window:isModifierKeyDown(%s)', _type))
     end
 
-    if not modifier then error('no modifier found!') end
+    if not modifier then error('No modifier found!', 'CHC_window:isModifierKeyDown') end
 
     if modifier == 'none' then return true end
     if modifier == 'control' then return isCtrlKeyDown() end
@@ -813,7 +808,9 @@ function CHC_window:onKeyRelease(key)
         local idx
         if vl and #vl == 2 then
             idx = view:getActiveViewIndex() == 1 and 2 or 1
-            self:refresh(vl[idx].name, view)
+            if vl[idx] and vl[idx].name then
+                self:refresh(vl[idx].name, view)
+            end
         end
     end
 
@@ -828,7 +825,9 @@ function CHC_window:onKeyRelease(key)
         if newvSel > #pTabs then newvSel = 1 end
     end
     if newvSel ~= oldvSel then
-        self:refresh(pTabs[newvSel].name)
+        if pTabs[newvSel] and pTabs[newvSel].name then
+            self:refresh(pTabs[newvSel].name)
+        end
         return
     end
     -- endregion
@@ -985,8 +984,8 @@ function CHC_window:new(args)
     o.rh = o:resizeWidgetHeight()
     local fontHgtSmall = getTextManager():getFontHeight(UIFont.Small);
     o.headerHgt = fontHgtSmall + 1
-    o.player = args.player or nil
-    o.modData = CHC_main.playerModData
+    o.player = CHC_menu.player
+    o.modData = CHC_menu.playerModData
 
     o.searchViewName = getText('UI_search_tab_name')
     o.favViewName = getText('IGUI_CraftCategory_Favorite')

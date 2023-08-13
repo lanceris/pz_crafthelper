@@ -2,7 +2,18 @@ require 'CHC_main'
 
 CHC_menu = {}
 
+local function setPlayer()
+	CHC_menu.player = getPlayer()
+	CHC_menu.playerNum = CHC_menu.player:getPlayerNum()
+	CHC_menu.playerModData = CHC_menu.player:getModData()
+end
+
 --- called just after CHC_main.loadDatas
+CHC_menu.init = function()
+	setPlayer()
+	CHC_menu.createCraftHelper()
+end
+
 --- loads config and creates window instance
 CHC_menu.createCraftHelper = function()
 	CHC_settings.Load()
@@ -16,7 +27,7 @@ CHC_menu.createCraftHelper = function()
 		height = options.main_window.h,
 		backgroundColor = { r = 0, g = 0, b = 0, a = 1 },
 		minimumWidth = 400,
-		minimumHeight = 350
+		minimumHeight = 350,
 	}
 	CHC_menu.CHC_window = CHC_window:new(args)
 	CHC_menu.CHC_window:initialise()
@@ -53,8 +64,10 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
 		opt.iconTexture = getTexture('media/textures/CHC_ctx_icon.png')
 		CHC_main.common.addTooltipNumRecipes(opt, item)
 	end
-	if isShiftKeyDown() and CHC_menu.CHC_window ~= nil then
-		local isFav = CHC_main.playerModData[CHC_main.getFavItemModDataStr(item)] == true
+	local cond1 = CHC_settings.config.require_shift_on_context_click and isShiftKeyDown()
+	local cond2 = not CHC_settings.config.require_shift_on_context_click
+	if (cond1 or cond2) and CHC_menu.CHC_window ~= nil then
+		local isFav = CHC_menu.playerModData[CHC_main.common.getFavItemModDataStr(item)] == true
 		local favStr = isFav and getText('ContextMenu_Unfavorite') or getText('IGUI_CraftUI_Favorite')
 		local optName = favStr .. ' (' .. getText('IGUI_chc_context_onclick') .. ')'
 		local favOpt = context:addOption(optName, items, CHC_menu.toggleItemFavorite)
@@ -74,9 +87,8 @@ end
 CHC_menu.onCraftHelper = function(items, player, itemMode)
 	itemMode = itemMode and true or false
 	local inst = CHC_menu.CHC_window
-	if inst == nil then
-		CHC_menu.createCraftHelper()
-		inst = CHC_menu.CHC_window
+	if not inst then
+		error("Craft Helper failed to open")
 	end
 
 	-- Show craft helper window
@@ -156,11 +168,13 @@ CHC_menu.toggleUI = function(ui)
 			ui:setVisible(true)
 			ui:addToUIManager()
 		end
+	else
+		error("No UI found in CHC_menu.toggleUI")
 	end
 end
 
 CHC_menu.toggleItemFavorite = function(items)
-	local modData = CHC_main.playerModData
+	local modData = CHC_menu.playerModData
 	for i = 1, #items do
 		local item
 		if not instanceof(items[i], 'InventoryItem') then
@@ -168,9 +182,10 @@ CHC_menu.toggleItemFavorite = function(items)
 		else
 			item = items[i]
 		end
-		local isFav = modData[CHC_main.getFavItemModDataStr(item)] == true
+		local isFav = modData[CHC_main.common.getFavItemModDataStr(item)] == true
 		isFav = not isFav
-		modData[CHC_main.getFavItemModDataStr(item)] = isFav or nil
+		modData[CHC_main.common.getFavItemModDataStr(item)] = isFav or nil
+		CHC_main.items[item:getFullType()].favorite = isFav
 	end
 	CHC_menu.CHC_window.updateQueue:push({
 		targetView = 'fav_items',
@@ -181,7 +196,7 @@ end
 ---Show/hide Craft Helper window keybind listener
 ---@param key number key code
 CHC_menu.onPressKey = function(key)
-	if not MainScreen.instance or not MainScreen.instance.inGame or MainScreen.instance:getIsVisible() then
+	if not MainScreen.instance or not MainScreen.instance.inGame or MainScreen.instance:getIsVisible() or not CHC_menu.CHC_window then
 		return
 	end
 	if key == CHC_settings.keybinds.toggle_window.key then

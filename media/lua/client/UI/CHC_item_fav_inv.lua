@@ -14,8 +14,8 @@ local function renderdetailsCHC(self, doDragged)
         for k2, v2 in ipairs(v.items) do
             local item = v2
             local chcItem = CHC_main.items[item:getFullType()]
-            if not chcItem or not CHC_main.playerModData then return end
-            local isFav = CHC_main.playerModData[CHC_main.getFavItemModDataStr(item)] == true
+            if not chcItem or not CHC_menu.playerModData then return end
+            local isFav = CHC_menu.playerModData[CHC_main.common.getFavItemModDataStr(item)]
             if chcItem and isFav then
                 local doIt = true
                 local xoff = 0

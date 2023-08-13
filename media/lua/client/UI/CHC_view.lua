@@ -83,7 +83,6 @@ function CHC_view:create(filterRowOrderOnClickArgs, mainPanelsData)
     self.objPanel = mainPanelsData.panelCls:new({ x = rightX, y = y, w = rightW, h = iph, backRef = self.backRef })
     self.objPanel:initialise()
     self.objPanel:instantiate()
-    self.objPanel:setAnchorLeft(true)
     self.objPanel:setAnchorBottom(true)
 
     -- endregion
@@ -101,13 +100,13 @@ end
 
 function CHC_view:update()
     if self.needUpdateFont then
+        self.needUpdateFont = false
         self.curFontData = CHC_main.common.fontSizeToInternal[CHC_settings.config.list_font_size]
         self.objList.curFontData = self.curFontData
-        if self.objList.font ~= self.curFontData.font then
-            self.objList:setFont(self.curFontData.font, self.curFontData.pad)
-            self.objList.fontSize = getTextManager():getFontHeight(self.curFontData.font)
-        end
-        self.needUpdateFont = false
+        self.objList:setFont(self.curFontData.font, self.curFontData.pad)
+        local fontSize = getTextManager():getFontHeight(self.curFontData.font)
+        self.fontSize = fontSize
+        self.objList.fontSize = fontSize
     end
     if self.needUpdateShowIcons then
         self.needUpdateShowIcons = false
@@ -164,7 +163,7 @@ function CHC_view:initTypesAndCategories(typeField, categoryField)
     CHC_view.updateCategories(self, catCounts, curCat, newCats)
 end
 
-function CHC_view:updateObjects(typeField, categoryField)
+function CHC_view:updateObjects(typeField, categoryField, filters)
     categoryField = categoryField or "displayCategory"
     if not self.initDone then
         CHC_view.initTypesAndCategories(self, typeField, categoryField)
@@ -192,8 +191,14 @@ function CHC_view:updateObjects(typeField, categoryField)
         local searchState = CHC_main.common.searchFilter(self, obj, self.searchProcessToken)
         local typeState = CHC_view.objTypeFilter(self, obj[typeField])
         local categoryState = CHC_view.objCategoryFilter(self, obj[categoryField])
+        local states = { searchState, typeState, categoryState }
+        if filters then
+            local filtersState = utils.all(CHC_view.extraFilters(self, obj, filters), true)
+            insert(states, filtersState)
+        end
 
-        if utils.all({ searchState, typeState, categoryState }, true) then
+
+        if utils.all(states, true) then
             insert(filtered, obj)
         end
 
@@ -288,7 +293,27 @@ function CHC_view:updateCounts() --FIXME - category counts not updated when upda
     CHC_view.updateTabNameWithCount(self)
 end
 
-function CHC_view:refreshObjList(objects)
+function CHC_view:extraFilters(obj, filters)
+    local res = {}
+    for i = 1, #filters do
+        insert(res, true)
+    end
+    return res
+end
+
+function CHC_view:refreshObjList(objects, conditions)
+    local function sort_on_values(t, a)
+        sort(t, function(u, v)
+            for i = 1, #a do
+                if u[a[i]] and v[a[i]] then
+                    if u[a[i]] > v[a[i]] then return false end
+                    if u[a[i]] < v[a[i]] then return true end
+                end
+                return false
+            end
+        end)
+    end
+
     local objL = self.objList
     local wasSelectedId = objL.items[objL.selected]
     if wasSelectedId then
@@ -299,7 +324,14 @@ function CHC_view:refreshObjList(objects)
     for i = 1, #objects do
         self:processAddObjToObjList(objects[i], self.modData)
     end
-    sort(objL.items, self.itemSortFunc)
+    if not conditions then
+        sort(objL.items, self.itemSortFunc)
+    else
+        sort_on_values(objL.items, conditions)
+    end
+
+
+
     if objL.items and #objL.items > 0 then
         local ix
         local ensureVisible = false
@@ -351,12 +383,16 @@ function CHC_view:render()
     end
 end
 
+function CHC_view:onResize()
+    CHC_view.onResizeHeaders(self)
+end
+
 function CHC_view:onResizeHeaders()
     self.filterRow:setWidth(self.headers.nameHeader.width)
     self.searchRow:setWidth(self.headers.nameHeader.width)
     self.objList:setWidth(self.headers.nameHeader.width)
-    self.objPanel:setWidth(self.headers.typeHeader.width)
     self.objPanel:setX(self.headers.typeHeader.x)
+    self.objPanel:setWidth(self.headers.typeHeader.width)
 end
 
 -- endregion
@@ -463,11 +499,35 @@ function CHC_view._list:isMouseOverFavorite(x)
     return (x >= self.width - 40) and not self:isMouseOverScrollBar()
 end
 
+function CHC_view._list:handleCollapse(y, item, alt, data)
+    data = data or {}
+    if item.item.multipleHeader then
+        if item.item.collapsed then
+            data.collapsedBlock = item.item.sourceNum
+        end
+        if item.item.isBlockHidden then
+            data.hiddenBlock = { num = item.item.sourceNum, state = item.item.blockHiddenState }
+        end
+        data.y2 = self:doDrawItem(y, item, alt)
+        data.uncollapsedNum = data.uncollapsedNum + 1
+    else
+        if item.item.collapsed or item.item.sourceNum == data.collapsedBlock or
+            (item.item.sourceNum == data.hiddenBlock.num and data.hiddenBlock.state == "un" and item.item.available) or
+            (item.item.sourceNum == data.hiddenBlock.num and data.hiddenBlock.state == "av" and not item.item.available) then
+            data.y2 = y
+        else
+            data.y2 = self:doDrawItem(y, item, alt)
+            data.uncollapsedNum = data.uncollapsedNum + 1
+        end
+    end
+    return data
+end
+
 function CHC_view._list:prerender()
     if not self.items then return end
     if utils.empty(self.items) then return end
 
-    if self.items and self.parent.objListSize > 1000 then
+    if self.items and self.parent.objListSize and self.parent.objListSize > 1000 then
         if self.needUpdateScroll then
             self.yScroll = self:getYScroll()
             self.needUpdateScroll = false
@@ -513,36 +573,55 @@ function CHC_view._list:prerender()
         stencilX2 = self.vscroll.x + 3 -- +3 because the scrollbar texture is narrower than the scrollbar width
     end
 
+    if self.parent and self.parent:getScrollChildren() then
+        stencilX = self.javaObject:clampToParentX(self:getAbsoluteX() + stencilX) - self:getAbsoluteX()
+        stencilX2 = self.javaObject:clampToParentX(self:getAbsoluteX() + stencilX2) - self:getAbsoluteX()
+        stencilY = self.javaObject:clampToParentY(self:getAbsoluteY() + stencilY) - self:getAbsoluteY()
+        stencilY2 = self.javaObject:clampToParentY(self:getAbsoluteY() + stencilY2) - self:getAbsoluteY()
+    end
     self:setStencilRect(stencilX, stencilY, stencilX2 - stencilX, stencilY2 - stencilY)
 
     local y = 0
     local alt = false
 
-    if self.selected ~= -1 and self.selected > #self.items then
-        self.selected = #self.items
-    end
-
     self.listHeight = 0
+    if not self.curFontData then
+        self.curFontData = { font = UIFont.NewSmall, icon = 20, pad = 3 }
+    end
     if not self.fontSize then
         self.fontSize = getTextManager():getFontHeight(self.curFontData.font)
     end
-    local baseH = math.min(self.fontSize, self.curFontData.icon) + 2 * self.curFontData.pad
-    local i = 1
+    local data = {
+        y2 = nil,
+        uncollapsedNum = 0,
+        collapsedBlock = nil,
+        hiddenBlock = {}
+    }
     for j = 1, #self.items do
-        self.items[j].index = i
-        self.items[j].height = baseH
-        if not self.parent.isItemView and
-            CHC_settings.config.show_recipe_module and
-            self.items[j].item.module ~= 'Base' then
-            self.items[j].height = baseH + getTextManager():getFontHeight(UIFont.Small)
+        local item = self.items[j]
+        item.index = j
+
+        if item.item.sourceNum then
+            data = CHC_view._list.handleCollapse(self, y, item, alt, data)
+        else
+            data.y2 = self:doDrawItem(y, item, alt)
+            data.uncollapsedNum = data.uncollapsedNum + 1
         end
-        local y2 = self:doDrawItem(y, self.items[j], alt)
-        self.listHeight = y2
-        self.items[j].height = y2 - y
-        y = y2
+
+        self.listHeight = data.y2
+
+
+        local moduleCond = item.item.module and item.item.module ~= 'Base'
+        if CHC_settings.config.show_recipe_module and moduleCond then
+            local baseH = math.min(self.fontSize, self.curFontData.icon) + self.fontSize + self.curFontData.pad
+            item.height = baseH
+        else
+            item.height = data.y2 - y
+        end
+        y = data.y2
         --alt = not alt
-        i = i + 1
     end
+    self.uncollapsedNum = data.uncollapsedNum
 
     self:setScrollHeight((y))
     self:clearStencilRect()

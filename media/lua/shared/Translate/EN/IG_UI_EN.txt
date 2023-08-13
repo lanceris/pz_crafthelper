@@ -22,6 +22,8 @@ IGUI_EN = {
     IGUI_ShowAllItemPropsTooltip = "Most of item attributes with default values are hidden by default. If selected, all attributes will be shown"
     IGUI_DelayedSearch = "Enable delayed search"
     IGUI_DelayedSearchTooltip = "When active, search will be performed only after you press Enter"
+    IGUI_RequireShiftOnContextClick = "Press Shift to show extra options"
+    IGUI_RequireShiftOnContextClickTooltip = "When right-clicking items in inventory, some extra options can be shown ('%1' and '%2'). <LINE> If selected, require 'Shift' button pressed to show those options"
 
     IGUI_CHC_ItemCat_AlarmClockClothing = "Wrist watch"
     IGUI_CHC_ItemCat_Drainable = "Drainable"

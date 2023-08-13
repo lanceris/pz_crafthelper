@@ -1,3 +1,4 @@
+--Runs only once when player enters save/server (after "Click to Start" message)
 require 'luautils'
 
 CraftHelperContinued = {}
@@ -6,24 +7,11 @@ CHC_main._meta = {
 	id = 'CraftHelperContinued',
 	workshopId = 2787291513,
 	name = 'Craft Helper Continued',
-	version = '1.7.3',
+	version = '1.8.0',
 	author = 'lanceris',
 	previousAuthors = { 'Peanut', 'ddraigcymraeg', 'b1n0m' },
 }
-CHC_main.allRecipes = {}
-CHC_main.recipesByItem = {}
-CHC_main.recipesForItem = {}
-CHC_main.allEvoRecipes = {}
-CHC_main.evoRecipesByItem = {}
-CHC_main.evoRecipesForItem = {}
-CHC_main.itemsManuals = {}
-CHC_main.items = {}
-CHC_main.itemsForSearch = {}
 CHC_main.isDebug = false or getDebug()
-CHC_main.recipesWithoutItem = {}
-CHC_main.recipesWithLua = {}
-CHC_main.luaRecipeCache = {}
-CHC_main.notAProcZone = {} -- zones from Distributions.lua without corresponding zones in ProceduralDistributions.lua
 
 local insert = table.insert
 local utils = require('CHC_utils')
@@ -40,6 +28,22 @@ local loadLua = false
 
 local showTime = function(start, st)
 	print(string.format('Loaded %s in %s seconds', st, tostring((getTimestampMs() - start) / 1000)))
+end
+
+CHC_main.init = function()
+	CHC_main.allRecipes = {}
+	CHC_main.recipesByItem = {}
+	CHC_main.recipesForItem = {}
+	CHC_main.allEvoRecipes = {}
+	CHC_main.evoRecipesByItem = {}
+	CHC_main.evoRecipesForItem = {}
+	CHC_main.itemsManuals = {}
+	CHC_main.items = {}
+	CHC_main.itemsForSearch = {}
+	CHC_main.recipesWithoutItem = {}
+	CHC_main.recipesWithLua = {}
+	CHC_main.luaRecipeCache = {}
+	CHC_main.notAProcZone = {} -- zones from Distributions.lua without corresponding zones in ProceduralDistributions.lua
 end
 
 CHC_main.getItemByFullType = function(itemString)
@@ -318,7 +322,7 @@ CHC_main.getRecipeRequiredSkills = function(recipe, n)
 end
 
 CHC_main.loadDatas = function()
-	CHC_main.playerModData = getPlayer():getModData()
+	CHC_main.init()
 	CHC_main.CECData = _G['CraftingEnhancedCore']
 
 	CHC_main.loadAllItems()
@@ -332,7 +336,7 @@ CHC_main.loadDatas = function()
 	CHC_main.loadRecipesIntegrations()
 
 	if loadLua then CHC_main.saveLuaCache() end
-	CHC_menu.createCraftHelper()
+	CHC_menu.init()
 	print("Initialised. Mod version: " .. CHC_main._meta.version)
 end
 
@@ -428,7 +432,6 @@ CHC_main.processOneRecipe = function(recipe, id)
 		return
 	end
 
-	newItem.favorite = CHC_main.playerModData[CHC_main.getFavoriteRecipeModDataString(newItem)] or false
 
 	if loadLua then
 		local onCreate = recipe:getLuaCreate()
@@ -560,7 +563,24 @@ CHC_main.processOneEvolvedRecipe = function(recipe, _id)
 		isAllowFrozenItem = recipe:isAllowFrozenItem()
 	}
 	if not recipeData.baseItem:contains('.') then
-		recipeData.baseItem = "Base." .. recipeData.baseItem
+		local baseItem = recipeData.baseItem
+		local module
+		local noDot = CHC_main.items[baseItem]
+		local withBase = CHC_main.items["Base." .. baseItem]
+		local withResult = CHC_main.items[recipeData.fullResultItem]
+		if noDot then
+			module = noDot.itemObj:getModule():getName()
+		elseif withResult then
+			module = withResult.itemObj:getModule():getName()
+			if module == "farming" then
+				module = "Base"
+			end
+		elseif withBase then
+			module = "Base"
+		else
+			error("Could not determine baseItem for evolved recipe: " .. recipeData.name)
+		end
+		recipeData.baseItem = module .. "." .. recipeData.baseItem
 	end
 	if not recipeData.fullResultItem:contains('.') then
 		recipeData.fullResultItem = "Base." .. recipeData.fullResultItem
@@ -590,8 +610,6 @@ CHC_main.processOneEvolvedRecipe = function(recipe, _id)
 	end
 
 	data.recipeData = recipeData
-
-	data.favorite = CHC_main.playerModData[CHC_main.getFavoriteRecipeModDataString(data)] or false
 
 	if data.recipeData.possibleItems then
 		for i = 1, #data.recipeData.possibleItems do
@@ -760,37 +778,6 @@ CHC_main.setRecipeForItem = function(tbl, itemName, recipe)
 	insert(tbl[itemName], recipe)
 end
 
-CHC_main.getFavItemModDataStr = function(item)
-	local fullType
-	if item.fullType then
-		fullType = item.fullType
-	elseif instanceof(item, 'InventoryItem') then
-		fullType = item:getFullType()
-	elseif type(item) == 'string' then
-		fullType = item
-	end
-	local text = 'itemFavoriteCHC:' .. fullType
-	return text
-end
-
-CHC_main.getFavoriteRecipeModDataString = function(recipe)
-	if recipe.recipeData.isSynthetic then return 'testCHC' .. recipe.recipe:getOriginalname() end
-	recipe = recipe.recipe
-	local text = 'craftingFavorite:' .. recipe:getOriginalname()
-	if instanceof(recipe, 'EvolvedRecipe') then
-		text = text .. ':' .. recipe:getBaseItem()
-		text = text .. ':' .. recipe:getResultItem()
-	else
-		for i = 0, recipe:getSource():size() - 1 do
-			local source = recipe:getSource():get(i)
-			for j = 1, source:getItems():size() do
-				text = text .. ':' .. source:getItems():get(j - 1)
-			end
-		end
-	end
-	return text
-end
-
 -- region integrations
 
 CHC_main.loadItemsIntegrations = function()
@@ -879,7 +866,6 @@ CHC_main.getCECRecipes = function()
 			getSource = getSource,
 			getName = function() return newItem.recipeData.name end
 		}
-		newItem.favorite = CHC_main.playerModData[CHC_main.getFavoriteRecipeModDataString(newItem)] or false
 
 		local resultItem = 'CEC.' .. tID
 		insert(CHC_main.allRecipes, newItem)

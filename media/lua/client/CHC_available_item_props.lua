@@ -314,7 +314,7 @@ CHC_settings.itemPropsByType = {
         { name = 'getSuspensionDamping',       default = 0,    ignoreDefault = true },
         { name = 'getCustomMenuOption' },
         { name = 'getIconsForTexture' },
-        { name = 'getBodyLocation' },
+        { name = 'getBodyLocation',            default = "",   ignoreDefault = true },
         { name = 'getBloodClothingType' },
         -- { name = 'CloseKillMove' },
         { name = 'getAmmoType' },

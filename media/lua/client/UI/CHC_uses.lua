@@ -147,6 +147,11 @@ end
 
 -- region render
 
+function CHC_uses:onResize()
+    ISPanel.onResize(self)
+    CHC_view.onResize(self)
+end
+
 function CHC_uses:prerender()
     local ms = UIManager.getMillisSinceLastRender()
     if not self.ms then self.ms = 0 end
@@ -347,17 +352,13 @@ end
 
 function CHC_uses:processAddObjToObjList(recipe, modData) --FIXME
     local name = recipe.recipeData.name
-    recipe.favorite = modData[CHC_main.getFavoriteRecipeModDataString(recipe)] or false
-    if self.shouldDrawMod and recipe.module ~= 'Base' then
-        recipe.height = recipe.height + 2 + fhs
-    else
-        recipe.height = self.curFontData.icon + 2 * self.curFontData.pad
-    end
-
+    recipe.favorite = modData[CHC_main.common.getFavoriteRecipeModDataString(recipe)] or false
+    recipe.drawMod = self.shouldDrawMod and recipe.module ~= 'Base'
     self.objList:addItem(name, recipe)
 end
 
 function CHC_uses:getContainers()
+    self.playerNum = CHC_menu.playerNum
     ISCraftingUI.getContainers(self)
     self.containerListHash = CHC_main.common.getContainersHash(self.containerList)
 end
@@ -388,7 +389,7 @@ function CHC_uses:new(args)
     o.showHidden = args.showHidden
     o.sep_x = args.sep_x
     o.itemSortFunc = o.itemSortAsc == true and CHC_uses.sortByNameAsc or CHC_uses.sortByNameDesc
-    o.player = getPlayer()
+    o.player = CHC_menu.player
     o.defaultCategory = getText('UI_All')
     o.searchRowHelpText = getText('UI_searchrow_info',
         getText('UI_searchrow_info_recipes_special'),
@@ -406,20 +407,25 @@ function CHC_uses:new(args)
     o.needUpdateDelayedSearch = false
     o.needUpdateRecipeState = false
 
+    o.anchorTop = true
+    o.anchorBottom = true
+    o.anchorLeft = true
+    o.anchorRight = true
+
     o.selectedCategory = o.defaultCategory
     o.initDone = false
     o.fav_ui_type = "fav_recipes"
     o.backRef = args.backRef
     o.ui_type = args.ui_type
     o.isItemView = false
-    o.modData = CHC_main.playerModData
+    o.modData = CHC_menu.playerModData
     o.curFontData = CHC_main.common.fontSizeToInternal[CHC_settings.config.list_font_size]
+    o.fontSize = getTextManager():getFontHeight(o.curFontData.font)
     o.delayedSearch = CHC_settings.config.delayed_search
+    o.shouldDrawMod = CHC_settings.config.show_recipe_module
     o.searchBarDelayedTooltip = getText('IGUI_DelayedSearchBarTooltip')
-    local player = getPlayer()
-    o.player = player
-    o.character = player
-    o.playerNum = player and player:getPlayerNum() or -1
+    o.player = CHC_menu.player
+    o.character = o.player
 
     o.sortOrderIconAsc = getTexture('media/textures/sort_order_asc.png')
     o.sortOrderIconDesc = getTexture('media/textures/sort_order_desc.png')
