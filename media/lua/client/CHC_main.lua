@@ -7,7 +7,7 @@ CHC_main._meta = {
 	id = 'CraftHelperContinued',
 	workshopId = 2787291513,
 	name = 'Craft Helper Continued',
-	version = '1.8.0',
+	version = '1.8.1',
 	author = 'lanceris',
 	previousAuthors = { 'Peanut', 'ddraigcymraeg', 'b1n0m' },
 }
@@ -567,18 +567,18 @@ CHC_main.processOneEvolvedRecipe = function(recipe, _id)
 		local module
 		local noDot = CHC_main.items[baseItem]
 		local withBase = CHC_main.items["Base." .. baseItem]
-		local withResult = CHC_main.items[recipeData.fullResultItem]
+		local withResult = CHC_main.items[recipeData.fullResultItem] -- try to get module from fullresult
 		if noDot then
 			module = noDot.itemObj:getModule():getName()
+		elseif withBase then -- possible conflict if base and mod have same name
+			module = "Base"
 		elseif withResult then
 			module = withResult.itemObj:getModule():getName()
 			if module == "farming" then
 				module = "Base"
 			end
-		elseif withBase then
-			module = "Base"
 		else
-			error("Could not determine baseItem for evolved recipe: " .. recipeData.name)
+			print("Could not determine baseItem for evolved recipe: " .. recipeData.name)
 		end
 		recipeData.baseItem = module .. "." .. recipeData.baseItem
 	end

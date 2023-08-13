@@ -1,6 +1,12 @@
 # CraftHelper updates
 
-# 1.8 (XX.XX.2023)
+# 1.8.1 (13.08.2023)
+
+### Bugfixes
+
+- Fixed inability to continue if error arised in CHC_main.processOneEvolvedRecipe
+
+# 1.8 (13.08.2023)
 
 ### New features
 

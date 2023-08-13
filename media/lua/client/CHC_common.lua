@@ -517,7 +517,7 @@ function CHC_main.common.getNextState(states, cur)
             end
         end
     end
-    if type(cur) ~= "number" then error("Could not determine current state index") end
+    if type(cur) ~= "number" then print("Could not determine current state index") end
     local newStateIx = cur + 1
     if #states < newStateIx then
         newStateIx = 1
