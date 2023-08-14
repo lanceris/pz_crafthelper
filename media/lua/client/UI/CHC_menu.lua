@@ -134,7 +134,8 @@ CHC_menu.onCraftHelper = function(items, player, itemMode)
 	itemMode = itemMode and true or false
 	local inst = CHC_menu.CHC_window
 	if not inst then
-		error("Craft Helper failed to open")
+		utils.chcerror("Craft Helper failed to open", "CHC_menu.onCraftHelper", nil, false)
+		return
 	end
 
 	-- Show craft helper window
