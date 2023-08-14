@@ -1,6 +1,8 @@
 require 'CHC_main'
 
 CHC_menu = {}
+local utils = require('CHC_utils')
+local tries = 0
 
 local function setPlayer()
 	CHC_menu.player = getPlayer()
@@ -16,6 +18,10 @@ end
 
 --- loads config and creates window instance
 CHC_menu.createCraftHelper = function()
+	if CHC_menu.CHC_window then
+		CHC_menu.CHC_window:close() -- just in case
+	end
+	CHC_menu.CHC_window = nil
 	CHC_settings.Load()
 	CHC_settings.LoadPropsData()
 	local options = CHC_settings.config
@@ -36,6 +42,30 @@ end
 
 --- called on right-clicking item in inventory/hotbar
 CHC_menu.doCraftHelperMenu = function(player, context, items)
+	-- check if mod initialised
+	local itemsEmpty = utils.empty(CHC_main.items)
+	if itemsEmpty then
+		utils.chcerror("Mod failed to initialise, trying again...", "CHC_menu.doCraftHelperMenu", nil, false)
+		-- re-init mod
+		if CHC_menu.CHC_window then
+			-- no items but window is here (WTF?)
+			utils.chcerror("CHC_window found when mustn't, please contact mod author if you see this error",
+				"CHC_menu.doCraftHelperMenu", nil, false)
+		end
+		CHC_main.loadDatas()
+		tries = tries + 1
+	elseif not itemsEmpty and not CHC_menu.CHC_window then
+		-- main init is ok, but window not initialised
+		utils.chcerror("CHC_window not found, will create new one...", "CHC_menu.doCraftHelperMenu", nil, false)
+		CHC_menu.init()
+		tries = tries + 1
+	end
+
+	if tries >= 10 and itemsEmpty then
+		utils.chcerror("Mod failed to initialise 10 times, something is clearly wrong...", "CHC_menu.doCraftHelperMenu",
+			nil, true)
+	end
+
 	local itemsUsedInRecipes = {}
 
 	local item
@@ -58,15 +88,29 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
 
 	-- If one or more items tested above are used in a recipe
 	-- we effectively add an option in the contextual menu
-	if type(itemsUsedInRecipes) == 'table' and #itemsUsedInRecipes > 0 then
-		local opt = context:addOption(getText('IGUI_chc_context_onclick'), itemsUsedInRecipes, CHC_menu.onCraftHelper,
-			player)
-		opt.iconTexture = getTexture('media/textures/CHC_ctx_icon.png')
-		CHC_main.common.addTooltipNumRecipes(opt, item)
+	local ctxBehIndex = CHC_settings.config.inv_context_behaviour
+	if not ctxBehIndex then
+		utils.chcerror("inv_context_behaviour option not initialised", "CHC_menu.doCraftHelperMenu", nil, false)
+		ctxBehIndex = 2
 	end
-	local cond1 = CHC_settings.config.require_shift_on_context_click and isShiftKeyDown()
-	local cond2 = not CHC_settings.config.require_shift_on_context_click
-	if (cond1 or cond2) and CHC_menu.CHC_window ~= nil then
+	local onContextBehaviourToInternal = {
+		{ chc = false, find = false, fav = false },
+		{ chc = true,  find = false, fav = false },
+		{ chc = true,  find = true,  fav = true },
+	}
+	local ctxOptions = onContextBehaviourToInternal[ctxBehIndex]
+
+	if ctxOptions.chc then
+		if type(itemsUsedInRecipes) == 'table' and #itemsUsedInRecipes > 0 then
+			local opt = context:addOption(getText('IGUI_chc_context_onclick'), itemsUsedInRecipes, CHC_menu
+				.onCraftHelper,
+				player)
+			opt.iconTexture = getTexture('media/textures/CHC_ctx_icon.png')
+			CHC_main.common.addTooltipNumRecipes(opt, item)
+		end
+	end
+
+	if ctxOptions.fav then
 		local isFav = CHC_menu.playerModData[CHC_main.common.getFavItemModDataStr(item)] == true
 		local favStr = isFav and getText('ContextMenu_Unfavorite') or getText('IGUI_CraftUI_Favorite')
 		local optName = favStr .. ' (' .. getText('IGUI_chc_context_onclick') .. ')'
@@ -76,7 +120,9 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
 		else
 			favOpt.iconTexture = getTexture('media/textures/CHC_item_favorite_star.png')
 		end
+	end
 
+	if ctxOptions.find then
 		local findOpt = context:addOption(
 			getText('IGUI_find_item') .. ' (' .. getText('IGUI_chc_context_onclick') .. ')', items,
 			CHC_menu.onCraftHelper, player, true)
@@ -122,7 +168,7 @@ CHC_menu.onCraftHelperItem = function(window_inst, item)
 	window_inst:refresh(viewName) -- activate top level search view
 	local top = window_inst.panel.activeView
 	if top.name ~= viewName then
-		error("Top view incorrect in onCraftHelperItem")
+		utils.chcerror("Top view incorrect", "CHC_menu.onCraftHelperItem", nil, false)
 		return
 	end
 	top.view:activateView(subViewName)
@@ -169,7 +215,7 @@ CHC_menu.toggleUI = function(ui)
 			ui:addToUIManager()
 		end
 	else
-		error("No UI found in CHC_menu.toggleUI")
+		utils.chcerror("No UI found", "CHC_menu.toggleUI", nil, false)
 	end
 end
 

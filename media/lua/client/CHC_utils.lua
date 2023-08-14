@@ -20,7 +20,7 @@ end
 ---@param txt string error message
 ---@param loc string? location of error
 ---@param line number? line number of error
-CHC_utils.chcerror = function(txt, loc, line)
+CHC_utils.chcerror = function(txt, loc, line, raise)
     local msg = format('[CraftHelperContinued] %s', txt)
     if loc then
         msg = msg .. format(' at %s', loc)
@@ -28,7 +28,11 @@ CHC_utils.chcerror = function(txt, loc, line)
     if line then
         msg = msg .. format(':%d', line)
     end
-    error(msg)
+    if raise then
+        error(msg)
+    else
+        CHC_utils.chcprint(msg, false)
+    end
 end
 
 CHC_utils.Deque = {}

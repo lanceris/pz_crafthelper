@@ -56,7 +56,7 @@ local init_cfg = {
     close_all_on_exit = false,
     show_all_props = false,
     delayed_search = false,
-    require_shift_on_context_click = false,
+    inv_context_behaviour = 2,
     main_window = { x = 100, y = 100, w = 1000, h = 600 },
     uses = { sep_x = 500, filter_asc = true, filter_type = 'all' },
     craft = { sep_x = 500, filter_asc = true, filter_type = 'all' },
@@ -92,7 +92,7 @@ function CHC_settings.f.onModOptionsApply(values)
     CHC_settings.config.close_all_on_exit = values.settings.options.close_all_on_exit
     CHC_settings.config.show_all_props = values.settings.options.show_all_props
     CHC_settings.config.delayed_search = values.settings.options.delayed_search
-    CHC_settings.config.require_shift_on_context_click = values.settings.options.require_shift_on_context_click
+    CHC_settings.config.inv_context_behaviour = values.settings.options.inv_context_behaviour
     CHC_settings.Save()
 end
 
@@ -214,12 +214,24 @@ if ModOptions and ModOptions.getInstance then
                 OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
                 OnApplyInGame = CHC_main.config_apply_funcs.process
             },
-            require_shift_on_context_click = {
-                name = 'IGUI_RequireShiftOnContextClick',
-                tooltip = getText('IGUI_RequireShiftOnContextClickTooltip',
-                    getText('IGUI_CraftUI_Favorite'),
-                    getText('IGUI_find_item')),
-                default = false,
+            inv_context_behaviour = {
+                getText('IGUI_None'),
+                getText('IGUI_OnContextBehaviourDefaultOption'),
+                getText('IGUI_OnContextBehaviourExtraOption'),
+                name = 'IGUI_OnContextBehaviour',
+                tooltip = getText("IGUI_OnContextBehaviourTooltip",
+                    getText("IGUI_OnContextBehaviourTooltipFirst",
+                        getText("IGUI_None")),
+                    getText("IGUI_OnContextBehaviourTooltipSecond",
+                        getText("IGUI_OnContextBehaviourDefaultOption"),
+                        getText("IGUI_chc_context_onclick")),
+                    getText("IGUI_OnContextBehaviourTooltipThird",
+                        getText("IGUI_OnContextBehaviourExtraOption"),
+                        getText("IGUI_chc_context_onclick"),
+                        getText("IGUI_CraftUI_Favorite"),
+                        getText("IGUI_find_item"))
+                ),
+                default = 2,
                 OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
                 OnApplyInGame = CHC_settings.f.onModOptionsApply
             }
@@ -250,7 +262,7 @@ else
     CHC_settings.config.close_all_on_exit = false
     CHC_settings.config.show_all_props = false
     CHC_settings.config.delayed_search = false
-    CHC_settings.config.require_shift_on_context_click = false
+    CHC_settings.config.inv_context_behaviour = 2
 end
 
 

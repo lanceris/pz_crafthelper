@@ -586,7 +586,10 @@ function CHC_view._list:prerender()
 
     self.listHeight = 0
     if not self.curFontData then
-        self.curFontData = { font = UIFont.NewSmall, icon = 20, pad = 3 }
+        self.curFontData = CHC_main.common.fontSizeToInternal[CHC_settings.config.list_font_size]
+        if not self.curFontData then
+            self.curFontData = { font = UIFont.Small, icon = 20, pad = 3 }
+        end
     end
     if not self.fontSize then
         self.fontSize = getTextManager():getFontHeight(self.curFontData.font)

@@ -1,4 +1,4 @@
-version=1.8.0
+version=1.8.2
 id=2787291513
 title=Craft Helper Continued
 tags=Build 41;Interface
