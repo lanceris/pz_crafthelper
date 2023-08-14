@@ -1,5 +1,17 @@
 # CraftHelper updates
 
+# 1.8.2 (15.08.2023)
+
+### New features
+
+- Option for controlling what to show in item context menu (by default only 'Craft Helper')
+
+### Improvements
+
+- Added failsafe when mod is not initialised properly, hopefully fixes failed init bug
+- Improved error handling
+- Removed option 'Press Shift to show extra options' (replaced by 'Context behaviour')
+
 # 1.8.1 (13.08.2023)
 
 ### Bugfixes

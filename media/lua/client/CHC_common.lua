@@ -10,9 +10,9 @@ local globalTextLimit = 1000 -- FIXME
 
 
 CHC_main.common.fontSizeToInternal = {
-    { font = UIFont.Small,  pad = 4, icon = 10, ymin = 2 },
-    { font = UIFont.Medium, pad = 4, icon = 18, ymin = -2 },
-    { font = UIFont.Large,  pad = 6, icon = 24, ymin = -4 }
+    { font = UIFont.Small,  pad = 4, icon = 10 },
+    { font = UIFont.Medium, pad = 4, icon = 18 },
+    { font = UIFont.Large,  pad = 6, icon = 24 }
 }
 
 CHC_main.common.heights = {
@@ -474,7 +474,7 @@ end
 
 function CHC_main.common.compareContainersHash(current, prev)
     if not current then
-        error('No way to compare hashes', 'CHC_main.common.compareContainersHash')
+        error('No way to compare hashes', 'CHC_main.common.compareContainersHash', nil, false)
     end
     if not prev then prev = 0 end
     return current == prev

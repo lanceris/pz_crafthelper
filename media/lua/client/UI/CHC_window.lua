@@ -509,9 +509,11 @@ function CHC_window:close()
     CHC_menu.toggleUI()
     local status, err = pcall(self.serializeWindowData, self)
     if not status then
-        error(string.format("CHC_window:close - Cannot serialize window data (%s)", err))
+        utils.chcerror(string.format("CHC_window:close - Cannot serialize window data (%s)", err), "CHC_window.close",
+            nil, false)
+    else
+        CHC_settings.Save()
     end
-    CHC_settings.Save()
     CHC_settings.SavePropsData()
 end
 
