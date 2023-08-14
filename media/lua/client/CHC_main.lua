@@ -925,20 +925,20 @@ end
 -- endregion
 
 function CHC_main.reloadMod(key)
-	-- if key == Keyboard.KEY_O then
-	-- 	CHC_main.loadDatas()
-	-- local all = CHC_main
-	-- local moddataObj = ModData
-	-- local _obj = moddataObj.getTableNames()
-	-- local moddata = {}
-	-- for i = 0, _obj:size() - 1 do
-	-- 	local name = _obj:get(i)
-	-- 	moddata[name] = moddataObj.get(name)
-	-- end
-	-- df:df()
+	if key == Keyboard.KEY_O then
+		CHC_main.loadDatas()
+		-- local all = CHC_main
+		-- local moddataObj = ModData
+		-- local _obj = moddataObj.getTableNames()
+		-- local moddata = {}
+		-- for i = 0, _obj:size() - 1 do
+		-- 	local name = _obj:get(i)
+		-- 	moddata[name] = moddataObj.get(name)
+		-- end
+		-- df:df()
 
-	-- error('debug')
-	-- end
+		-- error('debug')
+	end
 end
 
 if CHC_main.isDebug then
