@@ -502,10 +502,12 @@ function CHC_window:close()
     -- remove all views except search and favorites
     if CHC_settings.config.close_all_on_exit then
         local vl = self.panel
-        for i = #vl.viewList, 3, -1 do
-            vl:removeView(vl.viewList[i].view)
+        if vl then
+            for i = #vl.viewList, 3, -1 do
+                vl:removeView(vl.viewList[i].view)
+            end
+            vl:activateView(vl.viewList[2].name)
         end
-        vl:activateView(vl.viewList[2].name)
     end
     CHC_menu.toggleUI()
     if JoypadState.players[CHC_menu.playerNum + 1] then
@@ -846,12 +848,12 @@ function CHC_window:onKeyRelease(key)
 
     -- region tabs controls
     if key == CHC_settings.keybinds.toggle_uses_craft.key then
-        local vl = view.viewList
+        local vl = view.view.viewList
         local idx
         if vl and #vl == 2 then
-            idx = view:getActiveViewIndex() == 1 and 2 or 1
+            idx = view.view:getActiveViewIndex() == 1 and 2 or 1
             if vl[idx] and vl[idx].name then
-                self:refresh(vl[idx].name, view)
+                self:refresh(vl[idx].name, view.view)
             end
         end
     end

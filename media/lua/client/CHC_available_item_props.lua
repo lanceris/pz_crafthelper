@@ -81,7 +81,7 @@ CHC_settings.itemPropsByType = {
         { name = 'getNumLevelsTrained', default = 1,  ignoreDefault = false },
         { name = 'canBeWrite' },
         { name = 'getPageToWrite',      default = 0,  ignoreDefault = true },
-        { name = 'getTeachedRecipes' },
+        { name = 'getTeachedRecipes',   retRaw = true },
     },
     AlarmClock = {
         { name = 'getAlarmSound' },

@@ -613,8 +613,7 @@ function CHC_view._list:prerender()
 
         self.listHeight = data.y2
 
-
-        local moduleCond = item.item.module and item.item.module ~= 'Base'
+        local moduleCond = not self.parent.isItemView and item.item.module and item.item.module ~= 'Base'
         if CHC_settings.config.show_recipe_module and moduleCond then
             local baseH = math.min(self.fontSize, self.curFontData.icon) + self.fontSize + self.curFontData.pad
             item.height = baseH

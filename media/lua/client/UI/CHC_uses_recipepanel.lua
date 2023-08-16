@@ -543,9 +543,13 @@ function CHC_uses_recipepanel:setObj(recipe)
     self.selectedObj = obj
 
     if not recipe.isEvolved then
-        self.manualsEntries = CHC_main.itemsManuals[recipe.recipe:getOriginalname()]
+        self.manualsEntries = CHC_main.itemsManuals[recipe.recipeData.originalName]
         if self.manualsEntries ~= nil then
             self.manualsSize = #self.manualsEntries
+        end
+        -- self.freeFromTraits = CHC_main.freeRecipesTraits[recipe.recipeData.originalName]
+        if self.freeFromTraits then
+            self.manualsSize = (self.manualsSize or 0) + #self.freeFromTraits
         end
     end
 
@@ -562,8 +566,8 @@ function CHC_uses_recipepanel:setObj(recipe)
         self.statsList:addSection(self.skillPanel, getText('IGUI_CraftUI_RequiredSkills'))
     end
 
-    if self.manualsEntries and obj.needToBeLearn then
-        self:refreshBooksPanel(recipe)
+    if self.manualsEntries or self.freeFromTraits and obj.needToBeLearn then
+        self:refreshBooksPanel(obj)
         self.statsList:addSection(self.booksPanel, getText('UI_recipe_panel_required_book') .. ':')
     end
 
@@ -837,13 +841,28 @@ end
 
 function CHC_uses_recipepanel:refreshBooksPanel(recipe)
     self.booksPanel:clear()
+    local numEntries = 0
 
-    for i = 1, #self.manualsEntries do
-        local item = self.manualsEntries[i]
-        item.isKnown = recipe.isKnown
-        self.booksPanel:addItem(item.displayName, item)
+    if self.manualsEntries then
+        for i = 1, #self.manualsEntries do
+            local item = self.manualsEntries[i]
+            item.isKnown = recipe.isKnown
+            item.drawFavStar = true
+            self.booksPanel:addItem(item.displayName, item)
+        end
+        numEntries = numEntries + #self.manualsEntries
     end
-    self.booksPanel:setHeight(math.min(3, #self.manualsEntries) * self.booksPanel.itemheight)
+    if self.freeFromTraits then
+        for i = 1, #self.freeFromTraits do
+            local item = self.freeFromTraits[i]
+            item.isTrait = true
+            item.isKnown = CHC_menu.player:HasTrait(item.type) -- TODO avoid re-calculation
+            item.drawFavStar = false
+            self.booksPanel:addItem(item.label, item)
+        end
+        numEntries = numEntries + #self.freeFromTraits
+    end
+    self.booksPanel:setHeight(math.min(3, numEntries) * self.booksPanel.itemheight)
 end
 
 function CHC_uses_recipepanel:refreshEquipmentPanel(recipe)
@@ -1236,10 +1255,17 @@ function CHC_uses_recipepanel:drawBook(y, item, alt)
         self:drawTextureScaledAspect(item.item.texture, tX, tY, 16, 16, 1, 1, 1, 1)
         tX = tX + 20
     end
-    self:drawText(item.item.displayName, tX, tY, r, g, b, a, UIFont.Small)
+    if item.item.isTrait then
+        self:drawText(item.item.displayName .. " (" .. getText("IGUI_char_Traits") .. ")", tX, tY, r, g, b, a,
+            UIFont.Small)
+    else
+        self:drawText(item.item.displayName, tX, tY, r, g, b, a, UIFont.Small)
+    end
 
     --region favorite handler
-    self.recipepanel.drawFavoriteStar(self, y, item, self.recipepanel)
+    if item.item.drawFavStar then
+        self.recipepanel.drawFavoriteStar(self, y, item, self.recipepanel)
+    end
     --endregion
 
     self:drawRectBorder(0, y, self.width - 2, self.itemheight, ab, rb, gb, bb)

@@ -7,11 +7,12 @@ CHC_main._meta = {
 	id = 'CraftHelperContinued',
 	workshopId = 2787291513,
 	name = 'Craft Helper Continued',
-	version = '1.8.2',
+	version = '1.8.3',
 	author = 'lanceris',
 	previousAuthors = { 'Peanut', 'ddraigcymraeg', 'b1n0m' },
 }
 CHC_main.isDebug = false or getDebug()
+CHC_main.loadTries = 0
 
 local insert = table.insert
 local utils = require('CHC_utils')
@@ -32,13 +33,21 @@ end
 
 CHC_main.init = function()
 	CHC_main.allRecipes = {}
+	-- CHC_main.recipeMap = {}
 	CHC_main.recipesByItem = {}
 	CHC_main.recipesForItem = {}
 	CHC_main.allEvoRecipes = {}
 	CHC_main.evoRecipesByItem = {}
 	CHC_main.evoRecipesForItem = {}
+	-- CHC_main.traits = {}
+	-- CHC_main.traitsMap = {}
+	-- CHC_main.skills = {}
+	-- CHC_main.skillsMap = {}
+	-- CHC_main.freeRecipesTraits = {}
+	-- CHC_main.traitsOnlyRecipes = {}
 	CHC_main.itemsManuals = {}
 	CHC_main.items = {}
+	CHC_main.itemsNoModule = {}
 	CHC_main.itemsForSearch = {}
 	CHC_main.recipesWithoutItem = {}
 	CHC_main.recipesWithLua = {}
@@ -213,24 +222,32 @@ CHC_main.getItemProps = function(item, itemType, map)
 
 	local function processProp(item, prop, isTypeSpecific)
 		local propVal
+		local propValRaw
 		local data
 		local propName = prop.name
 		local mul = prop.mul
 		local defVal = prop.default
+		local retRaw = prop.retRaw
 		local isIgnoreDefVal = prop.ignoreDefault
 		if isSpecial then
-			propVal = item[prop.path]
-			if propVal and prop.path2 then propVal = propVal[prop.path2] end
+			propValRaw = item[prop.path]
+			if propValRaw and prop.path2 then propValRaw = propValRaw[prop.path2] end
 		else
-			propVal = item[propName] and item[propName](item) or nil
+			propValRaw = item[propName] and item[propName](item) or nil
 		end
-		if propVal then
-			propVal = rawToStr(propVal)
+		if propValRaw then
+			data = {}
+			propVal = rawToStr(propValRaw)
 			if tonumber(propVal) then propVal = tonumber(propVal) end
 			if mul then propVal = propVal * mul end
 
 			propName, propVal = formatOutput(propName, propVal)
-			data = { name = propName, value = propVal, isTypeSpecific = isTypeSpecific }
+			data.name = propName
+			data.value = propVal
+			data.isTypeSpecific = isTypeSpecific
+			if retRaw then
+				data.raw = propValRaw
+			end
 			if isIgnoreDefVal and propVal == defVal or prop.forceIgnore then
 				data.ignore = true
 			end -- ignore default values
@@ -269,6 +286,14 @@ CHC_main.getItemProps = function(item, itemType, map)
 		if uniqueProps.ActualWeight and uniqueProps.Weight and
 			uniqueProps.Weight.value == uniqueProps.ActualWeight.value then
 			uniqueProps.ActualWeight = nil
+		end
+		if uniqueProps.TeachedRecipes then
+			uniqueProps.numTeachedRecipes = {
+				isTypeSpecific = true,
+				name = "numTeachedRecipes",
+				value = uniqueProps.TeachedRecipes.raw:size()
+			}
+			uniqueProps.TeachedRecipes.raw = nil
 		end
 
 		for _, prop in pairs(uniqueProps) do
@@ -309,14 +334,21 @@ CHC_main.getItemProps = function(item, itemType, map)
 	return props, propsMap
 end
 
-CHC_main.getRecipeRequiredSkills = function(recipe, n)
+CHC_main.getRecipeRequiredSkills = function(recipe, n, recipeData)
 	local result = {}
 	for i = 1, n do
 		local skill = recipe:getRequiredSkill(i - 1)
 		local _perk = skill:getPerk()
 		local perk = PerkFactory.getPerk(_perk)
 		local perkName = perk and perk:getName() or _perk:name()
-		insert(result, { skill = perkName, level = skill:getLevel() })
+		local level = skill:getLevel()
+		insert(result, { skill = perkName, level = level })
+		-- local skillEntry = { recipe = recipeData, level = level }
+		-- if not CHC_main.skillsMap[perkName] then
+		-- 	CHC_main.skillsMap[perkName] = { skillEntry }
+		-- else
+		-- 	insert(CHC_main.skillsMap[perkName], skillEntry)
+		-- end
 	end
 	return result
 end
@@ -356,6 +388,7 @@ CHC_main.processOneItem = function(item, id)
 		item = invItem,
 		fullType = invItem:getFullType(),
 		name = invItem:getName(),
+		module = item:getModule():getName(),
 		modname = invItem:getModName(),
 		isVanilla = invItem:isVanilla(),
 		IsDrainable = invItem:IsDrainable(),
@@ -370,9 +403,15 @@ CHC_main.processOneItem = function(item, id)
 		texture = invItem:getTex()
 	}
 	toinsert.props, toinsert.propsMap = CHC_main.getItemProps(invItem, toinsert.category)
+	toinsert.type = strsplit(toinsert.fullType, ".")[2]
+
 	CHC_main.items[toinsert.fullType] = toinsert
 	insert(CHC_main.itemsForSearch, toinsert)
-
+	if not CHC_main.itemsNoModule[toinsert.type] then
+		CHC_main.itemsNoModule[toinsert.type] = { toinsert }
+	else
+		insert(CHC_main.itemsNoModule[toinsert.type], toinsert)
+	end
 
 	if toinsert.category == 'Literature' then
 		local teachedRecipes = item:getTeachedRecipes()
@@ -425,7 +464,7 @@ CHC_main.processOneRecipe = function(recipe, id)
 	newItem.recipeData.requiredSkillCount = recipe:getRequiredSkillCount()
 	if newItem.recipeData.requiredSkillCount > 0 then
 		newItem.recipeData.requiredSkills = CHC_main.getRecipeRequiredSkills(recipe,
-			newItem.recipeData.requiredSkillCount)
+			newItem.recipeData.requiredSkillCount, newItem)
 	end
 	if newItem.recipeData.nearItem == "Anvil" and
 		not getActivatedMods():contains("Blacksmith41") then
@@ -481,12 +520,12 @@ CHC_main.processOneRecipe = function(recipe, id)
 		end
 	end
 
-	-- if CHC_main.itemsManuals[newItem.recipeData.name] then
-	-- 	for _, value in pairs(CHC_main.itemsManuals[newItem.recipeData.name]) do
-	-- 		newItem.isBook = true
-	-- 		CHC_main.setRecipeForItem(CHC_main.recipesByItem, value.fullType, newItem)
-	-- 	end
-	-- end
+	if CHC_main.itemsManuals[newItem.recipeData.name] then
+		for _, value in pairs(CHC_main.itemsManuals[newItem.recipeData.name]) do
+			newItem.isBook = true
+			CHC_main.setRecipeForItem(CHC_main.recipesByItem, value.fullType, newItem)
+		end
+	end
 	--endregion
 
 	local resultFullType = resultItem:getFullType()
@@ -500,6 +539,9 @@ CHC_main.processOneRecipe = function(recipe, id)
 		insert(CHC_main.recipesWithoutItem, resultItem:getFullType())
 	end
 	local rSources = recipe:getSource()
+
+
+	-- CHC_main.recipeMap[newItem.recipeData.originalName] = newItem
 
 	-- Go through items needed by the recipe
 	for n = 0, rSources:size() - 1 do
@@ -568,17 +610,21 @@ CHC_main.processOneEvolvedRecipe = function(recipe, _id)
 		local noDot = CHC_main.items[baseItem]
 		local withBase = CHC_main.items["Base." .. baseItem]
 		local withResult = CHC_main.items[recipeData.fullResultItem] -- try to get module from fullresult
+		local withItemType = CHC_main.itemsNoModule[baseItem]
 		if noDot then
-			module = noDot.itemObj:getModule():getName()
+			module = noDot.module
+		elseif withItemType then
+			module = withItemType[1].module
 		elseif withBase then -- possible conflict if base and mod have same name
 			module = "Base"
 		elseif withResult then
-			module = withResult.itemObj:getModule():getName()
-			if module == "farming" then
-				module = "Base"
-			end
+			module = withResult.module
 		else
-			print("Could not determine baseItem for evolved recipe: " .. recipeData.name)
+			print("Could not determine baseItem for evolved recipe, defaulting to Base: " .. recipeData.name)
+			module = "Base"
+		end
+		if module == "farming" then
+			module = "Base"
 		end
 		recipeData.baseItem = module .. "." .. recipeData.baseItem
 	end
@@ -782,10 +828,12 @@ end
 
 CHC_main.loadItemsIntegrations = function()
 	CHC_main.getCECItems()
+	-- CHC_main.getTraitsItems()
 end
 
 CHC_main.loadRecipesIntegrations = function()
 	CHC_main.getCECRecipes()
+	-- CHC_main.getTraitsRecipes()
 end
 
 CHC_main.processHydrocraft = function(recipe)
@@ -922,23 +970,134 @@ CHC_main.processCEC = function(nearItem, CECData)
 	return furniItem
 end
 
+CHC_main.getTraitsItems = function()
+	-- make synthetic items (TODO:represent as traits) to show in browser
+	local allTraits = TraitFactory.getTraits()
+	for i = 0, allTraits:size() - 1 do
+		local trait = allTraits:get(i)
+		local data = {
+			type = trait:getType(),
+			texture = trait:getTexture(),
+			displayName = trait:getLabel(),
+			_leftLabel = trait:getLeftLabel(),
+			_rightLabel = trait:getRightLabel(),
+			cost = trait:getCost(),
+			description = trait:getDescription(),
+			freeRecipes = trait:getFreeRecipes()
+		}
+		local fullType = "CHC." .. data.type
+		local toinsert = {
+			item = data,
+			fullType = 'CEC.' .. fullType,
+			name = data.type,
+			modname = 'Traits',
+			isVanilla = false,
+			IsDrainable = false,
+			displayName = data.displayName,
+			tooltip = data.description,
+			hidden = false,
+			count = 1,
+			category = 'Normal',
+			displayCategory = getText('IGUI_ItemCat_Item'),
+			texture = data.texture
+		}
+		toinsert.item.fullType = toinsert.fullType
+		toinsert.item.getFullType = function() return toinsert.fullType end
+		-- toinsert.props, toinsert.propsMap = CHC_main.getItemProps(tData, toinsert.category, map)
+		CHC_main.items[toinsert.fullType] = toinsert
+		insert(CHC_main.itemsForSearch, toinsert)
+	end
+end
+
+CHC_main.getTraitsRecipes = function()
+	-- TODO: make link to synthetic items (check getTraitsItems)
+	local function getFreeRecipes(trait)
+		local result = {}
+		local noMatch = {}
+		local zero = true
+		local free = trait:getFreeRecipes()
+		for i = 0, free:size() - 1 do
+			local name = free:get(i)
+			local recipeObj = CHC_main.recipeMap[name]
+			if recipeObj then
+				zero = false
+				table.insert(result, name)
+			end
+			-- 	table.insert(result, recipeObj)
+			-- else
+			-- end
+		end
+		return result, noMatch, zero
+	end
+
+	local traits = {}
+	local traitsMap = {}
+	local noMatchTotal = {}
+
+	local allTraits = TraitFactory.getTraits()
+	for i = 0, allTraits:size() - 1 do
+		local trait = allTraits:get(i)
+		local free, noMatch, zero = getFreeRecipes(trait)
+		for k = 1, #noMatch do
+			noMatchTotal[noMatch[k]] = true
+		end
+		if not zero then
+			local data = {
+				type = trait:getType(),
+				texture = trait:getTexture(),
+				displayName = trait:getLabel(),
+				_leftLabel = trait:getLeftLabel(),
+				_rightLabel = trait:getRightLabel(),
+				cost = trait:getCost(),
+				description = trait:getDescription(),
+				freeRecipes = free
+			}
+			table.insert(traits, data)
+			traitsMap[data.displayName] = data
+		end
+	end
+
+	local backMap = {}
+	for i = 1, #traits do
+		local trait = traits[i]
+		for j = 1, #trait.freeRecipes do
+			local recipeName = trait.freeRecipes[j]
+			if not backMap[recipeName] then
+				backMap[recipeName] = { trait }
+			else
+				table.insert(backMap[recipeName], trait)
+			end
+		end
+	end
+
+	CHC_main.traits = traits
+	CHC_main.traitsMap = traitsMap
+	CHC_main.freeRecipesTraits = backMap
+	for recipeName, _ in pairs(backMap) do
+		if not CHC_main.itemsManuals[recipeName] then
+			CHC_main.traitsOnlyRecipes[recipeName] = true
+		end
+	end
+end
+
 -- endregion
 
 function CHC_main.reloadMod(key)
-	if key == Keyboard.KEY_O then
-		CHC_main.loadDatas()
-		-- local all = CHC_main
-		-- local moddataObj = ModData
-		-- local _obj = moddataObj.getTableNames()
-		-- local moddata = {}
-		-- for i = 0, _obj:size() - 1 do
-		-- 	local name = _obj:get(i)
-		-- 	moddata[name] = moddataObj.get(name)
-		-- end
-		-- df:df()
+	return
+	-- if key == Keyboard.KEY_O then
+	-- 	CHC_main.loadDatas()
+	-- 	-- 	local all = CHC_main
+	-- 	-- 	-- local moddataObj = ModData
+	-- 	-- 	-- local _obj = moddataObj.getTableNames()
+	-- 	-- 	-- local moddata = {}
+	-- 	-- 	-- for i = 0, _obj:size() - 1 do
+	-- 	-- 	-- 	local name = _obj:get(i)
+	-- 	-- 	-- 	moddata[name] = moddataObj.get(name)
+	-- 	-- 	-- end
+	-- 	-- 	-- df:df()
 
-		-- error('debug')
-	end
+	-- 	-- 	-- error('debug')
+	-- end
 end
 
 if CHC_main.isDebug then

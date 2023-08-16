@@ -29,3 +29,5 @@ Contributors will be shown in order of first pull request / commit:
 - [piromasta](https://steamcommunity.com/id/piromasta)
 - [{9GU}Eternity](https://steamcommunity.com/id/Eternity84)
   - Italian translation
+- [Cosmo](https://steamcommunity.com/id/Bulvaik)
+  - Ukrainian translation
