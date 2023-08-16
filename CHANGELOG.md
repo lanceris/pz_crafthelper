@@ -1,5 +1,25 @@
 # CraftHelper updates
 
+# 1.8.3 (XX.08.2023)
+
+### New features
+
+- Added ability to return raw values from CHC_main.getItemProps (processProp)
+- Books now show related (teached) recipes
+- Basic gamepad support
+
+### Improvements
+
+- Added Ukrainian translation (thanks to [Cosmo](https://steamcommunity.com/id/Bulvaik))
+- Updated Thai translation (thanks to [Riko Prushka](https://steamcommunity.com/id/safc))
+
+### Bugfixes
+
+- Fixed bug when getting evolved recipe baseItem resulted in error
+- Fixed rare bug with inability to close craft helper
+- Fixed incorrect render in item list view
+- Fixed 'Toggle between uses/craft' keybind not working properly
+
 # 1.8.2 (15.08.2023)
 
 ### New features

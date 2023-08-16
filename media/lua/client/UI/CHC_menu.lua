@@ -224,7 +224,7 @@ end
 
 --- window toggle logic
 CHC_menu.toggleUI = function(ui)
-	local ui = ui or CHC_menu.CHC_window
+	ui = ui or CHC_menu.CHC_window
 	if ui then
 		if ui:getIsVisible() then
 			ui:setVisible(false)
