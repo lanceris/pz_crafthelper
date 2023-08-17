@@ -433,7 +433,7 @@ function CHC_window:update()
                         self.uiTypeToView[viewObject.view.ui_type].name = viewObject.name
                     end
                 else
-                    utils.chcprint("Trigger " .. action .. " for " .. targetViewObj.name)
+                    -- print("Trigger " .. action .. " for " .. targetViewObj.name)
                     targetView[action] = true
                 end
             end
@@ -510,13 +510,13 @@ function CHC_window:close()
         end
     end
     CHC_menu.toggleUI()
-    if JoypadState.players[CHC_menu.playerNum + 1] then
-        if self.prevFocus then
-            setJoypadFocus(CHC_menu.playerNum, self.prevFocus)
-        else
-            setJoypadFocus(CHC_menu.playerNum, nil)
-        end
-    end
+    -- if JoypadState.players[CHC_menu.playerNum + 1] then
+    --     if self.prevFocus then
+    --         setJoypadFocus(CHC_menu.playerNum, self.prevFocus)
+    --     else
+    --         setJoypadFocus(CHC_menu.playerNum, nil)
+    --     end
+    -- end
     local status, err = pcall(self.serializeWindowData, self)
     if not status then
         utils.chcerror(string.format("CHC_window:close - Cannot serialize window data (%s)", err), "CHC_window.close",
@@ -785,7 +785,7 @@ end
 function CHC_window:handleListMove(key, rl, subview)
     if not rl then return end
     local oldsel = rl.selected
-    if (key == CHC_settings.keybinds.move_up.key and self:isModifierKeyDown('recipe')) or key == Joypad.DPadUp then
+    if key == CHC_settings.keybinds.move_up.key and self:isModifierKeyDown('recipe') then
         -- if isShiftKeyDown() then
         --     rl.selected = rl.selected - 10
         -- else
@@ -794,7 +794,7 @@ function CHC_window:handleListMove(key, rl, subview)
         if rl.selected <= 0 then
             rl.selected = #rl.items
         end
-    elseif (key == CHC_settings.keybinds.move_down.key and self:isModifierKeyDown('recipe')) or key == Joypad.DPadDown then
+    elseif key == CHC_settings.keybinds.move_down.key and self:isModifierKeyDown('recipe') then
         -- if isShiftKeyDown() then
         --     rl.selected = rl.selected + 10
         -- else
@@ -938,49 +938,49 @@ end
 
 
 --region joypad
-function CHC_window:onJoypadDown(button)
-    if button == Joypad.BButton then
-        self:close()
-    end
-end
+-- function CHC_window:onJoypadDown(button)
+--     if button == Joypad.BButton then
+--         self:close()
+--     end
+-- end
 
-function CHC_window:onJoypadDirUp()
-    local subview = self:getActiveSubView()
-    if not subview then
-        utils.chcerror("Can't determine subview", "CHC_window:onJoypadDirUp", nil, false)
-        return
-    end
-    local rl = subview.objList
-    if rl then
-        self:handleListMove(Joypad.DPadUp, rl, subview)
-    end
-end
+-- function CHC_window:onJoypadDirUp()
+--     local subview = self:getActiveSubView()
+--     if not subview then
+--         utils.chcerror("Can't determine subview", "CHC_window:onJoypadDirUp", nil, false)
+--         return
+--     end
+--     local rl = subview.objList
+--     if rl then
+--         self:handleListMove(Joypad.DPadUp, rl, subview)
+--     end
+-- end
 
-function CHC_window:onJoypadDirDown()
-    local subview = self:getActiveSubView()
-    if not subview then
-        utils.chcerror("Can't determine subview", "CHC_window:onJoypadDirDown", nil, false)
-        return
-    end
-    local rl = subview.objList
-    if rl then
-        self:handleListMove(Joypad.DPadDown, rl, subview)
-    end
-end
+-- function CHC_window:onJoypadDirDown()
+--     local subview = self:getActiveSubView()
+--     if not subview then
+--         utils.chcerror("Can't determine subview", "CHC_window:onJoypadDirDown", nil, false)
+--         return
+--     end
+--     local rl = subview.objList
+--     if rl then
+--         self:handleListMove(Joypad.DPadDown, rl, subview)
+--     end
+-- end
 
-function CHC_window:onGainJoypadFocus(joypadData)
-    ISPanelJoypad.onGainJoypadFocus(self, joypadData)
-    local subview = self:getActiveSubView()
-    subview = subview.view
+-- function CHC_window:onGainJoypadFocus(joypadData)
+--     ISPanelJoypad.onGainJoypadFocus(self, joypadData)
+--     local subview = self:getActiveSubView()
+--     subview = subview.view
 
-    self.closeButton:setJoypadButton(Joypad.Texture.BButton)
-    if joypadData and subview and subview.objList then
-        joypadData.focus = subview.objList
-        updateJoypadFocus(joypadData)
-    end
-    -- self.drawJoypadFocus = true
-    -- self:loadJoypadButtons(joypadData)
-end
+--     self.closeButton:setJoypadButton(Joypad.Texture.BButton)
+--     if joypadData and subview and subview.objList then
+--         joypadData.focus = subview.objList
+--         updateJoypadFocus(joypadData)
+--     end
+--     -- self.drawJoypadFocus = true
+--     -- self:loadJoypadButtons(joypadData)
+-- end
 
 --endregion
 

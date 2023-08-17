@@ -430,6 +430,8 @@ end
 CHC_main.loadAllItems = function(am)
 	local allItems = getAllItems()
 	local nbItems = 0
+	local nbObsolete = 0
+	local nbErrors = 0
 	local now = getTimestampMs()
 	local amount = am or allItems:size() - 1
 
@@ -437,12 +439,26 @@ CHC_main.loadAllItems = function(am)
 	for i = 0, amount do
 		local item = allItems:get(i)
 		if not item:getObsolete() then
-			CHC_main.processOneItem(item, i)
-			nbItems = nbItems + 1
+			local ok, err = pcall(CHC_main.processOneItem, item, i)
+			if not ok then
+				utils.chcerror("Error when loading item (" .. tostring(item:getName()) .. "): " .. tostring(err), nil,
+					nil, false)
+				nbErrors = nbErrors + 1
+			else
+				nbItems = nbItems + 1
+			end
+		else
+			nbObsolete = nbObsolete + 1
 		end
 	end
 	showTime(now, 'All Items')
 	print(nbItems .. ' items loaded.')
+	if nbObsolete > 0 then
+		print(nbObsolete .. ' obsolete items skipped.')
+	end
+	if nbErrors > 0 then
+		print(nbErrors .. ' items with errors skipped.')
+	end
 end
 
 CHC_main.processOneRecipe = function(recipe, id)
@@ -562,6 +578,7 @@ end
 CHC_main.loadAllRecipes = function()
 	print('Loading recipes...')
 	local nbRecipes = 0
+	local nbErrors = 0
 	local now = getTimestampMs()
 
 	-- Get all recipes in game (vanilla recipes + any mods recipes)
@@ -570,15 +587,23 @@ CHC_main.loadAllRecipes = function()
 	-- Go through recipes stack
 	for i = 0, allRecipes:size() - 1 do
 		local recipe = allRecipes:get(i)
-		CHC_main.processOneRecipe(recipe, i)
-		nbRecipes = nbRecipes + 1
+		local ok, err = pcall(CHC_main.processOneRecipe, recipe, i)
+		if not ok then
+			utils.chcerror("Error when loading recipe (" .. tostring(recipe:getName()) .. "): " .. tostring(err), nil,
+				nil, false)
+			nbErrors = nbErrors + 1
+		else
+			nbRecipes = nbRecipes + 1
+		end
 	end
 	showTime(now, 'All Recipes')
 	print(nbRecipes .. ' recipes loaded.')
+	if nbErrors > 0 then
+		print(nbErrors .. ' recipes with errors skipped.')
+	end
 end
 
 CHC_main.processOneEvolvedRecipe = function(recipe, _id)
-	if recipe:isHidden() then return end
 	local data = {
 		_id = "e" .. tostring(_id),
 		isEvolved = true,
@@ -684,18 +709,39 @@ end
 CHC_main.loadAllEvolvedRecipes = function()
 	print('Loading evolved recipes...')
 	local nbRecipes = 0
+	local nbHidden = 0
+	local nbErrors = 0
 	local now = getTimestampMs()
 
 	local allEvolvedRecipes = RecipeManager.getAllEvolvedRecipes()
 
 	for i = 0, allEvolvedRecipes:size() - 1 do
-		CHC_main.processOneEvolvedRecipe(allEvolvedRecipes:get(i), i)
-		nbRecipes = nbRecipes + 1
+		local recipe = allEvolvedRecipes:get(i)
+		if not recipe:isHidden() then
+			local ok, err = pcall(CHC_main.processOneEvolvedRecipe, recipe, i)
+			if not ok then
+				utils.chcerror(
+					"Error when loading evolved recipe (" .. tostring(recipe:getName()) .. "): " .. tostring(err), nil,
+					nil,
+					false)
+				nbErrors = nbErrors + 1
+			else
+				nbRecipes = nbRecipes + 1
+			end
+		else
+			nbHidden = nbHidden + 1
+		end
 	end
 
 
 	showTime(now, 'All Evolved Recipes')
-	print(nbRecipes .. ' recipes loaded.')
+	print(nbRecipes .. ' evolved recipes loaded.')
+	if nbHidden > 0 then
+		print(nbHidden .. ' hidden evolved recipes skipped.')
+	end
+	if nbErrors > 0 then
+		print(nbErrors .. ' evolved recipes with errors skipped.')
+	end
 end
 
 CHC_main.loadAllBooks = function()
@@ -852,35 +898,53 @@ CHC_main.processHydrocraft = function(recipe)
 end
 
 CHC_main.getCECItems = function()
-	-- TODO: synthetic recipes for cec tables (tData.recipe)
 	if not getActivatedMods():contains('craftingEnhancedCore') then return end
-	local map = CHC_settings.itemPropsByType.Integrations.CraftingEnhanced
-
-	for tID, tData in pairs(CHC_main.CECData.tables) do
-		local fullType = tID
+	local function loadCECItem(id, data, map)
+		local fullType = id
 		if not CHC_main.items[fullType] then
 			local toinsert = {
-				item = tData,
+				item = data,
 				fullType = 'CEC.' .. fullType,
-				name = tData.nameID,
+				name = data.nameID,
 				modname = 'Crafting Enhanced Core',
 				isVanilla = false,
 				IsDrainable = false,
-				displayName = tData.displayName,
-				tooltip = tData.tooltipDescription,
+				displayName = data.displayName,
+				tooltip = data.tooltipDescription,
 				hidden = false,
 				count = 1,
 				category = 'Moveable',
 				displayCategory = getText('IGUI_CHC_ItemCat_Moveable'),
-				texture = getTexture(tData.tooltipTexture),
+				texture = getTexture(data.tooltipTexture),
 				textureMult = 2
 			}
 			toinsert.item.fullType = toinsert.fullType
 			toinsert.item.getFullType = function() return toinsert.fullType end
-			toinsert.props, toinsert.propsMap = CHC_main.getItemProps(tData, toinsert.category, map)
+			toinsert.props, toinsert.propsMap = CHC_main.getItemProps(data, toinsert.category, map)
 			CHC_main.items[toinsert.fullType] = toinsert
 			insert(CHC_main.itemsForSearch, toinsert)
 		end
+	end
+
+	-- TODO: synthetic recipes for cec tables (tData.recipe)
+	local map = CHC_settings.itemPropsByType.Integrations.CraftingEnhanced
+	local nbItems = 0
+	local nbErrors = 0
+	local now = getTimestampMs()
+	for tID, tData in pairs(CHC_main.CECData.tables) do
+		local ok, err = pcall(loadCECItem, tID, tData, map)
+		if not ok then
+			utils.chcerror("Error when loading CEC item (" .. tostring(tData.nameID) .. "): " .. tostring(err), nil, nil,
+				false)
+			nbErrors = nbErrors + 1
+		else
+			nbItems = nbItems + 1
+		end
+	end
+	showTime(now, 'CraftingEnhancedCore Items')
+	print(nbItems .. ' CEC items loaded.')
+	if nbErrors > 0 then
+		print(nbErrors .. ' CEC items with errors skipped.')
 	end
 end
 
@@ -889,12 +953,7 @@ CHC_main.getCECRecipes = function()
 
 	end
 
-	if not getActivatedMods():contains('craftingEnhancedCore') then return end
-	print('Loading CraftingEnhancedCore recipes...')
-	local nbRecipes = 0
-	local now = getTimestampMs()
-
-	for tID, tData in pairs(CHC_main.CECData.tables) do
+	local function loadCECRecipe(tID, tData)
 		local newItem = {}
 		newItem._id = tID
 		newItem.category = 'CraftingEnhanced'
@@ -942,10 +1001,30 @@ CHC_main.getCECRecipes = function()
 				CHC_main.setRecipeForItem(CHC_main.recipesByItem, tool, newItem)
 			end
 		end
-		nbRecipes = nbRecipes + 1
+	end
+
+	if not getActivatedMods():contains('craftingEnhancedCore') then return end
+	print('Loading CraftingEnhancedCore recipes...')
+	local nbRecipes = 0
+	local nbErrors = 0
+	local now = getTimestampMs()
+
+	for tID, tData in pairs(CHC_main.CECData.tables) do
+		local ok, err = pcall(loadCECRecipe, tID, tData)
+		if not ok then
+			utils.chcerror("Error when loading CEC recipe (" .. tostring(tData.displayName) .. "): " .. tostring(err),
+				nil, nil,
+				false)
+			nbErrors = nbErrors + 1
+		else
+			nbRecipes = nbRecipes + 1
+		end
 	end
 	showTime(now, 'CraftingEnhancedCore Recipes')
-	print(nbRecipes .. ' recipes loaded.')
+	print(nbRecipes .. ' CEC recipes loaded.')
+	if nbErrors > 0 then
+		print(nbErrors .. ' CEC recipes with errors skipped.')
+	end
 end
 
 CHC_main.processCEC = function(nearItem, CECData)

@@ -172,12 +172,12 @@ CHC_menu.onCraftHelper = function(items, player, itemMode)
 	if not inst:getIsVisible() then
 		inst:setVisible(true)
 		inst:addToUIManager()
-		local joypadData = JoypadState.players[CHC_menu.playerNum + 1]
-		if joypadData then
-			CHC_menu.CHC_window.prevFocus = joypadData.focus
-			joypadData.focus = CHC_menu.CHC_window
-			updateJoypadFocus(joypadData)
-		end
+		-- local joypadData = JoypadState.players[CHC_menu.playerNum + 1]
+		-- if joypadData then
+		-- 	CHC_menu.CHC_window.prevFocus = joypadData.focus
+		-- 	joypadData.focus = CHC_menu.CHC_window
+		-- 	updateJoypadFocus(joypadData)
+		-- end
 	end
 end
 

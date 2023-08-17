@@ -12,6 +12,8 @@
 
 - Added Ukrainian translation (thanks to [Cosmo](https://steamcommunity.com/id/Bulvaik))
 - Updated Thai translation (thanks to [Riko Prushka](https://steamcommunity.com/id/safc))
+- Unset default key (ESC) for closing Craft Helper window
+- Improved error handling - now bugged items/recipes will be written to log instead of raising errors
 
 ### Bugfixes
 

@@ -1068,7 +1068,9 @@ function CHC_uses_recipepanel:drawFavoriteStar(y, item, parent)
     local favoriteStar
     local favoriteAlpha = 0.9
     local favXPos = self.width - 30
-    local isFav = CHC_main.items[item.item.fullType].favorite
+    local itemObj = CHC_main.items[item.item.fullType]
+    if not itemObj then return end
+    local isFav = itemObj.favorite
     if item.index == self.mouseoverselected then
         local mouseX = self:getMouseX()
         if mouseX >= favXPos - 5 and mouseX <= favXPos + 16 then
@@ -1320,7 +1322,9 @@ function CHC_uses_recipepanel:drawEquipment(y, item, alt)
     end
 
     --region favorite handler
-    self.recipepanel.drawFavoriteStar(self, y, item, self.recipepanel)
+    if isComplex then
+        self.recipepanel.drawFavoriteStar(self, y, item, self.recipepanel)
+    end
     --endregion
 
     return y + self.itemheight
