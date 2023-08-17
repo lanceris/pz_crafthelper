@@ -33,18 +33,18 @@ end
 
 CHC_main.init = function()
 	CHC_main.allRecipes = {}
-	-- CHC_main.recipeMap = {}
+	CHC_main.recipeMap = {}
 	CHC_main.recipesByItem = {}
 	CHC_main.recipesForItem = {}
 	CHC_main.allEvoRecipes = {}
 	CHC_main.evoRecipesByItem = {}
 	CHC_main.evoRecipesForItem = {}
-	-- CHC_main.traits = {}
-	-- CHC_main.traitsMap = {}
+	CHC_main.traits = {}
+	CHC_main.traitsMap = {}
 	-- CHC_main.skills = {}
 	-- CHC_main.skillsMap = {}
-	-- CHC_main.freeRecipesTraits = {}
-	-- CHC_main.traitsOnlyRecipes = {}
+	CHC_main.freeRecipesTraits = {}
+	CHC_main.traitsOnlyRecipes = {}
 	CHC_main.itemsManuals = {}
 	CHC_main.items = {}
 	CHC_main.itemsNoModule = {}
@@ -295,6 +295,35 @@ CHC_main.getItemProps = function(item, itemType, map)
 			}
 			uniqueProps.TeachedRecipes.raw = nil
 		end
+		if uniqueProps.MutuallyExclusive then
+			local value = uniqueProps.MutuallyExclusive.raw:size()
+			if value > 0 then
+				uniqueProps.numMutuallyExclusive = {
+					isTypeSpecific = true,
+					name = "numMutuallyExclusive",
+					value = value
+				}
+				uniqueProps.MutuallyExclusive.raw = nil
+			else
+				uniqueProps.MutuallyExclusive = nil
+			end
+		end
+		if uniqueProps.XPBoostMap then
+			local tbl = transformIntoKahluaTable(uniqueProps.XPBoostMap.raw)
+			if not utils.empty(tbl) then
+				uniqueProps._XPBoostMap = {
+					isTypeSpecific = true,
+					name = "_XPBoostMap",
+					value = tbl,
+					skip = true
+				}
+			end
+			uniqueProps.XPBoostMap = nil
+		end
+		if uniqueProps.Description then
+			-- can't remove pagination :( (seems java side zombie.ui.TextBox.render())
+			-- uniqueProps.Description.value = string.gsub(uniqueProps.Description.value, '<br>', '')
+		end
 
 		for _, prop in pairs(uniqueProps) do
 			insert(result, prop)
@@ -325,13 +354,19 @@ CHC_main.getItemProps = function(item, itemType, map)
 	-- 	CHC_main.dupedProps.items[item:getDisplayName()] = dupedProps
 	-- 	CHC_main.dupedProps.size = CHC_main.dupedProps.size + 1
 	-- end
+
+	local filteredProps = {}
 	for i = 1, #props do
-		if not propsMap[props[i].name] then
-			propsMap[props[i].name] = props[i]
+		local prop = props[i]
+		if not propsMap[prop.name] and not props.skipMap then
+			propsMap[prop.name] = prop
+		end
+		if not prop.skip then
+			insert(filteredProps, prop)
 		end
 	end
 
-	return props, propsMap
+	return filteredProps, propsMap
 end
 
 CHC_main.getRecipeRequiredSkills = function(recipe, n, recipeData)
@@ -557,7 +592,7 @@ CHC_main.processOneRecipe = function(recipe, id)
 	local rSources = recipe:getSource()
 
 
-	-- CHC_main.recipeMap[newItem.recipeData.originalName] = newItem
+	CHC_main.recipeMap[newItem.recipeData.originalName] = newItem
 
 	-- Go through items needed by the recipe
 	for n = 0, rSources:size() - 1 do
@@ -874,12 +909,12 @@ end
 
 CHC_main.loadItemsIntegrations = function()
 	CHC_main.getCECItems()
-	-- CHC_main.getTraitsItems()
+	CHC_main.getTraitsItems()
 end
 
 CHC_main.loadRecipesIntegrations = function()
 	CHC_main.getCECRecipes()
-	-- CHC_main.getTraitsRecipes()
+	CHC_main.getTraitsRecipes()
 end
 
 CHC_main.processHydrocraft = function(recipe)
@@ -1050,10 +1085,7 @@ CHC_main.processCEC = function(nearItem, CECData)
 end
 
 CHC_main.getTraitsItems = function()
-	-- make synthetic items (TODO:represent as traits) to show in browser
-	local allTraits = TraitFactory.getTraits()
-	for i = 0, allTraits:size() - 1 do
-		local trait = allTraits:get(i)
+	local function loadTrait(trait, map)
 		local data = {
 			type = trait:getType(),
 			texture = trait:getTexture(),
@@ -1062,14 +1094,17 @@ CHC_main.getTraitsItems = function()
 			_rightLabel = trait:getRightLabel(),
 			cost = trait:getCost(),
 			description = trait:getDescription(),
-			freeRecipes = trait:getFreeRecipes()
+			freeRecipes = trait:getFreeRecipes(),
+			removeInMp = trait:isRemoveInMP(),
+			mutuallyExclusive = trait:getMutuallyExclusiveTraits(),
+			XPBoostMap = trait:getXPBoostMap()
 		}
-		local fullType = "CHC." .. data.type
+		local fullType = "CHC_Trait." .. data.type
 		local toinsert = {
 			item = data,
-			fullType = 'CEC.' .. fullType,
+			fullType = 'CHC_Trait.' .. fullType,
 			name = data.type,
-			modname = 'Traits',
+			modname = 'CHC_Trait',
 			isVanilla = false,
 			IsDrainable = false,
 			displayName = data.displayName,
@@ -1077,14 +1112,50 @@ CHC_main.getTraitsItems = function()
 			hidden = false,
 			count = 1,
 			category = 'Normal',
-			displayCategory = getText('IGUI_ItemCat_Item'),
-			texture = data.texture
+			displayCategory = 'Trait', --getText('IGUI_ItemCat_Item'),
+			texture = data.texture,
+			extra = 'trait',
 		}
 		toinsert.item.fullType = toinsert.fullType
 		toinsert.item.getFullType = function() return toinsert.fullType end
-		-- toinsert.props, toinsert.propsMap = CHC_main.getItemProps(tData, toinsert.category, map)
+		--{isTypeSpecific: bool, name: str,value: any}
+		toinsert.props, toinsert.propsMap = CHC_main.getItemProps(toinsert, toinsert.category, map)
+		if toinsert.propsMap["_XPBoostMap"] then
+			toinsert.XPBoostMap = toinsert.propsMap["_XPBoostMap"]
+			for skill, boost in pairs(toinsert.XPBoostMap.value) do
+				local entry = {
+					isTypeSpecific = toinsert.XPBoostMap.isTypeSpecific,
+					name = "XPBoost_" .. tostring(skill),
+					value = tostring(boost)
+				}
+				insert(toinsert.props, entry)
+				toinsert.propsMap[entry.name] = entry
+			end
+		end
 		CHC_main.items[toinsert.fullType] = toinsert
 		insert(CHC_main.itemsForSearch, toinsert)
+	end
+
+	local map = CHC_settings.itemPropsByType.Traits
+	local nbTraits = 0
+	local nbErrors = 0
+	local now = getTimestampMs()
+	local allTraits = TraitFactory.getTraits()
+	for i = 0, allTraits:size() - 1 do
+		local trait = allTraits:get(i)
+		local ok, err = pcall(loadTrait, trait, map)
+		if not ok then
+			utils.chcerror("Error when loading trait (" .. tostring(trait:getType()) .. "): " .. tostring(err), nil, nil,
+				false)
+			nbErrors = nbErrors + 1
+		else
+			nbTraits = nbTraits + 1
+		end
+	end
+	showTime(now, 'Traits')
+	print(nbTraits .. ' traits loaded.')
+	if nbErrors > 0 then
+		print(nbErrors .. ' traits with errors skipped.')
 	end
 end
 
@@ -1106,20 +1177,11 @@ CHC_main.getTraitsRecipes = function()
 			-- else
 			-- end
 		end
-		return result, noMatch, zero
+		return result, zero
 	end
 
-	local traits = {}
-	local traitsMap = {}
-	local noMatchTotal = {}
-
-	local allTraits = TraitFactory.getTraits()
-	for i = 0, allTraits:size() - 1 do
-		local trait = allTraits:get(i)
-		local free, noMatch, zero = getFreeRecipes(trait)
-		for k = 1, #noMatch do
-			noMatchTotal[noMatch[k]] = true
-		end
+	local function loadTraitRecipe(trait)
+		local free, zero = getFreeRecipes(trait)
 		if not zero then
 			local data = {
 				type = trait:getType(),
@@ -1131,28 +1193,42 @@ CHC_main.getTraitsRecipes = function()
 				description = trait:getDescription(),
 				freeRecipes = free
 			}
-			table.insert(traits, data)
-			traitsMap[data.displayName] = data
-		end
-	end
+			table.insert(CHC_main.traits, data)
+			CHC_main.traitsMap[data.displayName] = data
 
-	local backMap = {}
-	for i = 1, #traits do
-		local trait = traits[i]
-		for j = 1, #trait.freeRecipes do
-			local recipeName = trait.freeRecipes[j]
-			if not backMap[recipeName] then
-				backMap[recipeName] = { trait }
-			else
-				table.insert(backMap[recipeName], trait)
+			for j = 1, #data.freeRecipes do
+				local recipeName = data.freeRecipes[j]
+				if not CHC_main.freeRecipesTraits[recipeName] then
+					CHC_main.freeRecipesTraits[recipeName] = { data }
+				else
+					table.insert(CHC_main.freeRecipesTraits[recipeName], data)
+				end
 			end
 		end
 	end
 
-	CHC_main.traits = traits
-	CHC_main.traitsMap = traitsMap
-	CHC_main.freeRecipesTraits = backMap
-	for recipeName, _ in pairs(backMap) do
+	local nbTraits = 0
+	local nbErrors = 0
+	local now = getTimestampMs()
+	local allTraits = TraitFactory.getTraits()
+	for i = 0, allTraits:size() - 1 do
+		local trait = allTraits:get(i)
+		local ok, err = pcall(loadTraitRecipe, trait)
+		if not ok then
+			utils.chcerror("Error when loading trait (" .. tostring(trait:getType()) .. "): " .. tostring(err), nil, nil,
+				false)
+			nbErrors = nbErrors + 1
+		else
+			nbTraits = nbTraits + 1
+		end
+	end
+	showTime(now, 'Traits Recipes')
+	print(nbTraits .. ' trait recipes loaded.')
+	if nbErrors > 0 then
+		print(nbErrors .. ' traits with errors skipped.')
+	end
+
+	for recipeName, _ in pairs(CHC_main.freeRecipesTraits) do
 		if not CHC_main.itemsManuals[recipeName] then
 			CHC_main.traitsOnlyRecipes[recipeName] = true
 		end

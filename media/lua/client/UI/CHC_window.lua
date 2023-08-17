@@ -315,6 +315,7 @@ end
 function CHC_window:getItems(favOnly, max)
     favOnly = favOnly or false
     local showHidden = CHC_settings.config.show_hidden
+    local showTraits = CHC_settings.config.show_traits
     local newItems = {}
     local items = CHC_main.itemsForSearch
     local to = max or #items
@@ -323,6 +324,7 @@ function CHC_window:getItems(favOnly, max)
         local item = items[i]
         local isFav = item.favorite
         if (not showHidden) and (item.hidden == true) then
+        elseif (not showTraits) and (item.extra == 'trait') then
         elseif (favOnly and isFav) or (not favOnly) then
             insert(newItems, item)
         end
@@ -393,7 +395,7 @@ function CHC_window:update()
         local toProcess = self.updateQueue:pop()
         if not toProcess.actions then return end
         local targetViewObjs = {}
-        if toProcess.targetView == "all" then
+        if toProcess.targetViews[1] == "all" then
             for _, view in pairs(self.uiTypeToView) do
                 if toProcess.exclude then
                     if not toProcess.exclude[view.originName] then
@@ -404,7 +406,9 @@ function CHC_window:update()
                 end
             end
         else
-            insert(targetViewObjs, self.uiTypeToView[toProcess.targetView])
+            for i = 1, #toProcess.targetViews do
+                insert(targetViewObjs, self.uiTypeToView[toProcess.targetViews[i]])
+            end
         end
         if utils.empty(targetViewObjs) then return end
         for j = 1, #targetViewObjs do
@@ -654,7 +658,7 @@ function CHC_window:onActivateView(target)
         local view = top.view.viewList[i]
         if view.view.objList and view.view.objList.items then
             self.updateQueue:push({
-                targetView = view.view.ui_type,
+                targetViews = { view.view.ui_type },
                 actions = { 'needUpdateSubViewName' },
                 data = { needUpdateSubViewName = #view.view.objList.items }
             })

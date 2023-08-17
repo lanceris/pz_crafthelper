@@ -547,7 +547,8 @@ function CHC_uses_recipepanel:setObj(recipe)
         if self.manualsEntries ~= nil then
             self.manualsSize = #self.manualsEntries
         end
-        -- self.freeFromTraits = CHC_main.freeRecipesTraits[recipe.recipeData.originalName]
+        self.freeFromTraits = CHC_settings.config.show_traits and
+            CHC_main.freeRecipesTraits[recipe.recipeData.originalName]
         if self.freeFromTraits then
             self.manualsSize = (self.manualsSize or 0) + #self.freeFromTraits
         end
@@ -566,7 +567,7 @@ function CHC_uses_recipepanel:setObj(recipe)
         self.statsList:addSection(self.skillPanel, getText('IGUI_CraftUI_RequiredSkills'))
     end
 
-    if self.manualsEntries or self.freeFromTraits and obj.needToBeLearn then
+    if (self.manualsEntries and obj.needToBeLearn) or self.freeFromTraits then
         self:refreshBooksPanel(obj)
         self.statsList:addSection(self.booksPanel, getText('UI_recipe_panel_required_book') .. ':')
     end
@@ -1557,7 +1558,7 @@ function CHC_uses_recipepanel:onIngredientMouseDown(item)
             _item.favorite = isFav
             self.modData[CHC_main.common.getFavItemModDataStr(item)] = isFav or nil
             self.backRef.updateQueue:push({
-                targetView = 'fav_items',
+                targetViews = { 'fav_items' },
                 actions = { 'needUpdateFavorites', 'needUpdateObjects' }
             })
         end

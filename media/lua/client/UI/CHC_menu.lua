@@ -216,7 +216,7 @@ CHC_menu.onCraftHelperItem = function(window_inst, item)
 	end
 
 	window_inst.updateQueue:push({
-		targetView = view.ui_type,
+		targetViews = { view.ui_type },
 		actions = { 'needUpdateSubViewName' },
 		data = { needUpdateSubViewName = view.objListSize }
 	})
@@ -253,7 +253,7 @@ CHC_menu.toggleItemFavorite = function(items)
 		CHC_main.items[item:getFullType()].favorite = isFav
 	end
 	CHC_menu.CHC_window.updateQueue:push({
-		targetView = 'fav_items',
+		targetViews = { 'fav_items' },
 		actions = { 'needUpdateFavorites', 'needUpdateObjects' }
 	})
 end

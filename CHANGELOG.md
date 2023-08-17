@@ -6,7 +6,7 @@
 
 - Added ability to return raw values from CHC_main.getItemProps (processProp)
 - Books now show related (teached) recipes
-- Basic gamepad support
+- Option to show traits in items list and as a recipe requirement (books section) (by default OFF)
 
 ### Improvements
 
@@ -14,6 +14,7 @@
 - Updated Thai translation (thanks to [Riko Prushka](https://steamcommunity.com/id/safc))
 - Unset default key (ESC) for closing Craft Helper window
 - Improved error handling - now bugged items/recipes will be written to log instead of raising errors
+- Support for multiple views in CHC_window.updateQueue.targetViews
 
 ### Bugfixes
 

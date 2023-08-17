@@ -21,7 +21,7 @@ end
 ---@param loc string? location of error
 ---@param line number? line number of error
 CHC_utils.chcerror = function(txt, loc, line, raise)
-    local msg = format('[CraftHelperContinued] %s', txt)
+    local msg = txt
     if loc then
         msg = msg .. format(' at %s', loc)
     end
@@ -29,6 +29,7 @@ CHC_utils.chcerror = function(txt, loc, line, raise)
         msg = msg .. format(':%d', line)
     end
     if raise then
+        msg = '[CraftHelperContinued] ' .. msg
         error(msg)
     else
         CHC_utils.chcprint(msg, false)

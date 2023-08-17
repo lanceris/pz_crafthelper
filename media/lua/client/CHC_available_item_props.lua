@@ -337,5 +337,12 @@ CHC_settings.itemPropsByType = {
             { name = 'icon',               path = 'icon',              default = '""',    ignoreDefault = true },
             { name = 'recipe',             path = 'recipe',            forceIgnore = true },
         }
+    },
+    Traits = {
+        { name = "Description",       path = "tooltip",  default = nil,               ignoreDefault = true },
+        { name = "Cost",              path = "item",     path2 = "cost" },
+        { name = "isRemoveInMp",      path = "item",     path2 = "removeInMp" },
+        { name = "MutuallyExclusive", path = "item",     path2 = "mutuallyExclusive", retRaw = true },
+        { name = "XPBoostMap",        path = "item",     path2 = "XPBoostMap",        retRaw = true }
     }
 }
