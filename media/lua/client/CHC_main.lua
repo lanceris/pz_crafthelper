@@ -7,7 +7,7 @@ CHC_main._meta = {
 	id = 'CraftHelperContinued',
 	workshopId = 2787291513,
 	name = 'Craft Helper Continued',
-	version = '1.8.3',
+	version = '1.8.4',
 	author = 'lanceris',
 	previousAuthors = { 'Peanut', 'ddraigcymraeg', 'b1n0m' },
 }
@@ -87,6 +87,7 @@ end
 
 CHC_main.handleRecipeLua = function(luaClosure)
 	local function findintable(tab, path)
+		if not tab then return end
 		local pos = path:find(".", 1, true)
 		if pos then
 			local tab = tab[path:sub(1, pos - 1)]
@@ -882,24 +883,25 @@ CHC_main.loadAllRecipes = function()
 
 
 		if loadLua then
-			local onCreate = recipe:getLuaCreate()
-			local onTest = recipe:getLuaTest()
+			-- local onCreate = recipe:getLuaCreate()
+			-- local onTest = recipe:getLuaTest()
 			local onCanPerform = recipe:getCanPerform()
-			local onGiveXP = recipe:getLuaGiveXP()
-			if onCreate or onTest or onCanPerform or onGiveXP then
+			-- local onGiveXP = recipe:getLuaGiveXP()
+			-- if onCreate or onTest or onCanPerform or onGiveXP then
+			if onCanPerform then
 				newItem.recipeData.lua = {}
-				if onCreate then
-					newItem.recipeData.lua.onCreate = CHC_main.handleRecipeLua(onCreate)
-				end
-				if onTest then
-					newItem.recipeData.lua.onTest = CHC_main.handleRecipeLua(onTest)
-				end
+				-- if onCreate then
+				-- 	newItem.recipeData.lua.onCreate = CHC_main.handleRecipeLua(onCreate)
+				-- end
+				-- if onTest then
+				-- 	newItem.recipeData.lua.onTest = CHC_main.handleRecipeLua(onTest)
+				-- end
 				if onCanPerform then
 					newItem.recipeData.lua.onCanPerform = CHC_main.handleRecipeLua(onCanPerform)
 				end
-				if onGiveXP then
-					newItem.recipeData.lua.onGiveXP = CHC_main.handleRecipeLua(onGiveXP)
-				end
+				-- if onGiveXP then
+				-- 	newItem.recipeData.lua.onGiveXP = CHC_main.handleRecipeLua(onGiveXP)
+				-- end
 			end
 			-- if newItem.recipeData.lua then
 			-- 	CHC_main.recipesWithLua[newItem.recipeData.name] = newItem.recipeData.lua
