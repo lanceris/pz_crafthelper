@@ -1,6 +1,6 @@
 # CraftHelper updates
 
-# 1.8.4 (20.08.2023)
+# 1.8.4 (19.08.2023)
 
 ### Improvements
 
