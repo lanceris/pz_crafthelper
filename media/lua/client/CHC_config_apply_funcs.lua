@@ -13,7 +13,6 @@ CHC_main.config_apply_funcs.process = function(values)
         show_recipe_module = p.onChangeShowRecipeModule,
         show_icons = p.onChangeShowIcons,
         delayed_search = p.onChangeDelayedSearch,
-        show_traits = p.onChangeShowTraits,
     }
     if map[values.id] then
         map[values.id](inst)
@@ -51,12 +50,5 @@ CHC_main.config_apply_funcs.onChangeDelayedSearch = function(inst)
     inst.updateQueue:push({
         targetViews = { 'all' },
         actions = { 'needUpdateDelayedSearch' }
-    })
-end
-
-CHC_main.config_apply_funcs.onChangeShowTraits = function(inst)
-    inst.updateQueue:push({
-        targetViews = { 'search_items', 'fav_items' },
-        actions = { 'needUpdateObjSource' }
     })
 end

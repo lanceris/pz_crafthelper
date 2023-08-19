@@ -315,7 +315,6 @@ end
 function CHC_window:getItems(favOnly, max)
     favOnly = favOnly or false
     local showHidden = CHC_settings.config.show_hidden
-    local showTraits = CHC_settings.config.show_traits
     local newItems = {}
     local items = CHC_main.itemsForSearch
     local to = max or #items
@@ -324,7 +323,6 @@ function CHC_window:getItems(favOnly, max)
         local item = items[i]
         local isFav = item.favorite
         if (not showHidden) and (item.hidden == true) then
-        elseif (not showTraits) and (item.extra == 'trait') then
         elseif (favOnly and isFav) or (not favOnly) then
             insert(newItems, item)
         end
@@ -915,10 +913,10 @@ function CHC_window:onKeyRelease(key)
 
     -- region crafting
     if key == CHC_settings.keybinds.craft_one.key then
-        if not subview.objPanel.newItem then return end
+        if not subview.objPanel.selectedObj then return end
         subview.objPanel:craft(nil, false)
     elseif key == CHC_settings.keybinds.craft_all.key then
-        if not subview.objPanel.newItem then return end
+        if not subview.objPanel.selectedObj then return end
         subview.objPanel:craft(nil, true)
     end
     -- endregion

@@ -256,6 +256,14 @@ CHC_utils.startswith = function(txt, start)
     return sub(txt, 1, len(start)) == start
 end
 
+---Checks if txt end with end
+---@param txt string text to check
+---@param _end string string to check in text
+---@return boolean #result
+CHC_utils.endswith = function(txt, _end)
+    return sub(txt, - #_end) == _end
+end
+
 function CHC_utils.empty(tab)
     for _, _ in pairs(tab) do return false; end
     return true

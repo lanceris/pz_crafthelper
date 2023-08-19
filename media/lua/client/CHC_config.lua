@@ -57,7 +57,6 @@ local init_cfg = {
     show_all_props = false,
     delayed_search = false,
     inv_context_behaviour = 2,
-    show_traits = false,
     main_window = { x = 100, y = 100, w = 1000, h = 600 },
     uses = { sep_x = 500, filter_asc = true, filter_type = 'all' },
     craft = { sep_x = 500, filter_asc = true, filter_type = 'all' },
@@ -94,7 +93,6 @@ function CHC_settings.f.onModOptionsApply(values)
     CHC_settings.config.show_all_props = values.settings.options.show_all_props
     CHC_settings.config.delayed_search = values.settings.options.delayed_search
     CHC_settings.config.inv_context_behaviour = values.settings.options.inv_context_behaviour
-    CHC_settings.config.show_traits = values.settings.options.show_traits
     CHC_settings.Save()
 end
 
@@ -237,13 +235,6 @@ if ModOptions and ModOptions.getInstance then
                 OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
                 OnApplyInGame = CHC_settings.f.onModOptionsApply
             },
-            show_traits = {
-                name = 'Show traits', --FIXME translate or remove
-                tooltip = 'Show traits as items/related recipes',
-                default = false,
-                OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
-                OnApplyInGame = CHC_main.config_apply_funcs.process
-            },
         },
         mod_id = 'CraftHelperContinued',
         mod_shortname = 'CHC',
@@ -272,7 +263,6 @@ else
     CHC_settings.config.show_all_props = false
     CHC_settings.config.delayed_search = false
     CHC_settings.config.inv_context_behaviour = 2
-    CHC_settings.config.show_traits = false
 end
 
 

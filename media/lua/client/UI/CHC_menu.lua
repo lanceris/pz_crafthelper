@@ -11,7 +11,6 @@ end
 
 --- called just after CHC_main.loadDatas
 CHC_menu.init = function()
-	CHC_main.loadTries = CHC_main.loadTries + 1
 	setPlayer()
 	CHC_menu.createCraftHelper()
 end
@@ -19,9 +18,8 @@ end
 --- loads config and creates window instance
 CHC_menu.createCraftHelper = function()
 	if CHC_menu.CHC_window ~= nil and CHC_menu.CHC_window:getIsVisible() then
-		CHC_menu.forceCloseWindow()
+		CHC_menu.forceCloseWindow(true)
 	end
-	CHC_menu.CHC_window = nil
 	CHC_settings.Load()
 	CHC_settings.LoadPropsData()
 	local options = CHC_settings.config
@@ -40,7 +38,7 @@ CHC_menu.createCraftHelper = function()
 	CHC_menu.CHC_window:setVisible(false)
 end
 
-CHC_menu.forceCloseWindow = function()
+CHC_menu.forceCloseWindow = function(remove)
 	if CHC_menu.CHC_window == nil then return end
 	local status, val = pcall(CHC_menu.CHC_window:close())
 	if not status and CHC_menu.CHC_window:getIsVisible() then
@@ -49,6 +47,7 @@ CHC_menu.forceCloseWindow = function()
 		CHC_menu.CHC_window:setVisible(false)
 		CHC_menu.CHC_window:removeFromUIManager()
 	end
+	if remove then CHC_menu.CHC_window = nil end
 end
 
 --- called on right-clicking item in inventory/hotbar
@@ -71,11 +70,15 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
 				"CHC_menu.doCraftHelperMenu", nil, false)
 			CHC_menu.CHC_window = nil
 		end
+		CHC_main.loadTries = CHC_main.loadTries + 1
 		CHC_main.loadDatas()
 	elseif not itemsEmpty and CHC_menu.CHC_window == nil then
 		-- main init is ok, but window not initialised
 		utils.chcerror("CHC_window not found, will create new one...", "CHC_menu.doCraftHelperMenu", nil, false)
+		CHC_main.loadTries = CHC_main.loadTries + 1
 		CHC_menu.init()
+	elseif not itemsEmpty and CHC_menu.CHC_window then
+		CHC_main.loadTries = 0
 	end
 
 	local itemsUsedInRecipes = {}
@@ -261,7 +264,10 @@ end
 ---Show/hide Craft Helper window keybind listener
 ---@param key number key code
 CHC_menu.onPressKey = function(key)
-	if not MainScreen.instance or not MainScreen.instance.inGame or MainScreen.instance:getIsVisible() or not CHC_menu.CHC_window then
+	if not MainScreen.instance or
+		not MainScreen.instance.inGame or
+		MainScreen.instance:getIsVisible() or
+		not CHC_menu.CHC_window then
 		return
 	end
 	if key == CHC_settings.keybinds.toggle_window.key then
