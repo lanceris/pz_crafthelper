@@ -1,10 +1,15 @@
 # CraftHelper updates
 
-# 1.8.4 (XX.08.2023)
+# 1.8.4 (20.08.2023)
+
+### Improvements
+
+- Set default values for getCategories and getBodyLocation (and skip them)
 
 ### Bugfixes
 
 - Fixed delayed search state not updating in item views when changing option ingame
+- Fixed RuntimeException when processing getLuaCreate, disabled all getLua\* except getCanPerform (not tested)
 
 # 1.8.3 (19.08.2023)
 
