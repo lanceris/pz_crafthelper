@@ -7,7 +7,7 @@ CHC_main._meta = {
 	id = 'CraftHelperContinued',
 	workshopId = 2787291513,
 	name = 'Craft Helper Continued',
-	version = '1.8.3',
+	version = '1.9',
 	author = 'lanceris',
 	previousAuthors = { 'Peanut', 'ddraigcymraeg', 'b1n0m' },
 }

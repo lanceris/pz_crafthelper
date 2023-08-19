@@ -2,6 +2,7 @@
 require 'CHC_config'
 require 'UI/CHC_uses'
 require 'UI/CHC_search'
+require 'UI/components/CHC_bottom_panel'
 
 CHC_window = ISCollapsableWindowJoypad:derive('CHC_window')
 local utils = require('CHC_utils')
@@ -57,8 +58,16 @@ function CHC_window:create()
         end
     end
 
+    -- self.bottomPanel = CHC_bottom_panel:new()
+    -- self.bottomPanel:initialise()
+    -- self.bottomPanel:setVisible(false)
+    -- self.bottomPanel:setAnchorLeft(true)
+    -- self.bottomPanel:setAnchorBottom(true)
+
+
     -- self:addChild(self.controlPanel)
     self:addChild(self.panel)
+    -- self:addChild(self.bottomPanel)
 
     self:refresh(self.favViewName)
 end
