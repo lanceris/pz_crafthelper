@@ -105,7 +105,6 @@ end
 -- region update
 function CHC_search:update()
     if self.needUpdateDelayedSearch then
-        self.needUpdateDelayedSearch = false
         local props = self.objPanel.itemProps
         props.delayedSearch = CHC_settings.config.delayed_search
         if props.delayedSearch then

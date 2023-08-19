@@ -1,5 +1,11 @@
 # CraftHelper updates
 
+# 1.8.4 (XX.08.2023)
+
+### Bugfixes
+
+- Fixed delayed search state not updating in item views when changing option ingame
+
 # 1.8.3 (19.08.2023)
 
 ### New features
