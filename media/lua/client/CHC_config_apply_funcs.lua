@@ -12,7 +12,7 @@ CHC_main.config_apply_funcs.process = function(values)
         list_font_size = p.onChangeListFontSize,
         show_recipe_module = p.onChangeShowRecipeModule,
         show_icons = p.onChangeShowIcons,
-        delayed_search = p.onChangeDelayedSearch
+        delayed_search = p.onChangeDelayedSearch,
     }
     if map[values.id] then
         map[values.id](inst)
@@ -23,14 +23,14 @@ end
 
 CHC_main.config_apply_funcs.onChangeListFontSize = function(inst)
     inst.updateQueue:push({
-        targetView = 'all',
+        targetViews = { 'all' },
         actions = { 'needUpdateFont', 'needUpdateObjects' }
     })
 end
 
 CHC_main.config_apply_funcs.onChangeShowRecipeModule = function(inst)
     inst.updateQueue:push({
-        targetView = 'all',
+        targetViews = { 'all' },
         actions = { 'needUpdateModRender' },
         exclude = {
             search_items = true,
@@ -41,14 +41,14 @@ end
 
 CHC_main.config_apply_funcs.onChangeShowIcons = function(inst)
     inst.updateQueue:push({
-        targetView = 'all',
+        targetViews = { 'all' },
         actions = { 'needUpdateShowIcons' }
     })
 end
 
 CHC_main.config_apply_funcs.onChangeDelayedSearch = function(inst)
     inst.updateQueue:push({
-        targetView = 'all',
+        targetViews = { 'all' },
         actions = { 'needUpdateDelayedSearch' }
     })
 end

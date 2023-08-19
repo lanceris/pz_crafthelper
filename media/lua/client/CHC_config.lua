@@ -19,7 +19,7 @@ CHC_settings = {
         craft_one = { key = Keyboard.KEY_NONE, name = 'chc_craft_one' },
         favorite_recipe = { key = Keyboard.KEY_NONE, name = 'chc_favorite_recipe' },
         craft_all = { key = Keyboard.KEY_NONE, name = 'chc_craft_all' },
-        close_window = { key = Keyboard.KEY_ESCAPE, name = 'chc_close_window' },
+        close_window = { key = Keyboard.KEY_NONE, name = 'chc_close_window' },
         toggle_window = { key = Keyboard.KEY_NONE, name = 'chc_toggle_window' },
         toggle_uses_craft = { key = Keyboard.KEY_NONE, name = 'chc_toggle_uses_craft' },
         move_tab_left = { key = Keyboard.KEY_NONE, name = 'chc_move_tab_left' },
@@ -234,7 +234,7 @@ if ModOptions and ModOptions.getInstance then
                 default = 2,
                 OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
                 OnApplyInGame = CHC_settings.f.onModOptionsApply
-            }
+            },
         },
         mod_id = 'CraftHelperContinued',
         mod_shortname = 'CHC',

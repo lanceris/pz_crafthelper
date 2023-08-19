@@ -283,7 +283,7 @@ end
 function CHC_view:updateTabNameWithCount(listSize)
     listSize = listSize or self.objListSize
     self.backRef.updateQueue:push({
-        targetView = self.ui_type,
+        targetViews = { self.ui_type },
         actions = { 'needUpdateSubViewName' },
         data = { needUpdateSubViewName = listSize }
     })
@@ -360,7 +360,7 @@ function CHC_view:handleFavorites(fav_ui_type)
         self.needUpdateObjects = true
     else
         self.backRef.updateQueue:push({
-            targetView = fav_ui_type,
+            targetViews = { fav_ui_type },
             actions = { 'needUpdateFavorites', 'needUpdateObjects' }
         })
     end
@@ -613,8 +613,7 @@ function CHC_view._list:prerender()
 
         self.listHeight = data.y2
 
-
-        local moduleCond = item.item.module and item.item.module ~= 'Base'
+        local moduleCond = not self.parent.isItemView and item.item.module and item.item.module ~= 'Base'
         if CHC_settings.config.show_recipe_module and moduleCond then
             local baseH = math.min(self.fontSize, self.curFontData.icon) + self.fontSize + self.curFontData.pad
             item.height = baseH

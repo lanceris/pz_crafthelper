@@ -2,7 +2,6 @@ require 'CHC_main'
 
 CHC_menu = {}
 local utils = require('CHC_utils')
-local tries = 0
 
 local function setPlayer()
 	CHC_menu.player = getPlayer()
@@ -18,10 +17,9 @@ end
 
 --- loads config and creates window instance
 CHC_menu.createCraftHelper = function()
-	if CHC_menu.CHC_window then
-		CHC_menu.CHC_window:close() -- just in case
+	if CHC_menu.CHC_window ~= nil and CHC_menu.CHC_window:getIsVisible() then
+		CHC_menu.forceCloseWindow(true)
 	end
-	CHC_menu.CHC_window = nil
 	CHC_settings.Load()
 	CHC_settings.LoadPropsData()
 	local options = CHC_settings.config
@@ -40,30 +38,47 @@ CHC_menu.createCraftHelper = function()
 	CHC_menu.CHC_window:setVisible(false)
 end
 
+CHC_menu.forceCloseWindow = function(remove)
+	if CHC_menu.CHC_window == nil then return end
+	local status, val = pcall(CHC_menu.CHC_window:close())
+	if not status and CHC_menu.CHC_window:getIsVisible() then
+		utils.chcerror("Failed to close CHC_window: " .. tostring(val), nil, nil, false)
+		-- force closing
+		CHC_menu.CHC_window:setVisible(false)
+		CHC_menu.CHC_window:removeFromUIManager()
+	end
+	if remove then CHC_menu.CHC_window = nil end
+end
+
 --- called on right-clicking item in inventory/hotbar
 CHC_menu.doCraftHelperMenu = function(player, context, items)
 	-- check if mod initialised
 	local itemsEmpty = utils.empty(CHC_main.items)
+	if CHC_main.loadTries >= 5 and itemsEmpty then
+		utils.chcerror("Mod failed to initialise 5 times, something is clearly wrong...", "CHC_menu.doCraftHelperMenu",
+			nil, true)
+		return
+	end
+
 	if itemsEmpty then
 		utils.chcerror("Mod failed to initialise, trying again...", "CHC_menu.doCraftHelperMenu", nil, false)
 		-- re-init mod
+		CHC_menu.forceCloseWindow()
 		if CHC_menu.CHC_window then
 			-- no items but window is here (WTF?)
 			utils.chcerror("CHC_window found when mustn't, please contact mod author if you see this error",
 				"CHC_menu.doCraftHelperMenu", nil, false)
+			CHC_menu.CHC_window = nil
 		end
+		CHC_main.loadTries = CHC_main.loadTries + 1
 		CHC_main.loadDatas()
-		tries = tries + 1
-	elseif not itemsEmpty and not CHC_menu.CHC_window then
+	elseif not itemsEmpty and CHC_menu.CHC_window == nil then
 		-- main init is ok, but window not initialised
 		utils.chcerror("CHC_window not found, will create new one...", "CHC_menu.doCraftHelperMenu", nil, false)
+		CHC_main.loadTries = CHC_main.loadTries + 1
 		CHC_menu.init()
-		tries = tries + 1
-	end
-
-	if tries >= 10 and itemsEmpty then
-		utils.chcerror("Mod failed to initialise 10 times, something is clearly wrong...", "CHC_menu.doCraftHelperMenu",
-			nil, true)
+	elseif not itemsEmpty and CHC_menu.CHC_window then
+		CHC_main.loadTries = 0
 	end
 
 	local itemsUsedInRecipes = {}
@@ -160,6 +175,12 @@ CHC_menu.onCraftHelper = function(items, player, itemMode)
 	if not inst:getIsVisible() then
 		inst:setVisible(true)
 		inst:addToUIManager()
+		-- local joypadData = JoypadState.players[CHC_menu.playerNum + 1]
+		-- if joypadData then
+		-- 	CHC_menu.CHC_window.prevFocus = joypadData.focus
+		-- 	joypadData.focus = CHC_menu.CHC_window
+		-- 	updateJoypadFocus(joypadData)
+		-- end
 	end
 end
 
@@ -198,7 +219,7 @@ CHC_menu.onCraftHelperItem = function(window_inst, item)
 	end
 
 	window_inst.updateQueue:push({
-		targetView = view.ui_type,
+		targetViews = { view.ui_type },
 		actions = { 'needUpdateSubViewName' },
 		data = { needUpdateSubViewName = view.objListSize }
 	})
@@ -206,7 +227,7 @@ end
 
 --- window toggle logic
 CHC_menu.toggleUI = function(ui)
-	local ui = ui or CHC_menu.CHC_window
+	ui = ui or CHC_menu.CHC_window
 	if ui then
 		if ui:getIsVisible() then
 			ui:setVisible(false)
@@ -235,7 +256,7 @@ CHC_menu.toggleItemFavorite = function(items)
 		CHC_main.items[item:getFullType()].favorite = isFav
 	end
 	CHC_menu.CHC_window.updateQueue:push({
-		targetView = 'fav_items',
+		targetViews = { 'fav_items' },
 		actions = { 'needUpdateFavorites', 'needUpdateObjects' }
 	})
 end
@@ -243,7 +264,10 @@ end
 ---Show/hide Craft Helper window keybind listener
 ---@param key number key code
 CHC_menu.onPressKey = function(key)
-	if not MainScreen.instance or not MainScreen.instance.inGame or MainScreen.instance:getIsVisible() or not CHC_menu.CHC_window then
+	if not MainScreen.instance or
+		not MainScreen.instance.inGame or
+		MainScreen.instance:getIsVisible() or
+		not CHC_menu.CHC_window then
 		return
 	end
 	if key == CHC_settings.keybinds.toggle_window.key then

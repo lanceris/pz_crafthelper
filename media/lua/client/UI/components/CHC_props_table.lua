@@ -146,7 +146,8 @@ function CHC_props_table:drawProps(y, item, alt)
     self:drawText(item.item.name, self.columns[1].size + 5, y, textP.r, textP.g, textP.b, textP.a, self.font)
     self:clearStencilRect()
 
-    self:drawText(tostring(item.item.value), self.columns[2].size + 5, y, textP.r, textP.g, textP.b, textP.a, self.font)
+    self:drawText(string.sub(tostring(item.item.value), 1, 40), self.columns[2].size + 5, y, textP.r, textP.g, textP.b,
+        textP.a, self.font)
 
     return y + self.itemheight
 end

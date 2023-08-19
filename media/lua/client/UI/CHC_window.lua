@@ -1,11 +1,9 @@
 -- Main window, opened when RMB -> Craft Helper 41 on item
-require 'ISUI/ISCollapsableWindow'
-require 'ISUI/ISTabPanel'
 require 'CHC_config'
 require 'UI/CHC_uses'
 require 'UI/CHC_search'
 
-CHC_window = ISCollapsableWindow:derive('CHC_window')
+CHC_window = ISCollapsableWindowJoypad:derive('CHC_window')
 local utils = require('CHC_utils')
 local error = utils.chcerror
 local print = utils.chcprint
@@ -15,15 +13,17 @@ local pairs = pairs
 -- region create
 
 function CHC_window:initialise()
-    ISCollapsableWindow.initialise(self)
+    ISCollapsableWindowJoypad.initialise(self)
     self:create()
     self.infoButton:setOnClick(CHC_window.onInfo, self)
 end
 
 function CHC_window:create()
-    ISCollapsableWindow.createChildren(self)
+    ISCollapsableWindowJoypad.createChildren(self)
 
     self.tbh = self:titleBarHeight()
+    -- self.controlPanel = ISPanel:new(1, self.tbh, self.width, 24)
+    -- self.controlPanel:initialise()
     -- region main container (search, favorites and all selected items)
     self.panel = ISTabPanel:new(1, self.tbh, self.width, self.height - 60)
 
@@ -57,6 +57,7 @@ function CHC_window:create()
         end
     end
 
+    -- self:addChild(self.controlPanel)
     self:addChild(self.panel)
 
     self:refresh(self.favViewName)
@@ -392,7 +393,7 @@ function CHC_window:update()
         local toProcess = self.updateQueue:pop()
         if not toProcess.actions then return end
         local targetViewObjs = {}
-        if toProcess.targetView == "all" then
+        if toProcess.targetViews[1] == "all" then
             for _, view in pairs(self.uiTypeToView) do
                 if toProcess.exclude then
                     if not toProcess.exclude[view.originName] then
@@ -403,7 +404,9 @@ function CHC_window:update()
                 end
             end
         else
-            insert(targetViewObjs, self.uiTypeToView[toProcess.targetView])
+            for i = 1, #toProcess.targetViews do
+                insert(targetViewObjs, self.uiTypeToView[toProcess.targetViews[i]])
+            end
         end
         if utils.empty(targetViewObjs) then return end
         for j = 1, #targetViewObjs do
@@ -432,7 +435,7 @@ function CHC_window:update()
                         self.uiTypeToView[viewObject.view.ui_type].name = viewObject.name
                     end
                 else
-                    utils.chcprint("Trigger " .. action .. " for " .. targetViewObj.name)
+                    -- print("Trigger " .. action .. " for " .. targetViewObj.name)
                     targetView[action] = true
                 end
             end
@@ -501,12 +504,21 @@ function CHC_window:close()
     -- remove all views except search and favorites
     if CHC_settings.config.close_all_on_exit then
         local vl = self.panel
-        for i = #vl.viewList, 3, -1 do
-            vl:removeView(vl.viewList[i].view)
+        if vl then
+            for i = #vl.viewList, 3, -1 do
+                vl:removeView(vl.viewList[i].view)
+            end
+            vl:activateView(vl.viewList[2].name)
         end
-        vl:activateView(vl.viewList[2].name)
     end
     CHC_menu.toggleUI()
+    -- if JoypadState.players[CHC_menu.playerNum + 1] then
+    --     if self.prevFocus then
+    --         setJoypadFocus(CHC_menu.playerNum, self.prevFocus)
+    --     else
+    --         setJoypadFocus(CHC_menu.playerNum, nil)
+    --     end
+    -- end
     local status, err = pcall(self.serializeWindowData, self)
     if not status then
         utils.chcerror(string.format("CHC_window:close - Cannot serialize window data (%s)", err), "CHC_window.close",
@@ -523,7 +535,7 @@ end
 
 
 function CHC_window:onResize()
-    ISCollapsableWindow.onResize(self)
+    ISCollapsableWindowJoypad.onResize(self)
 
     local ui = self
     if not ui.panel or not ui.panel.activeView then return end
@@ -536,7 +548,7 @@ function CHC_window:onResize()
 end
 
 function CHC_window:render()
-    ISCollapsableWindow.render(self)
+    ISCollapsableWindowJoypad.render(self)
     if self.isCollapsed then return end
 end
 
@@ -545,7 +557,7 @@ end
 -- region logic
 
 function CHC_window:onInfo()
-    ISCollapsableWindow.onInfo(self)
+    ISCollapsableWindowJoypad.onInfo(self)
     if self.infoRichText and self.infoRichText.alwaysOnTop == true then
         self.infoRichText.alwaysOnTop = false
     end
@@ -617,16 +629,17 @@ end
 
 --region tabs
 
-function CHC_window:getActiveSubView()
-    if not self.panel or not self.panel.activeView then return end
-    local view = self.panel.activeView -- search, favorites or itemname
+function CHC_window:getActiveSubView(ui)
+    ui = ui or self
+    if not ui.panel or not ui.panel.activeView then return end
+    local view = ui.panel.activeView -- search, favorites or itemname
     local subview
-    if not view.view.activeView then   -- no subviews
+    if not view.view.activeView then -- no subviews
         subview = view
     else
         subview = view.view.activeView
     end
-    return subview
+    return subview, view
 end
 
 function CHC_window:onActivateView(target)
@@ -643,7 +656,7 @@ function CHC_window:onActivateView(target)
         local view = top.view.viewList[i]
         if view.view.objList and view.view.objList.items then
             self.updateQueue:push({
-                targetView = view.view.ui_type,
+                targetViews = { view.view.ui_type },
                 actions = { 'needUpdateSubViewName' },
                 data = { needUpdateSubViewName = #view.view.objList.items }
             })
@@ -771,18 +784,49 @@ function CHC_window:isModifierKeyDown(_type)
     end
 end
 
+function CHC_window:handleListMove(key, rl, subview)
+    if not rl then return end
+    local oldsel = rl.selected
+    if key == CHC_settings.keybinds.move_up.key and self:isModifierKeyDown('recipe') then
+        -- if isShiftKeyDown() then
+        --     rl.selected = rl.selected - 10
+        -- else
+        rl.selected = rl.selected - 1
+        -- end
+        if rl.selected <= 0 then
+            rl.selected = #rl.items
+        end
+    elseif key == CHC_settings.keybinds.move_down.key and self:isModifierKeyDown('recipe') then
+        -- if isShiftKeyDown() then
+        --     rl.selected = rl.selected + 10
+        -- else
+        rl.selected = rl.selected + 1
+        --end
+        if rl.selected > #rl.items then
+            rl.selected = 1
+        end
+    end
+
+    local selectedItem = rl.items[rl.selected]
+    if selectedItem and oldsel ~= rl.selected then
+        subview.objList:ensureVisible(rl.selected)
+        if subview.objPanel then
+            subview.objPanel:setObj(selectedItem.item)
+        end
+        return
+    end
+end
+
 function CHC_window:onKeyRelease(key)
     if self.isCollapsed then return end
 
     local ui = self
-    if not ui.panel or not ui.panel.activeView then return end
-    local view = ui.panel.activeView.view -- search, favorites or itemname
-    local subview
-    if not view.activeView then           -- no subviews
-        subview = view
-    else
-        subview = view.activeView.view
+    local subview, view = self:getActiveSubView()
+    if not subview or not view then
+        utils.chcerror("Can't determine (sub-)view", "CHC_window:onKeyRelease", nil, false)
+        return
     end
+    subview = subview.view
     local rl = subview.objList
 
     -- region close
@@ -806,12 +850,12 @@ function CHC_window:onKeyRelease(key)
 
     -- region tabs controls
     if key == CHC_settings.keybinds.toggle_uses_craft.key then
-        local vl = view.viewList
+        local vl = view.view.viewList
         local idx
         if vl and #vl == 2 then
-            idx = view:getActiveViewIndex() == 1 and 2 or 1
+            idx = view.view:getActiveViewIndex() == 1 and 2 or 1
             if vl[idx] and vl[idx].name then
-                self:refresh(vl[idx].name, view)
+                self:refresh(vl[idx].name, view.view)
             end
         end
     end
@@ -837,35 +881,7 @@ function CHC_window:onKeyRelease(key)
     -- region select recipe/category
 
     -- region recipes
-    local oldsel = rl.selected
-    if (key == CHC_settings.keybinds.move_up.key) and self:isModifierKeyDown('recipe') then
-        -- if isShiftKeyDown() then
-        --     rl.selected = rl.selected - 10
-        -- else
-        rl.selected = rl.selected - 1
-        -- end
-        if rl.selected <= 0 then
-            rl.selected = #rl.items
-        end
-    elseif (key == CHC_settings.keybinds.move_down.key) and self:isModifierKeyDown('recipe') then
-        -- if isShiftKeyDown() then
-        --     rl.selected = rl.selected + 10
-        -- else
-        rl.selected = rl.selected + 1
-        --end
-        if rl.selected > #rl.items then
-            rl.selected = 1
-        end
-    end
-
-    local selectedItem = rl.items[rl.selected]
-    if selectedItem and oldsel ~= rl.selected then
-        subview.objList:ensureVisible(rl.selected)
-        if subview.objPanel then
-            subview.objPanel:setObj(selectedItem.item)
-        end
-        return
-    end
+    self:handleListMove(key, rl, subview)
     -- endregion
 
     -- region categories
@@ -897,10 +913,10 @@ function CHC_window:onKeyRelease(key)
 
     -- region crafting
     if key == CHC_settings.keybinds.craft_one.key then
-        if not subview.objPanel.newItem then return end
+        if not subview.objPanel.selectedObj then return end
         subview.objPanel:craft(nil, false)
     elseif key == CHC_settings.keybinds.craft_all.key then
-        if not subview.objPanel.newItem then return end
+        if not subview.objPanel.selectedObj then return end
         subview.objPanel:craft(nil, true)
     end
     -- endregion
@@ -922,6 +938,53 @@ end
 
 -- endregion
 
+
+--region joypad
+-- function CHC_window:onJoypadDown(button)
+--     if button == Joypad.BButton then
+--         self:close()
+--     end
+-- end
+
+-- function CHC_window:onJoypadDirUp()
+--     local subview = self:getActiveSubView()
+--     if not subview then
+--         utils.chcerror("Can't determine subview", "CHC_window:onJoypadDirUp", nil, false)
+--         return
+--     end
+--     local rl = subview.objList
+--     if rl then
+--         self:handleListMove(Joypad.DPadUp, rl, subview)
+--     end
+-- end
+
+-- function CHC_window:onJoypadDirDown()
+--     local subview = self:getActiveSubView()
+--     if not subview then
+--         utils.chcerror("Can't determine subview", "CHC_window:onJoypadDirDown", nil, false)
+--         return
+--     end
+--     local rl = subview.objList
+--     if rl then
+--         self:handleListMove(Joypad.DPadDown, rl, subview)
+--     end
+-- end
+
+-- function CHC_window:onGainJoypadFocus(joypadData)
+--     ISPanelJoypad.onGainJoypadFocus(self, joypadData)
+--     local subview = self:getActiveSubView()
+--     subview = subview.view
+
+--     self.closeButton:setJoypadButton(Joypad.Texture.BButton)
+--     if joypadData and subview and subview.objList then
+--         joypadData.focus = subview.objList
+--         updateJoypadFocus(joypadData)
+--     end
+--     -- self.drawJoypadFocus = true
+--     -- self:loadJoypadButtons(joypadData)
+-- end
+
+--endregion
 
 function CHC_window:serializeWindowData()
     local vl = self.panel
@@ -972,7 +1035,7 @@ function CHC_window:new(args)
     local width = args.width;
     local height = args.height;
 
-    o = ISCollapsableWindow:new(x, y, width, height);
+    o = ISCollapsableWindowJoypad:new(x, y, width, height);
     setmetatable(o, self);
     self.__index = self;
 

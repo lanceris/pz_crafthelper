@@ -11,7 +11,7 @@ local contains = string.contains
 CHC_utils.configDir = "CraftHelperContinued" .. getFileSeparator()
 
 CHC_utils.chcprint = function(txt, debugOnly)
-    if debugOnly == nil then debugOnly = true end
+    if debugOnly == nil then debugOnly = false end
     if not debugOnly or (debugOnly and getDebug()) then
         print('[CraftHelperContinued] ' .. tostring(txt))
     end
@@ -21,7 +21,7 @@ end
 ---@param loc string? location of error
 ---@param line number? line number of error
 CHC_utils.chcerror = function(txt, loc, line, raise)
-    local msg = format('[CraftHelperContinued] %s', txt)
+    local msg = txt
     if loc then
         msg = msg .. format(' at %s', loc)
     end
@@ -29,6 +29,7 @@ CHC_utils.chcerror = function(txt, loc, line, raise)
         msg = msg .. format(':%d', line)
     end
     if raise then
+        msg = '[CraftHelperContinued] ' .. msg
         error(msg)
     else
         CHC_utils.chcprint(msg, false)
@@ -253,6 +254,14 @@ end
 ---@return boolean #result
 CHC_utils.startswith = function(txt, start)
     return sub(txt, 1, len(start)) == start
+end
+
+---Checks if txt end with end
+---@param txt string text to check
+---@param _end string string to check in text
+---@return boolean #result
+CHC_utils.endswith = function(txt, _end)
+    return sub(txt, - #_end) == _end
 end
 
 function CHC_utils.empty(tab)

@@ -313,6 +313,57 @@ function CHC_uses:searchProcessToken(token, recipe)
                 end
             end
 
+            -- add books
+            local books = CHC_main.itemsManuals[recipe.recipeData.name] or {}
+            if not utils.empty(books) then
+                for i = 1, #books do
+                    insert(items, books[i].displayName)
+                end
+            end
+
+            -- add traits
+            local traits = CHC_main.freeRecipesTraits[recipe.recipeData.name] or {}
+            if not utils.empty(traits) then
+                for i = 1, #traits do
+                    insert(items, traits[i].displayName)
+                end
+            end
+
+            -- add professions
+            local professions = CHC_main.freeRecipesProfessions[recipe.recipeData.name] or {}
+            if not utils.empty(professions) then
+                for i = 1, #professions do
+                    insert(items, professions[i].displayName)
+                end
+            end
+
+            -- add skills
+            local skillCount = recipe.recipeData.requiredSkillCount
+            if skillCount and skillCount > 0 then
+                local skills = recipe.recipeData.requiredSkills
+                local opIx = string.find(token, '[><=]')
+                if opIx then
+                    opIx = string.find(token, '[~><=]')
+                    for i = 1, #skills do
+                        local skill = skills[i]
+                        local whatCompName = skill.skill
+                        local toCompName = string.sub(token, 1, opIx - 1)
+                        local stateName = utils.compare(whatCompName, toCompName)
+
+                        local whatCompVal = skill.level
+                        local toCompVal = string.sub(token, opIx, #token)
+                        local stateVal = utils.compare(whatCompVal, toCompVal)
+
+                        if stateName and stateVal then return true end
+                    end
+                else
+                    for i = 1, #skills do
+                        local prop = skills[i]
+                        insert(items, prop.skill)
+                    end
+                end
+            end
+
 
             if recipe.recipeData.hydroFurniture then
                 insert(items, recipe.recipeData.hydroFurniture.obj.displayName)

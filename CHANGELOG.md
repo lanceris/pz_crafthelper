@@ -1,5 +1,33 @@
 # CraftHelper updates
 
+# 1.8.3 (19.08.2023)
+
+### New features
+
+- Added ability to return raw values from CHC_main.getItemProps (processProp)
+- Books now show related (teached) recipes
+- Traits, Professions and Skills will now be shown in items list (with associated recipes, if any)
+- Ability to search by required skill and level in ingredients mode (#), e.g #carpentry>3 will show all recipes with required carpentry > 3
+
+### Improvements
+
+- Added Ukrainian translation (thanks to [Cosmo](https://steamcommunity.com/id/Bulvaik))
+- Updated Thai translation (thanks to [Riko Prushka](https://steamcommunity.com/id/safc))
+- Unset default key (ESC) for closing Craft Helper window
+- Improved and granulated error handling - now errors when processing some items/recipes won't cause full mod crash
+- Added Books, Traits and Professions to ingredients search mode (#)
+- Support for multiple views in CHC_window.updateQueue.targetViews
+
+### Bugfixes
+
+- Fixed bug when getting evolved recipe baseItem resulted in error
+- Fixed rare bug with inability to close craft helper
+- Fixed incorrect render in item list view
+- Fixed 'Toggle between uses/craft' keybind not working properly
+- Fixed 'Craft one' and 'Craft all' keybinds not working properly
+- Fixed recipes OnCanPerform functions not processed correctly
+- Fixed player instance not updating after death and creation without reloading save
+
 # 1.8.2 (15.08.2023)
 
 ### New features

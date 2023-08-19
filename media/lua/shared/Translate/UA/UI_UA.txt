@@ -1,0 +1,106 @@
+UI_UA = {
+    UI_item_uses_tab_name = "Використання"
+    UI_item_craft_tab_name = "Виготовлення"
+    UI_common_left_col_name = "Рецепт"
+    UI_common_right_col_name = "Деталі"
+    UI_search_tab_name = "Пошук"
+    UI_search_items_tab_name = "Предмети"
+    UI_search_recipes_tab_name = "Рецепти"
+    UI_recipe_panel_required_book = "Обов'язкові книги (одна з)"
+    UI_recipe_panel_near_item = "Обладнання для виготовлення"
+    UI_settings_st_title = "Порядок сортування"
+    UI_settings_av_title = "Доступність"
+    UI_settings_av_valid = "Дійсний"
+    UI_settings_av_known = "Відомий"
+    UI_settings_av_invalid = "Недійсний"
+    UI_optionscreen_binding_chc_category_title = "Допоміжник виготовлення"
+    UI_optionscreen_binding_chc_move_up = "Вибрати попередній рецепт"
+    UI_optionscreen_binding_chc_move_down = "Вибрати наступний рецепт"
+    UI_optionscreen_binding_chc_move_left = "Вибрати попередню категорію"
+    UI_optionscreen_binding_chc_move_right = "Вибрати наступну категорію"
+    UI_optionscreen_binding_chc_craft_one = "Виготовити один"
+    UI_optionscreen_binding_chc_craft_all = "Виготовити всі"
+    UI_optionscreen_binding_chc_favorite_recipe = "Додати обраний рецепт до улюблених"
+    UI_optionscreen_binding_chc_close_window = "Закрити вікно допоміжника виготовлення"
+    UI_optionscreen_binding_chc_toggle_window = "Перемкнути вікно допоміжника виготовлення"
+    UI_optionscreen_binding_chc_toggle_uses_craft = "Перемикання між використанням/виготовленням"
+    UI_optionscreen_binding_chc_move_tab_left = "Вибрати попередню вкладку"
+    UI_optionscreen_binding_chc_move_tab_right = "Вибрати наступну вкладку"
+    UI_optionscreen_binding_chc_toggle_focus_search_bar = "Сфокусуватись на панелі пошуку"
+    UI_infotext_search = "<CENTRE><SIZE:medium> Пошуковий екран <LINE><LINE> "..
+                         "<SIZE:small> <LEFT> Тут ви можете знайти всі предмети та рецепти. <LINE><LINE> "
+    UI_infotext_favorites = "<CENTRE><SIZE:medium> Екран Улюблених <LINE><LINE> "..
+                            "<SIZE:small> <LEFT> Тут ви можете знайти улюблені предмети та рецепти. <LINE><LINE> "
+    UI_infotext_itemtab = "<CENTRE><SIZE:medium> Екран Предмету <LINE>"..
+                          "<SIZE:small> <LEFT> Тут ви можете знайти докладну інформацію про '%1' <LINE> "..
+                          "Перша вкладка (%2) показує рецепти, де '%1' використовується як інгредієнт. <LINE> "..
+                          "Друга вкладка (%3) показує рецепти, результатом яких є '%1'. <LINE><LINE> "
+    UI_infotext_common = "<INDENT:0> Ліва колонка (Рецепт) показує список предметів/рецептів з додатковими керуваннями. Перший рядок - рядок фільтрації. <LINE><LINE> "..
+                         "<IMAGECENTRE:media/textures/info_filter_row.png> <LINE>"..
+                         "<INDENT:8>Кнопка 1 показує поточний порядок сортування предметів/рецептів. Клікніть на кнопку, щоб змінити порядок. <LINE>"..
+                         "Кнопка 2 дозволяє вибрати тип бажаного виводу: <LINE>"..
+                         "<INDENT:16> %1 <LINE>"..
+                         "<INDENT:8> Елемент 3 - селектор категорій, де ви можете вказати бажану категорію. <LINE><LINE>"..
+                         "Під рядком фільтрації є панель пошуку, де ви можете шукати за назвою предмета/рецепта або за конкретними правилами, залежно від вашого запиту. <LINE>"..
+                         "Щоб дізнатися більше про правила пошуку, клікніть на <IMAGE:media/textures/search_icon.png> <LINE><LINE>"..
+                         "<INDENT:0> Права колонка (Деталі) показує деталі предмета/рецепта: <LINE>"..
+                         "<INDENT:8> %2 <LINE><LINE>"..
+                         "<INDENT:0><SIZE:medium>Керування: <SIZE:small><LINE><LINE>"..
+                         "<INDENT:16> - Ви можете змінювати розмір колонок Рецепт та Деталі, перетягуючи лінію між їхніми назвами <LINE> "..
+                         " - Натисніть правою кнопкою миші на назві вкладки предмету, щоб відкрити контекстне меню <LINE>"..
+                         "%3 <LINE>"..
+                         " - За допомогою 'Опцій модуля' ви можете встановити гарячі клавіші для часто використовуваних дій"
+    UI_infotext_recipe_types = "- <IMAGE:media/textures/type_filt_all.png> <SPACE>(%1): Всі рецепти <LINE> "..
+                               "- <IMAGE:media/textures/type_filt_valid.png> (%2): Рецепти, які ви можете виготовити зараз <LINE> "..
+                               "- <IMAGE:media/textures/type_filt_known.png> (%3): Рецепти, які ви знаєте, але не можете виготовити (не вистачає вмінь/предметів) <LINE> "..
+                               "- <IMAGE:media/textures/type_filt_invalid.png> (%4): Рецепти, про які ви нічого не знаєте. Покаже книгу(-ки), з якої можна навчитися."
+    UI_infotext_item_types = " - Одяг <LINE> - Їжа <LINE> - Зброя <LINE> - ..."
+    UI_infotext_recipe_details = " - Інформація про категорію рецепту та результат(и) <LINE> "..
+                                 " - Потрібні предмети <LINE>"..
+                                 " - Інші вимоги (вміння, книги, обладнання для виготовлення та час виготовлення)"
+    UI_infotext_item_details = " - Основна інформація про предмет та кількість рецептів <LINE> "..
+                               " - Атрибути предмета <LINE> "..
+                               " - Як виправити цей предмет (якщо це можливо) (У процесі) <LINE>"..
+                               " - Де знайти цей предмет (У процесі)"
+    UI_infotext_recipe_mouse = " - Ліва кнопка миші на іконці зірочки (колонка Рецепт, наведення миші на елемент) для додавання/видалення зі списку улюблених <LINE> "..
+                               " - Права кнопка миші на іконці результату рецепту (колонка Деталі) для відкриття контекстного меню <LINE> "..
+                               " - Права кнопка миші на предметі в 'Потрібні предмети' (колонка Деталі) для відкриття контекстного меню"
+    UI_infotext_item_mouse = " - Середня кнопка миші на предметі (колонка Рецепт) для відкриття нової вкладки з вибраним предметом у фоновому режимі <LINE>"..
+                             " - Права кнопка миші на предметі (колонка Рецепт) для відкриття контекстного меню <LINE>"..
+                             " - Права кнопка миші на іконці предмета (колонка Деталі) для відкриття контекстного меню <LINE>"..
+                             " - Shift + Права кнопка миші на деяких елементах (див. вище) відобразить додаткові опції"
+    UI_searchrow_info = "<CENTRE><SIZE:medium> Довідник по Пошуку <LINE><LINE> "..
+                        "<LEFT><SIZE:small> Ця рядок пошуку підтримує користувацькі правила. Кожний окремий запит (слово) називається Токеном. <LINE>"..
+                        "Ви можете виконати пошук за декількома запитами одночасно, використовуючи РОЗДІЛОВИКИ. <LINE>"..
+                        "Ви можете перед токеном додати СПЕЦІАЛЬНІ СИМВОЛИ, щоб вказати правило пошуку для цього токена. <LINE>"..
+                        "В 'Параметри мода' ви можете налаштувати гарячу клавішу для фокусу на панелі пошуку. Відміна фокусу - ESC. <LINE><LINE>"..
+                        "<SIZE:medium> Розділовики: <LINE> <SIZE:small> "..
+                        "<INDENT:8> <SIZE:medium> , <SIZE:small> <SPACE><SPACE>(кома) - об'єднує результати всіх токенів (логічне І), може використовуватися для дуже конкретного фільтрування <LINE> "..
+                        "<SIZE:medium> | <SIZE:small> <SPACE><SPACE>(вертикальна риска) - розділяє всі токени (логічне АБО), може використовуватися для пошуку декількох запитів окремо <LINE><LINE> "..
+                        "<INDENT:0><SIZE:medium> Спеціальні символи: <LINE> <SIZE:small> "..
+                        "<INDENT:8>%1"..
+                        "<SIZE:medium> ~ <SIZE:small> <SPACE><SPACE>(тильда) - виключає цей токен (тобто знаходить все, ЩО НЕ є Токеном; має бути після спеціальних символів, якщо їх використовують) <LINE><LINE>"..
+                        "<INDENT:0><SIZE:medium> <LEFT> Приклади: <LINE> <SIZE:small> "..
+                        "<INDENT:8>%2<LINE>"..
+                        "<INDENT:0><SIZE:medium> Обмеження: <LINE> <SIZE:small> "..
+                        "<INDENT:8>- Не можна використовувати обидва розділовики (',' та '|') в одному запиті <LINE> "
+    UI_searchrow_info_recipes_special = "<SIZE:medium> ! <SIZE:small> <SPACE><SPACE>(знак оклику) - пошук за категорією рецепту <LINE>"..
+                                        "<SIZE:medium> @ <SIZE:small> <SPACE><SPACE>(знак 'at') - пошук за назвою моду для отриманого предмета ('Project Zomboid' для ванільної гри) <LINE>"..
+                                        "<SIZE:medium> # <SIZE:small> <SPACE><SPACE>(знак номеру) - пошук за інгредієнтами рецепту <LINE>"..
+                                        "<SIZE:medium> $ <SIZE:small> <SPACE><SPACE>(знак долару) - пошук за категорією отриманого предмета (відображено з правого боку панелі інвентаря) <LINE>"..
+                                        "<SIZE:medium> % <SIZE:small> <SPACE><SPACE>(знак відсотка) - пошук за назвою отриманого предмета <LINE>"..
+                                        "<SIZE:medium> ^ <SIZE:small> <SPACE><SPACE>(знак 'caret') - пошук за улюбленими рецептами <LINE>"..
+                                        "<SIZE:medium> & <SIZE:small> <SPACE><SPACE>(амперсанд) - пошук за назвою моду рецепту ('Base' для ванільної гри) <LINE>"
+    UI_searchrow_info_items_special = "<SIZE:medium> ! <SIZE:small> <SPACE><SPACE>(знак оклику) - пошук за типом предмета <LINE>"..
+                                      "<SIZE:medium> @ <SIZE:small> <SPACE><SPACE>(знак 'at') - пошук за назвою моду для предмета ('Project Zomboid' для ванільної гри) <LINE>"..
+                                      "<SIZE:medium> # <SIZE:small> <SPACE><SPACE>(знак номеру) - пошук за категорією предмета (відображено з правого боку панелі інвентаря) <LINE>"..
+                                      "<SIZE:medium> $ <SIZE:small> <SPACE><SPACE>(знак долару) - пошук за атрибутами предмета <LINE>"
+    UI_searchrow_info_item_attributes_special = "<SIZE:medium> ! <SIZE:small> <SPACE><SPACE>(знак оклику) - пошук за назвою атрибута <LINE>"..
+                                                "<SIZE:medium> @ <SIZE:small> <SPACE><SPACE>(знак 'at') - пошук за значенням атрибута <LINE>"
+    UI_searchrow_info_recipes_examples = "#шинка <SPACE><SPACE>- показати рецепти, де в інгредієнтах є щось з назвою 'шинка' <LINE>"..
+                                         "@гідрокра,!інженер,#пила <SPACE><SPACE>- показати рецепти з моду Гідрокрафт (або подібні) у категорії рецепту 'інженер', де є інгредієнт 'пила' <LINE>"..
+                                         "%дошка|!їжа <SPACE><SPACE>- показати рецепти, де результат - 'дошка', АБО рецепти в категорії 'їжа' <LINE>"
+    UI_searchrow_info_items_examples = "#інструменти,!~зброя <SPACE><SPACE>: показати інструменти, які не є зброєю (наприклад, голка, пила, клещі) <LINE> "..
+                                       "$макспошкодження>4,$макспошкодження<5 <SPACE><SPACE>- показати предмети з атрибутом МаксПошкодження між 4 і 5 <LINE>"
+    UI_searchrow_info_item_attributes_examples = "!>а,!<ц <SPACE><SPACE>: показати атрибути, які починаються з літери 'а' або 'б' <LINE>"
+}

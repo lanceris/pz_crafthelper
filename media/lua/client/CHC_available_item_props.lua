@@ -81,7 +81,7 @@ CHC_settings.itemPropsByType = {
         { name = 'getNumLevelsTrained', default = 1,  ignoreDefault = false },
         { name = 'canBeWrite' },
         { name = 'getPageToWrite',      default = 0,  ignoreDefault = true },
-        { name = 'getTeachedRecipes' },
+        { name = 'getTeachedRecipes',   retRaw = true },
     },
     AlarmClock = {
         { name = 'getAlarmSound' },
@@ -337,5 +337,31 @@ CHC_settings.itemPropsByType = {
             { name = 'icon',               path = 'icon',              default = '""',    ignoreDefault = true },
             { name = 'recipe',             path = 'recipe',            forceIgnore = true },
         }
+    },
+    Traits = {
+        -- { name = "Description",       path = "tooltip", default = nil,               ignoreDefault = true },
+        { name = "Cost",              path = "item", path2 = "cost",              default = 0,  ignoreDefault = true },
+        { name = "isRemoveInMp",      path = "item", path2 = "removeInMp" },
+        { name = "isFree",            path = "item", path2 = "isFree" },
+        { name = "MutuallyExclusive", path = "item", path2 = "mutuallyExclusive", retRaw = true },
+        { name = "XPBoostMap",        path = "item", path2 = "XPBoostMap",        retRaw = true },
+        { name = "type",              path = "item", path2 = "type" }
+    },
+    Professions = {
+        -- { name = "Description", path = "tooltip", default = nil,        ignoreDefault = true },
+        { name = "Cost",       path = "item", path2 = "cost" },
+        { name = "FreeTraits", path = "item", path2 = "freeTraits", default = "[]", ignoreDefault = true },
+        { name = "XPBoostMap", path = "item", path2 = "XPBoostMap", retRaw = true }
+    },
+    Skills = {
+        { name = "id",            path = "item", path2 = "id" },
+        { name = "index",         path = "item", path2 = "index" },
+        { name = "isCustom",      path = "item", path2 = "isCustom" },
+        { name = "isPassiv",      path = "item", path2 = "isPassiv" },
+        { name = "parent",        path = "item", path2 = "parent" },
+        { name = "xpForLvl",      path = "item", path2 = "xpForLvl", skip = true },
+        { name = "xpForLvlTotal", path = "item", path2 = "xpForLvl", skip = true },
+
+
     }
 }

@@ -1,8 +1,8 @@
-[h1]Craft Helper for build 41.65+[/h1]
+[h1]Craft Helper สำหรับเวอร์ชัน 41.65+[/h1]
 
-This is an updated version of [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2186592938]Craft Helper (41.x) by b1n0m[/url] with additional features and improved UI.
+นี่คือเวอร์ชันอัปเดตของ [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2186592938]Craft Helper (41.x) โดย b1n0m[/url] มาพร้อมคุณสมบัติเพิ่มเติมและการปรับปรุงส่วนต่อประสานกับผู้ใช้
 
-This mod will add a "Craft Helper" context menu option when right-clicking on any item with associated recipes.
+ม็อดนี้จะเพิ่มตัวเลือกเมนูบริบท "Craft Helper" เมื่อคลิกขวาบนไอเท็มที่มีสูตรผสมที่เกี่ยวข้อง
 Selecting that will bring up a UI with list of recipes that this item is part of, as well as ways to craft this item.
 Selecting a recipe will show information about it (required items, skills etc). Result icon and required items are right-clickable.
 Detailed information about interface can be found under ⓘ (info) symbol next to close button.
@@ -17,10 +17,10 @@ Safe to add/remove to/from existing saves
 Should be compatible with all mods and MP
 
 [hr][/hr]
-[h2]Features:[/h2]
+[h2]คุณสมบัติ:[/h2]
 [list]
-[*]Close window on ESC
-[*]Category selector. Select desired category and filter that huge list of recipes.
+[*]ปิดหน้าต่างเมื่อกดปุ่ม ESC
+ตัวเลือกหมวดหมู่ Select desired category and filter that huge list of recipes.
 [*]Window position saved to config. No more hassle with resizing/moving!
 [*]Search bar. Supports custom rules (click on magnifier)
 [*]Buttons to order list by name or type
@@ -45,34 +45,32 @@ Should be compatible with all mods and MP
 Also, with "Mod Options" you can set keybinds (Key bindings -> Craft Helper) for some actions.
 
 [hr][/hr]
-[h3]Supported languages:[/h3]
+[h3]ภาษาที่รองรับ:[/h3]
 [list]
-[*]English
-[*]Russian
-[*]Spanish
-[*]Thai
-[*]Korean
-[*]Brazilian Portuguese
-[*]Traditional Chinese
-[*]Polish
-[*]German
-[*]Italian
-[*]Ukrainian
+[*]อังกฤษ
+[*]รัสเซีย
+[*]สเปน
+[*]ไทย
+[*]เกาหลี
+[*]โปรตุเกส (บราซิล)
+[*]จีนตัวเต็ม
+[*]โปแลนด์
+[*]เยอรมัน
 [/list]
 
 If you would like to help with translation, please go to Crowdin page:
 [url=https://crowdin.com/project/craft-helper-continued][img]https://i.postimg.cc/0NPptXbN/localization-at-white-rounded-bordered-1x.png[/img][/url]
 
 
-[h3]Thanks to everyone who made this mod better![/h3]
-[list][*][url=https://github.com/lanceris/pz_crafthelper/blob/main/CONTRIBUTORS.md]List of contributors[/url][/list]
+[h3]ขอบคุณทุกท่านที่ช่วยทำให้ม็อดนี้ดีขึ้น![/h3]
+[list][*][url=https://github.com/lanceris/pz_crafthelper/blob/main/CONTRIBUTORS.md]รายชื่อผู้มีส่วนร่วม[/url][/list]
 
-[h3]Future plans:[/h3]
+[h3]แผนในอนาคต:[/h3]
 [list][*][url=https://trello.com/b/KmLQqo32/craft-helper-continued]Trello[/url][/list]
 
-[url=https://github.com/lanceris/pz_crafthelper]Source code[/url]
+[url=https://github.com/lanceris/pz_crafthelper]ซอร์สโค้ด[/url]
 
-[h2]If you enjoy this mod, please like, favorite and consider supporting me with a coffee :) [/h2]
+[h2]หากคุณชื่นชอบม็อดนี้ โปรดกดปุ่มไลก์ ชื่นชอบ และพิจารณาช่วยสนับสนุนผมด้วยการเลี้ยงกาแฟสักแก้ว :) [/h2]
 [IMG]https://i.imgur.com/6OBlYju.gif[/IMG]
 [url=https://www.buymeacoffee.com/lanceris][img]https://i.postimg.cc/T20N6mr1/default-yellow.png[/img][/url]
 

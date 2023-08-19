@@ -222,8 +222,8 @@ function CHC_uses_recipepanel:createChildren()
     self.skillPanel = ISScrollingListBox:new(1, 1, self.width, 1)
     self.skillPanel:initialise()
     self.skillPanel:instantiate()
-    -- self.skillPanel.onRightMouseDown = self.onRMBDownIngrPanel
-    -- self.skillPanel:setOnMouseDownFunction(self, self.onIngredientMouseDown)
+    self.skillPanel.onRightMouseDown = self.onRMBDownIngrPanel
+    self.skillPanel:setOnMouseDownFunction(self, self.onIngredientMouseDown)
     self.skillPanel.itemheight = fhSmall + 2 * self.itemMargin
     self.skillPanel.doDrawItem = self.drawSkill
     self.skillPanel.yScroll = 0
@@ -522,7 +522,7 @@ function CHC_uses_recipepanel:setObj(recipe)
         self:getEvolvedChoices(obj, self.containerList)
     else
         obj.available = RecipeManager.IsRecipeValid(recipe.recipe, self.player, nil, self.containerList)
-        obj.requiredSkillCount = recipe.recipe:getRequiredSkillCount()
+        obj.requiredSkillCount = recipe.recipeData.requiredSkillCount
         obj.isKnown = self.player:isRecipeKnown(recipe.recipe)
         obj.nearItem = recipe.recipeData.nearItem
         obj.timeToMake = recipe.recipe:getTimeToMake()
@@ -543,9 +543,17 @@ function CHC_uses_recipepanel:setObj(recipe)
     self.selectedObj = obj
 
     if not recipe.isEvolved then
-        self.manualsEntries = CHC_main.itemsManuals[recipe.recipe:getOriginalname()]
+        self.manualsEntries = CHC_main.itemsManuals[recipe.recipeData.originalName]
         if self.manualsEntries ~= nil then
             self.manualsSize = #self.manualsEntries
+        end
+        self.freeFromTraits = CHC_main.freeRecipesTraits[recipe.recipeData.originalName]
+        if self.freeFromTraits then
+            self.manualsSize = (self.manualsSize or 0) + #self.freeFromTraits
+        end
+        self.freeFromProfessions = CHC_main.freeRecipesProfessions[recipe.recipeData.originalName]
+        if self.freeFromProfessions then
+            self.manualsSize = (self.manualsSize or 0) + #self.freeFromProfessions
         end
     end
 
@@ -557,13 +565,13 @@ function CHC_uses_recipepanel:setObj(recipe)
     self:refreshIngredientPanel(obj)
     self.statsList:addSection(self.ingredientPanel, getText('IGUI_CraftUI_RequiredItems'))
 
-    if obj.requiredSkillCount > 0 then
+    if obj.requiredSkillCount > 0 and not utils.empty(obj.recipe.recipeData.requiredSkills) then
         self:refreshSkillPanel(obj)
         self.statsList:addSection(self.skillPanel, getText('IGUI_CraftUI_RequiredSkills'))
     end
 
-    if self.manualsEntries and obj.needToBeLearn then
-        self:refreshBooksPanel(recipe)
+    if (self.manualsEntries and obj.needToBeLearn) or self.freeFromTraits or self.freeFromProfessions then
+        self:refreshBooksPanel(obj)
         self.statsList:addSection(self.booksPanel, getText('UI_recipe_panel_required_book') .. ':')
     end
 
@@ -827,9 +835,14 @@ function CHC_uses_recipepanel:refreshSkillPanel(recipe)
         local skill = recipe.recipeObj:getRequiredSkill(i - 1)
         local perk = PerkFactory.getPerk(skill:getPerk())
         local playerLevel = self.player and self.player:getPerkLevel(skill:getPerk()) or 0
-        local perkName = perk and perk:getName() or skill:getPerk():name()
+        local perkObj = perk and CHC_main.skillsMap[perk:getId()]
 
-        self.skillPanel:addItem(perkName, { name = perkName, pLevel = playerLevel, rLevel = skill:getLevel() })
+        if perkObj then
+            local item = copyTable(perkObj)
+            item.pLevel = playerLevel
+            item.rLevel = skill:getLevel()
+            self.skillPanel:addItem(item.name, item)
+        end
     end
 
     self.skillPanel:setHeight(math.min(3, recipe.requiredSkillCount) * self.skillPanel.itemheight)
@@ -837,13 +850,44 @@ end
 
 function CHC_uses_recipepanel:refreshBooksPanel(recipe)
     self.booksPanel:clear()
+    local numEntries = 0
 
-    for i = 1, #self.manualsEntries do
-        local item = self.manualsEntries[i]
-        item.isKnown = recipe.isKnown
-        self.booksPanel:addItem(item.displayName, item)
+    if self.manualsEntries then
+        for i = 1, #self.manualsEntries do
+            local item = self.manualsEntries[i]
+            item.isKnown = recipe.isKnown
+            item.drawFavStar = true
+            self.booksPanel:addItem(item.displayName, item)
+        end
+        numEntries = numEntries + #self.manualsEntries
     end
-    self.booksPanel:setHeight(math.min(3, #self.manualsEntries) * self.booksPanel.itemheight)
+    if self.freeFromTraits then
+        for i = 1, #self.freeFromTraits do
+            local item = self.freeFromTraits[i]
+            item.isTrait = true
+            item.isKnown = CHC_menu.player:HasTrait(item.type) -- TODO avoid re-calculation
+            item.drawFavStar = true
+            self.booksPanel:addItem(item.displayName, item)
+        end
+        numEntries = numEntries + #self.freeFromTraits
+    else
+        self.freeFromTraits = nil
+    end
+
+    if self.freeFromProfessions then
+        for i = 1, #self.freeFromProfessions do
+            local item = self.freeFromProfessions[i]
+            item.isTrait = true
+            item.isKnown = CHC_menu.player:getDescriptor():getProfession() == item.type -- TODO avoid re-calculation
+            item.drawFavStar = true
+            self.booksPanel:addItem(item.displayName, item)
+        end
+        numEntries = numEntries + #self.freeFromProfessions
+    else
+        self.freeFromProfessions = nil
+    end
+
+    self.booksPanel:setHeight(math.min(3, numEntries) * self.booksPanel.itemheight)
 end
 
 function CHC_uses_recipepanel:refreshEquipmentPanel(recipe)
@@ -1049,7 +1093,9 @@ function CHC_uses_recipepanel:drawFavoriteStar(y, item, parent)
     local favoriteStar
     local favoriteAlpha = 0.9
     local favXPos = self.width - 30
-    local isFav = CHC_main.items[item.item.fullType].favorite
+    local itemObj = CHC_main.items[item.item.fullType]
+    if not itemObj then return end
+    local isFav = itemObj.favorite
     if item.index == self.mouseoverselected then
         local mouseX = self:getMouseX()
         if mouseX >= favXPos - 5 and mouseX <= favXPos + 16 then
@@ -1202,7 +1248,7 @@ function CHC_uses_recipepanel:drawSkill(y, item, alt)
     end
     if self.recipepanel.fastListReturn(self, y) then return y + self.itemheight end
 
-    local text = ' - ' .. item.text .. ': ' .. tostring(item.item.pLevel) .. ' / ' .. tostring(item.item.rLevel);
+    local text = item.text .. ': ' .. tostring(item.item.pLevel) .. ' / ' .. tostring(item.item.rLevel);
     local r, g, b, a = 1, 1, 1, 0.9
     local rb, gb, bb, ab = 0.1, 0.1, 0.1, 1
 
@@ -1212,6 +1258,7 @@ function CHC_uses_recipepanel:drawSkill(y, item, alt)
         a = 0.7
     end
     self:drawText(text, 15, y, r, g, b, a, UIFont.Small)
+    self.recipepanel.drawFavoriteStar(self, y, item, self.recipepanel)
     self:drawRectBorder(0, y, self.width - 2, self.itemheight, ab, rb, gb, bb)
     return y + self.itemheight
 end
@@ -1236,10 +1283,17 @@ function CHC_uses_recipepanel:drawBook(y, item, alt)
         self:drawTextureScaledAspect(item.item.texture, tX, tY, 16, 16, 1, 1, 1, 1)
         tX = tX + 20
     end
-    self:drawText(item.item.displayName, tX, tY, r, g, b, a, UIFont.Small)
+    if item.item.isTrait then
+        self:drawText(item.item.displayName, tX, tY, r, g, b, a,
+            UIFont.Small)
+    else
+        self:drawText(item.item.displayName, tX, tY, r, g, b, a, UIFont.Small)
+    end
 
     --region favorite handler
-    self.recipepanel.drawFavoriteStar(self, y, item, self.recipepanel)
+    if item.item.drawFavStar then
+        self.recipepanel.drawFavoriteStar(self, y, item, self.recipepanel)
+    end
     --endregion
 
     self:drawRectBorder(0, y, self.width - 2, self.itemheight, ab, rb, gb, bb)
@@ -1294,7 +1348,9 @@ function CHC_uses_recipepanel:drawEquipment(y, item, alt)
     end
 
     --region favorite handler
-    self.recipepanel.drawFavoriteStar(self, y, item, self.recipepanel)
+    if isComplex then
+        self.recipepanel.drawFavoriteStar(self, y, item, self.recipepanel)
+    end
     --endregion
 
     return y + self.itemheight
@@ -1527,7 +1583,7 @@ function CHC_uses_recipepanel:onIngredientMouseDown(item)
             _item.favorite = isFav
             self.modData[CHC_main.common.getFavItemModDataStr(item)] = isFav or nil
             self.backRef.updateQueue:push({
-                targetView = 'fav_items',
+                targetViews = { 'fav_items' },
                 actions = { 'needUpdateFavorites', 'needUpdateObjects' }
             })
         end
