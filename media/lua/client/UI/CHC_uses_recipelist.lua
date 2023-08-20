@@ -84,7 +84,7 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
 		local tY = clr.y - modY / 4
 		self:drawText(clr.txt, clr.x, tY, clr.r, clr.g, clr.b, clr.a, clr.font)
 		tY = tY + self.fontSize - self.curFontData.pad
-		self:drawText('Mod: ' .. item.item.module, clr.x + self.curFontData.pad, tY, clr.r, clr.g, clr.b,
+		self:drawText('Mod: ' .. tostring(item.item.module), clr.x + self.curFontData.pad, tY, clr.r, clr.g, clr.b,
 			clr.a, modFont)
 	else
 		self:drawText(clr.txt, clr.x, clr.y, clr.r, clr.g, clr.b, clr.a, clr.font)

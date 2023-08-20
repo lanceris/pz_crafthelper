@@ -432,7 +432,7 @@ CHC_main.loadAllItems = function(am)
 			item = invItem,
 			fullType = invItem:getFullType(),
 			name = invItem:getName(),
-			module = item:getModule():getName(),
+			module = item:getModule(),
 			modname = invItem:getModName(),
 			isVanilla = invItem:isVanilla(),
 			IsDrainable = invItem:IsDrainable(),
@@ -446,6 +446,7 @@ CHC_main.loadAllItems = function(am)
 				getText('IGUI_ItemCat_Item'),
 			texture = invItem:getTex()
 		}
+		toinsert.module = toinsert.module and toinsert.module:getName() or nil
 		toinsert.props, toinsert.propsMap = CHC_main.getItemProps(invItem, toinsert.category)
 		toinsert.type = strsplit(toinsert.fullType, ".")[2]
 
@@ -861,7 +862,8 @@ CHC_main.loadAllRecipes = function()
 		newItem.category = recipe:getCategory() or getText('IGUI_CraftCategory_General')
 		newItem.displayCategory = getTextOrNull('IGUI_CraftCategory_' .. newItem.category) or newItem.category
 		newItem.recipe = recipe
-		newItem.module = recipe:getModule():getName()
+		newItem.module = recipe:getModule()
+		newItem.module = newItem.module and newItem.module:getName() or nil
 		newItem.hidden = recipe:isHidden()
 		newItem.recipeData = {}
 		newItem.recipeData.lua = {}
@@ -1004,8 +1006,9 @@ CHC_main.loadAllEvolvedRecipes = function()
 			category = getText('IGUI_CHC_RecipeCat_Evolved'),
 			displayCategory = getText('IGUI_CHC_RecipeCat_Evolved'),
 			hidden = recipe:isHidden(),
-			module = recipe:getModule():getName(),
+			module = recipe:getModule(),
 		}
+		data.module = data.module and data.module:getName() or nil
 
 		local recipeData = {
 			category = data.category,
@@ -1546,21 +1549,10 @@ CHC_main.setRecipeForItem = function(tbl, itemName, recipe)
 end
 
 function CHC_main.reloadMod(key)
-	return
-	-- if key == Keyboard.KEY_O then
-	-- 	CHC_main.loadDatas()
-	-- 	-- 	local all = CHC_main
-	-- 	-- 	-- local moddataObj = ModData
-	-- 	-- 	-- local _obj = moddataObj.getTableNames()
-	-- 	-- 	-- local moddata = {}
-	-- 	-- 	-- for i = 0, _obj:size() - 1 do
-	-- 	-- 	-- 	local name = _obj:get(i)
-	-- 	-- 	-- 	moddata[name] = moddataObj.get(name)
-	-- 	-- 	-- end
-	-- 	-- 	-- df:df()
-
-	-- 	-- 	-- error('debug')
-	-- end
+	-- return
+	if key == Keyboard.KEY_O then
+		CHC_main.loadDatas()
+	end
 end
 
 if CHC_main.isDebug then

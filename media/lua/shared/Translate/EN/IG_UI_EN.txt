@@ -29,6 +29,9 @@ IGUI_EN = {
     IGUI_OnContextBehaviourTooltipFirst = "'%1' - Nothing (useful when keybind is set)"
     IGUI_OnContextBehaviourTooltipSecond = "'%1' - Only '%2' option"
     IGUI_OnContextBehaviourTooltipThird = "'%1' - '%2', '%3' and '%4' options"
+    IGUI_TabCloseSelectorModifier = "Close active tab key"
+    IGUI_TabCloseSelectorModifierTooltip = "Modifier key(s) held down while closing tab ('%1' keybind)"
+
     
 
     IGUI_CHC_ItemCat_AlarmClockClothing = "Wrist watch"

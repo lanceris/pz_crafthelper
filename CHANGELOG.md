@@ -4,6 +4,8 @@
 
 ### New features
 
+- Keybind to close active tab (None by default)
+
 ### Improvements
 
 ### Bugfixes

@@ -381,7 +381,7 @@ function CHC_uses:searchProcessToken(token, recipe)
             whatCompare = items
         end
         if char == '&' then
-            whatCompare = string.lower(recipe.module)
+            whatCompare = string.lower(tostring(recipe.module))
         end
         local resultItem = recipe.recipeData.result
         if resultItem and resultItem.fullType then
@@ -404,7 +404,7 @@ end
 function CHC_uses:processAddObjToObjList(recipe, modData) --FIXME
     local name = recipe.recipeData.name
     recipe.favorite = modData[CHC_main.common.getFavoriteRecipeModDataString(recipe)] or false
-    recipe.drawMod = self.shouldDrawMod and recipe.module ~= 'Base'
+    recipe.drawMod = self.shouldDrawMod and recipe.module and recipe.module ~= 'Base'
     self.objList:addItem(name, recipe)
 end
 

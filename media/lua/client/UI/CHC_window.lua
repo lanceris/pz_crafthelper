@@ -747,6 +747,7 @@ end
 
 function CHC_window:closeTab(tabIndex)
     local vl = self.viewList
+    if not vl then return end
     local clicked = vl[tabIndex]
     local active = self.activeView
 
@@ -779,6 +780,8 @@ function CHC_window:isModifierKeyDown(_type)
         modifier = modifierOptionToKey[CHC_settings.config.category_selector_modifier]
     elseif _type == 'tab' then
         modifier = modifierOptionToKey[CHC_settings.config.tab_selector_modifier]
+    elseif _type == 'closetab' then
+        modifier = modifierOptionToKey[CHC_settings.config.tab_close_selector_modifier]
     else
         error('Unknown modifier type', string.format('CHC_window:isModifierKeyDown(%s)', _type))
     end
@@ -830,6 +833,7 @@ function CHC_window:onKeyRelease(key)
     if self.isCollapsed then return end
 
     local ui = self
+    local activeViewIx = ui.panel:getActiveViewIndex()
     local subview, view = self:getActiveSubView()
     if not subview or not view then
         utils.chcerror("Can't determine (sub-)view", "CHC_window:onKeyRelease", nil, false)
@@ -841,6 +845,13 @@ function CHC_window:onKeyRelease(key)
     -- region close
     if key == CHC_settings.keybinds.close_window.key then
         self:close()
+        return
+    end
+
+    -- active tab
+    if key == CHC_settings.keybinds.close_tab.key and self:isModifierKeyDown('closetab') then
+        if activeViewIx <= 2 then return end -- dont interact with search and favorites
+        self.closeTab(ui.panel, activeViewIx)
         return
     end
     -- endregion
@@ -869,7 +880,7 @@ function CHC_window:onKeyRelease(key)
         end
     end
 
-    local oldvSel = ui.panel:getActiveViewIndex()
+    local oldvSel = activeViewIx
     local newvSel = oldvSel
     local pTabs = ui.panel.viewList
     if (key == CHC_settings.keybinds.move_tab_left.key) and self:isModifierKeyDown('tab') then

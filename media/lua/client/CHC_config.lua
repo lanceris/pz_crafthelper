@@ -24,7 +24,8 @@ CHC_settings = {
         toggle_uses_craft = { key = Keyboard.KEY_NONE, name = 'chc_toggle_uses_craft' },
         move_tab_left = { key = Keyboard.KEY_NONE, name = 'chc_move_tab_left' },
         toggle_focus_search_bar = { key = Keyboard.KEY_NONE, name = 'chc_toggle_focus_search_bar' },
-        move_tab_right = { key = Keyboard.KEY_NONE, name = 'chc_move_tab_right' }
+        move_tab_right = { key = Keyboard.KEY_NONE, name = 'chc_move_tab_right' },
+        close_tab = { key = Keyboard.KEY_NONE, name = "chc_close_tab" }
     },
     integrations = {
         Hydrocraft = {
@@ -49,6 +50,7 @@ local init_cfg = {
     recipe_selector_modifier = 1, -- none
     category_selector_modifier = 1,
     tab_selector_modifier = 1,
+    tab_close_selector_modifier = 1,
     list_font_size = 3, -- large
     show_icons = true,
     allow_special_search = true,
@@ -85,6 +87,7 @@ function CHC_settings.f.onModOptionsApply(values)
     CHC_settings.config.recipe_selector_modifier = values.settings.options.recipe_selector_modifier
     CHC_settings.config.category_selector_modifier = values.settings.options.category_selector_modifier
     CHC_settings.config.tab_selector_modifier = values.settings.options.tab_selector_modifier
+    CHC_settings.config.tab_close_selector_modifier = values.settings.options.tab_close_selector_modifier
     CHC_settings.config.list_font_size = values.settings.options.list_font_size
     CHC_settings.config.allow_special_search = values.settings.options.allow_special_search
     CHC_settings.config.show_icons = values.settings.options.show_icons
@@ -179,6 +182,18 @@ if ModOptions and ModOptions.getInstance then
                 OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
                 OnApplyInGame = CHC_settings.f.onModOptionsApply
             },
+            tab_close_selector_modifier = {
+                getText('IGUI_None'),
+                getText('UI_optionscreen_CycleContainerKey1'),
+                getText('UI_optionscreen_CycleContainerKey2'),
+                getText('UI_optionscreen_CycleContainerKey3'),
+                name = 'IGUI_TabCloseSelectorModifier',
+                tooltip = getText('IGUI_TabCloseSelectorModifierTooltip',
+                    getText('UI_optionscreen_binding_chc_close_tab')),
+                default = 1,
+                OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
+                OnApplyInGame = CHC_settings.f.onModOptionsApply
+            },
             show_recipe_module = {
                 name = 'IGUI_ShowRecipeModule',
                 tooltip = 'IGUI_ShowRecipeModuleTooltip',
@@ -255,6 +270,7 @@ else
     CHC_settings.config.recipe_selector_modifier = 1
     CHC_settings.config.category_selector_modifier = 1
     CHC_settings.config.tab_selector_modifier = 1
+    CHC_settings.config.tab_close_selector_modifier = 1
     CHC_settings.config.list_font_size = 3
     CHC_settings.config.allow_special_search = true
     CHC_settings.config.show_icons = true
