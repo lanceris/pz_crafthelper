@@ -58,6 +58,7 @@ Also, with "Mod Options" you can set keybinds (Key bindings -> Craft Helper) for
 [*]German
 [*]Italian
 [*]Ukrainian
+[*]French
 [/list]
 
 If you would like to help with translation, please go to Crowdin page:
