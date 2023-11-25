@@ -19,59 +19,59 @@ function CHC_search:initialise()
         },
         AlarmClock = {
             tooltip = getText('IGUI_ItemCat_AlarmClock'),
-            icon = CHC_main.items['Base.AlarmClock2'].texture
+            item = CHC_main.items['Base.AlarmClock2']
         },
         AlarmClockClothing = {
             tooltip = getText('IGUI_CHC_ItemCat_AlarmClockClothing'),
-            icon = CHC_main.items['Base.WristWatch_Right_DigitalRed'].texture
+            item = CHC_main.items['Base.WristWatch_Right_DigitalRed']
         },
         Clothing = {
             tooltip = getText('IGUI_ItemCat_Clothing'),
-            icon = CHC_main.items['Base.Tshirt_Scrubs'].texture
+            item = CHC_main.items['Base.Tshirt_Scrubs']
         },
         Container = {
             tooltip = getText('IGUI_ItemCat_Container'),
-            icon = CHC_main.items['Base.Purse'].texture
+            item = CHC_main.items['Base.Purse']
         },
         Drainable = {
             tooltip = getTextOrNull('IGUI_ItemCat_Drainable') or getText('IGUI_CHC_ItemCat_Drainable'),
-            icon = CHC_main.items['Base.Thread'].texture
+            item = CHC_main.items['Base.Thread']
         },
         Food = {
             tooltip = getText('IGUI_ItemCat_Food'),
-            icon = CHC_main.items['Base.Steak'].texture
+            item = CHC_main.items['Base.Steak']
         },
         Key = {
             tooltip = getText('IGUI_CHC_ItemCat_Key'),
-            icon = CHC_main.items['Base.Key1'].texture
+            item = CHC_main.items['Base.Key1']
         },
         Literature = {
             tooltip = getText('IGUI_ItemCat_Literature'),
-            icon = CHC_main.items['Base.Book'].texture
+            item = CHC_main.items['Base.Book']
         },
         Map = {
             tooltip = getText('IGUI_CHC_ItemCat_Map'),
-            icon = CHC_main.items['Base.Map'].texture
+            item = CHC_main.items['Base.Map']
         },
         Moveable = {
             tooltip = getText('IGUI_CHC_ItemCat_Moveable'),
-            icon = CHC_main.items['Base.Mov_GreyComfyChair'].texture
+            item = CHC_main.items['Base.Mov_GreyComfyChair']
         },
         Normal = {
             tooltip = getText('IGUI_CHC_ItemCat_Normal'),
-            icon = CHC_main.items['Base.Spiffo'].texture
+            item = CHC_main.items['Base.Spiffo']
         },
         Radio = {
             tooltip = getText('IGUI_CHC_ItemCat_Radio'),
-            icon = CHC_main.items['Radio.RadioRed'].texture
+            item = CHC_main.items['Radio.RadioRed']
         },
         Weapon = {
             tooltip = getText('IGUI_ItemCat_Weapon'),
-            icon = CHC_main.items['Base.Pistol'].texture
+            item = CHC_main.items['Base.Pistol']
         },
         WeaponPart = {
             tooltip = getText('IGUI_ItemCat_WeaponPart'),
-            icon = CHC_main.items['Base.GunLight'].texture
+            item = CHC_main.items['Base.GunLight']
         }
     }
     self.categoryData = {}

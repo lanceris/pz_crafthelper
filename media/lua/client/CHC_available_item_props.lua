@@ -154,7 +154,7 @@ CHC_settings.itemPropsByType = {
         { name = 'getSoundVolume',                 default = 0,       ignoreDefault = true },
         { name = 'getSoundRadius',                 default = 0,       ignoreDefault = true },
         { name = 'getToHitModifier',               default = 1,       ignoreDefault = true },
-        { name = 'getOtherBoost',                  default = 1,       ignoreDefault = true },
+        -- { name = 'getOtherBoost',                  default = 1,       ignoreDefault = true },
         { name = 'isRanged' },
         { name = 'isRangeFalloff' },
         { name = 'isUseEndurance' },

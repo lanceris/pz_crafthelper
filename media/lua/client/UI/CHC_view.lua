@@ -488,7 +488,9 @@ function CHC_view:sortByType(_type)
 end
 
 function CHC_view:filterTypeSetIcon()
-    return self.typeData[self.typeFilter].icon
+    local entry = self.typeData[self.typeFilter]
+    if not entry then return end
+    return entry.item and entry.item.texture or entry.icon
 end
 
 -- endregion

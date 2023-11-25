@@ -479,8 +479,8 @@ function CHC_window:refresh(viewName, panel, focusOnNew, focusOnTabIdx)
         return
     end
     local vl = panel.viewList
-    if not vl then
-        error('Could not find viewList', 'CHC_window:refresh')
+    if not vl or not vl[2] then
+        error('Could not find viewList or viewList is wrong (len:' .. tostring(#vl) .. ")", 'CHC_window:refresh')
         return
     end
     if #vl > 2 then

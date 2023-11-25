@@ -48,7 +48,6 @@ function CHC_props_table:createChildren()
     self.objList.doDrawItem = self.drawProps
     self.objList.doRepaintStencil = true
 
-    -- TODO: add translation
     self.objList:addColumn(getText('IGUI_CopyNameProps_ctx'), 0)
     self.objList:addColumn(getText('IGUI_CopyValueProps_ctx'), self.width * 0.4)
 
