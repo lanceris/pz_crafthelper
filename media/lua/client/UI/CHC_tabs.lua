@@ -25,6 +25,8 @@ function CHC_tabs:create()
     self.nameHeader = ISResizableButton:new(nha.x, nha.y, nha.w, nha.h,
         nha.title, nha.clicktgt, nha.onclick)
     self.nameHeader:initialise()
+    self.nameHeader.backgroundColor.a = 0
+    self.nameHeader.backgroundColorMouseOver.a = 0.1
     self.nameHeader.borderColor.a = 0.2;
     self.nameHeader.minimumWidth = 100;
     self.nameHeader.onresize = { CHC_tabs.onResizeColumn, self, self.nameHeader }
@@ -43,6 +45,8 @@ function CHC_tabs:create()
     }
     self.typeHeader = ISResizableButton:new(tha.x, tha.y, tha.w, tha.h,
         tha.title, tha.clicktgt, tha.onclick)
+    self.typeHeader.backgroundColor.a = 0
+    self.typeHeader.backgroundColorMouseOver.a = 0.1
     self.typeHeader.borderColor.a = 0.2
     self.typeHeader.anchorRight = true
     self.typeHeader.minimumWidth = 100
@@ -115,6 +119,7 @@ function CHC_tabs:new(x, y, width, height, onresize, sep_x)
 
     o.onresize = onresize
     o.column2 = 30;
+    o.backgroundColor.a = 0
     o.tabName1 = getText('UI_common_left_col_name')
     o.tabName2 = getText('UI_common_right_col_name')
     o.proportion = nil

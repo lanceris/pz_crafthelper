@@ -29,6 +29,7 @@ function CHC_window:create()
     self.panel = ISTabPanel:new(1, self.tbh, self.width, self.height - 60)
 
     self.panel:initialise()
+    self.panel:setTabsTransparency(0.4)
     self.panel:setAnchorRight(true)
     self.panel.onRightMouseDown = self.onMainTabRightMouseDown
     self.panel.onActivateView = CHC_window.onActivateView
@@ -89,6 +90,7 @@ function CHC_window:addSearchPanel()
     self.searchPanel.onActivateView = CHC_window.onActivateSubView
     self.searchPanel.target = self
     self.searchPanel:initialise()
+    self.searchPanel:setTabsTransparency(0.4)
     self.searchPanel:setAnchorRight(true)
     self.searchPanel:setAnchorBottom(true)
 
@@ -151,6 +153,7 @@ function CHC_window:addFavoriteScreen()
     self.favPanel.onActivateView = CHC_window.onActivateSubView
     self.favPanel.target = self
     self.favPanel:initialise()
+    self.favPanel:setTabsTransparency(0.4)
     self.favPanel:setAnchorRight(true)
     self.favPanel:setAnchorBottom(true)
 
@@ -239,6 +242,7 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
     local itemPanel = ISTabPanel:new(1, self.panelY, self.width, self.height - self.panelY)
 
     itemPanel:initialise()
+    itemPanel:setTabsTransparency(0.4)
     itemPanel:setAnchorRight(true)
     itemPanel:setAnchorBottom(true)
     itemPanel.item = itn
@@ -374,7 +378,6 @@ function CHC_window:updateFavorites(modData)
     local allrec = CHC_main.allRecipes or {}
     local allevorec = CHC_main.allEvoRecipes or {}
     local items = CHC_main.itemsForSearch
-
     for i = 1, #items do
         local favStr = CHC_main.common.getFavItemModDataStr(items[i])
         items[i].favorite = modData[favStr] or false
@@ -466,6 +469,10 @@ function CHC_window:update()
             val.cur = 0
         end
     end
+    --TODO: refactor
+    if self.backgroundColor.a ~= (CHC_settings.config.window_opacity - 1) / 10 then
+        self.backgroundColor.a = (CHC_settings.config.window_opacity - 1) / 10
+    end
 end
 
 function CHC_window:refresh(viewName, panel, focusOnNew, focusOnTabIdx)
@@ -511,12 +518,15 @@ end
 
 function CHC_window:close()
     -- remove all views except search and favorites
+    local vl = self.panel
+    if not vl.viewList or utils.empty(vl.viewList) then return end
     if CHC_settings.config.close_all_on_exit then
-        local vl = self.panel
-        if vl then
+        if #vl.viewList >= 3 then
             for i = #vl.viewList, 3, -1 do
                 vl:removeView(vl.viewList[i].view)
             end
+        end
+        if #vl.viewList >= 2 then
             vl:activateView(vl.viewList[2].name)
         end
     end
@@ -528,13 +538,8 @@ function CHC_window:close()
     --         setJoypadFocus(CHC_menu.playerNum, nil)
     --     end
     -- end
-    local status, err = pcall(self.serializeWindowData, self)
-    if not status then
-        utils.chcerror(string.format("CHC_window:close - Cannot serialize window data (%s)", err), "CHC_window.close",
-            nil, false)
-    else
-        CHC_settings.Save()
-    end
+    self:serializeWindowData()
+    CHC_settings.Save()
     CHC_settings.SavePropsData()
 end
 
@@ -575,18 +580,19 @@ end
 -- Common options for RMBDown + init context
 function CHC_window:onRMBDownObjList(x, y, item, isrecipe, context)
     isrecipe = isrecipe and true or false
+    context = context or ISContextMenu.get(0, getMouseX() + 10, getMouseY())
     if not item then
         local row = self:rowAt(x, y)
         if row == -1 then return end
         item = self.items[row].item
-        if not item then return end
+        if not item then return context end
     end
     if isrecipe then
         item = item.recipeData.result
     end
-
+    
     item = CHC_main.items[item.fullType]
-    context = context or ISContextMenu.get(0, getMouseX() + 10, getMouseY())
+    if not item then return context end
 
     local function chccopy(_, param)
         if param then
@@ -1012,9 +1018,11 @@ function CHC_window:serializeWindowData()
         x = self:getX(),
         y = self:getY(),
         w = self:getWidth(),
-        h = self:getHeight()
+        h = self:getHeight(),
+        a = self.backgroundColor.a
     }
     local sref = vl.viewList[1].view     -- search view
+    if not sref then return end
     local sref_i = sref.viewList[1].view -- search-items subview
     local sref_r = sref.viewList[2].view -- search-recipes subview
     CHC_settings.config.search = {
@@ -1030,6 +1038,7 @@ function CHC_window:serializeWindowData()
         }
     }
     local fref = vl.viewList[2].view     -- favorites view
+    if not fref then return end
     local fref_i = fref.viewList[1].view -- favorites-items subview
     local fref_r = fref.viewList[2].view -- favorites-recipes subview
     CHC_settings.config.favorites = {

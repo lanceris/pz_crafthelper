@@ -176,6 +176,7 @@ function ISLabelWithIcon:new(x, y, height, name, r, g, b, a, font, bLeft, icon)
     if icon then
         width = width + o.iconSize + 3
     end
+    o.backgroundColor.a = 0
     o.width = width
     o.iconR = 1
     o.iconG = 1

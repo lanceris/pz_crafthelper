@@ -431,7 +431,7 @@ function CHC_uses:new(args)
     self.__index = self
 
     o.borderColor = { r = 0.4, g = 0.4, b = 0.4, a = 1 }
-    o.backgroundColor = { r = 0, g = 0, b = 0, a = 0.8 }
+    o.backgroundColor = { r = 0, g = 0, b = 0, a = 0 }
 
     o.item = args.item or nil
     o.objSource = args.objSource

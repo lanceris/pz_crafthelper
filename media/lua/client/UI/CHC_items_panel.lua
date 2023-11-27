@@ -23,6 +23,7 @@ function CHC_items_panel:createChildren()
 
     -- region general info
     self.mainInfo = ISPanel:new(self.margin, y, self.width - 2 * self.margin, 1)
+    self.mainInfo.backgroundColor.a = 0
     self.mainInfo.borderColor = { r = 1, g = 0.53, b = 0.53, a = 0.2 }
     self.mainInfo:initialise()
     self.mainInfo:setVisible(false)
@@ -31,6 +32,7 @@ function CHC_items_panel:createChildren()
     self.mainImg:initialise()
     self.mainImg.backgroundColorMouseOver.a = 0
     self.mainImg.backgroundColor.a = 0
+    self.mainImg.borderColor.a = 0.25
     self.mainImg.origWI = 60
     self.mainImg.origHI = 60
     self.mainImg.forcedWidthImage = self.mainImg.origWI
@@ -87,6 +89,7 @@ function CHC_items_panel:createChildren()
     self.statsList:setAnchorRight(true)
     self.statsList:setAnchorBottom(true)
     self.statsList.maintainHeight = false
+    self.statsList.borderColor.a = 0.25
     self.statsList:addScrollBars()
     self.statsList:setVisible(false)
     -- endregion
@@ -260,7 +263,7 @@ function CHC_items_panel:new(args)
     setmetatable(o, self)
     self.__index = self
 
-    -- o.backgroundColor = { r = 1, g = 0, b = 0, a = 1 }
+    o.backgroundColor.a = 0
     -- o:noBackground()
     o.padY = 5
     o.margin = 5

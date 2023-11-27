@@ -166,6 +166,7 @@ function CHC_search:onRMBDownObjList(x, y, item)
         if not item then return end
     end
     item = CHC_main.items[item.fullType]
+    if not item then return end
     local isRecipes = CHC_main.common.areThereRecipesForItem(item)
 
     if isRecipes then
@@ -290,7 +291,7 @@ function CHC_search:new(args)
     self.__index = self
 
     o.borderColor = { r = 0.4, g = 0.4, b = 0.4, a = 1 }
-    o.backgroundColor = { r = 0, g = 0, b = 0, a = 0.8 }
+    o.backgroundColor = { r = 0, g = 0, b = 0, a = 0 }
 
     o.ui_type = args.ui_type
     o.sep_x = args.sep_x

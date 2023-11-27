@@ -31,6 +31,8 @@ IGUI_EN = {
     IGUI_OnContextBehaviourTooltipThird = "'%1' - '%2', '%3' and '%4' options"
     IGUI_TabCloseSelectorModifier = "Close active tab key"
     IGUI_TabCloseSelectorModifierTooltip = "Modifier key(s) held down while closing tab ('%1' keybind)"
+    IGUI_WindowOpacity = "Window opacity"
+    IGUI_WindowOpacityTooltip = "Changed in 0.1 (10%) increments"
 
     
 

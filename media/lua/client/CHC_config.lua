@@ -59,7 +59,8 @@ local init_cfg = {
     show_all_props = false,
     delayed_search = false,
     inv_context_behaviour = 2,
-    main_window = { x = 100, y = 100, w = 1000, h = 600 },
+    window_opacity = 8,
+    main_window = { x = 100, y = 100, w = 1000, h = 600, a = 0.6 },
     uses = { sep_x = 500, filter_asc = true, filter_type = 'all' },
     craft = { sep_x = 500, filter_asc = true, filter_type = 'all' },
     search = {
@@ -96,6 +97,7 @@ function CHC_settings.f.onModOptionsApply(values)
     CHC_settings.config.show_all_props = values.settings.options.show_all_props
     CHC_settings.config.delayed_search = values.settings.options.delayed_search
     CHC_settings.config.inv_context_behaviour = values.settings.options.inv_context_behaviour
+    CHC_settings.config.window_opacity = values.settings.options.window_opacity
     CHC_settings.Save()
 end
 
@@ -250,6 +252,25 @@ if ModOptions and ModOptions.getInstance then
                 OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
                 OnApplyInGame = CHC_settings.f.onModOptionsApply
             },
+            window_opacity = {
+                "0%",
+                "10%",
+                "20%",
+                "30%",
+                "40%",
+                "50%",
+                "60%",
+                "70%",
+                "80%",
+                "90%",
+                "100%",
+                name = 'IGUI_WindowOpacity',
+                tooltip = 'IGUI_WindowOpacityTooltip',
+                default = 8,
+                OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
+                OnApplyInGame = CHC_settings.f.onModOptionsApply
+
+            }
         },
         mod_id = 'CraftHelperContinued',
         mod_shortname = 'CHC',
@@ -279,6 +300,7 @@ else
     CHC_settings.config.show_all_props = false
     CHC_settings.config.delayed_search = false
     CHC_settings.config.inv_context_behaviour = 2
+    CHC_settings.config.window_opacity = 8
 end
 
 

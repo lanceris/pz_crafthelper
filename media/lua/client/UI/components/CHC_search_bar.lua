@@ -25,6 +25,7 @@ function CHC_search_bar:create()
 
     self.searchBtn = ISButton:new(0, 0, h, h, '', self, self.searchBtnOnClick)
     self.searchBtn:initialise()
+    self.searchBtn.backgroundColor.a = 0.1
     self.searchBtn.borderColor.a = 0
     self.searchBtn:setImage(self.searchIcon)
     self.searchBtn:setTooltip(getText('UI_ServerOptionDesc_Help'))
@@ -38,6 +39,7 @@ function CHC_search_bar:create()
     x = self.searchBtn.width
 
     self.searchBar = ISTextEntryBox:new('', x, 0, w - self.searchBtn.width, h)
+    self.searchBar.backgroundColor.a = 0.1
     self.searchBar.font = UIFont.Small -- TODO: move to options
     self.searchBar:setTooltip(self.searchBarTooltip)
     self.searchBar.onCommandEntered = self.onCommandEntered
@@ -225,6 +227,7 @@ function CHC_search_bar:new(args, searchBarTooltip, onTextChange, searchBtnOnCli
 
     o.backRef = args.backRef
     o.background = false
+    o.backgroundColor.a = 0
     o.searchBtnOnClickText = searchBtnOnClickText
     o.onTextChangeSB = onTextChange
     o.onCommandEnteredSB = onCommandEntered

@@ -37,6 +37,8 @@ function CHC_props_table:createChildren()
     -- endregion
     local props_h = self.height - self.searchRow.height - 4 * self.padY
     self.objList = ISScrollingListBox:new(x, y, self.width - 2 * self.padX, props_h)
+    self.objList.backgroundColor.a = 0
+    self.objList.borderColor = {r=0.15,g=0.15,b=0.15,a=0}
     self.objList:setFont(self.font)
 
     self.objList.onRightMouseDown = self.onRMBDownObjList
@@ -44,9 +46,10 @@ function CHC_props_table:createChildren()
     self.objList:instantiate()
 
     self.objList:setY(self.objList.y + self.objList.itemheight)
-    self.objList.drawBorder = false
     self.objList.doDrawItem = self.drawProps
     self.objList.doRepaintStencil = true
+    self.objList.vscroll.backgroundColor.a = 0
+    self.objList.vscroll.borderColor.a = 0.3
 
     self.objList:addColumn(getText('IGUI_CopyNameProps_ctx'), 0)
     self.objList:addColumn(getText('IGUI_CopyValueProps_ctx'), self.width * 0.4)
@@ -95,7 +98,7 @@ function CHC_props_table:drawProps(y, item, alt)
     if y < -self:getYScroll() - 1 then return y + self.itemheight; end
     if y > self:getHeight() - self:getYScroll() + 1 then return y + self.itemheight; end
 
-    local a = 0.9
+    local a = 1
     local xoffset = 10
 
     local rectP = { r = 0.3, g = 0.3, b = 0.3, a = 0 }
@@ -114,12 +117,12 @@ function CHC_props_table:drawProps(y, item, alt)
     end
 
     if item.index == self.mouseoverselected then
-        local sc = { x = 0, y = y, w = self.width, h = item.height - 1, a = 0.2, r = 0.75, g = 0.5, b = 0.5 }
-        self:drawRect(sc.x, sc.y, sc.w, sc.h, 0.2, 0.5, sc.g, sc.b)
+        local sc = { x = 0, y = y, w = self.width, h = item.height - 1, a = 0.05, r = 0.75, g = 0.5, b = 0.5 }
+        self:drawRect(sc.x, sc.y, sc.w, sc.h, sc.a, sc.r, sc.g, sc.b)
     end
 
     if pinned and pinned[item.item.name:lower()] then
-        rectP = { r = 1, g = 1, b = 1, a = 0.2 }
+        rectP = { r = 1, g = 1, b = 1, a = 0.1 }
         -- textP.a =
     end
     if blacklisted and blacklisted[item.item.name:lower()] then
@@ -128,7 +131,7 @@ function CHC_props_table:drawProps(y, item, alt)
     end
 
     if self.selected == item.index then
-        rectP = { a = 0.2, r = 0.75, g = 0.5, b = 0.5 }
+        rectP = { a = 0.2, r = 0.75, g = 0.5, b = 0.9 }
     end
 
     self:drawRect(0, (y), self.width, self.itemheight, rectP.a, rectP.r, rectP.g, rectP.b)

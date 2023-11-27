@@ -22,6 +22,7 @@ function CHC_filter_row:create()
         foo.onclickargs[3], foo.onclickargs[4])
     self.filterOrderBtn.tooltip = foo.defaultTooltip
     self.filterOrderBtn:setImage(foo.defaultIcon)
+    self.filterOrderBtn.backgroundColor.a = 0
     self.filterOrderBtn.borderColor.a = 0
     x = x + self.filterOrderBtn.width
     -- endregion
@@ -34,6 +35,7 @@ function CHC_filter_row:create()
     self.filterTypeBtn.tooltip = fto.defaultTooltip
     self.filterTypeBtn:setImage(fto.defaultIcon)
     self.filterTypeBtn.borderColor.a = 0
+    self.filterTypeBtn.backgroundColor.a = 0
     x = x + self.filterTypeBtn.width
     -- endregion
 
@@ -49,6 +51,8 @@ function CHC_filter_row:create()
     self.categorySelector.target = self
     self.categorySelector.tooltip = { defaultTooltip = fsd.defaultTooltip }
     self.categorySelector.prerender = self.prerenderSelector
+    self.categorySelector.backgroundColor.a = 0.55
+    self.categorySelector.textColor = {r=0.95,g=0.95,b=0.95,a=1}
     -- endregion
 
     self:addChild(self.filterOrderBtn)
@@ -109,6 +113,8 @@ function CHC_filter_row:new(args, filtersData)
 
     setmetatable(o, self)
     self.__index = self
+
+    o.backgroundColor.a = 0
 
     o.backRef = args.backRef
     o.filterOrderData = filtersData.filterOrderData

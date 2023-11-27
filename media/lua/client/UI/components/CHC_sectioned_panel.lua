@@ -24,6 +24,7 @@ function CHC_section:createChildren()
     self.panel:setWidth(self.width)
     self.panel:setVisible(self.expanded)
     self.panel:setScrollChildren(true)
+    self.panel.borderColor.a = 0.3
 
     self:addChild(self.panel)
     -- end
@@ -129,8 +130,8 @@ function CHC_section:new(x, y, width, height, panel, title, rightMargin, headerW
     else
         o.headerButtonWidth = headerWidth
     end
-    o.headerBgColor = { r = 0.15, g = 0.15, b = 0.15, a = 0.8 }
-    o.headerBgColorMouseOver = { r = 0.2, g = 0.2, b = 0.2, a = 0.8 }
+    o.headerBgColor = { r = 0.2, g = 0.2, b = 0.2, a = 0.2 }
+    o.headerBgColorMouseOver = { r = 0.25, g = 0.25, b = 0.25, a = 0.4 }
     o.headerBorderColor = { r = 1, g = 1, b = 1, a = 0.3 }
     return o
 end
@@ -257,7 +258,7 @@ function CHC_sectioned_panel:new(args)
     o.origY = args.y
     o.origH = args.h
     o.backRef = args.backRef
-    o.backgroundColor.a = 0.8
+    o.backgroundColor.a = 0
     o.sections = {}
     o.sectionMap = {}
     o.expandedSections = {}

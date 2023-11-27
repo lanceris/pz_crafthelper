@@ -90,7 +90,7 @@ function CHC_items_list:doDrawItem(y, item, alt)
 
     --region filler
     local sc = { x = 0, y = y, w = self.width, h = item.height - 1, a = 0.2, r = 0.75, g = 0.5, b = 0.5 }
-    local bc = { x = sc.x, y = sc.y, w = sc.w, h = sc.h + 1, a = 0.25, r = 1, g = 1, b = 1 }
+    local bc = { x = sc.x, y = sc.y, w = sc.w, h = sc.h + 1, a = 0.1, r = 1, g = 1, b = 1 }
     -- fill selected entry
     if self.selected == item.index then
         self:drawRect(sc.x, sc.y, sc.w, sc.h, sc.a, sc.r, sc.g, sc.b);

@@ -53,6 +53,7 @@ function CHC_uses_recipepanel:createChildren()
     local mr, mg, mb, ma = 1, 1, 1, 1
 
     self.mainInfo = ISPanel:new(self.margin, y, self.width - 2 * self.margin, 1)
+    self.mainInfo.backgroundColor.a = 0
     self.mainInfo.borderColor = { r = 1, g = 0.53, b = 0.53, a = 0 }
     self.mainInfo:initialise()
     self.mainInfo:setVisible(false)
@@ -61,7 +62,8 @@ function CHC_uses_recipepanel:createChildren()
     self.mainInfoNameLine = ISPanel:new(0, 0, self.mainInfo.width - 2 * self.margin, fntm + 2 * mainPadY)
     self.mainInfoNameLine.anchorRight = false
     local minlc = 0.45
-    self.mainInfoNameLine.backgroundColor = { r = minlc, g = minlc, b = minlc, a = 0.9 }
+    self.mainInfoNameLine.borderColor.a = 0.1
+    self.mainInfoNameLine.backgroundColor = { r = minlc, g = minlc, b = minlc, a = 0.35 }
     self.mainInfoNameLine:initialise()
 
     self.mainName = ISLabelWithIcon:new(self.margin, mainY, fhMedium, nil, mr, mg, mb, ma, mainPriFont, true)
@@ -81,6 +83,7 @@ function CHC_uses_recipepanel:createChildren()
     self.mainImg:initialise()
     self.mainImg.backgroundColorMouseOver.a = 0
     self.mainImg.backgroundColor.a = 0
+    self.mainImg.borderColor.a = 0.25
     self.mainImg.origWI = 50
     self.mainImg.origHI = 50
     self.mainImg.forcedWidthImage = self.mainImg.origWI
@@ -215,6 +218,7 @@ function CHC_uses_recipepanel:createChildren()
     self.ingredientPanel.drawBorder = false
     self.ingredientPanel.borderColor = listBorderColor
     self.ingredientPanel.vscroll.borderColor = listBorderColor
+    self.ingredientPanel.backgroundColor.a = 0
     self.ingredientPanel:setVisible(false)
     -- endregion
 
@@ -229,6 +233,7 @@ function CHC_uses_recipepanel:createChildren()
     self.skillPanel.yScroll = 0
     self.skillPanel.drawBorder = false
     self.skillPanel.borderColor = listBorderColor
+    self.skillPanel.backgroundColor.a = 0
     self.skillPanel.vscroll.borderColor = listBorderColor
     -- endregion
 
@@ -244,6 +249,7 @@ function CHC_uses_recipepanel:createChildren()
     self.booksPanel.drawBorder = false
     self.booksPanel.borderColor = listBorderColor
     self.booksPanel.vscroll.borderColor = listBorderColor
+    self.booksPanel.backgroundColor.a = 0
     -- endregion
 
     -- region equipment
@@ -258,6 +264,7 @@ function CHC_uses_recipepanel:createChildren()
     self.equipmentPanel.drawBorder = false
     self.equipmentPanel.borderColor = listBorderColor
     self.equipmentPanel.vscroll.borderColor = listBorderColor
+    self.equipmentPanel.backgroundColor.a = 0
     -- endregion
 
     self:addChild(self.mainInfo)
@@ -807,6 +814,12 @@ function CHC_uses_recipepanel:refreshIngredientPanel(selectedItem)
             end
             txt = txt .. ' (' .. #available .. '/' .. #available + #unavailable .. ') '
             self.ingredientPanel:addItem(txt, data)
+            -- if data.isKeep then
+            --     self.ingredientPanel.items[#self.ingredientPanel.items].tooltip = "Keep!"
+            -- end
+            -- if data.isDestroy then
+            --     self.ingredientPanel.items[#self.ingredientPanel.items].tooltip = "Destroyed!"
+            -- end
 
             if data.availableNum == data.totalNum or data.unavailableNum == data.totalNum then
                 self.blockStateData[i] = blockHiddenStateSelector[1]
@@ -2150,7 +2163,7 @@ function CHC_uses_recipepanel:new(args)
     setmetatable(o, self);
     self.__index = self;
 
-    o.backgroundColor = { r = 0, g = 0, b = 0, a = 1 }
+    o.backgroundColor = { r = 0, g = 0, b = 0, a = 0 }
     o.borderColor = { r = 0.4, g = 0.4, b = 0.4, a = 0.9 }
     o.itemMargin = 2
     o.padY = 5

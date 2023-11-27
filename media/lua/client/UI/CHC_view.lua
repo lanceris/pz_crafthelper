@@ -77,6 +77,8 @@ function CHC_view:create(filterRowOrderOnClickArgs, mainPanelsData)
     self.objList:setOnMouseDownFunction(self, CHC_view.onObjectChange)
     self.objList.curFontData = self.curFontData
     self.objList:setFont(self.curFontData.font)
+    self.objList.vscroll.backgroundColor.a = 0
+    self.objList.vscroll.borderColor.a = 0.25
 
     -- Add entries to recipeList
     local iph = self.height - self.headers.height

@@ -12,7 +12,6 @@ CHC_main._meta = {
     previousAuthors = { 'Peanut', 'ddraigcymraeg', 'b1n0m' },
 }
 CHC_main.isDebug = false or getDebug()
-CHC_main.loadTries = 0
 
 local insert = table.insert
 local utils = require('CHC_utils')
@@ -1498,9 +1497,9 @@ function CHC_main.reloadMod(key)
     end
 end
 
-if CHC_main.isDebug then
-    Events.OnKeyPressed.Add(CHC_main.reloadMod)
-end
+-- if CHC_main.isDebug then
+--     Events.OnKeyPressed.Add(CHC_main.reloadMod)
+-- end
 
 local function onCreatePlayer(id)
     if getCore():isDedicated() then return end

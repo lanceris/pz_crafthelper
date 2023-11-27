@@ -2,6 +2,7 @@ require 'CHC_main'
 
 CHC_menu = {}
 local utils = require('CHC_utils')
+local loadTries = 0
 
 local function setPlayer()
     CHC_menu.player = getPlayer()
@@ -29,7 +30,7 @@ CHC_menu.createCraftHelper = function()
         y = options.main_window.y,
         width = options.main_window.w,
         height = options.main_window.h,
-        backgroundColor = { r = 0, g = 0, b = 0, a = 0.2 },
+        backgroundColor = { r = 0, g = 0, b = 0, a = options.main_window.a },
         minimumWidth = 400,
         minimumHeight = 350,
     }
@@ -39,13 +40,14 @@ CHC_menu.createCraftHelper = function()
 end
 
 CHC_menu.forceCloseWindow = function(remove)
-    if CHC_menu.CHC_window == nil then return end
-    local status, val = pcall(CHC_menu.CHC_window:close())
-    if not status and CHC_menu.CHC_window:getIsVisible() then
+    local window = CHC_menu.CHC_window
+    if window == nil then return end
+    window:close()
+    if window:getIsVisible() then
         utils.chcerror("Failed to close CHC_window: " .. tostring(val), nil, nil, false)
         -- force closing
-        CHC_menu.CHC_window:setVisible(false)
-        CHC_menu.CHC_window:removeFromUIManager()
+        window:setVisible(false)
+        window:removeFromUIManager()
     end
     if remove then CHC_menu.CHC_window = nil end
 end
@@ -53,8 +55,11 @@ end
 --- called on right-clicking item in inventory/hotbar
 CHC_menu.doCraftHelperMenu = function(player, context, items)
     -- check if mod initialised
-    local itemsEmpty = utils.empty(CHC_main.items)
-    if CHC_main.loadTries >= 5 and itemsEmpty then
+    local itemsEmpty
+    if not CHC_main or not CHC_main.items or utils.empty(CHC_main.items) then
+        itemsEmpty = true
+    end
+    if CHC_main and loadTries >= 5 and itemsEmpty then
         utils.chcerror("Mod failed to initialise 5 times, something is clearly wrong...", "CHC_menu.doCraftHelperMenu",
             nil, true)
         return
@@ -70,15 +75,15 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
                 "CHC_menu.doCraftHelperMenu", nil, false)
             CHC_menu.CHC_window = nil
         end
-        CHC_main.loadTries = CHC_main.loadTries + 1
+        loadTries = loadTries + 1
         CHC_main.loadDatas()
     elseif not itemsEmpty and CHC_menu.CHC_window == nil then
         -- main init is ok, but window not initialised
         utils.chcerror("CHC_window not found, will create new one...", "CHC_menu.doCraftHelperMenu", nil, false)
-        CHC_main.loadTries = CHC_main.loadTries + 1
+        loadTries = loadTries + 1
         CHC_menu.init()
     elseif not itemsEmpty and CHC_menu.CHC_window then
-        CHC_main.loadTries = 0
+        loadTries = 0
     end
 
     local itemsUsedInRecipes = {}
@@ -160,10 +165,7 @@ CHC_menu.onCraftHelper = function(items, player, itemMode)
             item = item.items[1]
         end
         if not itemMode then
-            local ok, err = pcall(inst:addItemView(item))
-            if not ok then
-                utils.chcerror("Could not add ItemView:" .. tostring(err), "CHC_menu.onCraftHelper")
-            end
+            inst:addItemView(item)
         end
     end
     if itemMode then
