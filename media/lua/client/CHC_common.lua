@@ -540,8 +540,7 @@ CHC_main.common.getFavItemModDataStr = function(item)
     elseif type(item) == 'string' then
         fullType = item
     end
-    local text = 'itemFavoriteCHC:' .. fullType
-    return text
+    return fullType
 end
 
 CHC_main.common.getFavoriteRecipeModDataString = function(recipe)

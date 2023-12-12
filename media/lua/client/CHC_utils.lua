@@ -315,5 +315,78 @@ CHC_utils.jsonutil.Save = function(fname, data)
     fileWriterObj:close()
 end
 
+CHC_utils.tableutil = {}
+
+---@param o number|boolean|string|table object to serialize
+---@return string str result string
+CHC_utils.tableutil.serialize = function(o, res, _nested, _comma)
+    res = res or {}
+    _nested = _nested or 0
+    local comma
+    if _comma then
+        comma = ",\n"
+    else
+        comma = ""
+    end
+    if type(o) == "number" then
+        insert(res, o .. comma)
+    elseif type(o) == "boolean" then
+        insert(res, tostring(o) .. comma)
+    elseif type(o) == "string" then
+        insert(res, string.format("%q" .. comma, o))
+    elseif type(o) == "table" then
+        insert(res, "{\n")
+        _nested = _nested + 1
+        local spaces = string.rep(" ", _nested * 4)
+        for k, v in pairs(o) do
+            if type(k) ~= "string" then
+                insert(res, spaces .. "[")
+                CHC_utils.tableutil.serialize(k, res, _nested, false)
+                insert(res, "] = ")
+            else
+                insert(res, spaces .. k .. " = ")
+            end
+
+            CHC_utils.tableutil.serialize(v, res, _nested, true)
+        end
+        _nested = _nested - 1
+        insert(res, string.rep(" ", _nested * 4) .. "}" .. comma)
+    else
+        print("cannot serialize a " .. type(o))
+    end
+    return table.concat(res)
+end
+
+
+
+---comment
+---@param fname string Filename to load data from
+---@return string|nil res Loaded data
+CHC_utils.tableutil.load = function(fname, isBinary)
+    local res
+    local data = {}
+    local fileReaderObj = getFileReader(fname, true)
+    local line = fileReaderObj:readLine()
+    while line do
+        insert(data, line)
+        line = fileReaderObj:readLine()
+    end
+    fileReaderObj:close()
+    res = table.concat(data, "\n")
+    if not isBinary then
+        res = loadstring("return" .. res)()
+    end
+    return res
+end
+
+---comment
+---@param fname string Filename to save data to
+---@param data table Data to save
+CHC_utils.tableutil.save = function(fname, data)
+    if not data then return end
+    local fileWriterObj = getFileWriter(fname, true, false)
+    fileWriterObj:write(CHC_utils.tableutil.serialize(data))
+    fileWriterObj:close()
+end
 
 return CHC_utils

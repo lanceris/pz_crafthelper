@@ -23,10 +23,8 @@ function CHC_window:create()
     ISCollapsableWindowJoypad.createChildren(self)
 
     self.tbh = self:titleBarHeight()
-    -- self.controlPanel = ISPanel:new(1, self.tbh, self.width, 24)
-    -- self.controlPanel:initialise()
     -- region main container (search, favorites and all selected items)
-    self.panel = ISTabPanel:new(1, self.tbh, self.width, self.height - 60)
+    self.panel = ISTabPanel:new(1, self.tbh, self.width, self.height - 48)
 
     self.panel:initialise()
     self.panel:setTabsTransparency(0.4)
@@ -59,16 +57,18 @@ function CHC_window:create()
         end
     end
 
-    -- self.bottomPanel = CHC_bottom_panel:new()
-    -- self.bottomPanel:initialise()
-    -- self.bottomPanel:setVisible(false)
-    -- self.bottomPanel:setAnchorLeft(true)
+    self.bottomPanel = CHC_bottom_panel:new(1, self.panel.y + self.panel.height, self.width / 2, 24, self)
+    self.bottomPanel:initialise()
+    self.bottomPanel:setVisible(true)
+    self.bottomPanel:setAnchorLeft(true)
+    self.bottomPanel:setAnchorTop(true)
+    -- self.bottomPanel:setAnchorRight(true)
     -- self.bottomPanel:setAnchorBottom(true)
 
 
     -- self:addChild(self.controlPanel)
     self:addChild(self.panel)
-    -- self:addChild(self.bottomPanel)
+    self:addChild(self.bottomPanel)
 
     self:refresh(self.favViewName)
 end
@@ -86,7 +86,7 @@ function CHC_window:addSearchPanel()
     local recipesUIType = 'search_recipes'
 
     -- region search panel
-    self.searchPanel = ISTabPanel:new(1, self.panelY, self.width, self.height - self.panelY)
+    self.searchPanel = ISTabPanel:new(0, self.panelY, self.width, self.height - self.panelY)
     self.searchPanel.onActivateView = CHC_window.onActivateSubView
     self.searchPanel.target = self
     self.searchPanel:initialise()
@@ -148,7 +148,7 @@ function CHC_window:addFavoriteScreen()
     local options = self.options
 
     -- region favorites panel
-    self.favPanel = ISTabPanel:new(1, self.panelY, self.width, self.height - self.panelY)
+    self.favPanel = ISTabPanel:new(0, self.panelY, self.width, self.height - self.panelY)
     self.favPanel.tabPadX = self.width / 2 - self.width / 4
     self.favPanel.onActivateView = CHC_window.onActivateSubView
     self.favPanel.target = self
@@ -239,7 +239,7 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
     }
 
     --region item container
-    local itemPanel = ISTabPanel:new(1, self.panelY, self.width, self.height - self.panelY)
+    local itemPanel = ISTabPanel:new(0, self.panelY, self.width, self.height - self.panelY)
 
     itemPanel:initialise()
     itemPanel:setTabsTransparency(0.4)
@@ -327,6 +327,7 @@ end
 
 function CHC_window:getItems(favOnly, max)
     favOnly = favOnly or false
+    local modData = CHC_menu.playerModData
     local showHidden = CHC_settings.config.show_hidden
     local newItems = {}
     local items = CHC_main.itemsForSearch
@@ -334,7 +335,8 @@ function CHC_window:getItems(favOnly, max)
 
     for i = 1, to do
         local item = items[i]
-        local isFav = item.favorite
+        local isFav = modData.CHC_item_favorites[item.fullType] == true
+        item.favorite = isFav
         if (not showHidden) and (item.hidden == true) then
         elseif (favOnly and isFav) or (not favOnly) then
             insert(newItems, item)
@@ -348,19 +350,20 @@ end
 
 function CHC_window:getRecipes(favOnly)
     favOnly = favOnly or false
+    local modData = CHC_menu.playerModData
     local showHidden = CHC_settings.config.show_hidden
     local recipes = {}
     local allrec = CHC_main.allRecipes or {}
     local allevorec = CHC_main.allEvoRecipes or {}
     for i = 1, #allrec do
-        local isFav = allrec[i].favorite
+        local isFav = modData[allrec[i].favStr]
         if (not showHidden) and allrec[i].hidden then
         elseif (favOnly and isFav) or (not favOnly) then
             insert(recipes, allrec[i])
         end
     end
     for i = 1, #allevorec do
-        if (favOnly and allevorec[i].favorite) or (not favOnly) then
+        if (favOnly and modData[allevorec[i].favStr]) or (not favOnly) then
             insert(recipes, allevorec[i])
         end
     end
@@ -379,20 +382,17 @@ function CHC_window:updateFavorites(modData)
     local allevorec = CHC_main.allEvoRecipes or {}
     local items = CHC_main.itemsForSearch
     for i = 1, #items do
-        local favStr = CHC_main.common.getFavItemModDataStr(items[i])
-        items[i].favorite = modData[favStr] or false
+        items[i].favorite = modData.CHC_item_favorites[items[i].fullType] or false
     end
     for i = 1, #allrec do
         local recipe = allrec[i]
         if (not showHidden) and recipe.hidden then
         else
-            local favStr = CHC_main.common.getFavoriteRecipeModDataString(recipe)
-            recipe.favorite = modData[favStr] or false
+            recipe.favorite = modData[recipe.favStr] == true
         end
     end
     for i = 1, #allevorec do
-        local favStr = CHC_main.common.getFavoriteRecipeModDataString(allevorec[i])
-        allevorec[i].favorite = modData[favStr] or false
+        allevorec[i].favorite = modData[allevorec[i].favStr] == true
     end
 end
 
@@ -541,6 +541,7 @@ function CHC_window:close()
     self:serializeWindowData()
     CHC_settings.Save()
     CHC_settings.SavePropsData()
+    CHC_settings.SavePresetsData()
 end
 
 -- endregion
@@ -554,7 +555,9 @@ function CHC_window:onResize()
     local ui = self
     if not ui.panel or not ui.panel.activeView then return end
     ui.panel:setWidth(self.width)
-    ui.panel:setHeight(self.height - 60)
+    ui.panel:setHeight(self.height - 48)
+    ui.bottomPanel:setWidth(self.width / 2)
+    ui.bottomPanel:setY(ui.panel.y + ui.panel.height)
 
     for _, value in pairs(ui.panel.children) do
         value.maxLength = self.width / #value.viewList - 2
@@ -590,7 +593,7 @@ function CHC_window:onRMBDownObjList(x, y, item, isrecipe, context)
     if isrecipe then
         item = item.recipeData.result
     end
-    
+
     item = CHC_main.items[item.fullType]
     if not item then return context end
 
@@ -679,7 +682,13 @@ function CHC_window:onActivateView(target)
     end
 
     if sub.view.ui_type == 'fav_recipes' or sub.view.ui_type == 'fav_items' then
+        self.bottomPanel.categorySelector:setVisible(true)
+        self.bottomPanel.moreButton:setVisible(true)
+        self.bottomPanel.needUpdatePresets = true
         sub.view.needUpdateObjects = true
+    else
+        self.bottomPanel.categorySelector:setVisible(false)
+        self.bottomPanel.moreButton:setVisible(false)
     end
     if sub.view.filterRow then
         local oldval = sub.view.filterRow.categorySelector.editable
@@ -702,10 +711,11 @@ function CHC_window:onActivateSubView(target)
         info = self.viewNameToInfoText[top.name] .. self.infotext_common_items
     end
 
-    if sub.view.ui_type == 'fav_recipes' then
+    if sub.view.ui_type == 'fav_recipes' or sub.view.ui_type == 'fav_items' then
         sub.view.needUpdateObjects = true
     end
     self:setInfo(info)
+    self.bottomPanel.needUpdatePresets = true
 end
 
 function CHC_window:onMainTabRightMouseDown(x, y)

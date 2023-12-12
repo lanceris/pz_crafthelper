@@ -165,10 +165,10 @@ function CHC_uses_recipelist:addToFavorite(selectedIndex, fromKeyboard)
     end
     if not fav_idx then return end
     local fav_recipes = allr[fav_idx].recipes.items
-    selectedItem.item.favorite = not selectedItem.item.favorite
-    local favStr = CHC_main.common.getFavoriteRecipeModDataString(selectedItem.item)
-    self.modData[favStr] = selectedItem.item.favorite
-    if selectedItem.item.favorite then
+    local recipe = selectedItem.item
+    recipe.favorite = not recipe.favorite
+    self.modData[recipe.favStr] = recipe.favorite
+    if recipe.favorite then
         table.insert(fav_recipes, selectedItem)
     else
         if parent.ui_type == 'fav_recipes' then

@@ -13,7 +13,20 @@ end
 --- called just after CHC_main.loadDatas
 CHC_menu.init = function()
     setPlayer()
+    CHC_menu.migrateItemFavorites()
     CHC_menu.createCraftHelper()
+end
+
+CHC_menu.migrateItemFavorites = function()
+    local modData = CHC_menu.playerModData
+    if not modData or modData.CHC_item_favorites then return end
+    modData.CHC_item_favorites = {}
+    for name, _ in pairs(modData) do
+        if utils.startswith(name, "itemFavoriteCHC:") then
+            modData.CHC_item_favorites[strsplit(name, ":")[2]] = true
+            modData[name] = nil
+        end
+    end
 end
 
 --- loads config and creates window instance
@@ -23,6 +36,7 @@ CHC_menu.createCraftHelper = function()
     end
     CHC_settings.Load()
     CHC_settings.LoadPropsData()
+    CHC_settings.LoadPresetsData()
     local options = CHC_settings.config
 
     local args = {
@@ -44,7 +58,6 @@ CHC_menu.forceCloseWindow = function(remove)
     if window == nil then return end
     window:close()
     if window:getIsVisible() then
-        utils.chcerror("Failed to close CHC_window: " .. tostring(val), nil, nil, false)
         -- force closing
         window:setVisible(false)
         window:removeFromUIManager()
@@ -131,7 +144,7 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
     end
 
     if ctxOptions.fav then
-        local isFav = CHC_menu.playerModData[CHC_main.common.getFavItemModDataStr(item)] == true
+        local isFav = CHC_menu.playerModData.CHC_item_favorites[CHC_main.common.getFavItemModDataStr(item)] == true
         local favStr = isFav and getText('ContextMenu_Unfavorite') or getText('IGUI_CraftUI_Favorite')
         local optName = favStr .. ' (' .. getText('IGUI_chc_context_onclick') .. ')'
         local favOpt = context:addOption(optName, items, CHC_menu.toggleItemFavorite)
@@ -255,9 +268,9 @@ CHC_menu.toggleItemFavorite = function(items)
         else
             item = items[i]
         end
-        local isFav = modData[CHC_main.common.getFavItemModDataStr(item)] == true
+        local isFav = modData.CHC_item_favorites[CHC_main.common.getFavItemModDataStr(item)] == true
         isFav = not isFav
-        modData[CHC_main.common.getFavItemModDataStr(item)] = isFav or nil
+        modData.CHC_item_favorites[CHC_main.common.getFavItemModDataStr(item)] = isFav or nil
         CHC_main.items[item:getFullType()].favorite = isFav
     end
     CHC_menu.CHC_window.updateQueue:push({

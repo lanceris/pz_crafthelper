@@ -33,6 +33,7 @@ end
 CHC_main.init = function()
     CHC_main.allRecipes = {}
     CHC_main.recipeMap = {}
+    CHC_main.recipeStringMap = {}
     CHC_main.recipesByItem = {}
     CHC_main.recipesForItem = {}
     CHC_main.allEvoRecipes = {}
@@ -346,6 +347,8 @@ CHC_main.loadDatas = function()
     CHC_main.loadAllProfessionRecipes()
     CHC_main.loadAllSkillRecipes()
 
+    CHC_main.recipeMap = nil
+
     -- if loadLua then CHC_main.saveLuaCache() end
     -- init UI
     CHC_menu.init()
@@ -385,6 +388,10 @@ CHC_main.loadAllItems = function(am)
                 getText('IGUI_ItemCat_Item'),
             texture = invItem:getTex()
         }
+        if toinsert.category == "Moveable" then
+            toinsert.texture = toinsert.texture:splitIcon()
+        end
+        toinsert.texture_name = toinsert.texture:getName()
         toinsert.module = toinsert.module and toinsert.module:getName() or nil
         toinsert.props, toinsert.propsMap = CHC_main.getItemProps(invItem, toinsert.category)
         toinsert.type = strsplit(toinsert.fullType, ".")[2]
@@ -821,6 +828,7 @@ CHC_main.loadAllRecipes = function()
             newItem.recipeData.requiredSkills = CHC_main.getRecipeRequiredSkills(recipe,
                 newItem.recipeData.requiredSkillCount, newItem)
         end
+        newItem.favStr = CHC_main.common.getFavoriteRecipeModDataString(newItem)
 
 
         if loadLua then
@@ -872,8 +880,9 @@ CHC_main.loadAllRecipes = function()
             end
         end
 
-        if CHC_main.itemsManuals[newItem.recipeData.name] then
-            for _, value in pairs(CHC_main.itemsManuals[newItem.recipeData.name]) do
+        local bookRecipe = CHC_main.itemsManuals[newItem.recipeData.originalName]
+        if bookRecipe then
+            for _, value in pairs(bookRecipe) do
                 newItem.isBook = true
                 CHC_main.setRecipeForItem(CHC_main.recipesByItem, value.fullType, newItem)
             end
@@ -882,18 +891,22 @@ CHC_main.loadAllRecipes = function()
 
         local resultFullType = resultItem:getFullType()
         local itemres = CHC_main.getItemByFullType(resultFullType)
+        if not itemres then
+            itemres = CHC_main.getItemByFullType("Base." .. strsplit(resultFullType, ".")[2])
+        end
 
         insert(CHC_main.allRecipes, newItem)
         if itemres then
             newItem.recipeData.result = itemres
             CHC_main.setRecipeForItem(CHC_main.recipesForItem, itemres.fullType, newItem)
         else
-            insert(CHC_main.recipesWithoutItem, resultItem:getFullType())
+            insert(CHC_main.recipesWithoutItem, resultFullType)
         end
         local rSources = recipe:getSource()
 
 
         CHC_main.recipeMap[newItem.recipeData.originalName] = newItem
+        CHC_main.recipeStringMap[newItem.favStr] = newItem
 
         -- Go through items needed by the recipe
         for n = 0, rSources:size() - 1 do
@@ -1044,7 +1057,9 @@ CHC_main.loadAllEvolvedRecipes = function()
             CHC_main.setRecipeForItem(CHC_main.evoRecipesForItem, data.recipeData.fullResultItem, data)
         end
 
+        data.favStr = CHC_main.common.getFavoriteRecipeModDataString(data)
         insert(CHC_main.allEvoRecipes, data)
+        CHC_main.recipeStringMap[data.favStr] = data
     end
 
     print('Loading evolved recipes...')
@@ -1101,18 +1116,21 @@ CHC_main.loadAllCECRecipes = function()
         newItem.recipeData = {}
         newItem.recipeData.category = newItem.category
         newItem.recipeData.name = 'Build ' .. tData.displayName
+        newItem.recipeData.originalName = newItem.recipeData.name
         newItem.recipeData.displayName = tData.displayName
         newItem.recipeData.ingredients = tData.recipe
         newItem.recipeData.isSynthetic = true
         -- newItem.recipeData.nearItem = recipe:getNearItem()
         newItem.recipe = {
-            getOriginalname = function() return newItem.recipeData.name end,
+            getOriginalname = function() return newItem.recipeData.originalName end,
             getSource = getSource,
             getName = function() return newItem.recipeData.name end
         }
 
+        newItem.favStr = CHC_main.common.getFavoriteRecipeModDataString(newItem)
         local resultItem = 'CEC.' .. tID
         insert(CHC_main.allRecipes, newItem)
+        CHC_main.recipeStringMap[newItem.favStr] = newItem
 
         local itemres = CHC_main.getItemByFullType(resultItem)
         if itemres then
@@ -1493,7 +1511,12 @@ end
 
 function CHC_main.reloadMod(key)
     if key == Keyboard.KEY_O then
+        -- reload all
         CHC_main.loadDatas()
+    end
+    if key == Keyboard.KEY_V then
+        -- reload UI
+        CHC_menu.createCraftHelper()
     end
 end
 

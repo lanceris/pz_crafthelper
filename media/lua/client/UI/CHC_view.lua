@@ -425,7 +425,7 @@ end
 function CHC_view:onFilterTypeMenu(button)
     local data = {}
     for typ, d in pairs(self.parent.typeData) do
-        insert(data, { txt = d.tooltip, num = d.count, arg = typ, icon = d.icon })
+        insert(data, { txt = d.tooltip, num = d.count, arg = typ, icon = d.icon or d.item.texture })
     end
 
     local x = button:getAbsoluteX()

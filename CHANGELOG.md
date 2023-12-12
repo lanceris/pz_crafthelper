@@ -4,11 +4,22 @@
 
 ### New features
 
+- Added French translation (thanks to [Cosmo](https://steamcommunity.com/id/Bulvaik))
 - Keybind to close active tab (None by default)
+- Ability to change window opacity
+- Favorites presets
+- Help tooltip with current keyboard shortcuts
 
 ### Improvements
 
+- Item favorites now stored in `CHC_item_favorites` table in player modData
+- Favorites now syncronized with default crafting window
+
 ### Bugfixes
+
+- Fixed book teached recipes not showing correctly when game language is not English
+- Fixed crash when some textures for vanilla items are missing
+- Fixed incorrect icons for moveables
 
 # 1.8.4 (19.08.2023)
 

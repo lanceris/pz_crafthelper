@@ -17,7 +17,7 @@ local function renderdetailsCHC(self, doDragged)
             if not CHC_menu or not CHC_menu.playerModData then return end
             local chcItem = CHC_main.items[item:getFullType()]
             if not chcItem or not CHC_menu.playerModData then return end
-            local isFav = CHC_menu.playerModData[CHC_main.common.getFavItemModDataStr(item)]
+            local isFav = CHC_menu.playerModData.CHC_item_favorites[CHC_main.common.getFavItemModDataStr(item)]
             if chcItem and isFav then
                 local doIt = true
                 local xoff = 0
@@ -62,5 +62,16 @@ function ISInventoryPane:renderdetails(doDragged)
     old_render_details(self, doDragged)
     if CHC_settings.config and CHC_settings.config.show_fav_items_inventory == true then
         renderdetailsCHC(self, doDragged)
+    end
+end
+
+local old_populateRecipesList = ISCraftingUI.populateRecipesList
+function ISCraftingUI:populateRecipesList()
+    old_populateRecipesList(self)
+    if CHC_menu and CHC_menu.CHC_window and CHC_menu.CHC_window.updateQueue then
+        CHC_menu.CHC_window.updateQueue:push({
+            targetViews = { 'fav_recipes' },
+            actions = { 'needUpdateFavorites', 'needUpdateObjects' }
+        })
     end
 end

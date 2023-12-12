@@ -52,7 +52,7 @@ function CHC_filter_row:create()
     self.categorySelector.tooltip = { defaultTooltip = fsd.defaultTooltip }
     self.categorySelector.prerender = self.prerenderSelector
     self.categorySelector.backgroundColor.a = 0.55
-    self.categorySelector.textColor = {r=0.95,g=0.95,b=0.95,a=1}
+    self.categorySelector.textColor = { r = 0.95, g = 0.95, b = 0.95, a = 1 }
     -- endregion
 
     self:addChild(self.filterOrderBtn)

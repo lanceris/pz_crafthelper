@@ -403,7 +403,7 @@ end
 
 function CHC_uses:processAddObjToObjList(recipe, modData) --FIXME
     local name = recipe.recipeData.name
-    recipe.favorite = modData[CHC_main.common.getFavoriteRecipeModDataString(recipe)] or false
+    recipe.favorite = modData[recipe.favStr] or false
     recipe.drawMod = self.shouldDrawMod and recipe.module and recipe.module ~= 'Base'
     self.objList:addItem(name, recipe)
 end

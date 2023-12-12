@@ -7,6 +7,8 @@ local utils = require('CHC_utils')
 local dir = utils.configDir
 local config_name = 'craft_helper_config.json'
 local mappings_name = 'CHC_mappings.json'
+local presets_name = 'CHC_presets.lua'
+local presets_backup_name = 'CHC_presets_backup.lua'
 
 CHC_settings = {
     f = {},
@@ -40,7 +42,11 @@ CHC_settings = {
             }
         }
     },
-    mappings = {}
+    mappings = {},
+    presets = {
+        items = {},
+        recipes = {}
+    }
 }
 
 local init_cfg = {
@@ -76,6 +82,11 @@ local init_cfg = {
 local init_mappings = {
     ignoredItemProps = {},
     pinnedItemProps = {}
+}
+
+local init_presets = {
+    items = {},
+    recipes = {}
 }
 
 function CHC_settings.f.onModOptionsApply(values)
@@ -382,4 +393,58 @@ CHC_settings.LoadPropsData = function()
         CHC_settings.SavePropsData(config)
     end
     CHC_settings.mappings = config
+end
+
+local function utf8_from(t)
+    local bytearr = {}
+    for _, v in ipairs(t) do
+        local utf8byte = v < 0 and (0xff + v + 1) or v
+        table.insert(bytearr, string.char(utf8byte))
+    end
+    return table.concat(bytearr)
+end
+
+local types = { "items", "recipes" }
+
+CHC_settings.SavePresetsData = function()
+    local config = copyTable(init_presets)
+    for i = 1, #types do
+        for name, entries in pairs(CHC_settings.presets[types[i]]) do
+            local entry = {
+                name = table.concat({ string.byte(name, 1, -1) }, ","),
+                entries = entries,
+            }
+            table.insert(config[types[i]], entry)
+        end
+    end
+
+    local status = pcall(utils.tableutil.save, presets_name, config)
+    if not status then
+        -- config is corrupted, create new
+        utils.tableutil.save(presets_name, init_presets)
+    else
+        utils.tableutil.save(presets_backup_name, config)
+    end
+end
+
+CHC_settings.LoadPresetsData = function()
+    local status, config = pcall(utils.tableutil.load, presets_name)
+    if not status or not config then
+        config = copyTable(init_presets)
+        CHC_settings.SavePresetsData()
+    end
+    local cfg = copyTable(init_presets)
+    for i = 1, #types do
+        local _type = types[i]
+        for j = 1, #config[_type] do
+            local entry = config[_type][j]
+            local decoded_name = strsplit(entry.name, ",")
+            for k = 1, #decoded_name do
+                decoded_name[k] = tonumber(decoded_name[k])
+            end
+            cfg[_type][utf8_from(decoded_name)] = entry.entries
+        end
+    end
+
+    CHC_settings.presets = cfg
 end

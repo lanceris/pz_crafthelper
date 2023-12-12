@@ -705,22 +705,6 @@ function CHC_uses_recipepanel:refreshIngredientPanel(selectedItem)
         return
     end
 
-    local function handleDismantleWatch(available, unavailable)
-        -- Hack for 'Dismantle Digital Watch' and similar recipes.
-        -- Recipe sources include both left-hand and right-hand versions of the same item.
-        -- We only want to display one of them.
-        local removeExtra = ISCraftingUI.removeExtraClothingItemsFromList
-        for j = 1, #available do
-            local item = available[j]
-            removeExtra(ISCraftingUI, j + 1, item, available)
-            removeExtra(ISCraftingUI, 1, item, unavailable)
-        end
-
-        for j = 1, #unavailable do
-            removeExtra(ISCraftingUI, j + 1, unavailable[j], unavailable)
-        end
-    end
-
     self.ingredientPanel:clear()
 
     -- Display single-item sources before multi-item sources
@@ -1594,7 +1578,7 @@ function CHC_uses_recipepanel:onIngredientMouseDown(item)
             local isFav = _item.favorite == true
             isFav = not isFav
             _item.favorite = isFav
-            self.modData[CHC_main.common.getFavItemModDataStr(item)] = isFav or nil
+            self.modData.CHC_item_favorites[item.fullType] = isFav or nil
             self.backRef.updateQueue:push({
                 targetViews = { 'fav_items' },
                 actions = { 'needUpdateFavorites', 'needUpdateObjects' }
