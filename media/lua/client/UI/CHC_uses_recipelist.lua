@@ -3,7 +3,6 @@ CHC_uses_recipelist = ISScrollingListBox:derive('CHC_uses_recipelist')
 -- region create
 function CHC_uses_recipelist:initialise()
     ISScrollingListBox.initialise(self)
-    self.fastListReturn = CHC_main.common.fastListReturn
 end
 
 -- endregion
@@ -14,17 +13,13 @@ function CHC_uses_recipelist:prerender()
     CHC_view._list.prerender(self)
 end
 
-function CHC_uses_recipelist:doDrawItem(y, item, alt)
-    if self:fastListReturn(y) then return y + item.height end
-    if not item.height then item.height = self.itemheight end
-    if not item.defaultHeight then
-        item.defaultHeight = self.itemheight
-    end
-    if item.item.drawMod then
-        local baseH = math.min(self.fontSize, self.curFontData.icon) + self.fontSize + self.curFontData.pad
-        item.height = baseH
-    end
+function CHC_uses_recipelist:render()
+    self:setStencilRect(0, 0, self.width, self.height)
+    CHC_view._list.render(self)
+    self:clearStencilRect()
+end
 
+function CHC_uses_recipelist:doDrawItem(y, item, alt)
     local recipe = item.item
     local a = 0.9
     local favoriteStar = nil
@@ -78,17 +73,7 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
             clr['r'], clr['g'], clr['b'] = 0.7, 0, 0
         end
     end
-    if item.item.drawMod then
-        local modFont = UIFont.NewSmall
-        local modY = self.curFontData.pad + getTextManager():getFontHeight(modFont)
-        local tY = clr.y - modY / 4
-        self:drawText(clr.txt, clr.x, tY, clr.r, clr.g, clr.b, clr.a, clr.font)
-        tY = tY + self.fontSize - self.curFontData.pad
-        self:drawText('Mod: ' .. tostring(item.item.module), clr.x + self.curFontData.pad, tY, clr.r, clr.g, clr.b,
-            clr.a, modFont)
-    else
-        self:drawText(clr.txt, clr.x, clr.y, clr.r, clr.g, clr.b, clr.a, clr.font)
-    end
+    self:drawText(clr.txt, clr.x, clr.y, clr.r, clr.g, clr.b, clr.a, clr.font)
     --endregion
 
     --region favorite handler
@@ -125,9 +110,6 @@ function CHC_uses_recipelist:doDrawItem(y, item, alt)
         self:drawRect(sc.x, sc.y, sc.w, sc.h, 0.2, 0.5, sc.g, sc.b)
     end
     --endregion
-
-    y = y + item.height;
-    return y;
 end
 
 -- endregion

@@ -211,7 +211,6 @@ function CHC_search:searchProcessToken(token, item)
     local isAllowSpecialSearch = CHC_settings.config.allow_special_search
     local isSpecialSearch = false
     local char
-    local items = {}
 
     if isAllowSpecialSearch and CHC_search_bar:isSpecialCommand(token) then
         isSpecialSearch = true
@@ -275,8 +274,14 @@ end
 
 function CHC_search:processAddObjToObjList(item, modData)
     local name = item.displayName
+    local w = utils.strWidth(self.curFontData.font, name) + 50
     if name then
-        self.objList:addItem(name, item)
+        local addedItem = self.objList:addItem(name, item)
+        if w > self.objList.width then
+            addedItem.tooltip = name
+        else
+            addedItem.tooltip = nil
+        end
     end
 end
 

@@ -136,10 +136,10 @@ function CHC_items_panel:onResize()
     self.statsList:setHeight(self.height - self.mainInfo.height - 4 * self.padY)
 end
 
-function CHC_items_panel:render()
-    ISPanel.render(self)
-    if not self.item then return end
-end
+-- function CHC_items_panel:render()
+--     if not self.item then return end
+--     ISPanel.render(self)
+-- end
 
 -- endregion
 
@@ -165,6 +165,7 @@ function CHC_items_panel:setObj(item)
         self.mainImg.forcedHeightImage = self.mainImg.origHI
         self.itemImgTextureMultApplied = false
     end
+    CHC_main.common.cacheTex(item)
     self.mainImg:setImage(item.texture)
     if self.item.tooltip then
         self.mainImg:setTooltip(getText(self.item.tooltip))
@@ -180,7 +181,6 @@ function CHC_items_panel:setObj(item)
     self.mainDispCat:setName(getText('IGUI_invpanel_Category') .. ': ' .. item.displayCategory)
 
     self.mainMod:setName(getText('IGUI_mod_chc') .. ': ' .. item.modname)
-    -- self.mainWeight:setName(getText('IGUI_invpanel_weight') .. ': ' .. round(item.item:getWeight(), 2))
     local maxY = self.mainMod.y + self.mainMod.height + 2
 
     self.mainInfo:setHeight(math.max(74, maxY))

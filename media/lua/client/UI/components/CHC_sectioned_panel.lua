@@ -1,3 +1,4 @@
+local utils = require("CHC_utils")
 -- ISSectionedPanel
 CHC_sectioned_panel = ISPanel:derive('CHC_sectioned_panel')
 
@@ -9,7 +10,7 @@ local CHC_section = CHC_sectioned_panel_section
 --region section
 
 function CHC_section:createChildren()
-    local btnH = math.max(24, getTextManager():MeasureStringY(self.font, self.title) + 2 * self.padY)
+    local btnH = math.max(24, utils.strHeight(self.font, self.title) + 2 * self.padY)
     self.headerButton = ISButton:new(0, 0, self.headerButtonWidth, btnH, self.title, self,
         self.onHeaderClick)
     self.headerButton:initialise()
@@ -94,14 +95,7 @@ function CHC_section:clear()
 end
 
 function CHC_section:prerender()
-    local sx, sy, sx2, sy2 = 0, 0, self.width, self.height
-    if true then
-        sx = self.javaObject:clampToParentX(self:getAbsoluteX() + sx) - self:getAbsoluteX()
-        sx2 = self.javaObject:clampToParentX(self:getAbsoluteX() + sx2) - self:getAbsoluteX()
-        sy = self.javaObject:clampToParentY(self:getAbsoluteY() + sy) - self:getAbsoluteY()
-        sy2 = self.javaObject:clampToParentY(self:getAbsoluteY() + sy2) - self:getAbsoluteY()
-    end
-    self:setStencilRect(sx, sy, sx2 - sx, sy2 - sy)
+    self:clampStencilRectToParent(0, 0, self.width, self.height)
 end
 
 function CHC_section:render()
@@ -154,10 +148,6 @@ function CHC_sectioned_panel:addSection(panel, title)
     local section = CHC_section:new(0, 0, self.width - sbarWid, 1,
         panel, title, self.rightMargin, self.headerWidth)
     self:addChild(section)
-    if self:getScrollChildren() then
-        section:setScrollWithParent(true)
-        section:setScrollChildren(true)
-    end
     table.insert(self.sections, section)
     self.sectionMap[title] = section
 end
@@ -203,26 +193,8 @@ function CHC_sectioned_panel:prerender()
         self:setScrollHeight(y)
     end
 
-    local sx, sy, sx2, sy2 = 0, 0, self.width, self.height
-
-    if self:isVScrollBarVisible() then
-        sx2 = self.vscroll.x + 3 -- +3 because the scrollbar texture is narrower than the scrollbar width
-    end
-
-    if self.parent and self.parent:getScrollChildren() then
-        sx = self.javaObject:clampToParentX(self:getAbsoluteX() + sx) - self:getAbsoluteX()
-        sx2 = self.javaObject:clampToParentX(self:getAbsoluteX() + sx2) - self:getAbsoluteX()
-        sy = self.javaObject:clampToParentY(self:getAbsoluteY() + sy) - self:getAbsoluteY()
-        sy2 = self.javaObject:clampToParentY(self:getAbsoluteY() + sy2) - self:getAbsoluteY()
-    end
-    self:setStencilRect(sx, sy, sx2 - sx, sy2 - sy)
 
     self:updateScrollbars()
-end
-
-function CHC_sectioned_panel:render()
-    ISPanel.render(self)
-    self:clearStencilRect()
 end
 
 function CHC_sectioned_panel:onResize()
@@ -233,13 +205,11 @@ function CHC_sectioned_panel:onMouseWheel(del)
     for _, section in ipairs(self.sections) do
         local panel = section.panel
         if panel:isMouseOver() then
-            if panel.objList and panel.objList:isVScrollBarVisible() then
-                panel.objList.onMouseWheel(panel.objList, del)
-                return false
-            end
-            if panel.items and panel:isVScrollBarVisible() then
-                panel.onMouseWheel(panel, del)
-                return false
+            local vscroll = panel.objList and panel.objList.vscroll or panel.vscroll
+            if vscroll and vscroll:isReallyVisible() then
+                if (vscroll.pos > 0 and del == -1) or (vscroll.pos < 1 and del == 1) then
+                    return false
+                end
             end
         end
     end

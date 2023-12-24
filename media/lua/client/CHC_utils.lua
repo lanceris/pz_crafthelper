@@ -269,6 +269,34 @@ function CHC_utils.empty(tab)
     return true
 end
 
+function CHC_utils.concat(t1, t2)
+    local result = {}
+    for i = 1, #t1 do
+        result[i] = t1[i]
+    end
+    local s = #result
+    for i = 1, #t2 do
+        result[s + i] = t2[i]
+    end
+    return result
+end
+
+---measure string width for specified font
+---@param str string
+---@param font UIFont
+---@return number width width in pixels
+function CHC_utils.strWidth(font, str)
+    return getTextManager():MeasureStringX(font, str)
+end
+
+---measure string height for specified font
+---@param str string
+---@param font UIFont
+---@return number height height in pixels
+function CHC_utils.strHeight(font, str)
+    return getTextManager():MeasureStringY(font, str)
+end
+
 CHC_utils.configDir = "CraftHelperContinued" .. getFileSeparator()
 -- CHC_utils.cacheDir = CHC_utils.configDir .. "cache" .. getFileSeparator()
 

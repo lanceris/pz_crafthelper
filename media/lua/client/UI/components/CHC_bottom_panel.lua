@@ -1,12 +1,15 @@
 require 'ISUI/ISPanel'
 require 'ISUI/ISButton'
 require 'ISUI/ISModalRichText'
-local utils = require('CHC_utils')
+require 'UI/CHC_preset_tooltip'
+require 'UI/components/CHC_filter_row'
 
+local utils = require('CHC_utils')
 CHC_bottom_panel = ISPanelJoypad:derive('CHC_bottom_panel')
 
 local insert = table.insert
 local pairs = pairs
+local tsort = table.sort
 --region create
 function CHC_bottom_panel:initialise()
     ISPanelJoypad.initialise(self)
@@ -15,7 +18,6 @@ end
 
 function CHC_bottom_panel:create()
     local x, y, w, h = 0, 0, 24, 24
-    local font = UIFont.Small -- TODO: move to options
 
     -- region infoButton
     self.infoButton = ISButton:new(x, y, w, h, nil, self)
@@ -30,9 +32,9 @@ function CHC_bottom_panel:create()
     -- region selector
     self.categorySelector = ISComboBox:new(self.infoButton.width, 0, 0, 24, self, self.onSelectorChange)
     self.categorySelector:setWidth(self.width - self.categorySelector.x - 24)
-    self.categorySelector.font = font
+    self.categorySelector.font = self.font
     self.categorySelector.onChange = CHC_bottom_panel.onChangePreset
-    self.categorySelector.prerender = CHC_bottom_panel.prerenderSelector
+    self.categorySelector.prerender = self.prerenderSelector
     self.categorySelector:initialise()
     self.categorySelector:setEditable(CHC_settings.config.editable_category_selector)
     -- endregion
@@ -162,11 +164,14 @@ function CHC_bottom_panel:updatePresets()
     self.categorySelector:clear()
     self.categorySelector:addOption({ text = self.defaultPresetName })
     for name, data in pairs(presets) do
+        local dqn = 0
+        for _, _ in pairs(data) do dqn = dqn + 1 end
         local option = {
             text = name,
-            data = { count = #data },
+            data = { count = dqn },
             tooltip = self:createTooltip(ui_type, data)
         }
+        option.tooltip:setOwner(self.categorySelector.popup)
         self.categorySelector:addOption(option)
     end
     self:selectDefaultPreset()
@@ -182,6 +187,10 @@ function CHC_bottom_panel:update()
             sub.view.needUpdateFavorites = true
             return
         end
+    end
+    if self.needUpdateInfoTooltip then
+        self.needUpdateInfoTooltip = false
+        self.infoButton:setTooltip(self:createInfoText())
     end
 end
 
@@ -205,50 +214,97 @@ end
 function CHC_bottom_panel:getItemTooltip(str)
     local item = self:parseItemString(str)
     local entry = {}
-    if not item then return entry end
-    insert(entry, "<IMAGE:")
-    if item.texture_name then
-        insert(entry, item.texture_name)
-    else
-        insert(entry, self.defaultItemTexName)
+    if not item then return end
+    if not item.texture then
+        CHC_main.common.cacheTex(item)
     end
-    insert(entry, "> ")
-    insert(entry, item.displayName)
-    insert(entry, "\n")
-    return table.concat(entry, "")
+    entry.texture = item.texture
+    entry.texture_name = item.texture_name or self.defaultItemTexName
+    entry.name = item.displayName
+    if item.category == "Moveable" then
+        entry.texture_multiplier = 2
+    else
+        entry.texture_multiplier = 1
+    end
+    return entry
 end
 
 function CHC_bottom_panel:getRecipeTooltip(str)
     local recipe = self:parseRecipeString(str)
     local entry = {}
-    if not recipe then return entry end
+    if not recipe then return end
     local resultItem = recipe.recipeData.result
-    if resultItem and resultItem.texture_name then
-        insert(entry, "<IMAGE:")
-        insert(entry, resultItem.texture_name)
-        insert(entry, "> ")
+    if resultItem then
+        if not resultItem.texture then
+            CHC_main.common.cacheTex(resultItem)
+        end
+        entry.texture = resultItem.texture
+        entry.texture_name = resultItem.texture_name
+    else
+        entry.texture_name = self.defaultItemTexName
     end
-    insert(entry, recipe.recipeData.name)
-    insert(entry, "\n")
-    return table.concat(entry, "")
+    entry.name = recipe.recipeData.name
+    if resultItem.category == "Moveable" then
+        entry.texture_multiplier = 2
+    else
+        entry.texture_multiplier = 1
+    end
+    return entry
 end
 
 function CHC_bottom_panel:createTooltip(ui_type, objs, limit)
     limit = limit or 20
     limit = math.min(#objs, limit)
+    local tooltip = PresetTooltip.addToolTip()
+    self:updateTooltipData(tooltip, ui_type, objs, limit)
+    return tooltip
+end
+
+function CHC_bottom_panel:updateTooltipData(tooltip, ui_type, objs, limit)
+    tooltip:reset()
     local handlers = {
         items = CHC_bottom_panel.getItemTooltip,
         recipes = CHC_bottom_panel.getRecipeTooltip
     }
-    local tooltip = { "<SIZE:small>" }
-    for i = 1, limit do
-        insert(tooltip, handlers[ui_type](self, objs[i]))
+    local x = 0
+    local y = 0
+    local margin = 4
+    local texSize = 32
+    local cnt = 0
+    local to_add = {}
+    for _, obj in pairs(objs) do
+        if cnt > limit then
+            break
+        end
+        local entry = handlers[ui_type](self, obj)
+        if not entry then
+            -- display fulltype/recipe name
+            entry = {
+                texture_multiplier = 1,
+                texture_name = self.defaultItemTexName,
+                name = ui_type == "recipes" and strsplit(obj, ":")[2] or obj
+            }
+        end
+        insert(to_add, entry)
+    end
+    tsort(to_add, function(a, b) return a.name:lower() < b.name:lower() end)
+    for i = 1, #to_add do
+        local entry = to_add[i]
+        local tS = texSize * entry.texture_multiplier
+        local lH = math.max(tS, tooltip.fontHgt)
+        if entry.texture then
+            tooltip:addImage(x, y, tS, nil, entry.texture)
+        else
+            tooltip:addImage(x, y, tS, entry.texture_name)
+        end
+        tooltip:addText(x + tS + margin, y, entry.name)
+        y = y + lH
+        cnt = cnt + 1
     end
     if #objs > limit then
-        insert(tooltip, "... + " .. #objs - limit)
+        local t = "... + " .. #objs - limit
+        tooltip:addText(x, y, t)
     end
-
-    return table.concat(tooltip, "")
 end
 
 function CHC_bottom_panel:getUiType()
@@ -332,8 +388,46 @@ function CHC_bottom_panel:adjustPositionToAvoidOverlap(avoidRect)
     end
 end
 
+function CHC_bottom_panel:validatePreset(i, objStr, ui_type)
+    local handlers = {
+        items = CHC_bottom_panel.parseItemString,
+        recipes = CHC_bottom_panel.parseRecipeString,
+    }
+    local _errors = {}
+    local entry = handlers[ui_type](self, objStr)
+    if not entry then
+        local missing = {}
+        if ui_type == "recipes" then
+            --parse each item and find missing
+            local missingItems = {}
+            local items = strsplit(objStr, ":")
+            if items[1] ~= "craftingFavorite" then
+                insert(missingItems, "craftingFavorite")
+            end
+            if not CHC_main.recipeMap[items[2]] then
+                insert(missingItems, items[2])
+            end
+            for j = 3, #items do
+                if not handlers.items(self, items[j]) then
+                    insert(missingItems, items[j])
+                end
+            end
+            if utils.empty(missingItems) then
+                -- all ingredients are ok but recipe not found (altered order?)
+                insert(missingItems, string.format("Recipe object for %s", items[2]))
+            end
+            missing = missingItems
+        else
+            missing = { objStr }
+        end
+        for j = 1, #missing do
+            insert(_errors, string.format('[%s] = `%s` missing', i, missing[j]))
+        end
+    end
+    return entry, objStr, _errors
+end
+
 function CHC_bottom_panel:onChangePreset()
-    -- set temporary list of items until
     local selected = self:getSelectedPreset()
     local currentFav = self:getCurrentFavorites()
     if not selected or not currentFav then return end
@@ -345,15 +439,75 @@ function CHC_bottom_panel:onChangePreset()
     local ui_type = self:getUiType()
     local to_load = CHC_settings.presets[ui_type][selected.text]
     if not to_load then return end
-    local handlers = {
-        items = CHC_bottom_panel.parseItemString,
-        recipes = CHC_bottom_panel.parseRecipeString,
-    }
+
     local objects = {}
-    for i = 1, #to_load do
-        insert(objects, handlers[ui_type](self, to_load[i]))
+    local validObjects = {}
+    local fullTypes = {}
+    local errors = {}
+    local errMap = {}
+    for i, value in pairs(to_load) do
+        local obj, objFullType, err = self:validatePreset(i, value, ui_type)
+        insert(objects, obj)
+        insert(fullTypes, objFullType)
+        if not utils.empty(err) then
+            errMap[objFullType] = true
+            errors = utils.concat(errors, err)
+        else
+            insert(validObjects, obj)
+        end
     end
-    CHC_view.refreshObjList(currentFav.parent, objects)
+
+    local function handleErrors(_, button)
+        if button.internal == "CANCEL" then
+            -- remove missing and save
+            local valid = {}
+            for i = 1, #fullTypes do
+                if not errMap[fullTypes[i]] then
+                    insert(valid, fullTypes[i])
+                end
+            end
+            if utils.empty(valid) then
+                -- remove preset and select default
+                CHC_settings.presets[ui_type][selected.text] = nil
+                CHC_settings.SavePresetsData()
+                self:updatePresets()
+                return
+            end
+            CHC_settings.presets[ui_type][selected.text] = valid
+            objects = validObjects
+            selected.data.count = #objects
+            self:updateTooltipData(selected.tooltip, ui_type, valid, 20)
+            CHC_settings.SavePresetsData()
+        end
+        -- load preset
+        CHC_view.refreshObjList(currentFav.parent, objects)
+    end
+
+    if not utils.empty(errors) then
+        local params = {
+            _parent = self.window,
+            outerParent = button.parent.outerParent,
+            type = ISTextBox,
+            text = getText("UI_BottomPanel_onChangePreset_Validation_Title"),
+            onclick = handleErrors,
+            defaultEntryText = table.concat(errors, "\n"),
+            width = 450,
+            height = 450
+        }
+        local modal = self:addModal(params)
+        modal.yes:setTitle(getText("UI_BottomPanel_onChangePreset_Validation_LoadAnyway"))
+        modal.no:setTitle(getText("UI_BottomPanel_onChangePreset_Validation_Remove"))
+        modal.yes:setWidthToTitle()
+        modal.no:setWidthToTitle()
+        modal.entry:setMultipleLine(true)
+        modal.entry:setEditable(true)
+        modal.entry:addScrollBars()
+        modal.entry:setHeight(modal.height - modal.yes.height - 40)
+
+        modal.entry:setY(25)
+    else
+        CHC_view.refreshObjList(currentFav.parent, objects)
+    end
 end
 
 function CHC_bottom_panel:transformFavoriteObjListToModData(ui_type, asMap)
@@ -386,7 +540,7 @@ function CHC_bottom_panel:getSelectedPreset()
     return options[selected]
 end
 
-local function addModal(params, onTop)
+function CHC_bottom_panel:addModal(params, onTop)
     if not onTop then onTop = true end
     local w = params.w or 250
     local h = params.h or 100
@@ -405,7 +559,7 @@ local function addModal(params, onTop)
     return modal
 end
 
-local function handleInvalidInput(text, params)
+function CHC_bottom_panel:handleInvalidInput(text, params)
     local minlen = 1
     local maxlen = 50
     local len = text:len()
@@ -426,7 +580,7 @@ local function handleInvalidInput(text, params)
     if invalid then
         params.yesno = false
         params.text = msg
-        addModal(params)
+        self:addModal(params)
     end
     return not invalid
 end
@@ -463,6 +617,7 @@ function CHC_bottom_panel:onMoreBtnSaveClick()
     local ui_type = self:getUiType()
     local to_save = CHC_settings.presets[ui_type]
     local selectedPreset = self:getSelectedPreset()
+    local currentFav = self:getCurrentFavorites()
 
     local function onOverwritePreset(_, button, name)
         if button.internal == "YES" then
@@ -482,11 +637,11 @@ function CHC_bottom_panel:onMoreBtnSaveClick()
                 onclick = onOverwritePreset,
                 param1 = text,
             }
-            local validInput = handleInvalidInput(text, params)
+            local validInput = self:handleInvalidInput(text, params)
             if not validInput then return end
             if to_save[text] then
                 params.parent = button.parent
-                addModal(params)
+                self:addModal(params)
             else
                 self:_savePreset(text)
                 button.parent.showError = false
@@ -499,19 +654,24 @@ function CHC_bottom_panel:onMoreBtnSaveClick()
     -- check for overwriting
     -- on save add to CHC_settings.presets
     -- and save to disk
-    local params = {
-        type = ISTextBox,
-        _parent = self.window,
-        text = "Enter name:",
-        defaultEntryText = "",
-        onclick = savePreset,
-        showError = true, -- to prevent destroying on click
-        errorMsg = ""
-    }
-    if selectedPreset and selectedPreset.text ~= self.defaultPresetName then
-        params.defaultEntryText = selectedPreset.text
+    local params = { _parent = self.window }
+
+    if not currentFav or #currentFav.items == 0 then
+        params.type = ISModalDialog
+        params.yesno = false
+        params.text = "No favorites found"
+    else
+        params.type = ISTextBox
+        params.text = "Enter name:"
+        params.defaultEntryText = ""
+        params.onclick = savePreset
+        params.showError = true -- to prevent destroying on click
+        params.errorMsg = ""
+        if selectedPreset and selectedPreset.text ~= self.defaultPresetName then
+            params.defaultEntryText = selectedPreset.text
+        end
     end
-    addModal(params)
+    self:addModal(params)
 end
 
 function CHC_bottom_panel:onMoreBtnApplyClick()
@@ -557,7 +717,7 @@ function CHC_bottom_panel:onMoreBtnApplyClick()
         yesno = yesno,
         onclick = applyPreset
     }
-    addModal(params)
+    self:addModal(params)
 end
 
 function CHC_bottom_panel:onMoreBtnRenameClick()
@@ -593,13 +753,13 @@ function CHC_bottom_panel:onMoreBtnRenameClick()
                 param1 = existingName,
                 param2 = text,
             }
-            local validInput = handleInvalidInput(text, params)
+            local validInput = self:handleInvalidInput(text, params)
             if not validInput then return end
             if existingName == text then
                 button.parent.showError = false
             elseif to_save[text] then
                 params.parent = button.parent
-                addModal(params)
+                self:addModal(params)
             else
                 self:_overwritePreset(text, existingName, true)
                 button.parent.showError = false
@@ -617,7 +777,7 @@ function CHC_bottom_panel:onMoreBtnRenameClick()
         params.type = ISModalDialog
         params.yesno = false
         params.text = "Please select preset!"
-        addModal(params)
+        self:addModal(params)
     else
         params.type = ISTextBox
         params.defaultEntryText = selectedPreset.text
@@ -626,7 +786,7 @@ function CHC_bottom_panel:onMoreBtnRenameClick()
         params.param1 = selectedPreset.text
         params.showError = true -- to prevent destroying on click
         params.errorMsg = ""
-        addModal(params)
+        self:addModal(params)
     end
 end
 
@@ -664,11 +824,11 @@ function CHC_bottom_panel:onMoreBtnDuplicateClick()
                 param1 = existingName,
                 param2 = text,
             }
-            local validInput = handleInvalidInput(text, params)
+            local validInput = self:handleInvalidInput(text, params)
             if not validInput then return end
             if to_save[text] then
                 params.parent = button.parent
-                addModal(params)
+                self:addModal(params)
             else
                 self:_overwritePreset(text, self:transformFavoriteObjListToModData(ui_type))
                 button.parent.showError = false
@@ -686,7 +846,7 @@ function CHC_bottom_panel:onMoreBtnDuplicateClick()
         params.type = ISModalDialog
         params.yesno = false
         params.text = "Please select preset!"
-        addModal(params)
+        self:addModal(params)
         return
     end
     params.type = ISTextBox
@@ -696,7 +856,7 @@ function CHC_bottom_panel:onMoreBtnDuplicateClick()
     params.param1 = selectedPreset.text
     params.showError = true -- to prevent destroying on click
     params.errorMsg = ""
-    addModal(params)
+    self:addModal(params)
 end
 
 function CHC_bottom_panel:onMoreBtnShareClick()
@@ -728,7 +888,7 @@ function CHC_bottom_panel:onMoreBtnShareClick()
         defaultEntryText = to_share_str or "",
     }
 
-    local modal = addModal(params)
+    local modal = self:addModal(params)
     modal.entry:setMultipleLine(true)
     modal.entry:setEditable(true)
     modal.entry:addScrollBars()
@@ -762,11 +922,11 @@ function CHC_bottom_panel:onMoreBtnImportClick()
                 onclick = onOverwritePreset,
                 param1 = text,
             }
-            local validInput = handleInvalidInput(text, params)
+            local validInput = self:handleInvalidInput(text, params)
             if not validInput then return end
             if to_save[text] then
                 params.parent = button.parent
-                addModal(params)
+                self:addModal(params)
             else
                 self:_savePreset(text)
                 button.parent.showError = false
@@ -780,9 +940,9 @@ function CHC_bottom_panel:onMoreBtnImportClick()
 
     local function validate(text)
         local result = { errors = {}, preset = {} }
-        local fn, err = loadstring("return " .. tostring(text))
+        local fn, _err = loadstring("return " .. tostring(text))
         if not fn then
-            insert(result.errors, string.format("Format invalid, could not load (%s)", err))
+            insert(result.errors, string.format("Format invalid, could not load (%s)", _err))
             return result
         end
         local status, preset = pcall(fn)
@@ -802,21 +962,12 @@ function CHC_bottom_panel:onMoreBtnImportClick()
             insert(result.errors, "Preset entries missing or empty")
             preset.entries = {}
         end
-        local handlers = {
-            items = CHC_bottom_panel.parseItemString,
-            recipes = CHC_bottom_panel.parseRecipeString,
-        }
         local valid = {}
         for i = 1, #preset.entries do
             local objStr = tostring(preset.entries[i]):trim()
-            local entry = handlers[preset.type](self, objStr)
-            if not entry then
-                insert(result.errors,
-                    string.format('[%s] = "%s" missing', i, objStr)
-                )
-            else
-                insert(valid, objStr)
-            end
+            local _, _valid, err = self:validatePreset(i, objStr, preset.type)
+            insert(valid, _valid)
+            result.errors = utils.concat(result.errors, err)
         end
         preset.entries = valid
         result.preset = preset
@@ -838,9 +989,21 @@ function CHC_bottom_panel:onMoreBtnImportClick()
         }
 
         if not utils.empty(validation_data.errors) then
-            params.type = ISModalDialog
-            params.yesno = false
-            params.text = table.concat(validation_data.errors, "\n")
+            params.type = ISTextBox
+            params.defaultEntryText = table.concat(validation_data.errors, "\n")
+            params.text = "Validation errors"
+            params.width = 250
+            params.height = 350
+
+            local modal = self:addModal(params)
+            modal.no.setVisible(false)
+            modal.yes:setTitle("OK")
+            modal.yes:setX(modal.width / 2 - modal.yes.width / 2)
+            modal.entry:setMultipleLine(true)
+            modal.entry:setEditable(true)
+            modal.entry:addScrollBars()
+            modal.entry:setHeight(modal.height - modal.yes.height - 40)
+            modal.entry:setY(25)
         else
             params.type = ISTextBox
             params.text = "Entry name:"
@@ -848,8 +1011,8 @@ function CHC_bottom_panel:onMoreBtnImportClick()
             params.onclick = savePreset
             params.showError = true
             params.errorMsg = ""
+            self:addModal(params)
         end
-        addModal(params)
     end
 
     local params = {
@@ -864,7 +1027,7 @@ function CHC_bottom_panel:onMoreBtnImportClick()
         errorMsg = ""
     }
 
-    local modal = addModal(params)
+    local modal = self:addModal(params)
     modal.entry:setMultipleLine(true)
     modal.entry:setEditable(true)
     modal.entry:addScrollBars()
@@ -878,6 +1041,7 @@ function CHC_bottom_panel:onMoreBtnDeleteClick()
     -- on ok delete entry from CHC_settings.presets and save
     -- if preset not selected - popup (ok) with msg to select preset
     local selectedPreset = self:getSelectedPreset()
+    if not selectedPreset then return end
 
     local function deletePreset(_, button)
         if button.internal ~= "YES" then return end
@@ -900,7 +1064,7 @@ function CHC_bottom_panel:onMoreBtnDeleteClick()
         yesno = yesno,
         onclick = deletePreset
     }
-    addModal(params)
+    self:addModal(params)
 end
 
 --endregion
@@ -908,31 +1072,9 @@ end
 
 --region render
 function CHC_bottom_panel:prerenderSelector()
-    ISComboBox.prerender(self)
-    local selected = self.options[self.selected]
-    if self.popup and not self.expanded then
-        for i = 1, #self.popup.items do
-            local item = self.popup.items[i]
-            local tUI = item.tooltipUI
-            if tUI then
-                item.tooltipUI:setVisible(false)
-                item.tooltipUI:removeFromUIManager()
-            end
-        end
-    end
-    if not selected then return end
-
-    if self:isEditable() and self.editor and self.editor:isReallyVisible() then
-    else
-        local data = self:getOptionData(self.selected)
-        if not data or not data.count or type(data.count) ~= "number" then return end
-        local texX = getTextManager():MeasureStringX(self.font, self:getOptionText(self.selected))
-        local y = (self.height - getTextManager():getFontHeight(self.font)) / 2
-        self:clampStencilRectToParent(0, 0, self.width - self.image:getWidthOrig() - 6, self.height)
-        local countStr = ' (' .. data.count .. ')'
-        self:drawText(countStr, texX + 10, y, self.textColor.r, self.textColor.g,
-            self.textColor.b, self.textColor.a, self.font)
-        self:clearStencilRect()
+    CHC_filter_row.prerenderSelector(self)
+    if PresetTooltip.tooltipsUsedNum > 0 and self.popup and not self.expanded then
+        PresetTooltip.releaseAll()
     end
 end
 
@@ -942,28 +1084,13 @@ function CHC_bottom_panel:doDrawItemSelectorPopup(y, item, alt)
     if not data or not data.count or type(data.count) ~= "number" then return y end
     local tooltip = self.parentCombo:getOptionTooltip(item.index)
     if self:isMouseOver() and tooltip and item.index == self.mouseoverselected then
-        if not item.tooltipUI then
-            item.tooltipUI = ISToolTip:new()
-            item.tooltipUI.followMouse = false
-            item.tooltipUI:setOwner(self.parentCombo)
-            item.tooltipUI:setVisible(false)
-            item.tooltipUI:setAlwaysOnTop(true)
-        end
-        if not item.tooltipUI:getIsVisible() then
-            if string.contains(tooltip, "\n") then
-                item.tooltipUI.maxLineWidth = 1000 -- don't wrap the lines
-            else
-                item.tooltipUI.maxLineWidth = 300
-            end
-            item.tooltipUI:addToUIManager()
-            item.tooltipUI:setVisible(true)
-        end
-        item.tooltipUI.description = tooltip
-        item.tooltipUI:setDesiredPosition(self.x + self.width, self.y)
+        tooltip:setVisible(true)
+        tooltip:addToUIManager()
+        tooltip:setDesiredPosition(self.x + self.width, self.y)
     else
-        if item.tooltipUI and item.tooltipUI:getIsVisible() then
-            item.tooltipUI:setVisible(false)
-            item.tooltipUI:removeFromUIManager()
+        if tooltip and tooltip:getIsVisible() then
+            tooltip:setVisible(false)
+            tooltip:removeFromUIManager()
         end
     end
     if self.parentCombo:hasFilterText() then
@@ -971,7 +1098,7 @@ function CHC_bottom_panel:doDrawItemSelectorPopup(y, item, alt)
             return y
         end
     end
-    local texX = getTextManager():MeasureStringX(self.font, self.parentCombo:getOptionText(item.index))
+    local texX = utils.strWidth(self.font, self.parentCombo:getOptionText(item.index))
     local countStr = ' (' .. data.count .. ')'
     self:drawText(countStr, texX + 10, y - item.height + 5,
         self.parentCombo.textColor.r, self.parentCombo.textColor.g,
@@ -1009,6 +1136,31 @@ function CHC_bottom_panel:new(x, y, w, h, window)
     o.moreButtonTex = getTexture("media/textures/bottom_more.png")
     o.defaultItemTexName = "media/inventory/Question_On.png"
     o.needUpdatePresets = true
+    o.needUpdateInfoTooltip = false
     o.window = window
+    o.font = UIFont.Small
     return o
+end
+
+local function _scheduleTooltipUpdate()
+    if not CHC_menu or not CHC_menu.CHC_window or not CHC_menu.CHC_window.updateQueue then return end
+    CHC_menu.CHC_window.updateQueue:push({
+        targetViews = { 'bottom_panel' },
+        actions = { 'needUpdateInfoTooltip' }
+    })
+end
+
+local old_close = MainOptions.close
+function MainOptions:close()
+    old_close(self)
+    _scheduleTooltipUpdate()
+end
+
+do
+    local old_load = MainOptions.loadKeys
+    MainOptions.loadKeys = function(...)
+        local result = old_load(...)
+        _scheduleTooltipUpdate()
+        return result
+    end
 end

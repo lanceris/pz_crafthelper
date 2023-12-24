@@ -9,11 +9,16 @@
 - Ability to change window opacity
 - Favorites presets
 - Help tooltip with current keyboard shortcuts
+- Textures now loaded on demand (i.e. when shown on UI) instead of at startup
+- Item attributes now loaded on demand (i.e when shown on UI/searched by attribute ($))
+- Ability to hold button to traverse item/recipe lists (delay is configurable)
 
 ### Improvements
 
 - Item favorites now stored in `CHC_item_favorites` table in player modData
 - Favorites now syncronized with default crafting window
+- Improved rendering for large lists of items (only part of objects shown are processed, instead of all)
+- Reduced mod initialization time by ~4.5-5 times by not loading all textures/attributes on startup
 
 ### Bugfixes
 

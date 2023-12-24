@@ -40,7 +40,7 @@ local function renderdetailsCHC(self, doDragged)
                     doIt = false
                 end
 
-                local tex = item:getTex()
+                local tex = chcItem.texture or CHC_main.common.cacheTex(chcItem)
                 local auxDXY = math.ceil(20 * self.texScale)
                 if doIt == true and tex ~= nil and count == 1 then
                     local tx = (13 + auxDXY + xoff)

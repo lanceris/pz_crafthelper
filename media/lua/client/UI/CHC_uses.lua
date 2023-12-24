@@ -405,7 +405,18 @@ function CHC_uses:processAddObjToObjList(recipe, modData) --FIXME
     local name = recipe.recipeData.name
     recipe.favorite = modData[recipe.favStr] or false
     recipe.drawMod = self.shouldDrawMod and recipe.module and recipe.module ~= 'Base'
-    self.objList:addItem(name, recipe)
+    if name then
+        if recipe.drawMod then
+            name = name .. " (" .. tostring(recipe.module) .. ")"
+        end
+        local w = utils.strWidth(self.curFontData.font, name) + 50
+        local addedItem = self.objList:addItem(name, recipe)
+        if w > self.objList.width then
+            addedItem.tooltip = name
+        else
+            addedItem.tooltip = nil
+        end
+    end
 end
 
 function CHC_uses:getContainers()

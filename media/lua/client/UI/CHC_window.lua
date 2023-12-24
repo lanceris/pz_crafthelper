@@ -24,7 +24,7 @@ function CHC_window:create()
 
     self.tbh = self:titleBarHeight()
     -- region main container (search, favorites and all selected items)
-    self.panel = ISTabPanel:new(1, self.tbh, self.width, self.height - 48)
+    self.panel = ISTabPanel:new(1, self.tbh, self.width, self.height - 52)
 
     self.panel:initialise()
     self.panel:setTabsTransparency(0.4)
@@ -415,6 +415,12 @@ function CHC_window:update()
                     insert(targetViewObjs, view)
                 end
             end
+        elseif toProcess.targetViews[1] == "bottom_panel" then
+            if not self.bottomPanel then return end
+            for i = 1, #toProcess.actions do
+                self.bottomPanel[toProcess.actions[i]] = true
+            end
+            return
         else
             for i = 1, #toProcess.targetViews do
                 insert(targetViewObjs, self.uiTypeToView[toProcess.targetViews[i]])
@@ -470,8 +476,9 @@ function CHC_window:update()
         end
     end
     --TODO: refactor
-    if self.backgroundColor.a ~= (CHC_settings.config.window_opacity - 1) / 10 then
-        self.backgroundColor.a = (CHC_settings.config.window_opacity - 1) / 10
+    local a = (CHC_settings.config.window_opacity - 1) / 10
+    if self.backgroundColor.a ~= a then
+        self.backgroundColor.a = a
     end
 end
 
@@ -555,7 +562,7 @@ function CHC_window:onResize()
     local ui = self
     if not ui.panel or not ui.panel.activeView then return end
     ui.panel:setWidth(self.width)
-    ui.panel:setHeight(self.height - 48)
+    ui.panel:setHeight(self.height - 52)
     ui.bottomPanel:setWidth(self.width / 2)
     ui.bottomPanel:setY(ui.panel.y + ui.panel.height)
 
@@ -682,13 +689,17 @@ function CHC_window:onActivateView(target)
     end
 
     if sub.view.ui_type == 'fav_recipes' or sub.view.ui_type == 'fav_items' then
-        self.bottomPanel.categorySelector:setVisible(true)
-        self.bottomPanel.moreButton:setVisible(true)
+        if self.bottomPanel.categorySelector then
+            self.bottomPanel.categorySelector:setVisible(true)
+            self.bottomPanel.moreButton:setVisible(true)
+        end
         self.bottomPanel.needUpdatePresets = true
         sub.view.needUpdateObjects = true
     else
-        self.bottomPanel.categorySelector:setVisible(false)
-        self.bottomPanel.moreButton:setVisible(false)
+        if self.bottomPanel.categorySelector then
+            self.bottomPanel.categorySelector:setVisible(false)
+            self.bottomPanel.moreButton:setVisible(false)
+        end
     end
     if sub.view.filterRow then
         local oldval = sub.view.filterRow.categorySelector.editable
@@ -788,6 +799,14 @@ local modifierOptionToKey = {
     [4] = 'control+shift'
 }
 
+local scroll_speed_map = {
+    [1] = 10,
+    [2] = 50,
+    [3] = 100,
+    [4] = 200,
+    [5] = 500
+}
+
 function CHC_window:isModifierKeyDown(_type)
     local modifier
     if _type == 'recipe' then
@@ -845,16 +864,31 @@ function CHC_window:handleListMove(key, rl, subview)
     end
 end
 
-function CHC_window:onKeyRelease(key)
+function CHC_window:onKeyRepeat(key)
+    if self.isCollapsed then return end
+    if not self.keyPressedMS then return end
+    if (getTimestampMs() - self.keyPressedMS >= scroll_speed_map[CHC_settings.config.scroll_speed]) then
+        local subview, _ = self:getActiveSubView()
+        if not subview then return end
+        subview = subview.view
+        local rl = subview.objList
+        self:handleListMove(key, rl, subview)
+        self.keyPressedMS = getTimestampMs()
+    end
+end
+
+function CHC_window:onKeyPress(key)
     if self.isCollapsed then return end
 
     local ui = self
     local activeViewIx = ui.panel:getActiveViewIndex()
     local subview, view = self:getActiveSubView()
     if not subview or not view then
-        utils.chcerror("Can't determine (sub-)view", "CHC_window:onKeyRelease", nil, false)
+        utils.chcerror("Can't determine (sub-)view", "CHC_window:onKeyPress", nil, false)
         return
     end
+
+    self.keyPressedMS = getTimestampMs()
     subview = subview.view
     local rl = subview.objList
 

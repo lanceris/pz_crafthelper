@@ -3,7 +3,6 @@ CHC_items_list = ISScrollingListBox:derive('CHC_items_list')
 -- region create
 
 function CHC_items_list:initialise()
-    self.fastListReturn = CHC_main.common.fastListReturn
     ISScrollingListBox.initialise(self)
 end
 
@@ -25,10 +24,13 @@ function CHC_items_list:prerender()
     CHC_view._list.prerender(self)
 end
 
-function CHC_items_list:doDrawItem(y, item, alt)
-    if not item.height then item.height = self.itemheight end
-    if self:fastListReturn(y) then return y + self.itemheight end
+function CHC_items_list:render()
+    self:setStencilRect(0, 0, self.width, self.height)
+    CHC_view._list.render(self)
+    self:clearStencilRect()
+end
 
+function CHC_items_list:doDrawItem(y, item, alt)
     local itemObj = item.item
     local a = 0.9
 
@@ -49,6 +51,7 @@ function CHC_items_list:doDrawItem(y, item, alt)
 
     -- region icons
     if self.shouldShowIcons then
+        -- CHC_main.common.cacheTex(itemObj)
         local itemIcon = itemObj.texture
         if itemIcon then
             if itemObj.textureMult then
@@ -102,9 +105,6 @@ function CHC_items_list:doDrawItem(y, item, alt)
         self:drawRect(sc.x, sc.y, sc.w, sc.h, 0.2, 0.5, sc.g, sc.b)
     end
     --endregion
-
-    y = y + item.height;
-    return y;
 end
 
 -- endregion

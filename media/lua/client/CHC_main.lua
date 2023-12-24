@@ -122,6 +122,139 @@ CHC_main.parseOnGiveXP = function(recipeLua)
 end
 -- endregion
 
+local function formatOutput(propName, propVal)
+    if propName then
+        if sub(propName, 1, 3) == 'get' then
+            propName = sub(propName, 4)
+        elseif sub(propName, 1, 2) == 'is' then
+            propName = sub(propName, 3)
+        end
+    end
+    if propVal then
+        if type(propVal) ~= 'string' then
+            propVal = math.floor(propVal * 10000) / 10000
+        end
+    end
+    return propName, propVal
+end
+
+local function processProp(item, prop, isTypeSpecific, isSpecial)
+    local propVal
+    local propValRaw
+    local data
+    local propName = prop.name
+    local mul = prop.mul
+    local defVal = prop.default
+    local retRaw = prop.retRaw
+    local isIgnoreDefVal = prop.ignoreDefault
+    if isSpecial then
+        propValRaw = item[prop.path]
+        if propValRaw and prop.path2 then propValRaw = propValRaw[prop.path2] end
+        -- if propValRaw and prop.path3 then propValRaw = propValRaw[prop.path3] end
+    else
+        propValRaw = item[propName] and item[propName](item) or nil
+    end
+    if propValRaw then
+        data = {}
+        data.skip = prop.skip
+        data.skipMap = prop.skipMap
+        propVal = rawToStr(propValRaw)
+        if tonumber(propVal) then propVal = tonumber(propVal) end
+        if mul then propVal = propVal * mul end
+
+        propName, propVal = formatOutput(propName, propVal)
+        data.name = propName
+        data.value = propVal
+        data.isTypeSpecific = isTypeSpecific
+        if retRaw then
+            data.raw = propValRaw
+        end
+        if isIgnoreDefVal and propVal == defVal or prop.forceIgnore then
+            data.ignore = true
+        end -- ignore default values
+        return data
+    end
+end
+
+local function processPropGroup(item, propData, isTypeSpecific, isSpecial)
+    local props = {}
+    if not propData then return props end
+    for i = 1, #propData do
+        local _propData = processProp(item, propData[i], isTypeSpecific, isSpecial)
+        if _propData then
+            insert(props, _propData)
+        end
+    end
+    return props
+end
+
+local function postProcess(props)
+    local uniqueProps = {}
+    local dupedProps = {}
+    local result = {}
+    for i = 1, #props do
+        local prop = props[i]
+        if not uniqueProps[prop.name] then
+            uniqueProps[prop.name] = prop
+        else
+            dupedProps[prop.name] = true
+        end
+    end
+    if uniqueProps.ActualWeight and uniqueProps.Weight and
+        uniqueProps.Weight.value == uniqueProps.ActualWeight.value then
+        uniqueProps.ActualWeight = nil
+    end
+    if uniqueProps.TeachedRecipes then
+        uniqueProps.numTeachedRecipes = {
+            isTypeSpecific = true,
+            name = "numTeachedRecipes",
+            value = uniqueProps.TeachedRecipes.raw:size()
+        }
+        uniqueProps.TeachedRecipes.raw = nil
+    end
+    if uniqueProps.MutuallyExclusive then
+        local value = uniqueProps.MutuallyExclusive.raw:size()
+        if value > 0 then
+            uniqueProps.numMutuallyExclusive = {
+                isTypeSpecific = true,
+                name = "numMutuallyExclusive",
+                value = value
+            }
+            uniqueProps.MutuallyExclusive.raw = nil
+        else
+            uniqueProps.MutuallyExclusive = nil
+        end
+    end
+    if uniqueProps.XPBoostMap then
+        local tbl = transformIntoKahluaTable(uniqueProps.XPBoostMap.raw)
+        if not utils.empty(tbl) then
+            uniqueProps._XPBoostMap = {
+                isTypeSpecific = true,
+                name = "_XPBoostMap",
+                value = tbl,
+                skip = true
+            }
+        end
+        uniqueProps.XPBoostMap = nil
+    end
+    if uniqueProps.Description then
+        -- can't remove pagination :( (seems java side zombie.ui.TextBox.render())
+        -- uniqueProps.Description.value = string.gsub(uniqueProps.Description.value, '<br>', '')
+    end
+    if uniqueProps.UseDelta then
+        uniqueProps["UseDeltaTotal*"] = {
+            isTypeSpecific = uniqueProps.UseDelta.isTypeSpecific,
+            name = "UseDeltaTotal*",
+            value = 1 / uniqueProps.UseDelta.value
+        }
+    end
+
+    for _, prop in pairs(uniqueProps) do
+        insert(result, prop)
+    end
+
+    return result, dupedProps
+end
 
 CHC_main.getItemProps = function(item, itemType, map)
     map = map or CHC_settings.itemPropsByType
@@ -135,155 +268,20 @@ CHC_main.getItemProps = function(item, itemType, map)
         typePropData = map
     end
 
-
-    local function formatOutput(propName, propVal)
-        if propName then
-            if sub(propName, 1, 3) == 'get' then
-                propName = sub(propName, 4)
-            elseif sub(propName, 1, 2) == 'is' then
-                propName = sub(propName, 3)
-            end
-        end
-        if propVal then
-            if type(propVal) ~= 'string' then
-                propVal = math.floor(propVal * 10000) / 10000
-            end
-        end
-        return propName, propVal
-    end
-
-    local function processProp(item, prop, isTypeSpecific)
-        local propVal
-        local propValRaw
-        local data
-        local propName = prop.name
-        local mul = prop.mul
-        local defVal = prop.default
-        local retRaw = prop.retRaw
-        local isIgnoreDefVal = prop.ignoreDefault
-        if isSpecial then
-            propValRaw = item[prop.path]
-            if propValRaw and prop.path2 then propValRaw = propValRaw[prop.path2] end
-            -- if propValRaw and prop.path3 then propValRaw = propValRaw[prop.path3] end
-        else
-            propValRaw = item[propName] and item[propName](item) or nil
-        end
-        if propValRaw then
-            data = {}
-            data.skip = prop.skip
-            data.skipMap = prop.skipMap
-            propVal = rawToStr(propValRaw)
-            if tonumber(propVal) then propVal = tonumber(propVal) end
-            if mul then propVal = propVal * mul end
-
-            propName, propVal = formatOutput(propName, propVal)
-            data.name = propName
-            data.value = propVal
-            data.isTypeSpecific = isTypeSpecific
-            if retRaw then
-                data.raw = propValRaw
-            end
-            if isIgnoreDefVal and propVal == defVal or prop.forceIgnore then
-                data.ignore = true
-            end -- ignore default values
-            return data
-        end
-    end
-
-    local function processPropGroup(item, propData, isTypeSpecific)
-        local props = {}
-        if not propData then return props end
-        for i = 1, #propData do
-            local _propData = processProp(item, propData[i], isTypeSpecific)
-            if _propData then
-                insert(props, _propData)
-            end
-        end
-        return props
-    end
-
-    local function postProcess(props)
-        local uniqueProps = {}
-        local dupedProps = {}
-        local result = {}
-        for i = 1, #props do
-            local prop = props[i]
-            if not uniqueProps[prop.name] then
-                uniqueProps[prop.name] = prop
-            else
-                dupedProps[prop.name] = true
-            end
-        end
-        if uniqueProps.ActualWeight and uniqueProps.Weight and
-            uniqueProps.Weight.value == uniqueProps.ActualWeight.value then
-            uniqueProps.ActualWeight = nil
-        end
-        if uniqueProps.TeachedRecipes then
-            uniqueProps.numTeachedRecipes = {
-                isTypeSpecific = true,
-                name = "numTeachedRecipes",
-                value = uniqueProps.TeachedRecipes.raw:size()
-            }
-            uniqueProps.TeachedRecipes.raw = nil
-        end
-        if uniqueProps.MutuallyExclusive then
-            local value = uniqueProps.MutuallyExclusive.raw:size()
-            if value > 0 then
-                uniqueProps.numMutuallyExclusive = {
-                    isTypeSpecific = true,
-                    name = "numMutuallyExclusive",
-                    value = value
-                }
-                uniqueProps.MutuallyExclusive.raw = nil
-            else
-                uniqueProps.MutuallyExclusive = nil
-            end
-        end
-        if uniqueProps.XPBoostMap then
-            local tbl = transformIntoKahluaTable(uniqueProps.XPBoostMap.raw)
-            if not utils.empty(tbl) then
-                uniqueProps._XPBoostMap = {
-                    isTypeSpecific = true,
-                    name = "_XPBoostMap",
-                    value = tbl,
-                    skip = true
-                }
-            end
-            uniqueProps.XPBoostMap = nil
-        end
-        if uniqueProps.Description then
-            -- can't remove pagination :( (seems java side zombie.ui.TextBox.render())
-            -- uniqueProps.Description.value = string.gsub(uniqueProps.Description.value, '<br>', '')
-        end
-        if uniqueProps.UseDelta then
-            uniqueProps["UseDeltaTotal*"] = {
-                isTypeSpecific = uniqueProps.UseDelta.isTypeSpecific,
-                name = "UseDeltaTotal*",
-                value = 1 / uniqueProps.UseDelta.value
-            }
-        end
-
-        for _, prop in pairs(uniqueProps) do
-            insert(result, prop)
-        end
-
-        return result, dupedProps
-    end
-
     local props = {}
     local propsMap = {}
     local typeProps
     local dupedProps
 
     if not isSpecial then
-        local commonProps = processPropGroup(item, commonPropData, false)
+        local commonProps = processPropGroup(item, commonPropData, false, false)
         for i = 1, #commonProps do insert(props, commonProps[i]) end
     end
 
     if itemType == 'Radio' then
-        typeProps = processPropGroup(item:getDeviceData(), typePropData, true)
+        typeProps = processPropGroup(item:getDeviceData(), typePropData, true, isSpecial)
     else
-        typeProps = processPropGroup(item, typePropData, true)
+        typeProps = processPropGroup(item, typePropData, true, isSpecial)
     end
     for i = 1, #typeProps do insert(props, typeProps[i]) end
 
@@ -328,6 +326,7 @@ end
 
 -- entry point
 CHC_main.loadDatas = function()
+    local now = getTimestampMs()
     CHC_main.init()
     CHC_main.CECData = _G['CraftingEnhancedCore']
 
@@ -347,11 +346,10 @@ CHC_main.loadDatas = function()
     CHC_main.loadAllProfessionRecipes()
     CHC_main.loadAllSkillRecipes()
 
-    CHC_main.recipeMap = nil
-
     -- if loadLua then CHC_main.saveLuaCache() end
     -- init UI
     CHC_menu.init()
+    showTime(now, 'all')
     print("Initialised. Mod version: " .. CHC_main._meta.version)
 end
 
@@ -370,7 +368,6 @@ CHC_main.loadAllItems = function(am)
 
         local toinsert = {
             _id = id,
-            itemObj = item,
             item = invItem,
             fullType = invItem:getFullType(),
             name = invItem:getName(),
@@ -386,14 +383,16 @@ CHC_main.loadAllItems = function(am)
             displayCategory = itemDisplayCategory and
                 getTextOrNull('IGUI_ItemCat_' .. itemDisplayCategory) or
                 getText('IGUI_ItemCat_Item'),
-            texture = invItem:getTex()
+            -- texture = invItem:getTex() -- textures are loaded on demand (CHC_main.common.cacheTex)
         }
-        if toinsert.category == "Moveable" then
-            toinsert.texture = toinsert.texture:splitIcon()
+        if toinsert.category == "Food" then
+            toinsert.foodType = invItem:getFoodType()
+            toinsert.isSpice = invItem:isSpice()
         end
-        toinsert.texture_name = toinsert.texture:getName()
         toinsert.module = toinsert.module and toinsert.module:getName() or nil
-        toinsert.props, toinsert.propsMap = CHC_main.getItemProps(invItem, toinsert.category)
+        -- props are loaded on demand (CHC_main.common.getItemProps)
+        -- TODO: make popup with warning if searching by props ($) that this will take a while
+        -- toinsert.props, toinsert.propsMap = CHC_main.getItemProps(invItem, toinsert.category)
         toinsert.type = strsplit(toinsert.fullType, ".")[2]
 
         CHC_main.items[toinsert.fullType] = toinsert
@@ -1023,7 +1022,7 @@ CHC_main.loadAllEvolvedRecipes = function()
                 -- check item for obsolete
                 local _item = CHC_main.getItemByFullType(itemData.fullType)
                 if _item then
-                    if _item.propsMap and _item.propsMap["Spice"] and tostring(_item.propsMap["Spice"].value) == "true" then
+                    if _item.propsMap and _item.propsMap["Spice"] and tostring(_item.propsMap["Spice"].value) == "true" or _item.isSpice == true then
                         itemData.isSpice = true
                     else
                         itemData.isSpice = false

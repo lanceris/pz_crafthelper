@@ -87,4 +87,6 @@ IGUI_EN = {
     IGUI_BottomPanelMoreImportTooltip = "Import tooltip"
     IGUI_BottomPanelMoreDelete = "Delete"
     IGUI_BottomPanelMoreDeleteTooltip = "Delete tooltip"
+    IGUI_ScrollSpeed = "Scroll Speed"
+    IGUI_ScrollSpeedTooltip = "Delay in milliseconds before selecting next item in list"
 }

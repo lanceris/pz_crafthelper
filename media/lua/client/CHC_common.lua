@@ -107,6 +107,10 @@ end
 
 function CHC_main.common.getItemProps(item)
     local attrs = {}
+    if not item.props then
+        -- print("loading props for " .. item.fullType)
+        item.props, item.propsMap = CHC_main.getItemProps(item.item, item.category)
+    end
     if CHC_settings.config.show_all_props == true then
         attrs = item.props
     elseif item.props then
@@ -487,7 +491,7 @@ function CHC_main.common.handleTextOverflow(labelObj, limit)
     local newText = text
     local iconW = labelObj.icon and labelObj.iconSize + 3 or 0
     local ma = 100
-    local textLen = round(getTextManager():MeasureStringX(labelObj.font, newText) + 3, 0) + iconW
+    local textLen = round(utils.strWidth(labelObj.font, newText) + 3, 0) + iconW
     limit = round(limit, 0)
 
     if textLen > limit or textLen < limit - 5 then
@@ -495,14 +499,14 @@ function CHC_main.common.handleTextOverflow(labelObj, limit)
             while textLen < limit do
                 if ma < 0 or #newText >= #labelObj.origName then break end
                 newText = labelObj.origName:sub(1, #newText + 1)
-                textLen = getTextManager():MeasureStringX(labelObj.font, newText) + iconW
+                textLen = utils.strWidth(labelObj.font, newText) + iconW
                 ma = ma - 1
             end
         else
             while textLen > limit do
                 if ma < 0 then break end
                 newText = newText:sub(1, #newText - 1)
-                textLen = getTextManager():MeasureStringX(labelObj.font, newText) + iconW
+                textLen = utils.strWidth(labelObj.font, newText) + iconW
                 ma = ma - 1
             end
         end
@@ -559,4 +563,39 @@ CHC_main.common.getFavoriteRecipeModDataString = function(recipe)
         end
     end
     return text
+end
+
+
+local deafultTexName = "media/inventory/Question_On.png"
+
+---load texture for item/recipe result
+---@param item any
+CHC_main.common.cacheTex = function(item)
+    local chcobj = item
+    if not chcobj.item then
+        -- its a recipe, need to get texure for recipe result
+        chcobj = item.recipeData and item.recipeData.result
+    end
+    if not chcobj then
+        -- its a recipe ingredient, need to extract item
+        chcobj = item.recipe and item.recipe.recipeData and item.recipe.recipeData.result
+    end
+    if not chcobj then return end
+    if chcobj.texture or chcobj.texture_name == deafultTexName then return end
+    if type(chcobj.item) == "table" then
+        chcobj.texture = nil
+        chcobj.texture_name = nil
+        return
+    end
+    chcobj.texture = chcobj.item:getTex()
+    chcobj.texture_name = chcobj.texture and chcobj.texture:getName() or deafultTexName
+
+    if chcobj.category == "Moveable" then
+        chcobj.texture = chcobj.texture:splitIcon()
+        chcobj.texture_name = chcobj.texture:getName()
+        if not getTexture(chcobj.texture_name) then
+            chcobj.texture_name = nil
+        end
+    end
+    -- print("Cached texture for " .. chcobj.fullType)
 end

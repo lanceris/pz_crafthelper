@@ -15,19 +15,19 @@ CHC_settings = {
     config = {},
     keybinds = {
         move_up = { key = Keyboard.KEY_NONE, name = 'chc_move_up' },
-        move_left = { key = Keyboard.KEY_NONE, name = 'chc_move_left' },
         move_down = { key = Keyboard.KEY_NONE, name = 'chc_move_down' },
+        move_left = { key = Keyboard.KEY_NONE, name = 'chc_move_left' },
         move_right = { key = Keyboard.KEY_NONE, name = 'chc_move_right' },
-        craft_one = { key = Keyboard.KEY_NONE, name = 'chc_craft_one' },
-        favorite_recipe = { key = Keyboard.KEY_NONE, name = 'chc_favorite_recipe' },
-        craft_all = { key = Keyboard.KEY_NONE, name = 'chc_craft_all' },
-        close_window = { key = Keyboard.KEY_NONE, name = 'chc_close_window' },
-        toggle_window = { key = Keyboard.KEY_NONE, name = 'chc_toggle_window' },
-        toggle_uses_craft = { key = Keyboard.KEY_NONE, name = 'chc_toggle_uses_craft' },
         move_tab_left = { key = Keyboard.KEY_NONE, name = 'chc_move_tab_left' },
-        toggle_focus_search_bar = { key = Keyboard.KEY_NONE, name = 'chc_toggle_focus_search_bar' },
         move_tab_right = { key = Keyboard.KEY_NONE, name = 'chc_move_tab_right' },
-        close_tab = { key = Keyboard.KEY_NONE, name = "chc_close_tab" }
+        toggle_uses_craft = { key = Keyboard.KEY_NONE, name = 'chc_toggle_uses_craft' },
+        close_tab = { key = Keyboard.KEY_NONE, name = "chc_close_tab" },
+        toggle_window = { key = Keyboard.KEY_NONE, name = 'chc_toggle_window' },
+        close_window = { key = Keyboard.KEY_NONE, name = 'chc_close_window' },
+        craft_one = { key = Keyboard.KEY_NONE, name = 'chc_craft_one' },
+        craft_all = { key = Keyboard.KEY_NONE, name = 'chc_craft_all' },
+        favorite_recipe = { key = Keyboard.KEY_NONE, name = 'chc_favorite_recipe' },
+        toggle_focus_search_bar = { key = Keyboard.KEY_NONE, name = 'chc_toggle_focus_search_bar' },
     },
     integrations = {
         Hydrocraft = {
@@ -66,6 +66,7 @@ local init_cfg = {
     delayed_search = false,
     inv_context_behaviour = 2,
     window_opacity = 8,
+    scroll_speed = 4,
     main_window = { x = 100, y = 100, w = 1000, h = 600, a = 0.6 },
     uses = { sep_x = 500, filter_asc = true, filter_type = 'all' },
     craft = { sep_x = 500, filter_asc = true, filter_type = 'all' },
@@ -89,26 +90,24 @@ local init_presets = {
     recipes = {}
 }
 
+local applyBlacklist = {
+    main_window = true,
+    uses = true,
+    craft = true,
+    search = true,
+    favorites = true,
+
+}
+
 function CHC_settings.f.onModOptionsApply(values)
     if CHC_settings.config.main_window == nil then
         CHC_settings.Load()
     end
-    CHC_settings.config.show_recipe_module = values.settings.options.show_recipe_module
-    CHC_settings.config.show_fav_items_inventory = values.settings.options.show_fav_items_inventory
-    CHC_settings.config.editable_category_selector = values.settings.options.editable_category_selector
-    CHC_settings.config.recipe_selector_modifier = values.settings.options.recipe_selector_modifier
-    CHC_settings.config.category_selector_modifier = values.settings.options.category_selector_modifier
-    CHC_settings.config.tab_selector_modifier = values.settings.options.tab_selector_modifier
-    CHC_settings.config.tab_close_selector_modifier = values.settings.options.tab_close_selector_modifier
-    CHC_settings.config.list_font_size = values.settings.options.list_font_size
-    CHC_settings.config.allow_special_search = values.settings.options.allow_special_search
-    CHC_settings.config.show_icons = values.settings.options.show_icons
-    CHC_settings.config.show_hidden = values.settings.options.show_hidden
-    CHC_settings.config.close_all_on_exit = values.settings.options.close_all_on_exit
-    CHC_settings.config.show_all_props = values.settings.options.show_all_props
-    CHC_settings.config.delayed_search = values.settings.options.delayed_search
-    CHC_settings.config.inv_context_behaviour = values.settings.options.inv_context_behaviour
-    CHC_settings.config.window_opacity = values.settings.options.window_opacity
+    for key, _ in pairs(CHC_settings.config) do
+        if not applyBlacklist[key] then
+            CHC_settings.config[key] = values.settings.options[key]
+        end
+    end
     CHC_settings.Save()
 end
 
@@ -165,7 +164,7 @@ if ModOptions and ModOptions.getInstance then
                 ),
                 default = 1,
                 OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
-                OnApplyInGame = CHC_settings.f.onModOptionsApply
+                OnApplyInGame = CHC_main.config_apply_funcs.process
             },
             category_selector_modifier = {
                 getText('IGUI_None'),
@@ -179,7 +178,7 @@ if ModOptions and ModOptions.getInstance then
                 ),
                 default = 1,
                 OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
-                OnApplyInGame = CHC_settings.f.onModOptionsApply
+                OnApplyInGame = CHC_main.config_apply_funcs.process
             },
             tab_selector_modifier = {
                 getText('IGUI_None'),
@@ -193,7 +192,7 @@ if ModOptions and ModOptions.getInstance then
                 ),
                 default = 1,
                 OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
-                OnApplyInGame = CHC_settings.f.onModOptionsApply
+                OnApplyInGame = CHC_main.config_apply_funcs.process
             },
             tab_close_selector_modifier = {
                 getText('IGUI_None'),
@@ -205,7 +204,7 @@ if ModOptions and ModOptions.getInstance then
                     getText('UI_optionscreen_binding_chc_close_tab')),
                 default = 1,
                 OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
-                OnApplyInGame = CHC_settings.f.onModOptionsApply
+                OnApplyInGame = CHC_main.config_apply_funcs.process
             },
             show_recipe_module = {
                 name = 'IGUI_ShowRecipeModule',
@@ -281,6 +280,18 @@ if ModOptions and ModOptions.getInstance then
                 OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
                 OnApplyInGame = CHC_settings.f.onModOptionsApply
 
+            },
+            scroll_speed = {
+                "10",
+                "50",
+                "100",
+                "200",
+                "500",
+                name = "IGUI_ScrollSpeed",
+                tooltip = "IGUI_ScrollSpeedTooltip",
+                default = 4,
+                OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
+                OnApplyInGame = CHC_settings.f.onModOptionsApply
             }
         },
         mod_id = 'CraftHelperContinued',
@@ -312,6 +323,7 @@ else
     CHC_settings.config.delayed_search = false
     CHC_settings.config.inv_context_behaviour = 2
     CHC_settings.config.window_opacity = 8
+    CHC_settings.config.scroll_speed = 4
 end
 
 
@@ -328,9 +340,6 @@ CHC_settings.Load = function()
     local status, config = pcall(utils.jsonutil.Load, config_name)
 
     if not status or not config then
-        -- -- try to load old config first
-        -- local oldStatus, oldConfig = pcall(utils.jsonutil.Load, config_name)
-        -- config = oldStatus and oldConfig or init_cfg
         config = init_cfg
         CHC_settings.Save(config)
     end
@@ -386,9 +395,6 @@ end
 CHC_settings.LoadPropsData = function()
     local status, config = pcall(utils.jsonutil.Load, mappings_name)
     if not status or not config then
-        -- --try to load old config first
-        -- local oldStatus, oldConfig = pcall(utils.jsonutil.Load, mappings_name)
-        -- config = oldStatus and oldConfig or init_mappings
         config = init_mappings
         CHC_settings.SavePropsData(config)
     end
@@ -436,8 +442,7 @@ CHC_settings.LoadPresetsData = function()
     local cfg = copyTable(init_presets)
     for i = 1, #types do
         local _type = types[i]
-        for j = 1, #config[_type] do
-            local entry = config[_type][j]
+        for _, entry in pairs(config[_type]) do
             local decoded_name = strsplit(entry.name, ",")
             for k = 1, #decoded_name do
                 decoded_name[k] = tonumber(decoded_name[k])

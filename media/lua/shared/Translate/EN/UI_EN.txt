@@ -125,4 +125,7 @@ UI_EN = {
     UI_searchrow_info_item_attributes_examples = "!>a,!<c <SPACE><SPACE>: show attributes which name starts from a or b <LINE> "
 
     UI_BottomPanelInfoTitle = "Hotkeys:"
+    UI_BottomPanel_onChangePreset_Validation_Title = "Validation Errors"
+    UI_BottomPanel_onChangePreset_Validation_LoadAnyway = "Load anyway"
+    UI_BottomPanel_onChangePreset_Validation_Remove = "Remove missing"
 }

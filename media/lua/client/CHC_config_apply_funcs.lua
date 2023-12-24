@@ -13,6 +13,10 @@ CHC_main.config_apply_funcs.process = function(values)
         show_recipe_module = p.onChangeShowRecipeModule,
         show_icons = p.onChangeShowIcons,
         delayed_search = p.onChangeDelayedSearch,
+        recipe_selector_modifier = p.onChangeSelectorModifier,
+        category_selector_modifier = p.onChangeSelectorModifier,
+        tab_selector_modifier = p.onChangeSelectorModifier,
+        tab_close_selector_modifier = p.onChangeSelectorModifier,
     }
     if map[values.id] then
         map[values.id](inst)
@@ -50,5 +54,12 @@ CHC_main.config_apply_funcs.onChangeDelayedSearch = function(inst)
     inst.updateQueue:push({
         targetViews = { 'all' },
         actions = { 'needUpdateDelayedSearch' }
+    })
+end
+
+CHC_main.config_apply_funcs.onChangeSelectorModifier = function(inst)
+    inst.updateQueue:push({
+        targetViews = { 'bottom_panel' },
+        actions = { 'needUpdateInfoTooltip' }
     })
 end

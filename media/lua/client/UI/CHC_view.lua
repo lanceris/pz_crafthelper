@@ -3,6 +3,10 @@ CHC_view._list = {}
 local sort = table.sort
 local insert = table.insert
 local utils = require('CHC_utils')
+local floor = math.floor
+local ceil = math.ceil
+local min = math.min
+local max = math.max
 
 -- region create
 function CHC_view:create(filterRowOrderOnClickArgs, mainPanelsData)
@@ -304,17 +308,17 @@ function CHC_view:extraFilters(obj, filters)
 end
 
 function CHC_view:refreshObjList(objects, conditions)
-    local function sort_on_values(t, a)
-        sort(t, function(u, v)
-            for i = 1, #a do
-                if u[a[i]] and v[a[i]] then
-                    if u[a[i]] > v[a[i]] then return false end
-                    if u[a[i]] < v[a[i]] then return true end
-                end
-                return false
-            end
-        end)
-    end
+    -- local function sort_on_values(t, a)
+    --     sort(t, function(u, v)
+    --         for i = 1, #a do
+    --             if u[a[i]] and v[a[i]] then
+    --                 if u[a[i]] > v[a[i]] then return false end
+    --                 if u[a[i]] < v[a[i]] then return true end
+    --             end
+    --             return false
+    --         end
+    --     end)
+    -- end
 
     local objL = self.objList
     local wasSelectedId = objL.items[objL.selected]
@@ -326,11 +330,11 @@ function CHC_view:refreshObjList(objects, conditions)
     for i = 1, #objects do
         self:processAddObjToObjList(objects[i], self.modData)
     end
-    if not conditions then
-        sort(objL.items, self.itemSortFunc)
-    else
-        sort_on_values(objL.items, conditions)
-    end
+    sort(objL.items, self.itemSortFunc)
+    -- if not conditions then
+    -- else
+    --     sort_on_values(objL.items, conditions)
+    -- end
 
 
 
@@ -425,7 +429,12 @@ end
 function CHC_view:onFilterTypeMenu(button)
     local data = {}
     for typ, d in pairs(self.parent.typeData) do
-        insert(data, { txt = d.tooltip, num = d.count, arg = typ, icon = d.icon or d.item.texture })
+        local icon = d.icon
+        if not icon and d.item then
+            CHC_main.common.cacheTex(d.item)
+            icon = d.item.texture
+        end
+        insert(data, { txt = d.tooltip, num = d.count, arg = typ, icon = icon })
     end
 
     local x = button:getAbsoluteX()
@@ -503,55 +512,90 @@ function CHC_view._list:isMouseOverFavorite(x)
     return (x >= self.width - 40) and not self:isMouseOverScrollBar()
 end
 
-function CHC_view._list:handleCollapse(y, item, alt, data)
-    data = data or {}
-    if item.item.multipleHeader then
-        if item.item.collapsed then
-            data.collapsedBlock = item.item.sourceNum
-        end
-        if item.item.isBlockHidden then
-            data.hiddenBlock = { num = item.item.sourceNum, state = item.item.blockHiddenState }
-        end
-        data.y2 = self:doDrawItem(y, item, alt)
-        data.uncollapsedNum = data.uncollapsedNum + 1
-    else
-        if item.item.collapsed or item.item.sourceNum == data.collapsedBlock or
-            (item.item.sourceNum == data.hiddenBlock.num and data.hiddenBlock.state == "un" and item.item.available) or
-            (item.item.sourceNum == data.hiddenBlock.num and data.hiddenBlock.state == "av" and not item.item.available) then
-            data.y2 = y
-        else
-            data.y2 = self:doDrawItem(y, item, alt)
-            data.uncollapsedNum = data.uncollapsedNum + 1
-        end
-    end
-    return data
-end
-
 function CHC_view._list:prerender()
     if not self.items then return end
     if utils.empty(self.items) then return end
 
-    if self.items and self.parent.objListSize and self.parent.objListSize > 1000 then
-        if self.needUpdateScroll then
-            self.yScroll = self:getYScroll()
-            self.needUpdateScroll = false
+    self.yScroll = self:getYScroll()
+    self.mouseX = self:getMouseX()
+    self.mouseY = self:getMouseY()
+
+    if not self.listHeight then self.listHeight = 0 end
+    if not self.curFontData then
+        self.curFontData = CHC_main.common.fontSizeToInternal[CHC_settings.config.list_font_size]
+        if not self.curFontData then
+            self.curFontData = { font = UIFont.Small, icon = 20, pad = 3 }
         end
-        if self.needUpdateMousePos then
-            self.mouseX = self:getMouseX()
-            self.mouseY = self:getMouseY()
-            self.needUpdateMousePos = false
-        end
-    else
-        self.yScroll = self:getYScroll()
-        self.mouseX = self:getMouseX()
-        self.mouseY = self:getMouseY()
+    end
+    if not self.fontSize then
+        self.fontSize = getTextManager():getFontHeight(self.curFontData.font)
     end
 
-    local stencilX = 0
-    local stencilY = 0
-    local stencilX2 = self.width
-    local stencilY2 = self.height
+    local ms = getTimestampMs()
+    if not self.recalcMs then
+        CHC_view._list.recalcItems(self)
+        self.recalcMs = ms
+    end
+    if ms - self.recalcMs >= 100 then
+        CHC_view._list.recalcItems(self)
+        self.recalcMs = ms
+    end
+    self:updateTooltip()
+end
 
+function CHC_view._list:recalcItems()
+    local y = 0
+    self.minJ = max(1, floor(-self.yScroll / self.itemheight))
+    self.maxJ = min(#self.items, ceil((-self.yScroll + self.height) / self.itemheight))
+    local alt = false
+    local indexes = {}
+    local data = {
+        uncollapsedNum = 0,
+        collapsedBlock = nil,
+        hiddenBlock = {}
+    }
+    for j = 1, #self.items do
+        local item = self.items[j]
+        item.index = j
+        if not item.height then item.height = self.itemheight end
+
+        -- determine needed indexes
+        if item.item.sourceNum then
+            if item.item.multipleHeader then
+                if item.item.collapsed then
+                    data.collapsedBlock = item.item.sourceNum
+                end
+                if item.item.isBlockHidden then
+                    data.hiddenBlock = { num = item.item.sourceNum, state = item.item.blockHiddenState }
+                end
+                y = y + item.height
+                insert(indexes, j)
+                data.uncollapsedNum = data.uncollapsedNum + 1
+            else
+                if item.item.collapsed or item.item.sourceNum == data.collapsedBlock or
+                    (item.item.sourceNum == data.hiddenBlock.num and data.hiddenBlock.state == "un" and item.item.available) or
+                    (item.item.sourceNum == data.hiddenBlock.num and data.hiddenBlock.state == "av" and not item.item.available) then
+                    -- print("Hidden " .. item.text .. "; sourceNum: " .. item.item.sourceNum)
+                else
+                    y = y + item.height
+                    insert(indexes, j)
+                    data.uncollapsedNum = data.uncollapsedNum + 1
+                end
+            end
+        else
+            y = y + item.height
+            insert(indexes, j)
+            data.uncollapsedNum = data.uncollapsedNum + 1
+        end
+        self.listHeight = y
+    end
+    self.uncollapsedNum = data.uncollapsedNum
+    self:setScrollHeight((y))
+
+    self._indexes = indexes
+end
+
+function CHC_view._list:render()
     local bg = {
         x = 0,
         y = -self.yScroll,
@@ -564,85 +608,38 @@ function CHC_view._list:prerender()
     }
     self:drawRect(bg.x, bg.y, bg.w, bg.h, bg.a, bg.r, bg.g, bg.b)
 
+    local sX = 0
+    local sY = 0
+    local sX2 = self.width
+    local sY2 = self.height
+
     if self.drawBorder then
-        self:drawRectBorder(0, -self.yScroll, self.width, self.height, self.borderColor.a, self.borderColor.r,
-            self.borderColor.g, self.borderColor.b)
-        stencilX = 1
-        stencilY = 1
-        stencilX2 = self.width - 1
-        stencilY2 = self.height - 1
+        sX = 1
+        sY = 1
+        sX2 = self.width - 1
+        sY2 = self.height - 1
     end
 
     if self:isVScrollBarVisible() then
-        stencilX2 = self.vscroll.x + 3 -- +3 because the scrollbar texture is narrower than the scrollbar width
+        sX2 = self.vscroll.x + 3 -- +3 because the scrollbar texture is narrower than the scrollbar width
     end
+    local y
 
-    if self.parent and self.parent:getScrollChildren() then
-        stencilX = self.javaObject:clampToParentX(self:getAbsoluteX() + stencilX) - self:getAbsoluteX()
-        stencilX2 = self.javaObject:clampToParentX(self:getAbsoluteX() + stencilX2) - self:getAbsoluteX()
-        stencilY = self.javaObject:clampToParentY(self:getAbsoluteY() + stencilY) - self:getAbsoluteY()
-        stencilY2 = self.javaObject:clampToParentY(self:getAbsoluteY() + stencilY2) - self:getAbsoluteY()
-    end
-    self:setStencilRect(stencilX, stencilY, stencilX2 - stencilX, stencilY2 - stencilY)
-
-    local y = 0
-    local alt = false
-
-    self.listHeight = 0
-    if not self.curFontData then
-        self.curFontData = CHC_main.common.fontSizeToInternal[CHC_settings.config.list_font_size]
-        if not self.curFontData then
-            self.curFontData = { font = UIFont.Small, icon = 20, pad = 3 }
+    self:clampStencilRectToParent(sX, sY, sX2, sY2)
+    CHC_view._list.recalcItems(self)
+    if not self._indexes then return end
+    for j = 1, #self._indexes do
+        local _ix = self._indexes[j]
+        local item = self.items[_ix]
+        if (self._internal and self._internal == "ingredientPanel")
+            or _ix >= self.minJ and _ix <= self.maxJ then
+            CHC_main.common.cacheTex(item.item)
+            y = (j - 1) * item.height
+            self:doDrawItem(y, item, false)
         end
     end
-    if not self.fontSize then
-        self.fontSize = getTextManager():getFontHeight(self.curFontData.font)
-    end
-    local data = {
-        y2 = nil,
-        uncollapsedNum = 0,
-        collapsedBlock = nil,
-        hiddenBlock = {}
-    }
-    for j = 1, #self.items do
-        local item = self.items[j]
-        item.index = j
-
-        if item.item.sourceNum then
-            data = CHC_view._list.handleCollapse(self, y, item, alt, data)
-        else
-            data.y2 = self:doDrawItem(y, item, alt)
-            data.uncollapsedNum = data.uncollapsedNum + 1
-        end
-
-        self.listHeight = data.y2
-
-        local moduleCond = not self.parent.isItemView and item.item.module and item.item.module ~= 'Base'
-        if CHC_settings.config.show_recipe_module and moduleCond then
-            local baseH = math.min(self.fontSize, self.curFontData.icon) + self.fontSize + self.curFontData.pad
-            item.height = baseH
-        else
-            item.height = data.y2 - y
-        end
-        y = data.y2
-        --alt = not alt
-    end
-    self.uncollapsedNum = data.uncollapsedNum
-
-    self:setScrollHeight((y))
     self:clearStencilRect()
-
-    if self.doRepaintStencil then
-        self:repaintStencilRect(stencilX, stencilY, stencilX2 - stencilX, stencilY2 - stencilY)
-    end
-
-    local mouseY = self.mouseY
     self:updateSmoothScrolling()
-
-    if mouseY ~= self.mouseY and self:isMouseOver() then
-        self:onMouseMove(0, self.mouseY - mouseY)
-    end
-    self:updateTooltip()
 end
 
 --endregion

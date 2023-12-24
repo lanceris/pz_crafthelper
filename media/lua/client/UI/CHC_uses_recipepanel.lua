@@ -8,7 +8,6 @@ require 'UI/ISLabelWithIcon'
 
 local utils = require('CHC_utils')
 local insert = table.insert
-local ssort = string.sort
 local tsort = table.sort
 local sformat = string.format
 
@@ -31,7 +30,6 @@ local fhSmall = texMan:getFontHeight(UIFont.Small)   -- smallFontHeight
 
 function CHC_uses_recipepanel:initialise()
     ISPanel.initialise(self)
-    self.fastListReturn = CHC_main.common.fastListReturn
 end
 
 function CHC_uses_recipepanel:createChildren()
@@ -70,7 +68,7 @@ function CHC_uses_recipepanel:createChildren()
     self.mainName:initialise()
 
     local timeText = "100000"
-    local timeX = 16 + getTextManager():MeasureStringX(mainSecFont, timeText)
+    local timeX = 16 + utils.strWidth(mainSecFont, timeText)
     self.mainTime = ISLabelWithIcon:new(self.width - timeX, mainY, fhSmall, nil, mr, mg, mb, ma, mainSecFont, true)
     self.mainTime.anchorLeft = false
     self.mainTime.anchorRight = true
@@ -151,7 +149,7 @@ function CHC_uses_recipepanel:createChildren()
 
     -- TODO: change to icon
     self.craftOneButton.title = getText('IGUI_CraftUI_ButtonCraftOne')
-    self.craftOneButton:setWidth(10 + getTextManager():MeasureStringX(UIFont.Small, self.craftOneButton.title))
+    self.craftOneButton:setWidth(10 + utils.strWidth(UIFont.Small, self.craftOneButton.title))
     self.craftOneButton:setVisible(false)
 
     self.craftAllButton = ISButton:new(btnInfo.x, btnInfo.y, btnInfo.w, btnInfo.h, nil, btnInfo.clicktgt, self.craftAll);
@@ -163,15 +161,14 @@ function CHC_uses_recipepanel:createChildren()
         self.addRandomMenu)
     self.addRandomButton:initialise()
     self.addRandomButton.title = getText("IGUI_PlayerStats_Add") .. "..."
-    self.addRandomButton:setWidth(10 + getTextManager():MeasureStringX(UIFont.Small, self.addRandomButton.title))
+    self.addRandomButton:setWidth(10 + utils.strWidth(UIFont.Small, self.addRandomButton.title))
     self.addRandomButton:setVisible(false)
 
     self.selectSpecificButton = ISButton:new(btnInfo.x, btnInfo.y, btnInfo.w, btnInfo.h, nil, btnInfo.clicktgt,
         self.selectSpecificMenu)
     self.selectSpecificButton:initialise()
     self.selectSpecificButton.title = getText("IGUI_Evolved_SelectSpecific") .. "..."
-    self.selectSpecificButton:setWidth(10 +
-        getTextManager():MeasureStringX(UIFont.Small, self.selectSpecificButton.title))
+    self.selectSpecificButton:setWidth(10 + utils.strWidth(UIFont.Small, self.selectSpecificButton.title))
     self.selectSpecificButton:setVisible(false)
     y = y + btnInfo.h + self.padY
 
@@ -206,11 +203,16 @@ function CHC_uses_recipepanel:createChildren()
 
     -- region ingredients
     self.ingredientPanel = ISScrollingListBox:new(1, 1, self.width - 20, 50)
+    self.ingredientPanel._internal = "ingredientPanel"
     self.ingredientPanel:initialise()
     self.ingredientPanel:instantiate()
+    self.ingredientPanel.rowAt = self.rowAt
+    self.ingredientPanel.onMouseWheel = self.onMouseWheel22
     self.ingredientPanel.onRightMouseDown = self.onRMBDownIngrPanel
-    self.ingredientPanel:setOnMouseDownFunction(self, self.onIngredientMouseDown)
+    self.ingredientPanel.onMouseDown = self.onMouseDown
     self.ingredientPanel.prerender = CHC_view._list.prerender
+    self.ingredientPanel._panel = self
+    self.ingredientPanel.render = self.renderListBox
     self.ingredientPanel.doDrawItem = self.drawIngredient
     self.ingredientPanel.itemheight = fhSmall + 2 * self.itemMargin
     self.ingredientPanel.font = UIFont.NewSmall
@@ -224,11 +226,15 @@ function CHC_uses_recipepanel:createChildren()
 
     -- region skills
     self.skillPanel = ISScrollingListBox:new(1, 1, self.width, 1)
+    self.skillPanel._internal = "skillPanel"
     self.skillPanel:initialise()
     self.skillPanel:instantiate()
+    self.skillPanel.onMouseWheel = self.onMouseWheel22
     self.skillPanel.onRightMouseDown = self.onRMBDownIngrPanel
     self.skillPanel:setOnMouseDownFunction(self, self.onIngredientMouseDown)
     self.skillPanel.itemheight = fhSmall + 2 * self.itemMargin
+    self.skillPanel.prerender = CHC_view._list.prerender
+    self.skillPanel.render = self.renderListBox
     self.skillPanel.doDrawItem = self.drawSkill
     self.skillPanel.yScroll = 0
     self.skillPanel.drawBorder = false
@@ -239,11 +245,15 @@ function CHC_uses_recipepanel:createChildren()
 
     -- region books
     self.booksPanel = ISScrollingListBox:new(1, 1, self.width, 1)
+    self.booksPanel._internal = "booksPanel"
     self.booksPanel:initialise()
     self.booksPanel:instantiate()
+    self.booksPanel.onMouseWheel = self.onMouseWheel22
     self.booksPanel.onRightMouseDown = self.onRMBDownIngrPanel
     self.booksPanel:setOnMouseDownFunction(self, self.onIngredientMouseDown)
     self.booksPanel.itemheight = fhSmall + 2 * self.itemMargin
+    self.booksPanel.prerender = CHC_view._list.prerender
+    self.booksPanel.render = self.renderListBox
     self.booksPanel.doDrawItem = self.drawBook
     self.booksPanel.yScroll = 0
     self.booksPanel.drawBorder = false
@@ -254,11 +264,15 @@ function CHC_uses_recipepanel:createChildren()
 
     -- region equipment
     self.equipmentPanel = ISScrollingListBox:new(1, 1, self.width, 1)
+    self.equipmentPanel._internal = "equipmentPanel"
     self.equipmentPanel:initialise()
     self.equipmentPanel:instantiate()
+    self.equipmentPanel.onMouseWheel = self.onMouseWheel22
     self.equipmentPanel.onRightMouseDown = self.onRMBDownIngrPanel
     self.equipmentPanel:setOnMouseDownFunction(self, self.onIngredientMouseDown)
     self.equipmentPanel.itemheight = fhSmall + 2 * self.itemMargin
+    self.equipmentPanel.prerender = CHC_view._list.prerender
+    self.equipmentPanel.render = self.renderListBox
     self.equipmentPanel.doDrawItem = self.drawEquipment
     self.equipmentPanel.yScroll = 0
     self.equipmentPanel.drawBorder = false
@@ -273,8 +287,6 @@ function CHC_uses_recipepanel:createChildren()
     self:addChild(self.addRandomButton)
     self:addChild(self.selectSpecificButton)
     self:addChild(self.statsList)
-
-    self.statsList:setScrollChildren(true)
 end
 
 function CHC_uses_recipepanel:setItemNameInSource(item, itemInList, isDestroy, uses)
@@ -348,6 +360,7 @@ function CHC_uses_recipepanel:getSources(recipe)
             local itemInList = {}
 
             itemInList.count = source.amount
+            CHC_main.common.cacheTex(item)
             itemInList.texture = item.texture
             itemInList.fullType = item.fullType
             itemInList.name = self:setItemNameInSource(item, itemInList, sourceInList.isDestroy,
@@ -396,6 +409,7 @@ function CHC_uses_recipepanel:getSources(recipe)
                     else
                         itemInList.count, itemInList.displayCount = getCount(item, sourceObj)
                     end
+                    CHC_main.common.cacheTex(item)
                     itemInList.texture = item.texture
                     itemInList.fullType = item.fullType
                     if sourceObj.fullType == 'Water' then
@@ -435,6 +449,7 @@ function CHC_uses_recipepanel:getSources(recipe)
                     local itemInList = {}
 
                     itemInList.count = sourceInList.uses > 0 and sourceInList.uses or source:getCount()
+                    CHC_main.common.cacheTex(item)
                     itemInList.texture = item.texture
                     itemInList.fullType = item.fullType
                     if sourceFullType == 'Water' then
@@ -454,6 +469,7 @@ function CHC_uses_recipepanel:getSources(recipe)
 end
 
 function CHC_uses_recipepanel:setResultObj(resultItem, recipe)
+    CHC_main.common.cacheTex(resultItem)
     local res = {
         module = resultItem.modname,
         isVanilla = resultItem.isVanilla,
@@ -602,6 +618,36 @@ end
 -- endregion
 
 -- region update
+function CHC_uses_recipepanel:processOneSourceItem(result, item, sourceItemTypes, source, isEvolved)
+    local itemFT = item:getFullType()
+    local chcItem = CHC_main.items[itemFT]
+    if not chcItem then return end
+    local isDestroy
+    if isEvolved then
+        isDestroy = source.isDestroy
+    else
+        isDestroy = source:isDestroy()
+    end
+    local uses = isEvolved and source.uses or source:getUse()
+
+    if sourceItemTypes['Water'] and ISCraftingUI:isWaterSource(item, source:getCount()) then
+        result['Base.WaterDrop'] = (result['Base.WaterDrop'] or 0) + item:getDrainableUsesInt()
+        return
+    end
+    if sourceItemTypes[itemFT] then
+        local count = 1
+        if not isDestroy and chcItem.IsDrainable then
+            count = item:getDrainableUsesInt()
+        end
+        if not isDestroy and chcItem.category == "Food" then
+            if uses > 0 then
+                count = round(-item:getHungerChange() * 100, 2)
+            end
+        end
+        result[itemFT] = (result[itemFT] or 0) + count
+    end
+end
+
 function CHC_uses_recipepanel:getAvailableItemsType()
     local result = {}
     local recipe = self.selectedObj
@@ -619,6 +665,10 @@ function CHC_uses_recipepanel:getAvailableItemsType()
             result[baseItem.fullType] = 1
         end
         -- i = 1 is baseItem (handled above)
+        -- local _item = CHC_main.common.getConcreteItem(self.containerList, recipe.recipeData.result.fullType)
+        -- if not _item then
+        --     _item = instanceItem(recipe.recipeData.result.fullType)
+        -- end
         local items = recipe.recipe:getItemsCanBeUse(self.player, recipe.recipeData.result.item, self.containerList)
         for i = 2, #self.selectedObj.sources do
             local source = self.selectedObj.sources[i]
@@ -628,21 +678,7 @@ function CHC_uses_recipepanel:getAvailableItemsType()
             end
             for x = 0, items:size() - 1 do
                 local item = items:get(x)
-                local itemFT = item:getFullType()
-                if sourceItemTypes['Water'] and ISCraftingUI:isWaterSource(item, source:getCount()) then
-                    result['Base.WaterDrop'] = (result['Base.WaterDrop'] or 0) + item:getDrainableUsesInt()
-                elseif sourceItemTypes[itemFT] then
-                    local count = 1
-                    if not source.isDestroy and item:IsDrainable() then
-                        count = item:getDrainableUsesInt()
-                    end
-                    if not source.isDestroy and instanceof(item, 'Food') then
-                        if source.uses > 0 then
-                            count = round(-item:getHungerChange() * 100, 2)
-                        end
-                    end
-                    result[itemFT] = (result[itemFT] or 0) + count
-                end
+                self:processOneSourceItem(result, item, sourceItemTypes, source, true)
             end
         end
     else
@@ -657,21 +693,7 @@ function CHC_uses_recipepanel:getAvailableItemsType()
             end
             for x = 0, items:size() - 1 do
                 local item = items:get(x)
-                local itemFT = item:getFullType()
-                if sourceItemTypes['Water'] and ISCraftingUI:isWaterSource(item, source:getCount()) then
-                    result['Base.WaterDrop'] = (result['Base.WaterDrop'] or 0) + item:getDrainableUsesInt()
-                elseif sourceItemTypes[itemFT] then
-                    local count = 1
-                    if not source:isDestroy() and item:IsDrainable() then
-                        count = item:getDrainableUsesInt()
-                    end
-                    if not source:isDestroy() and instanceof(item, 'Food') then
-                        if source:getUse() > 0 then
-                            count = round(-item:getHungerChange() * 100, 2)
-                        end
-                    end
-                    result[itemFT] = (result[itemFT] or 0) + count
-                end
+                self:processOneSourceItem(result, item, sourceItemTypes, source)
             end
         end
     end
@@ -736,7 +758,9 @@ function CHC_uses_recipepanel:refreshIngredientPanel(selectedItem)
             data.multiple = #source.items > 1
             local evolvedState = true
             if selectedItem.isEvolved and self.evolvedSelected then
-                local isSpice = CHC_main.items[item.fullType].propsMap["Spice"]
+                local chcitem = CHC_main.items[item.fullType]
+                local isSpice = chcitem.propsMap and
+                    chcitem.propsMap["Spice"] or chcitem.isSpice
                 data.isSpice = isSpice
                 local usedSpice = self.evolvedSelected.extraSpicesMap and
                     self.evolvedSelected.extraSpicesMap[item.fullType]
@@ -766,8 +790,8 @@ function CHC_uses_recipepanel:refreshIngredientPanel(selectedItem)
                 insert(available, data)
             end
         end
-        tsort(available, function(a, b) return not ssort(a.name, b.name) end)
-        tsort(unavailable, function(a, b) return not ssort(a.name, b.name) end)
+        tsort(available, function(a, b) return a.name:lower() < b.name:lower() end)
+        tsort(unavailable, function(a, b) return a.name:lower() < b.name:lower() end)
 
         if #source.items > 1 then
             local data = {}
@@ -964,10 +988,13 @@ function CHC_uses_recipepanel:updateMainInfo(obj)
     self.mainTime:setTooltip(luautils.split(getText('IGUI_CraftUI_RequiredTime', 0), ':')[1])
     self.mainImg:setTooltip(nil)
 
+    self.mainRes:setTooltip(self.mainRes.origTooltip)
+
     local resultItem = recipe.recipeData.result
     local resultData
     if resultItem then
         resultData = self:setResultObj(resultItem, recipe)
+        CHC_main.common.cacheTex(resultItem)
     end
     if resultData then
         self.mainImg.forcedWidthImage = resultData.forcedWidthImage
@@ -977,6 +1004,7 @@ function CHC_uses_recipepanel:updateMainInfo(obj)
 
         self.mainRes:setName(resultData.itemName, true)
         self.mainRes:setTooltip(self.mainRes.origTooltip)
+        -- self.mainRes:setTooltip(resultData.tooltip)
 
         if resultItem.modname and not resultItem.isVanilla then
             local c = { r = 0.392, g = 0.584, b = 0.929 } -- CornFlowerBlue
@@ -1040,7 +1068,7 @@ function CHC_uses_recipepanel:updateExtraData(foodData)
             btn.margin = margin
             btn:initialise()
             btn.width = w
-            btn.textW = getTextManager():MeasureStringX(btn.font, btn.title)
+            btn.textW = utils.strWidth(btn.font, btn.title)
             btn:setImage(item.icon)
             local tooltip = item.title
             if item.valPrecise then tooltip = tooltip .. " <SPACE> (" .. item.valPrecise .. ")" end
@@ -1133,7 +1161,6 @@ function CHC_uses_recipepanel:drawIngredient(y, item, alt)
     if not self.recipepanel then
         self.recipepanel = self.parent.parent.parent
     end
-    if self.recipepanel.fastListReturn(self, y) then return y + self.itemheight end
     if item.item.multipleHeader then
         --region One of: text
         local r, g, b = 1, 1, 1
@@ -1235,15 +1262,12 @@ function CHC_uses_recipepanel:drawIngredient(y, item, alt)
         self:drawRect(1, y, self.width - 2, self.itemheight, 0.2, 0.25, gb, bb)
     end
     self:drawRectBorder(0, y, self.width - 2, self.itemheight, ab, rb, gb, bb)
-
-    return y + self.itemheight
 end
 
 function CHC_uses_recipepanel:drawSkill(y, item, alt)
     if not self.recipepanel then
         self.recipepanel = self.parent.parent.parent
     end
-    if self.recipepanel.fastListReturn(self, y) then return y + self.itemheight end
 
     local text = item.text .. ': ' .. tostring(item.item.pLevel) .. ' / ' .. tostring(item.item.rLevel);
     local r, g, b, a = 1, 1, 1, 0.9
@@ -1257,14 +1281,12 @@ function CHC_uses_recipepanel:drawSkill(y, item, alt)
     self:drawText(text, 15, y, r, g, b, a, UIFont.Small)
     self.recipepanel.drawFavoriteStar(self, y, item, self.recipepanel)
     self:drawRectBorder(0, y, self.width - 2, self.itemheight, ab, rb, gb, bb)
-    return y + self.itemheight
 end
 
 function CHC_uses_recipepanel:drawBook(y, item, alt)
     if not self.recipepanel then
         self.recipepanel = self.parent.parent.parent
     end
-    if self.recipepanel.fastListReturn(self, y) then return y + self.itemheight end
     local x = 0
 
     local r, g, b, a = 1, 1, 1, 1
@@ -1294,15 +1316,12 @@ function CHC_uses_recipepanel:drawBook(y, item, alt)
     --endregion
 
     self:drawRectBorder(0, y, self.width - 2, self.itemheight, ab, rb, gb, bb)
-
-    return y + self.itemheight
 end
 
 function CHC_uses_recipepanel:drawEquipment(y, item, alt)
     if not self.recipepanel then
         self.recipepanel = self.parent.parent.parent
     end
-    if self.recipepanel.fastListReturn(self, y) then return y + self.itemheight end
 
     local isComplex = item.item.luaTest and true or false
 
@@ -1349,12 +1368,16 @@ function CHC_uses_recipepanel:drawEquipment(y, item, alt)
         self.recipepanel.drawFavoriteStar(self, y, item, self.recipepanel)
     end
     --endregion
+end
 
-    return y + self.itemheight
+function CHC_uses_recipepanel:renderListBox()
+    CHC_view._list.render(self)
 end
 
 function CHC_uses_recipepanel:render()
+    self:clampStencilRectToParent(0, 0, self.width, self.height)
     ISPanel.render(self)
+    self:clearStencilRect()
 
     if not self.selectedObj or not self.selectedObj.recipe then return end
     if self.needUpdateScroll then
@@ -1426,7 +1449,7 @@ end
 -- region logic
 
 -- region event handlers
-
+-- region temp
 -- function CHC_uses_recipepanel:onIngredientMouseMove(x, y)
 --     local ix = self.mouseoverselected
 --     local panel = self.recipepanel
@@ -1482,6 +1505,29 @@ end
 --     CHC_uses_recipepanel.updateExtraData(panel, foodData)
 --     panel.mainExtraData:setVisible(true)
 -- end
+-- endregion temp
+
+function CHC_uses_recipepanel:rowAt(x, y)
+    local y0 = 0
+    if not self._indexes then return end
+    for _, _ix in ipairs(self._indexes) do
+        local item = self.items[_ix]
+        if y >= y0 and y < y0 + item.height then
+            return _ix
+        end
+        y0 = y0 + item.height
+    end
+    return -1
+end
+
+function CHC_uses_recipepanel:onMouseWheel22(del)
+    local isOver = self:isMouseOver()
+    -- print(isOver)
+    if isOver and self:isVScrollBarVisible() then
+        self:setYScroll(self:getYScroll() - (del * 207))
+        return true
+    end
+end
 
 function CHC_uses_recipepanel:onRMBDownIngrPanel(x, y, item)
     local backRef = self.parent.parent.backRef
@@ -1565,6 +1611,23 @@ function CHC_uses_recipepanel:onRMBDownItemIcon(x, y)
     recipe_panel.parent.onRMBDown(recipe_panel, nil, nil, recipe_panel.selectedObj.recipe.recipeData.result)
 end
 
+function CHC_uses_recipepanel:onMouseDown(x, y)
+    if #self.items == 0 then return end
+    local row = self:rowAt(x, y)
+
+    if row > #self.items then
+        row = #self.items;
+    end
+    if row < 1 then
+        row = 1;
+    end
+
+    getSoundManager():playUISound("UISelectListItem")
+
+    self.selected = row;
+    CHC_uses_recipepanel.onIngredientMouseDown(self._panel, self.items[self.selected].item)
+end
+
 function CHC_uses_recipepanel:onIngredientMouseDown(item)
     if not item then return end
     local x = self:getMouseX()
@@ -1597,10 +1660,10 @@ function CHC_uses_recipepanel:onIngredientMouseDown(item)
                 item.blockHiddenState = blockHiddenStateSelector[1]
                 item.blockHiddenStateLocked = true
             end
-            if item.blockHiddenState == blockHiddenStateSelector[1] then
-                item.isBlockHidden = false
-            else
+            if item.blockHiddenState ~= blockHiddenStateSelector[1] or item.collapsed == true then
                 item.isBlockHidden = true
+            else
+                item.isBlockHidden = false
             end
             self.blockStateData[item.sourceNum] = item.blockHiddenState
         else
@@ -1608,6 +1671,7 @@ function CHC_uses_recipepanel:onIngredientMouseDown(item)
             self.collapsedData[item.sourceNum] = item.collapsed
             self.needUpdateHeight = true
         end
+        -- self:refreshIngredientPanel(self.selectedObj)
     end
 end
 
@@ -1717,7 +1781,7 @@ function CHC_uses_recipepanel:addRandomMenu()
 
     -- region ingredient
     if used < max and types and not utils.empty(types) then
-        tsort(types, function(a, b) return not ssort(a.name, b.name) end)
+        tsort(types, function(a, b) return a.name:lower() < b.name:lower() end)
         local ingredientMenu = context:addOption(getText("IGUI_Evolved_Ingredient"), nil, nil)
         local ingredientSubMenu = ISContextMenu:getNew(context)
         context:addSubMenu(ingredientMenu, ingredientSubMenu)
@@ -1754,7 +1818,7 @@ function CHC_uses_recipepanel:addRandomMenu()
 
     -- region condiment
     if used > 0 and spices and not utils.empty(spices) then
-        tsort(spices, function(a, b) return not ssort(a.item.name, b.item.name) end)
+        tsort(spices, function(a, b) return a.item.name:lower() < b.item.name:lower() end)
         local condimentMenu = context:addOption(getText("ContextMenu_FoodType_NoExplicit"), nil, nil)
         local condimentSubMenu = ISContextMenu:getNew(context)
         context:addSubMenu(condimentMenu, condimentSubMenu)
@@ -1805,7 +1869,7 @@ function CHC_uses_recipepanel:addItemInEvolvedRecipe(item, all, isSpice)
 
         local options = isSpice and self.evolvedValidSpices or self.evolvedValidTypes
         if utils.empty(options) then return end
-        local item = CHC_main.common.getRandom(options)
+        item = CHC_main.common.getRandom(options)
         if item.items then
             item = CHC_main.common.getRandom(item.items)
         end
@@ -1928,7 +1992,8 @@ function CHC_uses_recipepanel:getTooltipForEvolvedItem(ch)
 
         for i = 1, #counts do
             local value = counts[i]
-            local label = "- " .. "<IMAGE:" .. value.item.texture:getName() .. ",32,32>" .. value.item.displayName
+            CHC_main.common.cacheTex(value.item)
+            local label = "- " .. "<IMAGE:" .. value.item.texture_name .. ",32,32>" .. value.item.displayName
             if value.count > 1 then
                 label = label .. " x " .. value.count
             end
@@ -1965,6 +2030,7 @@ function CHC_uses_recipepanel:selectSpecificMenu()
         local optText = self:getTooltipForEvolvedItem(ch)
         optName = optName .. " (" .. used .. "/" .. max .. ")"
         local opt = context:addOption(optName, self, self.setSpecificEvolvedItem, ch)
+        CHC_main.common.cacheTex(ch.itemObj)
         opt.iconTexture = ch.itemObj.texture
         if optText then
             CHC_main.common.setTooltipToCtx(opt, optText)
@@ -1989,7 +2055,7 @@ function CHC_uses_recipepanel:getValidEvolvedIngredients(typesAvailable)
     for fullType, count in pairs(typesAvailable) do
         local item = CHC_main.items[fullType]
         if item and item.fullType ~= baseItem then
-            local foodType = item.item:IsFood() and item.item:getFoodType()
+            local foodType = item.foodType
             if foodType then
                 local uses = 0
                 local isValidUses = false
@@ -2087,8 +2153,7 @@ function CHC_uses_recipepanel:updateButtons(obj)
                 self.craftAllButton:setTitle(getText("IGUI_CraftUI_ButtonCraftAllCount",
                     obj.howManyCanCraft))
                 self.craftAllButton:setX(self.craftOneButton.x + self.craftOneButton.width + 5)
-                self.craftAllButton:setWidth(10 +
-                    getTextManager():MeasureStringX(UIFont.Small, self.craftAllButton.title))
+                self.craftAllButton:setWidth(10 + utils.strWidth(UIFont.Small, self.craftAllButton.title))
 
                 buttonStates.craftAll = true
             end

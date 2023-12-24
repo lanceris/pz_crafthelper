@@ -5,6 +5,8 @@ require 'ISUI/ISModalRichText'
 local derivative = ISPanel
 CHC_filter_row = derivative:derive('CHC_filter_row')
 
+local utils = require('CHC_utils')
+
 function CHC_filter_row:initialise()
     derivative.initialise(self)
     self:create()
@@ -51,7 +53,6 @@ function CHC_filter_row:create()
     self.categorySelector.target = self
     self.categorySelector.tooltip = { defaultTooltip = fsd.defaultTooltip }
     self.categorySelector.prerender = self.prerenderSelector
-    self.categorySelector.backgroundColor.a = 0.55
     self.categorySelector.textColor = { r = 0.95, g = 0.95, b = 0.95, a = 1 }
     -- endregion
 
@@ -63,22 +64,53 @@ function CHC_filter_row:create()
 end
 
 function CHC_filter_row:prerenderSelector()
-    ISComboBox.prerender(self)
     local selected = self.options[self.selected]
-    if not selected then return end
+    local alpha = math.min(self.borderColor.a + 0.2 * self.fade:fraction(), 1.0)
+    local bg = self.backgroundColor
+    local bgmo = self.backgroundColorMouseOver
+    local y = (self.height - getTextManager():getFontHeight(self.font)) / 2
+    local tc = { r = 0.6, g = 0.6, b = 0.6, a = 1 }
+
+    if not self.disabled then
+        self.fade:setFadeIn(self.joypadFocused or self:isMouseOver())
+        self.fade:update()
+        tc.r = 1
+        tc.g = 1
+        tc.b = 1
+        self:drawRectBorder(0, 0, self.width, self.height, alpha, self.borderColor.r, self.borderColor.g,
+            self.borderColor.b)
+    end
+
+    if self.expanded then
+        self:drawRect(0, 0, self.width, self.height, bg.a, bg.r, bg.g, bg.b)
+    elseif not self.joypadFocused then
+        self:drawRect(0, 0, self.width, self.height, bgmo.a * 0.5 * self.fade:fraction(), bgmo.r, bgmo.g, bgmo.b);
+    else
+        self:drawRect(0, 0, self.width, self.height, bgmo.a, bgmo.r, bgmo.g, bgmo.b);
+    end
 
     if self:isEditable() and self.editor and self.editor:isReallyVisible() then
-    else
+        -- editor is visible, don't draw text
+    elseif selected then
         local data = self:getOptionData(self.selected)
-        if not data or not data.count or type(data.count) ~= "number" then return end
-        local texX = getTextManager():MeasureStringX(self.font, self:getOptionText(self.selected))
-        local y = (self.height - getTextManager():getFontHeight(self.font)) / 2
         self:clampStencilRectToParent(0, 0, self.width - self.image:getWidthOrig() - 6, self.height)
-        local countStr = ' (' .. data.count .. ')'
-        self:drawText(countStr, texX + 10, y, self.textColor.r, self.textColor.g,
-            self.textColor.b, self.textColor.a, self.font)
+
+        local text = self:getOptionText(self.selected)
+        local tx = 10
+        if data and data.count and type(data.count) == "number" then
+            text = string.format('%s (%d)', text, data.count)
+            tc = self.textColor
+        end
+        if not self.disabled then
+            tc = self.textColor
+        end
+        self:drawText(text, tx, y, tc.r, tc.g, tc.b, tc.a, self.font)
         self:clearStencilRect()
     end
+
+    self:drawRectBorder(0, 0, self.width, self.height, alpha, 0.5, 0.5, 0.5)
+    self:drawTexture(self.image, self.width - self.image:getWidthOrig() - 3,
+        (self.baseHeight / 2) - (self.image:getHeight() / 2), 1, 1, 1, 1)
 end
 
 function CHC_filter_row:doDrawItemSelectorPopup(y, item, alt)
@@ -90,7 +122,7 @@ function CHC_filter_row:doDrawItemSelectorPopup(y, item, alt)
             return y
         end
     end
-    local texX = getTextManager():MeasureStringX(self.font, self.parentCombo:getOptionText(item.index))
+    local texX = utils.strWidth(self.font, self.parentCombo:getOptionText(item.index))
     local countStr = ' (' .. data.count .. ')'
     self:drawText(countStr, texX + 10, y - item.height + 5,
         self.parentCombo.textColor.r, self.parentCombo.textColor.g,
