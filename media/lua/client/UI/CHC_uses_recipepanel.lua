@@ -1612,7 +1612,7 @@ function CHC_uses_recipepanel:onRMBDownItemIcon(x, y)
 end
 
 function CHC_uses_recipepanel:onMouseDown(x, y)
-    if #self.items == 0 then return end
+    if not self.items or #self.items == 0 then return end
     local row = self:rowAt(x, y)
 
     if row > #self.items then

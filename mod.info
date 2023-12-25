@@ -1,4 +1,4 @@
-name=Craft Helper Continued Beta
+name=Craft Helper Continued beta
 id=CraftHelperContinued_beta
 description=Beta version of Craft Helper to test new features.
 icon=icon.png
@@ -15,3 +15,5 @@ poster=posters/items.png
 poster=posters/items_ctx.png
 poster=posters/recipes_ingr_ctx.png
 poster=posters/evolved.png
+poster=posters/presets_tooltip.png
+poster=posters/presets_controls.png
