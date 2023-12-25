@@ -5,10 +5,10 @@ require 'CHC_config_apply_funcs'
 local utils = require('CHC_utils')
 
 local dir = utils.configDir
-local config_name = 'craft_helper_config.json'
-local mappings_name = 'CHC_mappings.json'
-local presets_name = 'CHC_presets.lua'
-local presets_backup_name = 'CHC_presets_backup.lua'
+local config_name = 'beta_craft_helper_config.json'
+local mappings_name = 'beta_CHC_mappings.json'
+local presets_name = 'beta_CHC_presets.lua'
+local presets_backup_name = 'beta_CHC_presets_backup.lua'
 
 CHC_settings = {
     f = {},
