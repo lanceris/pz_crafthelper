@@ -1,4 +1,5 @@
 version=1.9b1
+id=3122080147
 title=Craft Helper Continued Beta
 tags=Build 41;Interface
 visibility=public
