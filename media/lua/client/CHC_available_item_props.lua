@@ -255,7 +255,20 @@ CHC_settings.itemPropsByType = {
         { name = 'getMediaType',       default = -1,      ignoreDefault = true },
         { name = 'isNoTransmit' },
     },
-    Moveable = {},
+    Moveable = {
+        { name = 'getWorldSprite' },
+        { name = 'CanBeDroppedOnFloor' },
+        { name = 'isMultiGridAnchor' },
+        { name = 'isLight',            default = false,              ignoreDefault = true },
+        { name = 'isLightUseBattery',  default = false,              ignoreDefault = true },
+        { name = 'getLightBulbItem',   default = '"Base.LightBulb"', ignoreDefault = true },
+        { name = 'getLightPower',      default = 0,                  ignoreDefault = true },
+        { name = 'getLightDelta',      default = 2.0E-4,             ignoreDefault = true },
+        { name = 'getLightR',          default = 1,                  ignoreDefault = true },
+        { name = 'getLightG',          default = 1,                  ignoreDefault = true },
+        { name = 'getLightB',          default = 1,                  ignoreDefault = true },
+
+    },
     Map = {},
     Common = {
         { name = 'getAlcoholPower',            default = 0,    ignoreDefault = true },

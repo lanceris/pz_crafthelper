@@ -5,10 +5,14 @@ require 'CHC_config_apply_funcs'
 local utils = require('CHC_utils')
 
 local dir = utils.configDir
-local config_name = 'beta_craft_helper_config.json'
+local config_name = 'beta_craft_helper_config.lua'
 local mappings_name = 'beta_CHC_mappings.json'
 local presets_name = 'beta_CHC_presets.lua'
 local presets_backup_name = 'beta_CHC_presets_backup.lua'
+
+local char = string.char
+local byte = string.byte
+local concat = table.concat
 
 CHC_settings = {
     f = {},
@@ -329,7 +333,7 @@ end
 
 CHC_settings.Save = function(config)
     config = config or CHC_settings.config
-    local status = pcall(utils.jsonutil.Save, config_name, config)
+    local status = pcall(utils.tableutil.save, config_name, config)
     if not status then
         -- config is corrupted, create new
         CHC_settings.Save(init_cfg)
@@ -337,15 +341,31 @@ CHC_settings.Save = function(config)
 end
 
 CHC_settings.Load = function()
-    local status, config = pcall(utils.jsonutil.Load, config_name)
-
+    local status, config = pcall(utils.tableutil.load, config_name)
     if not status or not config then
-        config = init_cfg
+        config = copyTable(init_cfg)
         CHC_settings.Save(config)
     end
     CHC_settings.checkConfig(config)
     config = CHC_settings.validateConfig(config)
     CHC_settings.config = config
+end
+
+CHC_settings.migrateConfig = function()
+    local oldName = "beta_craft_helper_config.json" -- FIXME
+    local oldCfgr = getFileReader(oldName, false)
+    if not oldCfgr then return end
+    oldCfgr:close()
+    local status, oldConfig = pcall(utils.jsonutil.Load, oldName)
+    if not status then return end
+    local defaultStr = "Safe to remove"
+    utils.jsonutil.Save(oldName, { defaultStr })
+    if not oldConfig or
+        utils.empty(oldConfig) or
+        oldConfig[1] == defaultStr then
+        return
+    end
+    utils.tableutil.save(config_name, oldConfig)
 end
 
 CHC_settings.checkConfig = function(config)
@@ -385,7 +405,7 @@ end
 
 CHC_settings.SavePropsData = function(config)
     config = config or CHC_settings.mappings
-    local status = pcall(utils.jsonutil.Save, mappings_name, config)
+    local status = pcall(utils.tableutil.save, mappings_name, config)
     if not status then
         -- config is corrupted, create new
         CHC_settings.SavePropsData(init_mappings)
@@ -393,7 +413,7 @@ CHC_settings.SavePropsData = function(config)
 end
 
 CHC_settings.LoadPropsData = function()
-    local status, config = pcall(utils.jsonutil.Load, mappings_name)
+    local status, config = pcall(utils.tableutil.load, mappings_name)
     if not status or not config then
         config = init_mappings
         CHC_settings.SavePropsData(config)
@@ -405,9 +425,9 @@ local function utf8_from(t)
     local bytearr = {}
     for _, v in ipairs(t) do
         local utf8byte = v < 0 and (0xff + v + 1) or v
-        table.insert(bytearr, string.char(utf8byte))
+        bytearr[#bytearr + 1] = char(utf8byte)
     end
-    return table.concat(bytearr)
+    return concat(bytearr)
 end
 
 local types = { "items", "recipes" }
@@ -415,12 +435,13 @@ local types = { "items", "recipes" }
 CHC_settings.SavePresetsData = function()
     local config = copyTable(init_presets)
     for i = 1, #types do
-        for name, entries in pairs(CHC_settings.presets[types[i]]) do
+        local _type = types[i]
+        for name, entries in pairs(CHC_settings.presets[_type]) do
             local entry = {
-                name = table.concat({ string.byte(name, 1, -1) }, ","),
+                name = concat({ byte(name, 1, -1) }, ","),
                 entries = entries,
             }
-            table.insert(config[types[i]], entry)
+            config[_type][#config[_type] + 1] = entry
         end
     end
 

@@ -1,12 +1,15 @@
 local CHC_utils = {}
 
-local lower = string.lower
 local tostring = tostring
+local tonumber = tonumber
+local type = type
+local lower = string.lower
 local format = string.format
 local len = string.len
 local sub = string.sub
-local insert = table.insert
+local rep = string.rep
 local contains = string.contains
+local concat = table.concat
 
 CHC_utils.configDir = "CraftHelperContinued" .. getFileSeparator()
 
@@ -168,7 +171,7 @@ CHC_utils.compare = function(what, to, passAll)
             for i = 1, #what do
                 local wh = lower(tostring(what[i]))
                 if isNegate then
-                    insert(_states, contains(wh, to))
+                    _states[#_states + 1] = contains(wh, to)
                 else
                     if contains(wh, to) then
                         state = true
@@ -297,6 +300,29 @@ function CHC_utils.strHeight(font, str)
     return getTextManager():MeasureStringY(font, str)
 end
 
+---https://stackoverflow.com/a/53038524
+---@param t any
+---@param fnKeep any
+---@return any
+function CHC_utils.remove(t, fnKeep)
+    local j, n = 1, #t;
+
+    for i = 1, n do
+        if (fnKeep(t, i, j)) then
+            -- Move i's kept value to j's position, if it's not already there.
+            if (i ~= j) then
+                t[j] = t[i];
+                t[i] = nil;
+            end
+            j = j + 1; -- Increment position of where we'll place the next kept value.
+        else
+            t[i] = nil;
+        end
+    end
+
+    return t;
+end
+
 CHC_utils.configDir = "CraftHelperContinued" .. getFileSeparator()
 -- CHC_utils.cacheDir = CHC_utils.configDir .. "cache" .. getFileSeparator()
 
@@ -357,53 +383,50 @@ CHC_utils.tableutil.serialize = function(o, res, _nested, _comma)
         comma = ""
     end
     if type(o) == "number" then
-        insert(res, o .. comma)
+        res[#res + 1] = o .. comma
     elseif type(o) == "boolean" then
-        insert(res, tostring(o) .. comma)
+        res[#res + 1] = tostring(o) .. comma
     elseif type(o) == "string" then
-        insert(res, string.format("%q" .. comma, o))
+        res[#res + 1] = format("%q" .. comma, o)
     elseif type(o) == "table" then
-        insert(res, "{\n")
+        res[#res + 1] = "{\n"
         _nested = _nested + 1
-        local spaces = string.rep(" ", _nested * 4)
+        local spaces = rep(" ", _nested * 4)
         for k, v in pairs(o) do
             if type(k) ~= "string" then
-                insert(res, spaces .. "[")
+                res[#res + 1] = spaces .. "["
                 CHC_utils.tableutil.serialize(k, res, _nested, false)
-                insert(res, "] = ")
+                res[#res + 1] = "] = "
             else
-                insert(res, spaces .. k .. " = ")
+                res[#res + 1] = spaces .. k .. " = "
             end
 
             CHC_utils.tableutil.serialize(v, res, _nested, true)
         end
         _nested = _nested - 1
-        insert(res, string.rep(" ", _nested * 4) .. "}" .. comma)
+        res[#res + 1] = rep(" ", _nested * 4) .. "}" .. comma
     else
         print("cannot serialize a " .. type(o))
     end
-    return table.concat(res)
+    return concat(res)
 end
 
 
 
 ---comment
 ---@param fname string Filename to load data from
----@return string|nil res Loaded data
-CHC_utils.tableutil.load = function(fname, isBinary)
+---@return table res Loaded data
+CHC_utils.tableutil.load = function(fname)
     local res
     local data = {}
     local fileReaderObj = getFileReader(fname, true)
     local line = fileReaderObj:readLine()
     while line do
-        insert(data, line)
+        data[#data + 1] = line
         line = fileReaderObj:readLine()
     end
     fileReaderObj:close()
-    res = table.concat(data, "\n")
-    if not isBinary then
-        res = loadstring("return" .. res)()
-    end
+    res = loadstring("return " .. concat(data, "\n"))()
     return res
 end
 

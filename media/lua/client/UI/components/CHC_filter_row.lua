@@ -6,6 +6,7 @@ local derivative = ISPanel
 CHC_filter_row = derivative:derive('CHC_filter_row')
 
 local utils = require('CHC_utils')
+local format = string.format
 
 function CHC_filter_row:initialise()
     derivative.initialise(self)
@@ -27,6 +28,17 @@ function CHC_filter_row:create()
     self.filterOrderBtn.backgroundColor.a = 0
     self.filterOrderBtn.borderColor.a = 0
     x = x + self.filterOrderBtn.width
+    -- endregion
+
+    -- region filters btn
+    -- self.filtersBtn = ISButton:new(x, 0, foo.width or h, h, foo.title or '', self)
+    -- self.filtersBtn:initialise()
+    -- self.filterOrderBtn:setOnClick(self:toggleFiltersUI())
+    -- self.filterOrderBtn.tooltip = foo.defaultTooltip
+    -- self.filterOrderBtn:setImage(foo.defaultIcon)
+    -- self.filterOrderBtn.backgroundColor.a = 0
+    -- self.filterOrderBtn.borderColor.a = 0
+    -- x = x + self.filtersBtn.width
     -- endregion
 
     -- region type btn
@@ -65,7 +77,8 @@ end
 
 function CHC_filter_row:prerenderSelector()
     local selected = self.options[self.selected]
-    local alpha = math.min(self.borderColor.a + 0.2 * self.fade:fraction(), 1.0)
+    local alpha = self.borderColor.a + 0.2 * self.fade:fraction()
+    if alpha > 1 then alpha = 1 end
     local bg = self.backgroundColor
     local bgmo = self.backgroundColorMouseOver
     local y = (self.height - getTextManager():getFontHeight(self.font)) / 2
@@ -98,7 +111,7 @@ function CHC_filter_row:prerenderSelector()
         local text = self:getOptionText(self.selected)
         local tx = 10
         if data and data.count and type(data.count) == "number" then
-            text = string.format('%s (%d)', text, data.count)
+            text = format('%s (%d)', text, data.count)
             tc = self.textColor
         end
         if not self.disabled then
@@ -150,6 +163,7 @@ function CHC_filter_row:new(args, filtersData)
 
     o.backRef = args.backRef
     o.filterOrderData = filtersData.filterOrderData
+    o.filterData = filtersData.filterData
     o.filterTypeData = filtersData.filterTypeData
     o.filterSelectorData = filtersData.filterSelectorData
     return o

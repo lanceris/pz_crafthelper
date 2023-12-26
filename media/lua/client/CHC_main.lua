@@ -1,6 +1,7 @@
 --Runs only once when player enters save/server (after "Click to Start" message)
 require 'luautils'
 
+
 CraftHelperContinued = {}
 CHC_main = CraftHelperContinued
 CHC_main._meta = {
@@ -13,21 +14,29 @@ CHC_main._meta = {
 }
 CHC_main.isDebug = false or getDebug()
 
-local insert = table.insert
+require 'CHC_common'
 local utils = require('CHC_utils')
 local print = utils.chcprint
 local pairs = pairs
 local sub = string.sub
 local rawToStr = KahluaUtil.rawTostring2
 local tonumber = tonumber
+local floor = math.floor
+local strsplit = strsplit
+local contains = string.contains
+local find = string.find
+local format = string.format
+
+local cnt = 0
 
 CheckMyModTable = CheckMyModTable or {} -- Mod Checker
 CheckMyModTable[CHC_main._meta.id] = CHC_main._meta.workshopId
 local cacheFileName = 'CraftHelperLuaCache.json'
 local loadLua = true
+local overRideVanillaCraftMenu
 
 local showTime = function(start, st)
-    print(string.format('Loaded %s in %s seconds', st, tostring((getTimestampMs() - start) / 1000)))
+    print(format('Loaded %s in %s seconds', st, tostring((getTimestampMs() - start) / 1000)))
 end
 
 CHC_main.init = function()
@@ -52,6 +61,7 @@ CHC_main.init = function()
     CHC_main.items = {}
     CHC_main.itemsNoModule = {}
     CHC_main.itemsForSearch = {}
+    CHC_main.moveablesMap = {}
     CHC_main.recipesWithoutItem = {}
     CHC_main.recipesWithLua = {}
     CHC_main.luaRecipeCache = {}
@@ -62,12 +72,38 @@ CHC_main.getItemByFullType = function(itemString)
     local item
     if itemString == 'Water' then
         item = CHC_main.items['Base.WaterDrop']
-    elseif (string.find(itemString, 'Base%.DigitalWatch2') or string.find(itemString, 'Base%.AlarmClock2')) then
+    elseif (find(itemString, 'Base%.DigitalWatch2') or find(itemString, 'Base%.AlarmClock2')) then
         item = nil
     else
         item = CHC_main.items[itemString]
     end
     return item
+end
+
+local function setRecipeForItem(tbl, itemName, recipe)
+    local o = tbl[itemName]
+    if not o then o = {} end
+    o[#o + 1] = recipe
+    tbl[itemName] = o
+end
+
+local function getRecipeRequiredSkills(recipe, n, recipeData)
+    local result = {}
+    for i = 1, n do
+        local skill = recipe:getRequiredSkill(i - 1)
+        local _perk = skill:getPerk()
+        local perk = PerkFactory.getPerk(_perk)
+        local perkName = perk and perk:getName() or _perk:name()
+        local level = skill:getLevel()
+        if level > 0 then
+            local perkObj = perk and CHC_main.skillsMap[perk:getId()]
+            if perkObj then
+                setRecipeForItem(CHC_main.recipesForItem, perkObj.fullType, recipeData)
+            end
+            result[#result + 1] = { skill = perkName, level = level }
+        end
+    end
+    return result
 end
 
 -- region lua stuff
@@ -90,7 +126,7 @@ CHC_main.handleRecipeLua = function(luaClosure)
         if not tab then return end
         local pos = path:find(".", 1, true)
         if pos then
-            local tab = tab[path:sub(1, pos - 1)]
+            tab = tab[path:sub(1, pos - 1)]
             if not type(tab) then
                 utils.chcerror("Expected value to be table, got " .. type(tab), "handleRecipeLua", nil,
                     false)
@@ -122,6 +158,7 @@ CHC_main.parseOnGiveXP = function(recipeLua)
 end
 -- endregion
 
+-- region props (attributes)
 local function formatOutput(propName, propVal)
     if propName then
         if sub(propName, 1, 3) == 'get' then
@@ -132,7 +169,8 @@ local function formatOutput(propName, propVal)
     end
     if propVal then
         if type(propVal) ~= 'string' then
-            propVal = math.floor(propVal * 10000) / 10000
+            propVal = floor(propVal * 10000) / 10000
+            cnt = cnt + 1
         end
     end
     return propName, propVal
@@ -182,83 +220,60 @@ local function processPropGroup(item, propData, isTypeSpecific, isSpecial)
     for i = 1, #propData do
         local _propData = processProp(item, propData[i], isTypeSpecific, isSpecial)
         if _propData then
-            insert(props, _propData)
+            props[#props + 1] = _propData
         end
     end
     return props
 end
 
 local function postProcess(props)
-    local uniqueProps = {}
-    local dupedProps = {}
-    local result = {}
-    for i = 1, #props do
+    local to_add = {}
+    for i = #props, 1, -1 do
         local prop = props[i]
-        if not uniqueProps[prop.name] then
-            uniqueProps[prop.name] = prop
-        else
-            dupedProps[prop.name] = true
-        end
-    end
-    if uniqueProps.ActualWeight and uniqueProps.Weight and
-        uniqueProps.Weight.value == uniqueProps.ActualWeight.value then
-        uniqueProps.ActualWeight = nil
-    end
-    if uniqueProps.TeachedRecipes then
-        uniqueProps.numTeachedRecipes = {
-            isTypeSpecific = true,
-            name = "numTeachedRecipes",
-            value = uniqueProps.TeachedRecipes.raw:size()
-        }
-        uniqueProps.TeachedRecipes.raw = nil
-    end
-    if uniqueProps.MutuallyExclusive then
-        local value = uniqueProps.MutuallyExclusive.raw:size()
-        if value > 0 then
-            uniqueProps.numMutuallyExclusive = {
+        if prop.name == "TeachedRecipes" then
+            to_add[#to_add + 1] = {
                 isTypeSpecific = true,
-                name = "numMutuallyExclusive",
-                value = value
+                name = "numTeachedRecipes",
+                value = prop.raw:size()
             }
-            uniqueProps.MutuallyExclusive.raw = nil
-        else
-            uniqueProps.MutuallyExclusive = nil
-        end
-    end
-    if uniqueProps.XPBoostMap then
-        local tbl = transformIntoKahluaTable(uniqueProps.XPBoostMap.raw)
-        if not utils.empty(tbl) then
-            uniqueProps._XPBoostMap = {
-                isTypeSpecific = true,
-                name = "_XPBoostMap",
-                value = tbl,
-                skip = true
+            prop.raw = nil
+        elseif prop.name == "MutuallyExclusive" then
+            local value = prop.raw:size()
+            if value > 0 then
+                to_add[#to_add + 1] = {
+                    isTypeSpecific = true,
+                    name = "numMutuallyExclusive",
+                    value = value
+                }
+                prop.raw = nil
+            else
+                table.remove(props, i)
+            end
+        elseif prop.name == "XPBoostMap" then
+            local tbl = transformIntoKahluaTable(prop.raw)
+            if not utils.empty(tbl) then
+                to_add[#to_add + 1] = {
+                    isTypeSpecific = true,
+                    name = "_XPBoostMap",
+                    value = tbl,
+                    skip = true
+                }
+            end
+            table.remove(props, i)
+        elseif prop.name == "UseDelta" then
+            to_add[#to_add + 1] = {
+                isTypeSpecific = prop.isTypeSpecific,
+                name = "UseDeltaTotal*",
+                value = 1 / prop.value
             }
         end
-        uniqueProps.XPBoostMap = nil
     end
-    if uniqueProps.Description then
-        -- can't remove pagination :( (seems java side zombie.ui.TextBox.render())
-        -- uniqueProps.Description.value = string.gsub(uniqueProps.Description.value, '<br>', '')
-    end
-    if uniqueProps.UseDelta then
-        uniqueProps["UseDeltaTotal*"] = {
-            isTypeSpecific = uniqueProps.UseDelta.isTypeSpecific,
-            name = "UseDeltaTotal*",
-            value = 1 / uniqueProps.UseDelta.value
-        }
-    end
-
-    for _, prop in pairs(uniqueProps) do
-        insert(result, prop)
-    end
-
-    return result, dupedProps
+    return utils.concat(props, to_add)
 end
 
-CHC_main.getItemProps = function(item, itemType, map)
+CHC_main.getItemProps = function(item, itemType, map, onlyProps)
     map = map or CHC_settings.itemPropsByType
-    local isSpecial = map ~= CHC_settings.itemPropsByType
+    local isSpecial = not onlyProps and map ~= CHC_settings.itemPropsByType
 
     local typePropData, commonPropData
     if not isSpecial then
@@ -271,11 +286,21 @@ CHC_main.getItemProps = function(item, itemType, map)
     local props = {}
     local propsMap = {}
     local typeProps
-    local dupedProps
 
-    if not isSpecial then
+    if not isSpecial and not onlyProps then
         local commonProps = processPropGroup(item, commonPropData, false, false)
-        for i = 1, #commonProps do insert(props, commonProps[i]) end
+        for i = 1, #commonProps do props[#props + 1] = commonProps[i] end
+    end
+
+    if onlyProps then
+        -- filter needed props
+        local newPropData = {}
+        for i = 1, #typePropData do
+            if onlyProps[typePropData[i].name] then
+                newPropData[#newPropData + 1] = typePropData[i]
+            end
+        end
+        typePropData = newPropData
     end
 
     if itemType == 'Radio' then
@@ -283,13 +308,9 @@ CHC_main.getItemProps = function(item, itemType, map)
     else
         typeProps = processPropGroup(item, typePropData, true, isSpecial)
     end
-    for i = 1, #typeProps do insert(props, typeProps[i]) end
+    for i = 1, #typeProps do props[#props + 1] = typeProps[i] end
 
-    props, dupedProps = postProcess(props)
-    -- if not utils.empty(dupedProps) then
-    -- 	CHC_main.dupedProps.items[item:getDisplayName()] = dupedProps
-    -- 	CHC_main.dupedProps.size = CHC_main.dupedProps.size + 1
-    -- end
+    props = postProcess(props)
 
     local filteredProps = {}
     for i = 1, #props do
@@ -298,31 +319,72 @@ CHC_main.getItemProps = function(item, itemType, map)
             propsMap[prop.name] = prop
         end
         if not prop.skip then
-            insert(filteredProps, prop)
+            filteredProps[#filteredProps + 1] = prop
         end
     end
 
     return filteredProps, propsMap
 end
 
-CHC_main.getRecipeRequiredSkills = function(recipe, n, recipeData)
+--- idea here is to load only part of props
+--- when searching by them ($) to avoid potentially long
+--- (30+ seconds for large modpacks) waiting times
+--- find all matching props by sub string (WIP)
+CHC_main.getPropItems = function(propName)
+    local matchingProps = {}
+    local matchingTypes = {}
     local result = {}
-    for i = 1, n do
-        local skill = recipe:getRequiredSkill(i - 1)
-        local _perk = skill:getPerk()
-        local perk = PerkFactory.getPerk(_perk)
-        local perkName = perk and perk:getName() or _perk:name()
-        local level = skill:getLevel()
-        if level > 0 then
-            local perkObj = perk and CHC_main.skillsMap[perk:getId()]
-            if perkObj then
-                CHC_main.setRecipeForItem(CHC_main.recipesForItem, perkObj.fullType, recipeData)
+    for i = 1, #CHC_settings.itemPropsList do
+        local prop = CHC_settings.itemPropsList[i]
+        if find(prop.name, propName, 1, true) then
+            matchingProps[prop.name] = true
+            matchingTypes[prop.itemType] = true
+        end
+    end
+    -- find all items matching conditions (type)
+    for i = 1, #CHC_main.itemsForSearch do
+        local props, propsMap
+        local filteredProps = {}
+        local item = CHC_main.itemsForSearch[i]
+        if matchingTypes[item.category] then
+            -- filter out existing props
+            if not item.props then item.props = {} end
+            if not item.propsMap then item.propsMap = {} end
+            for key, _ in pairs(matchingProps) do
+                if not item.propsMap[key] then
+                    filteredProps[key] = true
+                end
             end
-            insert(result, { skill = perkName, level = level })
+            props, propsMap = CHC_main.getItemProps(item.item, item.category,
+                CHC_settings.itemPropsByType[item.category], filteredProps)
+            -- load matching props for matching item
+
+            item.props = utils.concat(item.props, props)
+            for key, value in pairs(propsMap) do
+                if not item.propsMap[key] then
+                    item.propsMap[key] = value
+                end
+            end
+
+            for j = 1, #props do
+                result[#result + 1] = props[j]
+            end
         end
     end
     return result
 end
+
+CHC_main.initPropList = function()
+    local propsData = CHC_settings.itemPropsByType
+    local result = {}
+    for itemType, props in pairs(propsData) do
+        for i = 1, #props do
+            result[#result + 1] = { name = props[i].name, itemType = itemType }
+        end
+    end
+    CHC_settings.itemPropsList = result
+end
+-- endregion
 
 -- entry point
 CHC_main.loadDatas = function()
@@ -346,77 +408,81 @@ CHC_main.loadDatas = function()
     CHC_main.loadAllProfessionRecipes()
     CHC_main.loadAllSkillRecipes()
 
+    CHC_main.initPropList()
+    overRideVanillaCraftMenu()
+
     -- if loadLua then CHC_main.saveLuaCache() end
     -- init UI
-    CHC_menu.init()
     showTime(now, 'all')
+    CHC_menu.init()
     print("Initialised. Mod version: " .. CHC_main._meta.version)
 end
 
 --region item loading
 
-CHC_main.loadAllItems = function(am)
-    local function loadOneItem(item, id)
-        local fullType = item:getFullName()
+local function loadOneItem(item, id)
+    local fullType = item:getFullName()
 
-        if CHC_main.items[fullType] then
-            -- print(string.format('Duplicate invItem fullType! (%s)', tostring(invItem:getFullType())))
-            return
-        end
-        local invItem = instanceItem(fullType)
-        local itemDisplayCategory = invItem:getDisplayCategory()
+    if CHC_main.items[fullType] then
+        -- print(format('Duplicate invItem fullType! (%s)', tostring(invItem:getFullType())))
+        return
+    end
+    local invItem = instanceItem(fullType)
+    local itemDisplayCategory = invItem:getDisplayCategory()
 
-        local toinsert = {
-            _id = id,
-            item = invItem,
-            fullType = invItem:getFullType(),
-            name = invItem:getName(),
-            module = item:getModule(),
-            modname = invItem:getModName(),
-            isVanilla = invItem:isVanilla(),
-            IsDrainable = invItem:IsDrainable(),
-            displayName = invItem:getDisplayName(),
-            tooltip = invItem:getTooltip(),
-            hidden = item:isHidden(),
-            count = invItem:getCount() or 1,
-            category = item:getTypeString(),
-            displayCategory = itemDisplayCategory and
-                getTextOrNull('IGUI_ItemCat_' .. itemDisplayCategory) or
-                getText('IGUI_ItemCat_Item'),
-            -- texture = invItem:getTex() -- textures are loaded on demand (CHC_main.common.cacheTex)
-        }
-        if toinsert.category == "Food" then
-            toinsert.foodType = invItem:getFoodType()
-            toinsert.isSpice = invItem:isSpice()
-        end
-        toinsert.module = toinsert.module and toinsert.module:getName() or nil
-        -- props are loaded on demand (CHC_main.common.getItemProps)
-        -- TODO: make popup with warning if searching by props ($) that this will take a while
-        -- toinsert.props, toinsert.propsMap = CHC_main.getItemProps(invItem, toinsert.category)
-        toinsert.type = strsplit(toinsert.fullType, ".")[2]
+    local toinsert = {
+        _id = id,
+        item = invItem,
+        fullType = invItem:getFullType(),
+        name = invItem:getName(),
+        module = item:getModule(),
+        modname = invItem:getModName(),
+        isVanilla = invItem:isVanilla(),
+        IsDrainable = invItem:IsDrainable(),
+        displayName = invItem:getDisplayName(),
+        tooltip = invItem:getTooltip(),
+        hidden = item:isHidden(),
+        count = invItem:getCount() or 1,
+        category = item:getTypeString(),
+        displayCategory = itemDisplayCategory and
+            getTextOrNull('IGUI_ItemCat_' .. itemDisplayCategory) or
+            getText('IGUI_ItemCat_Item'),
+        -- texture = invItem:getTex() -- textures are loaded on demand (CHC_main.common.cacheTex)
+    }
+    if toinsert.category == "Food" then
+        toinsert.foodType = invItem:getFoodType()
+        toinsert.isSpice = invItem:isSpice()
+    end
+    toinsert.module = toinsert.module and toinsert.module:getName() or nil
+    -- props are loaded on demand (CHC_main.common.getItemProps)
+    -- TODO: make popup with warning if searching by props ($) that this will take a while
+    -- toinsert.props, toinsert.propsMap = CHC_main.getItemProps(invItem, toinsert.category)
+    toinsert.type = strsplit(toinsert.fullType, ".")[2]
+    if toinsert.category == "Moveable" then
+        CHC_main.moveablesMap[invItem:getWorldSprite()] = toinsert.fullType
+    end
 
-        CHC_main.items[toinsert.fullType] = toinsert
-        insert(CHC_main.itemsForSearch, toinsert)
-        if not CHC_main.itemsNoModule[toinsert.type] then
-            CHC_main.itemsNoModule[toinsert.type] = { toinsert }
-        else
-            insert(CHC_main.itemsNoModule[toinsert.type], toinsert)
-        end
+    CHC_main.items[toinsert.fullType] = toinsert
+    CHC_main.itemsForSearch[#CHC_main.itemsForSearch + 1] = toinsert
+    local itemNoModule = CHC_main.itemsNoModule[toinsert.type]
+    if not itemNoModule then
+        itemNoModule = { toinsert }
+    else
+        itemNoModule[#itemNoModule + 1] = toinsert
+    end
 
-        if toinsert.category == 'Literature' then
-            local teachedRecipes = item:getTeachedRecipes()
-            if teachedRecipes ~= nil and teachedRecipes:size() > 0 then
-                for j = 0, teachedRecipes:size() - 1 do
-                    local recipeString = teachedRecipes:get(j)
-                    if CHC_main.itemsManuals[recipeString] == nil then
-                        CHC_main.itemsManuals[recipeString] = {}
-                    end
-                    insert(CHC_main.itemsManuals[recipeString], CHC_main.items[toinsert.fullType])
-                end
+    if toinsert.category == 'Literature' then
+        local teachedRecipes = item:getTeachedRecipes()
+        if teachedRecipes ~= nil and teachedRecipes:size() > 0 then
+            for j = 0, teachedRecipes:size() - 1 do
+                local itemManuals = CHC_main.itemsManuals[teachedRecipes:get(j)] or {}
+                itemManuals[#itemManuals + 1] = CHC_main.items[toinsert.fullType]
             end
         end
     end
+end
 
+CHC_main.loadAllItems = function(am)
     local allItems = getAllItems()
     local nbItems = 0
     local nbObsolete = 0
@@ -450,35 +516,36 @@ CHC_main.loadAllItems = function(am)
     end
 end
 
+local function loadCECItem(id, data, map, _id)
+    local fullType = id
+    if not CHC_main.items[fullType] then
+        local toinsert = {
+            _id = "CEC" .. tostring(_id),
+            item = data,
+            fullType = 'CEC.' .. fullType,
+            name = data.nameID,
+            modname = 'Crafting Enhanced Core',
+            isVanilla = false,
+            IsDrainable = false,
+            displayName = data.displayName,
+            tooltip = data.tooltipDescription,
+            hidden = false,
+            count = 1,
+            category = 'Moveable',
+            displayCategory = getText('IGUI_CHC_ItemCat_Moveable'),
+            texture = getTexture(data.tooltipTexture),
+            textureMult = 2
+        }
+        toinsert.item.fullType = toinsert.fullType
+        toinsert.item.getFullType = function() return toinsert.fullType end
+        toinsert.props, toinsert.propsMap = CHC_main.getItemProps(data, toinsert.category, map)
+        CHC_main.items[toinsert.fullType] = toinsert
+        CHC_main.itemsForSearch[#CHC_main.itemsForSearch + 1] = toinsert
+    end
+end
+
 CHC_main.loadAllCECItems = function()
     if not getActivatedMods():contains('craftingEnhancedCore') then return end
-    local function loadCECItem(id, data, map, _id)
-        local fullType = id
-        if not CHC_main.items[fullType] then
-            local toinsert = {
-                _id = "CEC" .. tostring(_id),
-                item = data,
-                fullType = 'CEC.' .. fullType,
-                name = data.nameID,
-                modname = 'Crafting Enhanced Core',
-                isVanilla = false,
-                IsDrainable = false,
-                displayName = data.displayName,
-                tooltip = data.tooltipDescription,
-                hidden = false,
-                count = 1,
-                category = 'Moveable',
-                displayCategory = getText('IGUI_CHC_ItemCat_Moveable'),
-                texture = getTexture(data.tooltipTexture),
-                textureMult = 2
-            }
-            toinsert.item.fullType = toinsert.fullType
-            toinsert.item.getFullType = function() return toinsert.fullType end
-            toinsert.props, toinsert.propsMap = CHC_main.getItemProps(data, toinsert.category, map)
-            CHC_main.items[toinsert.fullType] = toinsert
-            insert(CHC_main.itemsForSearch, toinsert)
-        end
-    end
 
     -- TODO: synthetic recipes for cec tables (tData.recipe)
     local map = CHC_settings.itemPropsByType.Integrations.CraftingEnhanced
@@ -504,65 +571,64 @@ CHC_main.loadAllCECItems = function()
     end
 end
 
-CHC_main.loadAllTraitsItems = function()
-    local function loadOneTrait(trait, map, _id)
-        local data = {
-            type = trait:getType(),
-            texture = trait:getTexture(),
-            displayName = trait:getLabel() .. " (Trait)",
-            _leftLabel = trait:getLeftLabel(),
-            _rightLabel = trait:getRightLabel(),
-            cost = trait:getCost(),
-            isFree = trait:isFree(),
-            description = trait:getDescription(),
-            freeRecipes = trait:getFreeRecipes(),
-            removeInMp = trait:isRemoveInMP(),
-            mutuallyExclusive = trait:getMutuallyExclusiveTraits(),
-            XPBoostMap = trait:getXPBoostMap()
-        }
-        if data.freeRecipes:size() == 0 then data.freeRecipes = nil end
-        local fullType = 'CHC_Trait.' .. data.type
-        local toinsert = {
-            _id = "tr" .. tostring(_id),
-            item = data,
-            fullType = fullType,
-            name = data.displayName,
-            modname = 'CHC_Trait',
-            isVanilla = false,
-            IsDrainable = false,
-            displayName = data.displayName,
-            tooltip = data.description,
-            hidden = false,
-            count = 1,
-            category = 'Normal',
-            displayCategory = 'Trait', --getText('IGUI_ItemCat_Item'),
-            texture = data.texture,
-            extra = 'trait',
-        }
-        toinsert.item.fullType = toinsert.fullType
-        toinsert.item.getFullType = function() return toinsert.fullType end
-        --{isTypeSpecific: bool, name: str,value: any}
-        if map then
-            toinsert.props, toinsert.propsMap = CHC_main.getItemProps(toinsert, toinsert.category, map)
-            if toinsert.propsMap["_XPBoostMap"] then
-                toinsert.XPBoostMap = toinsert.propsMap["_XPBoostMap"]
-                for skill, boost in pairs(toinsert.XPBoostMap.value) do
-                    local entry = {
-                        isTypeSpecific = toinsert.XPBoostMap.isTypeSpecific,
-                        name = tostring(skill) .. "_XPBoost",
-                        value = tostring(boost)
-                    }
-                    insert(toinsert.props, entry)
-                    toinsert.propsMap[entry.name] = entry
-                end
+local function loadOneTrait(trait, map, _id)
+    local data = {
+        type = trait:getType(),
+        texture = trait:getTexture(),
+        displayName = trait:getLabel() .. " (Trait)",
+        _leftLabel = trait:getLeftLabel(),
+        _rightLabel = trait:getRightLabel(),
+        cost = trait:getCost(),
+        isFree = trait:isFree(),
+        description = trait:getDescription(),
+        freeRecipes = trait:getFreeRecipes(),
+        removeInMp = trait:isRemoveInMP(),
+        mutuallyExclusive = trait:getMutuallyExclusiveTraits(),
+        XPBoostMap = trait:getXPBoostMap()
+    }
+    if data.freeRecipes:size() == 0 then data.freeRecipes = nil end
+    local fullType = 'CHC_Trait.' .. data.type
+    local toinsert = {
+        _id = "tr" .. tostring(_id),
+        item = data,
+        fullType = fullType,
+        name = data.displayName,
+        modname = 'CHC_Trait',
+        isVanilla = false,
+        IsDrainable = false,
+        displayName = data.displayName,
+        tooltip = data.description,
+        hidden = false,
+        count = 1,
+        category = 'Normal',
+        displayCategory = 'Trait', --getText('IGUI_ItemCat_Item'),
+        texture = data.texture,
+        extra = 'trait',
+    }
+    toinsert.item.fullType = toinsert.fullType
+    toinsert.item.getFullType = function() return toinsert.fullType end
+    --{isTypeSpecific: bool, name: str,value: any}
+    if map then
+        toinsert.props, toinsert.propsMap = CHC_main.getItemProps(toinsert, toinsert.category, map)
+        if toinsert.propsMap["_XPBoostMap"] then
+            toinsert.XPBoostMap = toinsert.propsMap["_XPBoostMap"]
+            for skill, boost in pairs(toinsert.XPBoostMap.value) do
+                local entry = {
+                    isTypeSpecific = toinsert.XPBoostMap.isTypeSpecific,
+                    name = tostring(skill) .. "_XPBoost",
+                    value = tostring(boost)
+                }
+                toinsert.props[#toinsert.props + 1] = entry
+                toinsert.propsMap[entry.name] = entry
             end
         end
-        CHC_main.items[toinsert.fullType] = toinsert
-        insert(CHC_main.itemsForSearch, toinsert)
-        CHC_main.traitsMap[data.type] = data
-        insert(CHC_main.traits, data)
     end
-
+    CHC_main.items[toinsert.fullType] = toinsert
+    CHC_main.itemsForSearch[#CHC_main.itemsForSearch + 1] = toinsert
+    CHC_main.traitsMap[data.type] = data
+    CHC_main.traits[#CHC_main.traits + 1] = data
+end
+CHC_main.loadAllTraitsItems = function()
     local map = CHC_settings.itemPropsByType.Traits
     local nbTraits = 0
     local nbErrors = 0
@@ -586,62 +652,61 @@ CHC_main.loadAllTraitsItems = function()
     end
 end
 
-CHC_main.loadAllProfessionItems = function()
-    local function loadProfession(prof, map, _id)
-        local item = {
-            type = prof:getType(),
-            name = prof:getName(),
-            texture = prof:getTexture(),
-            displayName = prof:getLabel() .. " (Profession)",
-            _leftLabel = prof:getLeftLabel(),
-            _rightLabel = prof:getRightLabel(),
-            cost = prof:getCost(),
-            description = prof:getDescription(),
-            freeTraits = prof:getFreeTraits(),
-            freeRecipes = prof:getFreeRecipes(),
-            XPBoostMap = prof:getXPBoostMap(),
-        }
-        local fullType = 'CHC_Profession.' .. item.type
-        local toinsert = {
-            _id = "pr" .. tostring(_id),
-            item = item,
-            fullType = fullType,
-            name = item.name,
-            modname = 'CHC_Trait',
-            isVanilla = false,
-            IsDrainable = false,
-            displayName = item.displayName,
-            tooltip = item.description,
-            hidden = false,
-            count = 1,
-            category = 'Normal',
-            displayCategory = 'Profession', --getText('IGUI_ItemCat_Item'),
-            texture = item.texture,
-            extra = 'profession',
-        }
-        toinsert.item.fullType = toinsert.fullType
-        toinsert.item.getFullType = function() return toinsert.fullType end
-        if map then
-            toinsert.props, toinsert.propsMap = CHC_main.getItemProps(toinsert, toinsert.category, map)
-            if toinsert.propsMap["_XPBoostMap"] then
-                toinsert.XPBoostMap = toinsert.propsMap["_XPBoostMap"]
-                for skill, boost in pairs(toinsert.XPBoostMap.value) do
-                    local entry = {
-                        isTypeSpecific = toinsert.XPBoostMap.isTypeSpecific,
-                        name = tostring(skill) .. "_XPBoost",
-                        value = tostring(boost)
-                    }
-                    insert(toinsert.props, entry)
-                    toinsert.propsMap[entry.name] = entry
-                end
+local function loadProfession(prof, map, _id)
+    local item = {
+        type = prof:getType(),
+        name = prof:getName(),
+        texture = prof:getTexture(),
+        displayName = prof:getLabel() .. " (Profession)",
+        _leftLabel = prof:getLeftLabel(),
+        _rightLabel = prof:getRightLabel(),
+        cost = prof:getCost(),
+        description = prof:getDescription(),
+        freeTraits = prof:getFreeTraits(),
+        freeRecipes = prof:getFreeRecipes(),
+        XPBoostMap = prof:getXPBoostMap(),
+    }
+    local fullType = 'CHC_Profession.' .. item.type
+    local toinsert = {
+        _id = "pr" .. tostring(_id),
+        item = item,
+        fullType = fullType,
+        name = item.name,
+        modname = 'CHC_Trait',
+        isVanilla = false,
+        IsDrainable = false,
+        displayName = item.displayName,
+        tooltip = item.description,
+        hidden = false,
+        count = 1,
+        category = 'Normal',
+        displayCategory = 'Profession', --getText('IGUI_ItemCat_Item'),
+        texture = item.texture,
+        extra = 'profession',
+    }
+    toinsert.item.fullType = toinsert.fullType
+    toinsert.item.getFullType = function() return toinsert.fullType end
+    if map then
+        toinsert.props, toinsert.propsMap = CHC_main.getItemProps(toinsert, toinsert.category, map)
+        if toinsert.propsMap["_XPBoostMap"] then
+            toinsert.XPBoostMap = toinsert.propsMap["_XPBoostMap"]
+            for skill, boost in pairs(toinsert.XPBoostMap.value) do
+                local entry = {
+                    isTypeSpecific = toinsert.XPBoostMap.isTypeSpecific,
+                    name = tostring(skill) .. "_XPBoost",
+                    value = tostring(boost)
+                }
+                toinsert.props[#toinsert.props + 1] = entry
+                toinsert.propsMap[entry.name] = entry
             end
         end
-        CHC_main.items[toinsert.fullType] = toinsert
-        insert(CHC_main.itemsForSearch, toinsert)
-        CHC_main.professionsMap[item.type] = item
-        insert(CHC_main.professions, item)
     end
-
+    CHC_main.items[toinsert.fullType] = toinsert
+    CHC_main.itemsForSearch[#CHC_main.itemsForSearch + 1] = toinsert
+    CHC_main.professionsMap[item.type] = item
+    CHC_main.professions[#CHC_main.professions + 1] = item
+end
+CHC_main.loadAllProfessionItems = function()
     local map = CHC_settings.itemPropsByType.Professions
     local nbOk = 0
     local nbErrors = 0
@@ -666,77 +731,76 @@ CHC_main.loadAllProfessionItems = function()
     end
 end
 
-CHC_main.loadAllSkillItems = function()
-    local function loadSkill(skill, map, _id)
-        local item = {
-            id = skill:getId(),
-            index = skill:index(),
-            name = skill:getName(),
-            isCustom = skill:isCustom(),
-            isPassiv = skill:isPassiv(),
-            parent = skill:getParent(),
-            displayName = skill:getName() .. " (Skill)",
-        }
-        item.xpForLvl = {}
-        item.xpForLvlTotal = {}
-        for i = 1, 10, 1 do
-            item.xpForLvl[i] = skill:getXpForLevel(i)
-            item.xpForLvlTotal[i] = skill:getTotalXpForLevel(i)
-        end
-        local fullType = 'CHC_Skill.' .. item.id
-        local toinsert = {
-            _id = "sk" .. tostring(_id),
-            item = item,
-            fullType = fullType,
-            name = item.name,
-            modname = 'CHC_Skill',
-            isVanilla = false,
-            IsDrainable = false,
-            displayName = item.displayName,
-            tooltip = "Skill description",
-            hidden = false,
-            count = 1,
-            category = 'Normal',
-            displayCategory = 'Skill', --getText('IGUI_ItemCat_Item'),
-            texture = item.texture,
-            extra = 'skill',
-        }
-        toinsert.item.fullType = toinsert.fullType
-        toinsert.item.getFullType = function() return toinsert.fullType end
-        if map then
-            toinsert.props, toinsert.propsMap = CHC_main.getItemProps(toinsert, toinsert.category, map)
-            if toinsert.propsMap["xpForLvl"] then
-                for i = 1, 10, 1 do
-                    local entry = {
-                        isTypeSpecific = true,
-                        name = "xpForLvl" .. tostring(i),
-                        value = tostring(toinsert.item.xpForLvl[i])
-                    }
-                    insert(toinsert.props, entry)
-                    toinsert.propsMap[entry.name] = entry
-                end
-                toinsert.propsMap["xpForLvl"] = nil
-            end
-            if toinsert.propsMap["xpForLvlTotal"] then
-                for i = 1, 10, 1 do
-                    local entry = {
-                        isTypeSpecific = true,
-                        name = "xpForLvlTotal" .. tostring(i),
-                        value = tostring(toinsert.item.xpForLvlTotal[i])
-                    }
-                    insert(toinsert.props, entry)
-                    toinsert.propsMap[entry.name] = entry
-                end
-
-                toinsert.propsMap["xpForLvlTotal"] = nil
-            end
-        end
-        CHC_main.items[toinsert.fullType] = toinsert
-        insert(CHC_main.itemsForSearch, toinsert)
-        CHC_main.skillsMap[item.id] = item
-        insert(CHC_main.skills, item)
+local function loadSkill(skill, map, _id)
+    local item = {
+        id = skill:getId(),
+        index = skill:index(),
+        name = skill:getName(),
+        isCustom = skill:isCustom(),
+        isPassiv = skill:isPassiv(),
+        parent = skill:getParent(),
+        displayName = skill:getName() .. " (Skill)",
+    }
+    item.xpForLvl = {}
+    item.xpForLvlTotal = {}
+    for i = 1, 10, 1 do
+        item.xpForLvl[i] = skill:getXpForLevel(i)
+        item.xpForLvlTotal[i] = skill:getTotalXpForLevel(i)
     end
+    local fullType = 'CHC_Skill.' .. item.id
+    local toinsert = {
+        _id = "sk" .. tostring(_id),
+        item = item,
+        fullType = fullType,
+        name = item.name,
+        modname = 'CHC_Skill',
+        isVanilla = false,
+        IsDrainable = false,
+        displayName = item.displayName,
+        tooltip = "Skill description",
+        hidden = false,
+        count = 1,
+        category = 'Normal',
+        displayCategory = 'Skill', --getText('IGUI_ItemCat_Item'),
+        texture = item.texture,
+        extra = 'skill',
+    }
+    toinsert.item.fullType = toinsert.fullType
+    toinsert.item.getFullType = function() return toinsert.fullType end
+    if map then
+        toinsert.props, toinsert.propsMap = CHC_main.getItemProps(toinsert, toinsert.category, map)
+        if toinsert.propsMap["xpForLvl"] then
+            for i = 1, 10, 1 do
+                local entry = {
+                    isTypeSpecific = true,
+                    name = "xpForLvl" .. tostring(i),
+                    value = tostring(toinsert.item.xpForLvl[i])
+                }
+                toinsert.props[#toinsert.props + 1] = entry
+                toinsert.propsMap[entry.name] = entry
+            end
+            toinsert.propsMap["xpForLvl"] = nil
+        end
+        if toinsert.propsMap["xpForLvlTotal"] then
+            for i = 1, 10, 1 do
+                local entry = {
+                    isTypeSpecific = true,
+                    name = "xpForLvlTotal" .. tostring(i),
+                    value = tostring(toinsert.item.xpForLvlTotal[i])
+                }
+                toinsert.props[#toinsert.props + 1] = entry
+                toinsert.propsMap[entry.name] = entry
+            end
 
+            toinsert.propsMap["xpForLvlTotal"] = nil
+        end
+    end
+    CHC_main.items[toinsert.fullType] = toinsert
+    CHC_main.itemsForSearch[#CHC_main.itemsForSearch + 1] = toinsert
+    CHC_main.skillsMap[item.id] = item
+    CHC_main.skills[#CHC_main.skills + 1] = item
+end
+CHC_main.loadAllSkillItems = function()
     local map = CHC_settings.itemPropsByType.Skills
     local nbOk = 0
     local nbErrors = 0
@@ -763,166 +827,166 @@ end
 
 --region recipe loading
 
-CHC_main.loadAllRecipes = function()
-    local function processCEC(nearItem, CECData)
-        if not CECData or not getActivatedMods():contains('craftingEnhancedCore') then return end
-        local luaTestFunc
-        if getActivatedMods():contains('Hydrocraft') then
-            -- get isFurnitureNearby function
-            luaTestFunc = _G['isFurnitureNearby']
-        end
-        local furniItem = {}
-        for tID, table in pairs(CECData.tables) do
-            if table.nameID == nearItem then
-                furniItem.obj = CHC_main.items['CEC.' .. tID]
-                if luaTestFunc then
-                    furniItem.luaTest = luaTestFunc
-                    furniItem.luaTestParam = nearItem
-                else
-                    furniItem.luaTest = {}
-                end
+local function processCEC(nearItem, CECData)
+    if not CECData or not getActivatedMods():contains('craftingEnhancedCore') then return end
+    local luaTestFunc
+    if getActivatedMods():contains('Hydrocraft') then
+        -- get isFurnitureNearby function
+        luaTestFunc = _G['isFurnitureNearby']
+    end
+    local furniItem = {}
+    for tID, _table in pairs(CECData.tables) do
+        if _table.nameID == nearItem then
+            furniItem.obj = CHC_main.items['CEC.' .. tID]
+            if luaTestFunc then
+                furniItem.luaTest = luaTestFunc
+                furniItem.luaTestParam = nearItem
+            else
+                furniItem.luaTest = {}
             end
         end
-        return furniItem
     end
+    return furniItem
+end
 
-    local function processHydrocraft(recipe)
-        if not getActivatedMods():contains('Hydrocraft') then return end
+local function processHydrocraft(recipe)
+    if not getActivatedMods():contains('Hydrocraft') then return end
 
-        local luaTest = recipe:getLuaTest()
-        if not luaTest then return end
-        local integration = CHC_settings.integrations.Hydrocraft.luaOnTestReference
-        local itemName = integration[luaTest]
-        if not itemName then return end
-        local furniItem = {}
-        local furniItemObj = CHC_main.items[itemName]
-        furniItem.obj = furniItemObj
-        furniItem.luaTest = _G[luaTest] -- calling global registry to get function obj
-        return furniItem
+    local luaTest = recipe:getLuaTest()
+    if not luaTest then return end
+    local integration = CHC_settings.integrations.Hydrocraft.luaOnTestReference
+    local itemName = integration[luaTest]
+    if not itemName then return end
+    local furniItem = {}
+    local furniItemObj = CHC_main.items[itemName]
+    furniItem.obj = furniItemObj
+    furniItem.luaTest = _G[luaTest] -- calling global registry to get function obj
+    return furniItem
+end
+
+local function loadOneRecipe(recipe, id)
+    local newItem = {}
+    newItem._id = id
+    newItem.category = recipe:getCategory() or getText('IGUI_CraftCategory_General')
+    newItem.displayCategory = getTextOrNull('IGUI_CraftCategory_' .. newItem.category) or newItem.category
+    newItem.recipe = recipe
+    newItem.module = recipe:getModule()
+    newItem.module = newItem.module and newItem.module:getName() or nil
+    newItem.hidden = recipe:isHidden()
+    newItem.recipeData = {}
+    newItem.recipeData.lua = {}
+    newItem.recipeData.lua.onCanPerform = recipe:getCanPerform()
+    newItem.recipeData.category = newItem.category
+    newItem.recipeData.name = recipe:getName()
+    newItem.recipeData.nearItem = recipe:getNearItem()
+    newItem.recipeData.needToBeLearn = recipe:needToBeLearn()
+    newItem.recipeData.originalName = recipe:getOriginalname()
+    if newItem.recipeData.nearItem == "Anvil" and
+        not getActivatedMods():contains("Blacksmith41") then
+        return
     end
-
-    local function loadOneRecipe(recipe, id)
-        local newItem = {}
-        newItem._id = id
-        newItem.category = recipe:getCategory() or getText('IGUI_CraftCategory_General')
-        newItem.displayCategory = getTextOrNull('IGUI_CraftCategory_' .. newItem.category) or newItem.category
-        newItem.recipe = recipe
-        newItem.module = recipe:getModule()
-        newItem.module = newItem.module and newItem.module:getName() or nil
-        newItem.hidden = recipe:isHidden()
-        newItem.recipeData = {}
-        newItem.recipeData.lua = {}
-        newItem.recipeData.lua.onCanPerform = recipe:getCanPerform()
-        newItem.recipeData.category = newItem.category
-        newItem.recipeData.name = recipe:getName()
-        newItem.recipeData.nearItem = recipe:getNearItem()
-        newItem.recipeData.needToBeLearn = recipe:needToBeLearn()
-        newItem.recipeData.originalName = recipe:getOriginalname()
-        if newItem.recipeData.nearItem == "Anvil" and
-            not getActivatedMods():contains("Blacksmith41") then
-            return
-        end
-        newItem.recipeData.requiredSkillCount = recipe:getRequiredSkillCount()
-        if newItem.recipeData.requiredSkillCount > 0 then
-            newItem.recipeData.requiredSkills = CHC_main.getRecipeRequiredSkills(recipe,
-                newItem.recipeData.requiredSkillCount, newItem)
-        end
-        newItem.favStr = CHC_main.common.getFavoriteRecipeModDataString(newItem)
+    newItem.recipeData.requiredSkillCount = recipe:getRequiredSkillCount()
+    if newItem.recipeData.requiredSkillCount > 0 then
+        newItem.recipeData.requiredSkills = getRecipeRequiredSkills(recipe,
+            newItem.recipeData.requiredSkillCount, newItem)
+    end
+    newItem.favStr = CHC_main.common.getFavoriteRecipeModDataString(newItem)
 
 
-        if loadLua then
-            -- local onCreate = recipe:getLuaCreate()
-            -- local onTest = recipe:getLuaTest()
-            local onCanPerform = recipe:getCanPerform()
-            -- local onGiveXP = recipe:getLuaGiveXP()
-            -- if onCreate or onTest or onCanPerform or onGiveXP then
+    if loadLua then
+        -- local onCreate = recipe:getLuaCreate()
+        -- local onTest = recipe:getLuaTest()
+        local onCanPerform = recipe:getCanPerform()
+        -- local onGiveXP = recipe:getLuaGiveXP()
+        -- if onCreate or onTest or onCanPerform or onGiveXP then
+        if onCanPerform then
+            newItem.recipeData.lua = {}
+            -- if onCreate then
+            -- 	newItem.recipeData.lua.onCreate = CHC_main.handleRecipeLua(onCreate)
+            -- end
+            -- if onTest then
+            -- 	newItem.recipeData.lua.onTest = CHC_main.handleRecipeLua(onTest)
+            -- end
             if onCanPerform then
-                newItem.recipeData.lua = {}
-                -- if onCreate then
-                -- 	newItem.recipeData.lua.onCreate = CHC_main.handleRecipeLua(onCreate)
-                -- end
-                -- if onTest then
-                -- 	newItem.recipeData.lua.onTest = CHC_main.handleRecipeLua(onTest)
-                -- end
-                if onCanPerform then
-                    newItem.recipeData.lua.onCanPerform = CHC_main.handleRecipeLua(onCanPerform)
-                end
-                -- if onGiveXP then
-                -- 	newItem.recipeData.lua.onGiveXP = CHC_main.handleRecipeLua(onGiveXP)
-                -- end
+                newItem.recipeData.lua.onCanPerform = CHC_main.handleRecipeLua(onCanPerform)
             end
-            -- if newItem.recipeData.lua then
-            -- 	CHC_main.recipesWithLua[newItem.recipeData.name] = newItem.recipeData.lua
+            -- if onGiveXP then
+            -- 	newItem.recipeData.lua.onGiveXP = CHC_main.handleRecipeLua(onGiveXP)
             -- end
         end
+        -- if newItem.recipeData.lua then
+        -- 	CHC_main.recipesWithLua[newItem.recipeData.name] = newItem.recipeData.lua
+        -- end
+    end
 
 
-        local resultItem = recipe:getResult()
-        if not resultItem then return end
+    local resultItem = recipe:getResult()
+    if not resultItem then return end
 
-        --region integrations
-        --check for hydrocraft furniture
-        local hydrocraftFurniture = processHydrocraft(recipe)
-        if hydrocraftFurniture then
-            newItem.recipeData.hydroFurniture = hydrocraftFurniture
+    --region integrations
+    --check for hydrocraft furniture
+    local hydrocraftFurniture = processHydrocraft(recipe)
+    if hydrocraftFurniture then
+        newItem.recipeData.hydroFurniture = hydrocraftFurniture
+        newItem.isNearItem = true
+        setRecipeForItem(CHC_main.recipesByItem, hydrocraftFurniture.obj.fullType, newItem)
+    end
+
+    --check for CEC furniture
+    if newItem.recipeData.nearItem then
+        local CECFurniture = processCEC(newItem.recipeData.nearItem, CHC_main.CECData)
+        if CECFurniture and not utils.empty(CECFurniture) then
+            newItem.recipeData.CECFurniture = CECFurniture
             newItem.isNearItem = true
-            CHC_main.setRecipeForItem(CHC_main.recipesByItem, hydrocraftFurniture.obj.fullType, newItem)
-        end
-
-        --check for CEC furniture
-        if newItem.recipeData.nearItem then
-            local CECFurniture = processCEC(newItem.recipeData.nearItem, CHC_main.CECData)
-            if CECFurniture and not utils.empty(CECFurniture) then
-                newItem.recipeData.CECFurniture = CECFurniture
-                newItem.isNearItem = true
-                CHC_main.setRecipeForItem(CHC_main.recipesByItem, CECFurniture.obj.fullType, newItem)
-            end
-        end
-
-        local bookRecipe = CHC_main.itemsManuals[newItem.recipeData.originalName]
-        if bookRecipe then
-            for _, value in pairs(bookRecipe) do
-                newItem.isBook = true
-                CHC_main.setRecipeForItem(CHC_main.recipesByItem, value.fullType, newItem)
-            end
-        end
-        --endregion
-
-        local resultFullType = resultItem:getFullType()
-        local itemres = CHC_main.getItemByFullType(resultFullType)
-        if not itemres then
-            itemres = CHC_main.getItemByFullType("Base." .. strsplit(resultFullType, ".")[2])
-        end
-
-        insert(CHC_main.allRecipes, newItem)
-        if itemres then
-            newItem.recipeData.result = itemres
-            CHC_main.setRecipeForItem(CHC_main.recipesForItem, itemres.fullType, newItem)
-        else
-            insert(CHC_main.recipesWithoutItem, resultFullType)
-        end
-        local rSources = recipe:getSource()
-
-
-        CHC_main.recipeMap[newItem.recipeData.originalName] = newItem
-        CHC_main.recipeStringMap[newItem.favStr] = newItem
-
-        -- Go through items needed by the recipe
-        for n = 0, rSources:size() - 1 do
-            -- Get the item name (not the display name)
-            local rSource = rSources:get(n)
-            local items = rSource:getItems()
-            for k = 0, rSource:getItems():size() - 1 do
-                local itemString = items:get(k)
-                local item = CHC_main.getItemByFullType(itemString)
-
-                if item then
-                    CHC_main.setRecipeForItem(CHC_main.recipesByItem, item.fullType, newItem)
-                end
-            end
+            setRecipeForItem(CHC_main.recipesByItem, CECFurniture.obj.fullType, newItem)
         end
     end
 
+    local bookRecipe = CHC_main.itemsManuals[newItem.recipeData.originalName]
+    if bookRecipe then
+        for _, value in pairs(bookRecipe) do
+            newItem.isBook = true
+            setRecipeForItem(CHC_main.recipesByItem, value.fullType, newItem)
+        end
+    end
+    --endregion
+
+    local resultFullType = resultItem:getFullType()
+    local itemres = CHC_main.getItemByFullType(resultFullType)
+    if not itemres then
+        itemres = CHC_main.getItemByFullType("Base." .. strsplit(resultFullType, ".")[2])
+    end
+
+    CHC_main.allRecipes[#CHC_main.allRecipes + 1] = newItem
+    if itemres then
+        newItem.recipeData.result = itemres
+        setRecipeForItem(CHC_main.recipesForItem, itemres.fullType, newItem)
+    else
+        CHC_main.recipesWithoutItem[#CHC_main.recipesWithoutItem + 1] = resultFullType
+    end
+    local rSources = recipe:getSource()
+
+
+    CHC_main.recipeMap[newItem.recipeData.originalName] = newItem
+    CHC_main.recipeStringMap[newItem.favStr] = newItem
+
+    -- Go through items needed by the recipe
+    for n = 0, rSources:size() - 1 do
+        -- Get the item name (not the display name)
+        local rSource = rSources:get(n)
+        local items = rSource:getItems()
+        for k = 0, rSource:getItems():size() - 1 do
+            local itemString = items:get(k)
+            local item = CHC_main.getItemByFullType(itemString)
+
+            if item then
+                setRecipeForItem(CHC_main.recipesByItem, item.fullType, newItem)
+            end
+        end
+    end
+end
+
+CHC_main.loadAllRecipes = function()
     print('Loading recipes...')
     local nbRecipes = 0
     local nbErrors = 0
@@ -948,119 +1012,119 @@ CHC_main.loadAllRecipes = function()
     end
 end
 
-CHC_main.loadAllEvolvedRecipes = function()
-    local function loadOneEvolvedRecipe(recipe, _id)
-        if not recipe then error("no recipe object found") end
-        local data = {
-            _id = "ev" .. tostring(_id),
-            isEvolved = true,
-            recipe = recipe,
-            category = getText('IGUI_CHC_RecipeCat_Evolved'),
-            displayCategory = getText('IGUI_CHC_RecipeCat_Evolved'),
-            hidden = recipe:isHidden(),
-            module = recipe:getModule(),
-        }
-        data.module = data.module and data.module:getName() or nil
+local function loadOneEvolvedRecipe(recipe, _id)
+    if not recipe then error("no recipe object found") end
+    local data = {
+        _id = "ev" .. tostring(_id),
+        isEvolved = true,
+        recipe = recipe,
+        category = getText('IGUI_CHC_RecipeCat_Evolved'),
+        displayCategory = getText('IGUI_CHC_RecipeCat_Evolved'),
+        hidden = recipe:isHidden(),
+        module = recipe:getModule(),
+    }
+    data.module = data.module and data.module:getName() or nil
 
-        local recipeData = {
-            category = data.category,
-            name = recipe:getName(),
-            originalName = recipe:getOriginalname(),
-            untranslatedName = recipe:getUntranslatedName(),
-            baseItem = recipe:getBaseItem(),
-            --itemsList = recipe:getItemsList(), -- Map
-            _possibleItems = recipe:getPossibleItems(), -- ArrayList
-            fullResultItem = recipe:getFullResultItem(),
-            isCookable = recipe:isCookable(),
-            maxItems = recipe:getMaxItems(),
-            addIngredientSound = recipe:getAddIngredientSound(),
-            isAllowFrozenItem = recipe:isAllowFrozenItem()
-        }
-        recipeData.resultItem = recipeData.fullResultItem and recipe:getResultItem() or nil
-        if not recipeData.resultItem then
-            error("getResultItem returned nil")
+    local recipeData = {
+        category = data.category,
+        name = recipe:getName(),
+        originalName = recipe:getOriginalname(),
+        untranslatedName = recipe:getUntranslatedName(),
+        baseItem = recipe:getBaseItem(),
+        --itemsList = recipe:getItemsList(), -- Map
+        _possibleItems = recipe:getPossibleItems(), -- ArrayList
+        fullResultItem = recipe:getFullResultItem(),
+        isCookable = recipe:isCookable(),
+        maxItems = recipe:getMaxItems(),
+        addIngredientSound = recipe:getAddIngredientSound(),
+        isAllowFrozenItem = recipe:isAllowFrozenItem()
+    }
+    recipeData.resultItem = recipeData.fullResultItem and recipe:getResultItem() or nil
+    if not recipeData.resultItem then
+        error("getResultItem returned nil")
+    end
+    if not contains(recipeData.baseItem, '.') then
+        local baseItem = recipeData.baseItem
+        local module
+        local noDot = CHC_main.items[baseItem]
+        local withBase = CHC_main.items["Base." .. baseItem]
+        local withResult = CHC_main.items[recipeData.fullResultItem] -- try to get module from fullresult
+        local withItemType = CHC_main.itemsNoModule[baseItem]
+        if noDot then
+            module = noDot.module
+        elseif withItemType then
+            module = withItemType[1].module
+        elseif withBase then -- possible conflict if base and mod have same name
+            module = "Base"
+        elseif withResult then
+            module = withResult.module
+        else
+            utils.chcerror(
+                "Could not determine baseItem for evolved recipe, defaulting to Base: " .. recipeData.name, nil, nil,
+                false)
+            module = "Base"
         end
-        if not recipeData.baseItem:contains('.') then
-            local baseItem = recipeData.baseItem
-            local module
-            local noDot = CHC_main.items[baseItem]
-            local withBase = CHC_main.items["Base." .. baseItem]
-            local withResult = CHC_main.items[recipeData.fullResultItem] -- try to get module from fullresult
-            local withItemType = CHC_main.itemsNoModule[baseItem]
-            if noDot then
-                module = noDot.module
-            elseif withItemType then
-                module = withItemType[1].module
-            elseif withBase then -- possible conflict if base and mod have same name
-                module = "Base"
-            elseif withResult then
-                module = withResult.module
-            else
-                utils.chcerror(
-                    "Could not determine baseItem for evolved recipe, defaulting to Base: " .. recipeData.name, nil, nil,
-                    false)
-                module = "Base"
-            end
-            if module == "farming" then
-                module = "Base"
-            end
-            recipeData.baseItem = module .. "." .. recipeData.baseItem
+        if module == "farming" then
+            module = "Base"
         end
-        if not recipeData.fullResultItem:contains('.') then
-            recipeData.fullResultItem = "Base." .. recipeData.fullResultItem
-        end
-
-        if recipeData._possibleItems then
-            recipeData.possibleItems = {}
-            for i = 0, recipeData._possibleItems:size() - 1 do
-                local item = recipeData._possibleItems:get(i)
-                local itemData = {
-                    name = item:getName(),
-                    use = item:getUse(),
-                    fullType = item:getFullType()
-                }
-                -- check item for obsolete
-                local _item = CHC_main.getItemByFullType(itemData.fullType)
-                if _item then
-                    if _item.propsMap and _item.propsMap["Spice"] and tostring(_item.propsMap["Spice"].value) == "true" or _item.isSpice == true then
-                        itemData.isSpice = true
-                    else
-                        itemData.isSpice = false
-                    end
-                    insert(recipeData.possibleItems, itemData)
-                end
-            end
-            recipeData._possibleItems = nil
-        end
-
-        data.recipeData = recipeData
-
-        if data.recipeData.possibleItems then
-            for i = 1, #data.recipeData.possibleItems do
-                local itemData = data.recipeData.possibleItems[i]
-                local itemres = CHC_main.getItemByFullType(itemData.fullType)
-                if itemres then
-                    CHC_main.setRecipeForItem(CHC_main.evoRecipesByItem, itemData.fullType, data)
-                end
-            end
-        end
-
-        local baseItemRes = CHC_main.getItemByFullType(data.recipeData.baseItem)
-        if baseItemRes then
-            CHC_main.setRecipeForItem(CHC_main.evoRecipesByItem, data.recipeData.baseItem, data)
-        end
-
-        local resultItem = CHC_main.getItemByFullType(data.recipeData.fullResultItem)
-        if resultItem then
-            data.recipeData.result = resultItem
-            CHC_main.setRecipeForItem(CHC_main.evoRecipesForItem, data.recipeData.fullResultItem, data)
-        end
-
-        data.favStr = CHC_main.common.getFavoriteRecipeModDataString(data)
-        insert(CHC_main.allEvoRecipes, data)
-        CHC_main.recipeStringMap[data.favStr] = data
+        recipeData.baseItem = module .. "." .. recipeData.baseItem
+    end
+    if not contains(recipeData.fullResultItem, '.') then
+        recipeData.fullResultItem = "Base." .. recipeData.fullResultItem
     end
 
+    if recipeData._possibleItems then
+        recipeData.possibleItems = {}
+        for i = 0, recipeData._possibleItems:size() - 1 do
+            local item = recipeData._possibleItems:get(i)
+            local itemData = {
+                name = item:getName(),
+                use = item:getUse(),
+                fullType = item:getFullType()
+            }
+            -- check item for obsolete
+            local _item = CHC_main.getItemByFullType(itemData.fullType)
+            if _item then
+                if _item.propsMap and _item.propsMap["Spice"] and tostring(_item.propsMap["Spice"].value) == "true" or _item.isSpice == true then
+                    itemData.isSpice = true
+                else
+                    itemData.isSpice = false
+                end
+                recipeData.possibleItems[#recipeData.possibleItems + 1] = itemData
+            end
+        end
+        recipeData._possibleItems = nil
+    end
+
+    data.recipeData = recipeData
+
+    if data.recipeData.possibleItems then
+        for i = 1, #data.recipeData.possibleItems do
+            local itemData = data.recipeData.possibleItems[i]
+            local itemres = CHC_main.getItemByFullType(itemData.fullType)
+            if itemres then
+                setRecipeForItem(CHC_main.evoRecipesByItem, itemData.fullType, data)
+            end
+        end
+    end
+
+    local baseItemRes = CHC_main.getItemByFullType(data.recipeData.baseItem)
+    if baseItemRes then
+        setRecipeForItem(CHC_main.evoRecipesByItem, data.recipeData.baseItem, data)
+    end
+
+    local resultItem = CHC_main.getItemByFullType(data.recipeData.fullResultItem)
+    if resultItem then
+        data.recipeData.result = resultItem
+        setRecipeForItem(CHC_main.evoRecipesForItem, data.recipeData.fullResultItem, data)
+    end
+
+    data.favStr = CHC_main.common.getFavoriteRecipeModDataString(data)
+    CHC_main.allEvoRecipes[#CHC_main.allEvoRecipes + 1] = data
+    CHC_main.recipeStringMap[data.favStr] = data
+end
+
+CHC_main.loadAllEvolvedRecipes = function()
     print('Loading evolved recipes...')
     local nbRecipes = 0
     local nbHidden = 0
@@ -1098,65 +1162,65 @@ CHC_main.loadAllEvolvedRecipes = function()
     end
 end
 
+local function getSource()
+
+end
+
+local function loadCECRecipe(tID, tData, _id)
+    local newItem = {}
+    newItem._id = "CEC" .. tostring(_id)
+    newItem.id = tID
+    newItem.category = 'CraftingEnhanced'
+    newItem.displayCategory = newItem.category
+    newItem.module = 'CraftingEnhancedCore'
+    newItem.hidden = false
+    newItem.isSynthetic = true
+    newItem.recipeData = {}
+    newItem.recipeData.category = newItem.category
+    newItem.recipeData.name = 'Build ' .. tData.displayName
+    newItem.recipeData.originalName = newItem.recipeData.name
+    newItem.recipeData.displayName = tData.displayName
+    newItem.recipeData.ingredients = tData.recipe
+    newItem.recipeData.isSynthetic = true
+    -- newItem.recipeData.nearItem = recipe:getNearItem()
+    newItem.recipe = {
+        getOriginalname = function() return newItem.recipeData.originalName end,
+        getSource = getSource,
+        getName = function() return newItem.recipeData.name end
+    }
+
+    newItem.favStr = CHC_main.common.getFavoriteRecipeModDataString(newItem)
+    local resultItem = 'CEC.' .. tID
+    CHC_main.allRecipes[#CHC_main.allRecipes + 1] = newItem
+    CHC_main.recipeStringMap[newItem.favStr] = newItem
+
+    local itemres = CHC_main.getItemByFullType(resultItem)
+    if itemres then
+        newItem.recipeData.result = itemres
+        setRecipeForItem(CHC_main.recipesForItem, itemres.fullType, newItem)
+    end
+
+    for i = 1, #tData.recipe do
+        local ingrData = tData.recipe[i]
+        local itemString = ingrData.type
+        local item = CHC_main.getItemByFullType(itemString)
+        if item then
+            setRecipeForItem(CHC_main.recipesByItem, item.fullType, newItem)
+        end
+    end
+    local tool = tData.requireTool
+    if tool then
+        if not contains(tool, '.') then
+            tool = 'Base.' .. tool
+        end
+        if CHC_main.getItemByFullType(tool) then
+            newItem.recipeData.ingredients[#newItem.recipeData.ingredients + 1] = { amount = 1, type = tool, isKeep = true } -- required tool
+            setRecipeForItem(CHC_main.recipesByItem, tool, newItem)
+        end
+    end
+end
+
 CHC_main.loadAllCECRecipes = function()
-    local function getSource()
-
-    end
-
-    local function loadCECRecipe(tID, tData, _id)
-        local newItem = {}
-        newItem._id = "CEC" .. tostring(_id)
-        newItem.id = tID
-        newItem.category = 'CraftingEnhanced'
-        newItem.displayCategory = newItem.category
-        newItem.module = 'CraftingEnhancedCore'
-        newItem.hidden = false
-        newItem.isSynthetic = true
-        newItem.recipeData = {}
-        newItem.recipeData.category = newItem.category
-        newItem.recipeData.name = 'Build ' .. tData.displayName
-        newItem.recipeData.originalName = newItem.recipeData.name
-        newItem.recipeData.displayName = tData.displayName
-        newItem.recipeData.ingredients = tData.recipe
-        newItem.recipeData.isSynthetic = true
-        -- newItem.recipeData.nearItem = recipe:getNearItem()
-        newItem.recipe = {
-            getOriginalname = function() return newItem.recipeData.originalName end,
-            getSource = getSource,
-            getName = function() return newItem.recipeData.name end
-        }
-
-        newItem.favStr = CHC_main.common.getFavoriteRecipeModDataString(newItem)
-        local resultItem = 'CEC.' .. tID
-        insert(CHC_main.allRecipes, newItem)
-        CHC_main.recipeStringMap[newItem.favStr] = newItem
-
-        local itemres = CHC_main.getItemByFullType(resultItem)
-        if itemres then
-            newItem.recipeData.result = itemres
-            CHC_main.setRecipeForItem(CHC_main.recipesForItem, itemres.fullType, newItem)
-        end
-
-        for i = 1, #tData.recipe do
-            local ingrData = tData.recipe[i]
-            local itemString = ingrData.type
-            local item = CHC_main.getItemByFullType(itemString)
-            if item then
-                CHC_main.setRecipeForItem(CHC_main.recipesByItem, item.fullType, newItem)
-            end
-        end
-        local tool = tData.requireTool
-        if tool then
-            if not string.contains(tool, '.') then
-                tool = 'Base.' .. tool
-            end
-            if CHC_main.getItemByFullType(tool) then
-                insert(newItem.recipeData.ingredients, { amount = 1, type = tool, isKeep = true }) -- required tool
-                CHC_main.setRecipeForItem(CHC_main.recipesByItem, tool, newItem)
-            end
-        end
-    end
-
     if not getActivatedMods():contains('craftingEnhancedCore') then return end
     print('Loading CraftingEnhancedCore recipes...')
     local nbRecipes = 0
@@ -1182,15 +1246,15 @@ CHC_main.loadAllCECRecipes = function()
     end
 end
 
-CHC_main.loadAllTraitsRecipes = function()
-    local function loadTraitFreeRecipe(trait, recipeName)
-        CHC_main.setRecipeForItem(CHC_main.freeRecipesTraits, recipeName, trait)
-        local recipeObj = CHC_main.recipeMap[recipeName]
-        if recipeObj then
-            CHC_main.setRecipeForItem(CHC_main.recipesForItem, trait.fullType, recipeObj)
-        end
+local function loadTraitFreeRecipe(trait, recipeName)
+    setRecipeForItem(CHC_main.freeRecipesTraits, recipeName, trait)
+    local recipeObj = CHC_main.recipeMap[recipeName]
+    if recipeObj then
+        setRecipeForItem(CHC_main.recipesForItem, trait.fullType, recipeObj)
     end
+end
 
+CHC_main.loadAllTraitsRecipes = function()
     local nbTraits = 0
     local nbErrors = 0
     local now = getTimestampMs()
@@ -1224,29 +1288,27 @@ CHC_main.loadAllTraitsRecipes = function()
     end
 end
 
+local function loadProfessionFreeRecipes(prof, recipeName)
+    setRecipeForItem(CHC_main.freeRecipesProfessions, recipeName, prof)
+    local recipeObj = CHC_main.recipeMap[recipeName]
+    if recipeObj then
+        setRecipeForItem(CHC_main.recipesForItem, prof.fullType, recipeObj)
+    end
+end
+
+-- inject profession to trait props (as obtainedBy)
+local function loadProfessionFreeTraits(prof, traitType)
+    local traitObj = CHC_main.traitsMap[traitType]
+    local traitItem = CHC_main.items[traitObj.fullType]
+    local entry = {
+        isTypeSpecific = true,
+        name = "obtainedBy",
+        value = prof.displayName
+    }
+    traitItem.props[#traitItem.props + 1] = entry
+    traitItem.propsMap[entry.name] = entry
+end
 CHC_main.loadAllProfessionRecipes = function()
-    local function loadProfessionFreeRecipes(prof, recipeName)
-        CHC_main.setRecipeForItem(CHC_main.freeRecipesProfessions, recipeName, prof)
-        local recipeObj = CHC_main.recipeMap[recipeName]
-        if recipeObj then
-            CHC_main.setRecipeForItem(CHC_main.recipesForItem, prof.fullType, recipeObj)
-        end
-    end
-
-    -- inject profession to trait props (as obtainedBy)
-    local function loadProfessionFreeTraits(prof, traitType)
-        local traitObj = CHC_main.traitsMap[traitType]
-        local traitItem = CHC_main.items[traitObj.fullType]
-        local entry = {
-            isTypeSpecific = true,
-            name = "obtainedBy",
-            value = prof.displayName
-        }
-        insert(traitItem.props, entry)
-        traitItem.propsMap[entry.name] = entry
-    end
-
-
     local nbRecipes = 0
     local nbErrorsRecipes = 0
     local nbTraits = 0
@@ -1300,37 +1362,36 @@ CHC_main.loadAllProfessionRecipes = function()
     end
 end
 
-CHC_main.loadAllSkillRecipes = function()
-    -- inject trait/proffession to skill props (as xpBoostedBy)
-    local function loadSkillRecipes(itemName, type)
-        local map = type == "trait" and CHC_main.traitsMap or CHC_main.professionsMap
-        local obj = map[itemName]
-        obj = CHC_main.items[obj.fullType]
-        for i = 1, #obj.props do
-            local propName = obj.props[i].name
-            if utils.endswith(propName, "_XPBoost") then
-                local skillObj = CHC_main.skillsMap[strsplit(propName, "_")[1]]
-                if skillObj then
-                    skillObj = CHC_main.items[skillObj.fullType]
-                    local index = 1
-                    for j = 1, #skillObj.props do
-                        if utils.startswith(skillObj.props[j].name, "xpBoostedBy") then
-                            index = index + 1
-                        end
+-- inject trait/proffession to skill props (as xpBoostedBy)
+local function loadSkillRecipes(itemName, type)
+    local map = type == "trait" and CHC_main.traitsMap or CHC_main.professionsMap
+    local obj = map[itemName]
+    obj = CHC_main.items[obj.fullType]
+    for i = 1, #obj.props do
+        local propName = obj.props[i].name
+        if utils.endswith(propName, "_XPBoost") then
+            local skillObj = CHC_main.skillsMap[strsplit(propName, "_")[1]]
+            if skillObj then
+                skillObj = CHC_main.items[skillObj.fullType]
+                local index = 1
+                for j = 1, #skillObj.props do
+                    if utils.startswith(skillObj.props[j].name, "xpBoostedBy") then
+                        index = index + 1
                     end
-
-                    local entry = {
-                        isTypeSpecific = true,
-                        name = "xpBoostedBy" .. tostring(index),
-                        value = obj.displayName
-                    }
-                    insert(skillObj.props, entry)
-                    skillObj.propsMap[entry.name] = entry
                 end
+
+                local entry = {
+                    isTypeSpecific = true,
+                    name = "xpBoostedBy" .. tostring(index),
+                    value = obj.displayName
+                }
+                skillObj[#skillObj + 1] = entry
+                skillObj.propsMap[entry.name] = entry
             end
         end
     end
-
+end
+CHC_main.loadAllSkillRecipes = function()
     local nbOk = 0
     local nbErrors = 0
     local now = getTimestampMs()
@@ -1401,7 +1462,7 @@ CHC_main.loadAllDistributions = function()
         -- local uniqueItems = {}
         for i = 1, #d.items, 2 do
             local itemName = d.items[i]
-            if not string.contains(itemName, '.') then
+            if not contains(itemName, '.') then
                 itemName = 'Base.' .. itemName
             end
             local itemNumber = d.items[i + 1]
@@ -1450,11 +1511,11 @@ CHC_main.loadAllDistributions = function()
             for subzone, dd in pairs(d) do
                 if type(dd) == 'table' then
                     if dd.rolls and dd.rolls > 0 and dd.items then
-                        local zName = string.format('%s.%s', zone, subzone)
+                        local zName = format('%s.%s', zone, subzone)
                         CHC_main.processDistrib(zName, dd, data)
                     end
                     if dd.junk and dd.junk.rolls and dd.junk.rolls > 0 and not utils.empty(dd.junk.items) then
-                        local zName = string.format('%s.%s.junk', zone, subzone)
+                        local zName = format('%s.%s.junk', zone, subzone)
                         CHC_main.processDistrib(zName, dd.junk, data, true)
                     end
                 end
@@ -1465,7 +1526,7 @@ CHC_main.loadAllDistributions = function()
     -- procedural from suburbs
     for zone, d in pairs(suburbs) do
         if d.procedural then
-            print(string.format('smth is wrong, should not trigger (zone: %s)', zone))
+            print(format('smth is wrong, should not trigger (zone: %s)', zone))
         end
         for subzone, dd in pairs(d) do
             if type(dd) == 'table' then
@@ -1475,16 +1536,20 @@ CHC_main.loadAllDistributions = function()
                         local pd = procedural[procEntry.name]
                         if pd ~= nil then
                             if pd.rolls and pd.rolls > 0 and pd.items then
-                                local zName = string.format('%s.%s', zone, subzone)
+                                local zName = format('%s.%s', zone, subzone)
                                 CHC_main.processDistrib(zName, pd, data, nil, true)
                             end
                             if pd.junk and pd.junk.rolls and pd.junk.rolls > 0 and not utils.empty(pd.junk.items) then
-                                local zName = string.format('%s.%s.junk', zone, subzone)
+                                local zName = format('%s.%s.junk', zone, subzone)
                                 CHC_main.processDistrib(zName, pd, data, true, true)
                             end
                         else
-                            insert(CHC_main.notAProcZone, { zone = zone, subzone = subzone, procZone = procEntry.name })
-                            -- error(string.format('Procedural entry is nil (zone: %s, proc: %s)', zone .. '-' .. subzone, procEntry.name))
+                            CHC_main.notAProcZone[#CHC_main.notAProcZone + 1] = {
+                                zone = zone,
+                                subzone = subzone,
+                                procZone = procEntry.name
+                            }
+                            -- error(format('Procedural entry is nil (zone: %s, proc: %s)', zone .. '-' .. subzone, procEntry.name))
                         end
                     end
                 end
@@ -1503,11 +1568,6 @@ CHC_main.loadAllDistributions = function()
 end
 --endregion
 
-CHC_main.setRecipeForItem = function(tbl, itemName, recipe)
-    tbl[itemName] = tbl[itemName] or {}
-    insert(tbl[itemName], recipe)
-end
-
 function CHC_main.reloadMod(key)
     if key == Keyboard.KEY_O then
         -- reload all
@@ -1516,6 +1576,20 @@ function CHC_main.reloadMod(key)
     if key == Keyboard.KEY_V then
         -- reload UI
         CHC_menu.createCraftHelper()
+    end
+    if key == Keyboard.KEY_C then
+        -- cnt = 0
+        -- local ic = 0
+        -- local ms = getTimeInMillis()
+        -- for _, value in pairs(CHC_main.items) do
+        --     CHC_main.common.getItemProps(value)
+        --     ic = ic + 1
+        -- end
+        -- local time = getTimeInMillis() - ms
+        -- print(format("Took %d ms to process %d items and %d props. Mean per item: %s. Mean per prop: %s",
+        --     time, ic, cnt, time / ic, time / cnt))
+        -- CHC_main.initPropList()
+        -- CHC_settings.migrateConfig()
     end
 end
 
@@ -1535,6 +1609,19 @@ end
 local function onPlayerDeath(player)
     if not player:isLocalPlayer() then return end
     CHC_menu.forceCloseWindow(true)
+end
+
+overRideVanillaCraftMenu = function()
+    local old_populateRecipesList = ISCraftingUI.populateRecipesList
+    function ISCraftingUI:populateRecipesList()
+        old_populateRecipesList(self)
+        if CHC_menu and CHC_menu.CHC_window and CHC_menu.CHC_window.updateQueue then
+            CHC_menu.CHC_window.updateQueue:push({
+                targetViews = { 'fav_recipes' },
+                actions = { 'needUpdateFavorites', 'needUpdateObjects' }
+            })
+        end
+    end
 end
 
 -- catch all lua changes to recipes/items/etc (DoParam and stuff)

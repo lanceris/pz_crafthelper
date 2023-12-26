@@ -1,11 +1,11 @@
-require 'CHC_main'
-
 CHC_main.common = {}
 
 local utils = require('CHC_utils')
 local error = utils.chcerror
-local insert = table.insert
 local contains = string.contains
+local type = type
+local trim = string.trim
+local sub = string.sub
 local globalTextLimit = 1000 -- FIXME
 
 
@@ -23,10 +23,10 @@ CHC_main.common.heights = {
 
 -- parse tokens from search query, determine search type (single/multi) and query type (and/or), get state based on processTokenFunc
 function CHC_main.common.searchFilter(self, q, processTokenFunc)
-    local stateText = string.trim(self.searchRow.searchBar:getInternalText())
-    if #stateText > globalTextLimit then
-        return true
-    end
+    local stateText = trim(self.searchRow.searchBar:getInternalText())
+    if stateText == '' then return true end
+    if #stateText > globalTextLimit then return true end
+
     local tokens, isMultiSearch, queryType = CHC_search_bar:parseTokens(stateText)
     local tokenStates = {}
     local state = false
@@ -35,7 +35,7 @@ function CHC_main.common.searchFilter(self, q, processTokenFunc)
 
     if isMultiSearch then
         for i = 1, #tokens do
-            insert(tokenStates, processTokenFunc(self, tokens[i], q))
+            tokenStates[#tokenStates + 1] = processTokenFunc(self, tokens[i], q)
         end
         for i = 1, #tokenStates do
             if queryType == 'OR' then
@@ -71,7 +71,7 @@ function CHC_main.common.setTooltipToCtx(option, text, isAvailable, isAdd, maxTe
     local _tooltip
     if isAdd then
         _tooltip = option.toolTip
-        text = string.sub(_tooltip.description, 1, maxTextLength) .. ' ... ' .. '<LINE>' .. text
+        text = sub(_tooltip.description, 1, maxTextLength) .. ' ... ' .. '<LINE>' .. text
     else
         _tooltip = ISToolTip:new()
         _tooltip:initialise()
@@ -117,7 +117,7 @@ function CHC_main.common.getItemProps(item)
         for i = 1, #item.props do
             local prop = item.props[i]
             if prop.ignore ~= true then
-                insert(attrs, prop)
+                attrs[#attrs + 1] = prop
             end
         end
     end
@@ -284,7 +284,7 @@ function CHC_main.common.getNearbyItems(containerList, fullTypesToCheck)
                         local obj = CHC_main.items[extraItems:get(j)]
                         if obj then
                             extraItemMap[obj.fullType] = true
-                            insert(extraItemObjs, obj)
+                            extraItemObjs[#extraItemObjs + 1] = obj
                         end
                     end
                     result.extraItemsMap = extraItemMap
@@ -296,7 +296,7 @@ function CHC_main.common.getNearbyItems(containerList, fullTypesToCheck)
                         result[k] = v
                     end
                 end
-                insert(items, result)
+                items[#items + 1] = result
             end
         end
     end
@@ -385,7 +385,7 @@ function CHC_main.common.getFoodData(item)
             local obj = CHC_main.items[extraSpices:get(j)]
             if obj then
                 extraSpiceMap[obj.fullType] = true
-                insert(extraSpiceObjs, obj)
+                extraSpiceObjs[#extraSpiceObjs + 1] = obj
             end
         end
         result.extraSpicesMap = extraSpiceMap
@@ -400,7 +400,8 @@ function CHC_main.common.getFoodDataSpice(baseItem, item, evoRecipe, cookLvl)
     local var7 = cookLvl / 15 + 1
 
     local hung = baseItem:getHungChange()
-    local var8 = math.abs(use / hung)
+    local var8 = use / hung
+    var8 = var8 < 0 and -var8 or var8
     if var8 > 1 then var8 = 1 end
     local calories = 0 --item:getCalories() * var7 * var8
     local proteins = 0 --item:getProteins() * var7 * var8
@@ -458,7 +459,7 @@ function CHC_main.common.getNearbyIsoObjectNames(player)
                     local obj = o:get(i):getName()
                     if obj then
                         res[2][obj] = true
-                        if math.abs(x) <= 1 and math.abs(y) <= 1 then
+                        if (x >= 0 and x or -x) <= 1 and (y >= 0 and y or -y) <= 1 then
                             res[1][obj] = true
                         end
                     end

@@ -17,14 +17,21 @@
 
 - Item favorites now stored in `CHC_item_favorites` table in player modData
 - Favorites now syncronized with default crafting window
-- Improved rendering for large lists of items (only part of objects shown are processed, instead of all)
+- Greatly improved rendering for large lists of items (only part of objects shown are processed, instead of all)
 - Reduced mod initialization time by ~4.5-5 times by not loading all textures/attributes on startup
+- Groundwork for custom filters (wip)
+- Renamed some files for better readability (old ones are kept for a while)
+- Added attributes for Moveables
+- Various (micro-)optimizations
 
 ### Bugfixes
 
 - Fixed book teached recipes not showing correctly when game language is not English
 - Fixed crash when some textures for vanilla items are missing
 - Fixed incorrect icons for moveables
+- Serialize window config only if all views properly saved
+- Config format changed from json to lua
+- Fixed inability to search moveables from inventory (Moveables use ` WorldSprite`` as fulltype -> were not matched to  `CHC_items[fulltype]`)
 
 # 1.8.4 (19.08.2023)
 

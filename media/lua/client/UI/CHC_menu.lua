@@ -1,6 +1,6 @@
 require 'CHC_main'
 
-CHC_menu = {}
+CHC_menu = CHC_menu or {}
 local utils = require('CHC_utils')
 local loadTries = 0
 
@@ -13,11 +13,16 @@ end
 --- called just after CHC_main.loadDatas
 CHC_menu.init = function()
     setPlayer()
-    CHC_menu.migrateItemFavorites()
+    CHC_menu.applyMigrations()
     CHC_menu.createCraftHelper()
 end
 
-CHC_menu.migrateItemFavorites = function()
+CHC_menu.applyMigrations = function()
+    --region configs from .json to .lua
+    CHC_settings.migrateConfig()
+    --endregion
+
+    --region migrateItemFavorites
     local modData = CHC_menu.playerModData
     if not modData or modData.CHC_item_favorites then return end
     modData.CHC_item_favorites = {}
@@ -27,6 +32,7 @@ CHC_menu.migrateItemFavorites = function()
             modData[name] = nil
         end
     end
+    --endregion
 end
 
 --- loads config and creates window instance
@@ -115,7 +121,7 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
         local fullType = item:getFullType()
         local isRecipes = CHC_main.common.areThereRecipesForItem(nil, fullType)
         if isRecipes then
-            table.insert(itemsUsedInRecipes, item)
+            itemsUsedInRecipes[#itemsUsedInRecipes + 1] = item
         end
     end
 
@@ -184,7 +190,13 @@ CHC_menu.onCraftHelper = function(items, player, itemMode)
     if itemMode then
         local item = items[#items]
         if not instanceof(item, 'InventoryItem') then item = item.items[1] end
-        item = CHC_main.items[item:getFullType()]
+        local fullType
+        if instanceof(item, "Moveable") then
+            fullType = CHC_main.moveablesMap[item:getWorldSprite()]
+        else
+            fullType = item:getFullType()
+        end
+        item = CHC_main.items[fullType]
         if item then
             CHC_menu.onCraftHelperItem(inst, item)
         end

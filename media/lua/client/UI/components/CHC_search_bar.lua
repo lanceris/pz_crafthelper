@@ -10,8 +10,9 @@ local derivative = ISPanel
 CHC_search_bar = derivative:derive('CHC_search_bar')
 
 local contains = string.contains
-local insert = table.insert
 local concat = table.concat
+local trim = string.trim
+local sub = string.sub
 
 -- region create
 
@@ -88,7 +89,7 @@ function CHC_search_bar:parseTokens(txt, delim)
     local regex = '[^' .. concat(delim) .. ']+'
     local queryType
 
-    txt = string.trim(txt)
+    txt = trim(txt)
     if not contains(txt, ',') and not contains(txt, '|') then
         return { txt }, false, nil
     end
@@ -100,7 +101,7 @@ function CHC_search_bar:parseTokens(txt, delim)
 
     local tokens = {}
     for token in txt:gmatch(regex) do
-        insert(tokens, string.trim(token))
+        tokens[#tokens + 1] = trim(token)
     end
     if #tokens == 1 then
         return tokens, false, nil
@@ -204,7 +205,7 @@ function CHC_search_bar:onRightMouseDown()
 
     local clip = Clipboard.getClipboard()
     if clip and luautils.trim(clip) ~= '' then
-        clip = string.sub(clip, 1, 100)
+        clip = sub(clip, 1, 100)
         context = ISContextMenu.get(0, getMouseX() + 10, getMouseY())
         local name = context:addOption(getText('IGUI_chc_Paste') .. ' (' .. clip .. ')', self, chcpaste, clip)
         name.iconTexture = getTexture('media/textures/CHC_paste_icon.png')
@@ -232,7 +233,7 @@ function CHC_search_bar:new(args, searchBarTooltip, onTextChange, searchBtnOnCli
     o.onTextChangeSB = onTextChange
     o.onCommandEnteredSB = onCommandEntered
     -- o.onRightMouseDownSB = onRightMouseDown
-    o.searchBarTooltip = searchBarTooltip or string.sub(getText('IGUI_CraftUI_Name_Filter'), 1, -2)
+    o.searchBarTooltip = searchBarTooltip or sub(getText('IGUI_CraftUI_Name_Filter'), 1, -2)
     o.searchIcon = getTexture('media/textures/search_icon.png')
 
     o.anchorLeft = true

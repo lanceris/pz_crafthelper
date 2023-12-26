@@ -10,8 +10,6 @@ PresetTooltip.tooltipsUsedNum = 0
 
 local utils = require('CHC_utils')
 
-local insert = table.insert
-
 ---Get font height in pixels
 ---@param font UIFont
 ---@return number fontHgt
@@ -48,19 +46,18 @@ function PresetTooltip:addText(x, y, text, r, g, b, a, font)
     end
 
     local width = utils.strWidth(font, text)
-    insert(self.contents,
-        {
-            type = "text",
-            x = x,
-            y = y,
-            width = width,
-            height = fontHgt * numLines,
-            text = text,
-            r = r,
-            g = g,
-            b = b,
-            a = a
-        })
+    self.contents[#self.contents + 1] = {
+        type = "text",
+        x = x,
+        y = y,
+        width = width,
+        height = fontHgt * numLines,
+        text = text,
+        r = r,
+        g = g,
+        b = b,
+        a = a
+    }
     self.newItemAdded = true
 end
 
@@ -73,15 +70,14 @@ end
 function PresetTooltip:addImage(x, y, size, textureName, texture)
     size = size or self.imageSize
     local tex = textureName and getTexture(textureName) or texture
-    insert(self.contents,
-        {
-            type = "image",
-            x = x,
-            y = y,
-            width = size,
-            height = size,
-            texture = tex,
-        })
+    self.contents[#self.contents + 1] = {
+        type = "image",
+        x = x,
+        y = y,
+        width = size,
+        height = size,
+        texture = tex,
+    }
     self.newItemAdded = true
 end
 
@@ -165,19 +161,19 @@ end
 function PresetTooltip.addToolTip(font, imageSize, margins)
     local pool = PresetTooltip.tooltipPool
     if #pool == 0 then
-        table.insert(pool, PresetTooltip:new(font, imageSize, margins))
+        pool[#pool + 1] = PresetTooltip:new(font, imageSize, margins)
     end
     ---@type PresetTooltip
     local tooltip = table.remove(pool, #pool)
     tooltip:reset()
-    table.insert(PresetTooltip.tooltipsUsed, tooltip)
+    PresetTooltip.tooltipsUsed[#PresetTooltip.tooltipsUsed + 1] = tooltip
     PresetTooltip.tooltipsUsedNum = PresetTooltip.tooltipsUsedNum + 1
     return tooltip
 end
 
 function PresetTooltip.releaseAll()
     for i = 1, PresetTooltip.tooltipsUsedNum do
-        insert(PresetTooltip.tooltipPool, PresetTooltip.tooltipsUsed[i])
+        PresetTooltip.tooltipPool[#PresetTooltip.tooltipPool + 1] = PresetTooltip.tooltipsUsed[i]
     end
     table.wipe(PresetTooltip.tooltipsUsed)
     PresetTooltip.tooltipsUsedNum = 0
