@@ -7,9 +7,10 @@ require 'UI/components/CHC_filter_row'
 local utils = require('CHC_utils')
 CHC_bottom_panel = ISPanelJoypad:derive('CHC_bottom_panel')
 
-local insert = table.insert
 local pairs = pairs
 local tsort = table.sort
+local concat = table.concat
+local format = string.format
 --region create
 function CHC_bottom_panel:initialise()
     ISPanelJoypad.initialise(self)
@@ -254,7 +255,7 @@ end
 
 function CHC_bottom_panel:createTooltip(ui_type, objs, limit)
     limit = limit or 20
-    limit = math.min(#objs, limit)
+    if limit > #objs then limit = #objs end
     local tooltip = PresetTooltip.addToolTip()
     self:updateTooltipData(tooltip, ui_type, objs, limit)
     return tooltip
@@ -285,13 +286,13 @@ function CHC_bottom_panel:updateTooltipData(tooltip, ui_type, objs, limit)
                 name = ui_type == "recipes" and strsplit(obj, ":")[2] or obj
             }
         end
-        insert(to_add, entry)
+        to_add[#to_add + 1] = entry
     end
     tsort(to_add, function(a, b) return a.name:lower() < b.name:lower() end)
     for i = 1, #to_add do
         local entry = to_add[i]
         local tS = texSize * entry.texture_multiplier
-        local lH = math.max(tS, tooltip.fontHgt)
+        local lH = tS > tooltip.fontHgt and tS or tooltip.fontHgt
         if entry.texture then
             tooltip:addImage(x, y, tS, nil, entry.texture)
         else
@@ -323,12 +324,12 @@ function CHC_bottom_panel:getCurrentFavoritesFromModData(ui_type)
     local favorites = {}
     if ui_type == "items" then
         for key, _ in pairs(CHC_menu.playerModData.CHC_item_favorites) do
-            insert(favorites, key)
+            favorites[#favorites + 1] = key
         end
     elseif ui_type == "recipes" then
         for key, value in pairs(CHC_menu.playerModData) do
             if utils.startswith(key, "craftingFavorite:") and value == true then
-                insert(favorites, key)
+                favorites[#favorites + 1] = key
             end
         end
     end
@@ -402,26 +403,26 @@ function CHC_bottom_panel:validatePreset(i, objStr, ui_type)
             local missingItems = {}
             local items = strsplit(objStr, ":")
             if items[1] ~= "craftingFavorite" then
-                insert(missingItems, "craftingFavorite")
+                missingItems[#missingItems + 1] = "craftingFavorite"
             end
             if not CHC_main.recipeMap[items[2]] then
-                insert(missingItems, items[2])
+                missingItems[#missingItems + 1] = items[2]
             end
             for j = 3, #items do
                 if not handlers.items(self, items[j]) then
-                    insert(missingItems, items[j])
+                    missingItems[#missingItems + 1] = items[j]
                 end
             end
             if utils.empty(missingItems) then
                 -- all ingredients are ok but recipe not found (altered order?)
-                insert(missingItems, string.format("Recipe object for %s", items[2]))
+                missingItems[#missingItems + 1] = format("Recipe object for %s", items[2])
             end
             missing = missingItems
         else
             missing = { objStr }
         end
         for j = 1, #missing do
-            insert(_errors, string.format('[%s] = `%s` missing', i, missing[j]))
+            _errors[#_errors + 1] = format('[%s] = `%s` missing', i, missing[j])
         end
     end
     return entry, objStr, _errors
@@ -447,13 +448,13 @@ function CHC_bottom_panel:onChangePreset()
     local errMap = {}
     for i, value in pairs(to_load) do
         local obj, objFullType, err = self:validatePreset(i, value, ui_type)
-        insert(objects, obj)
-        insert(fullTypes, objFullType)
+        objects[#objects + 1] = obj
+        fullTypes[#fullTypes + 1] = objFullType
         if not utils.empty(err) then
             errMap[objFullType] = true
             errors = utils.concat(errors, err)
         else
-            insert(validObjects, obj)
+            validObjects[#validObjects + 1] = obj
         end
     end
 
@@ -463,7 +464,7 @@ function CHC_bottom_panel:onChangePreset()
             local valid = {}
             for i = 1, #fullTypes do
                 if not errMap[fullTypes[i]] then
-                    insert(valid, fullTypes[i])
+                    valid[#valid + 1] = fullTypes[i]
                 end
             end
             if utils.empty(valid) then
@@ -490,7 +491,7 @@ function CHC_bottom_panel:onChangePreset()
             type = ISTextBox,
             text = getText("UI_BottomPanel_onChangePreset_Validation_Title"),
             onclick = handleErrors,
-            defaultEntryText = table.concat(errors, "\n"),
+            defaultEntryText = concat(errors, "\n"),
             width = 450,
             height = 450
         }
@@ -526,7 +527,7 @@ function CHC_bottom_panel:transformFavoriteObjListToModData(ui_type, asMap)
         if asMap then
             entries[entryname] = true
         else
-            insert(entries, entryname)
+            entries[#entries + 1] = entryname
         end
     end
     return entries
@@ -566,9 +567,9 @@ function CHC_bottom_panel:handleInvalidInput(text, params)
     local msg
     local invalid = true
     if len < minlen then
-        msg = "Name too short!" .. string.format(" (%d < %d)", len, minlen)
+        msg = "Name too short!" .. format(" (%d < %d)", len, minlen)
     elseif len > maxlen then
-        msg = "Name too long!" .. string.format(" (%d > %d)", len, maxlen)
+        msg = "Name too long!" .. format(" (%d > %d)", len, maxlen)
         -- elseif not text:match("[a-zA-Z0-9_]") or text:match("%W") then
         --     msg = "Only letters and numbers are allowed!"
         -- elseif text:sub(1, 1):match("%d") then
@@ -942,31 +943,31 @@ function CHC_bottom_panel:onMoreBtnImportClick()
         local result = { errors = {}, preset = {} }
         local fn, _err = loadstring("return " .. tostring(text))
         if not fn then
-            insert(result.errors, string.format("Format invalid, could not load (%s)", _err))
+            result.errors[#result.errors + 1] = format("Format invalid, could not load (%s)", _err)
             return result
         end
         local status, preset = pcall(fn)
         if not status or not preset then
-            insert(result.errors, "Format invalid, could not load")
+            result.errors[#result.errors + 1] = "Format invalid, could not load"
             preset = {}
         end
         -- validate preset values
         local _type = preset.type or ""
         _type = _type:trim()
         if _type ~= "items" and _type ~= "recipes" then
-            insert(result.errors, "Preset type missing or invalid")
+            result.errors[#result.errors + 1] = "Preset type missing or invalid"
             preset.type = "items"
         end
 
         if not preset.entries or #preset.entries == 0 then
-            insert(result.errors, "Preset entries missing or empty")
+            result.errors[#result.errors + 1] = "Preset entries missing or empty"
             preset.entries = {}
         end
         local valid = {}
         for i = 1, #preset.entries do
             local objStr = tostring(preset.entries[i]):trim()
             local _, _valid, err = self:validatePreset(i, objStr, preset.type)
-            insert(valid, _valid)
+            valid[#valid + 1] = _valid
             result.errors = utils.concat(result.errors, err)
         end
         preset.entries = valid
@@ -990,7 +991,7 @@ function CHC_bottom_panel:onMoreBtnImportClick()
 
         if not utils.empty(validation_data.errors) then
             params.type = ISTextBox
-            params.defaultEntryText = table.concat(validation_data.errors, "\n")
+            params.defaultEntryText = concat(validation_data.errors, "\n")
             params.text = "Validation errors"
             params.width = 250
             params.height = 350

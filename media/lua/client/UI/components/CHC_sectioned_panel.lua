@@ -10,7 +10,8 @@ local CHC_section = CHC_sectioned_panel_section
 --region section
 
 function CHC_section:createChildren()
-    local btnH = math.max(24, utils.strHeight(self.font, self.title) + 2 * self.padY)
+    local btnH = utils.strHeight(self.font, self.title) + 2 * self.padY
+    if btnH < 24 then btnH = 24 end
     self.headerButton = ISButton:new(0, 0, self.headerButtonWidth, btnH, self.title, self,
         self.onHeaderClick)
     self.headerButton:initialise()
@@ -44,10 +45,9 @@ function CHC_section:onHeaderClick()
 end
 
 function CHC_section:calcHeightNonList(panel)
-    local maxItems = 8
-    return 3 * panel.padY +
-        panel.searchRow.height +
-        (math.min(#panel.objList.items, maxItems) + 1) * panel.objList.itemheight
+    local maxItems = #panel.objList.items
+    if maxItems > 9 then maxItems = 9 end
+    return 3 * panel.padY + panel.searchRow.height + maxItems * panel.objList.itemheight
 end
 
 function CHC_section:calcHeightList(objList, maxItems)
@@ -55,7 +55,8 @@ function CHC_section:calcHeightList(objList, maxItems)
     if self.panel.uncollapsedNum then
         numItems = self.panel.uncollapsedNum
     end
-    return math.min(numItems, maxItems) * objList.itemheight
+    if numItems > maxItems then numItems = maxItems end
+    return numItems * objList.itemheight
 end
 
 function CHC_section:calculateHeights()
@@ -109,7 +110,7 @@ function CHC_section:new(x, y, width, height, panel, title, rightMargin, headerW
     setmetatable(o, self)
     self.__index = self
     o.font = UIFont.Small
-    o.padX = 5
+    o.padX = 0
     o.padY = 3
     o.panel = panel
     o.title = title and title or '???'
@@ -148,27 +149,28 @@ function CHC_sectioned_panel:addSection(panel, title)
     local section = CHC_section:new(0, 0, self.width - sbarWid, 1,
         panel, title, self.rightMargin, self.headerWidth)
     self:addChild(section)
-    table.insert(self.sections, section)
+    self.sections[#self.sections + 1] = section
     self.sectionMap[title] = section
 end
 
 function CHC_sectioned_panel:clear()
     local children = {}
     for k, v in pairs(self:getChildren()) do
-        table.insert(children, v)
+        children[#children + 1] = v
     end
-    for _, child in ipairs(children) do
-        self:removeChild(child)
+    for i = 1, #children do
+        self:removeChild(children[i])
     end
-    for _, section in ipairs(self.sections) do
-        section:clear()
+    for i = 1, #self.sections do
+        self.sections[i]:clear()
     end
     self.sections = {}
     self.sectionMap = {}
 end
 
 function CHC_sectioned_panel:expandSection(sectionTitle)
-    for _, section in ipairs(self.sections) do
+    for i = 1, #self.sections do
+        local section = self.sections[i]
         if section.title == sectionTitle then
             section.expanded = true
         end
@@ -178,7 +180,8 @@ end
 function CHC_sectioned_panel:prerender()
     ISPanel.prerender(self)
     local y = 0
-    for _, section in ipairs(self.sections) do
+    for i = 1, #self.sections do
+        local section = self.sections[i]
         if section.enabled then
             section:setVisible(true)
             section:setY(y)
@@ -193,7 +196,6 @@ function CHC_sectioned_panel:prerender()
         self:setScrollHeight(y)
     end
 
-
     self:updateScrollbars()
 end
 
@@ -202,8 +204,8 @@ function CHC_sectioned_panel:onResize()
 end
 
 function CHC_sectioned_panel:onMouseWheel(del)
-    for _, section in ipairs(self.sections) do
-        local panel = section.panel
+    for i = 1, #self.sections do
+        local panel = self.sections[i].panel
         if panel:isMouseOver() then
             local vscroll = panel.objList and panel.objList.vscroll or panel.vscroll
             if vscroll and vscroll:isReallyVisible() then

@@ -4,9 +4,7 @@ local utils = require('CHC_utils')
 
 CHC_items_panel = ISPanel:derive('CHC_items_panel')
 
-local insert = table.insert
 local sort = table.sort
-local sub = string.sub
 
 -- region create
 function CHC_items_panel:initialise()
@@ -96,9 +94,9 @@ function CHC_items_panel:createChildren()
 
     -- region attributes
     local props_table_args = {
-        x = self.margin,
+        x = 0,
         y = y,
-        w = self.width - 2 * self.margin,
+        w = self.width, -- - 2 * self.margin,
         h = self.height - self.mainInfo.height - self.padY,
         backRef = self.backRef
     }

@@ -1,12 +1,8 @@
 CHC_view = {}
 CHC_view._list = {}
 local sort = table.sort
-local insert = table.insert
-local utils = require('CHC_utils')
 local floor = math.floor
 local ceil = math.ceil
-local min = math.min
-local max = math.max
 
 -- region create
 function CHC_view:create(filterRowOrderOnClickArgs, mainPanelsData)
@@ -157,7 +153,7 @@ function CHC_view:initTypesAndCategories(typeField, categoryField)
 
         -- categories
         if not catCounts[idc] then
-            insert(newCats, idc)
+            newCats[#newCats + 1] = idc
             catCounts[idc] = 1
         else
             catCounts[idc] = catCounts[idc] + 1
@@ -169,7 +165,27 @@ function CHC_view:initTypesAndCategories(typeField, categoryField)
     CHC_view.updateCategories(self, catCounts, curCat, newCats)
 end
 
-function CHC_view:updateObjects(typeField, categoryField, filters)
+---check if one object passes filters and can be added to objList
+---@param filters {number: {args: table, func: function, name: string}} list of filters
+---@return boolean ok true if all filters passed
+---@return {string: true} passed map of passed filters `{filter.name: true}`
+function CHC_view:checkFilters(obj, filters)
+    local passed = {}
+    local ok = true
+    for i = 1, #filters do
+        if not ok then break end
+        local filter = filters[i]
+        -- print("check " .. filter.name .. " for " .. obj.fullType)
+        if filter.func(self, filter.args[1], filter.args[2], filter.args[3], filter.args[4]) == true then
+            passed[filter.name] = true
+        else
+            ok = false
+        end
+    end
+    return ok, passed
+end
+
+function CHC_view:updateObjects(typeField, categoryField, extraFilters)
     categoryField = categoryField or "displayCategory"
     if not self.initDone then
         CHC_view.initTypesAndCategories(self, typeField, categoryField)
@@ -194,32 +210,33 @@ function CHC_view:updateObjects(typeField, categoryField, filters)
     for i = 1, #objs do
         local obj = objs[i]
 
-        local searchState = CHC_main.common.searchFilter(self, obj, self.searchProcessToken)
-        local typeState = CHC_view.objTypeFilter(self, obj[typeField])
-        local categoryState = CHC_view.objCategoryFilter(self, obj[categoryField])
-        local states = { searchState, typeState, categoryState }
-        if filters then
-            local filtersState = utils.all(CHC_view.extraFilters(self, obj, filters), true)
-            insert(states, filtersState)
+        local filters = {
+            { name = "type",     func = CHC_view.objTypeFilter,       args = { obj[typeField] } },
+            { name = "category", func = CHC_view.objCategoryFilter,   args = { obj[categoryField] } },
+            { name = "search",   func = CHC_main.common.searchFilter, args = { obj, self.searchProcessToken } },
+        }
+
+        if extraFilters then
+            for j = 1, #extraFilters do
+                filters[#filters + 1] = extraFilters[j]
+            end
         end
+        local ok, filterStates = CHC_view.checkFilters(self, obj, filters)
 
-
-        if utils.all(states, true) then
-            insert(filtered, obj)
+        if ok then
+            filtered[#filtered + 1] = obj
         end
-
-        -- types
-        local ic = obj[typeField]
-        local idc = obj[categoryField]
         --types
-        if searchState and categoryState then
+        if filterStates.category and filterStates.search then
+            local ic = obj[typeField]
             typCounts[ic] = typCounts[ic] and typCounts[ic] + 1 or 1
         end
 
-        -- categories
-        if searchState and typeState then
+        if filterStates.type and filterStates.search then
+            -- categories
+            local idc = obj[categoryField]
             if not catCounts[idc] then
-                insert(newCats, idc)
+                newCats[#newCats + 1] = idc
                 catCounts[idc] = 1
             else
                 catCounts[idc] = catCounts[idc] + 1
@@ -240,6 +257,7 @@ function CHC_view:updateTypes(typCounts, curType)
     for _, val in pairs(self.typeData) do val.count = 0 end
     local allTypeCnt = 0
     for typ, cnt in pairs(typCounts) do
+        -- print(typ .. " | " .. cnt)
         self.typeData[typ].count = cnt
         allTypeCnt = allTypeCnt + cnt
     end
@@ -295,18 +313,6 @@ function CHC_view:updateTabNameWithCount(listSize)
     })
 end
 
-function CHC_view:updateCounts() --FIXME - category counts not updated when updating types
-    CHC_view.updateTabNameWithCount(self)
-end
-
-function CHC_view:extraFilters(obj, filters)
-    local res = {}
-    for i = 1, #filters do
-        insert(res, true)
-    end
-    return res
-end
-
 function CHC_view:refreshObjList(objects, conditions)
     -- local function sort_on_values(t, a)
     --     sort(t, function(u, v)
@@ -328,7 +334,7 @@ function CHC_view:refreshObjList(objects, conditions)
     objL:clear()
 
     for i = 1, #objects do
-        self:processAddObjToObjList(objects[i], self.modData)
+        self:processAddObjToObjList(objects[i], CHC_menu.playerModData)
     end
     sort(objL.items, self.itemSortFunc)
     -- if not conditions then
@@ -336,28 +342,25 @@ function CHC_view:refreshObjList(objects, conditions)
     --     sort_on_values(objL.items, conditions)
     -- end
 
-
-
-    if objL.items and #objL.items > 0 then
-        local ix
-        local ensureVisible = false
-        for i = 1, #objL.items do
-            if objL.items[i].item._id == wasSelectedId then
-                ix = i
-                break
-            end
-        end
-        if ix then
-        else
-            ensureVisible = true
-            ix = 1
-        end
-        objL.selected = ix
-        if ensureVisible then objL:ensureVisible(ix) end
-        self.objPanel:setObj(objL.items[ix].item)
-    end
-
     self.objListSize = #objL.items
+
+
+    if #objL.items == 0 then return end
+    local ix
+    local ensureVisible = false
+    for i = 1, #objL.items do
+        if objL.items[i].item._id == wasSelectedId then
+            ix = i
+            break
+        end
+    end
+    if not ix then
+        ensureVisible = true
+        ix = 1
+    end
+    objL.selected = ix
+    if ensureVisible then objL:ensureVisible(ix) end
+    self.objPanel:setObj(objL.items[ix].item)
 end
 
 function CHC_view:handleFavorites(fav_ui_type)
@@ -434,7 +437,7 @@ function CHC_view:onFilterTypeMenu(button)
             CHC_main.common.cacheTex(d.item)
             icon = d.item.texture
         end
-        insert(data, { txt = d.tooltip, num = d.count, arg = typ, icon = icon })
+        data[#data + 1] = { txt = d.tooltip, num = d.count, arg = typ, icon = icon }
     end
 
     local x = button:getAbsoluteX()
@@ -443,6 +446,7 @@ function CHC_view:onFilterTypeMenu(button)
 
     local txt
     for i = 1, #data do
+        -- print(data[i].num)
         if data[i].num and data[i].num > 0 then
             txt = CHC_view.filterSortMenuGetText(data[i].txt, data[i].num)
             local opt = context:addOption(txt, self.parent, CHC_view.sortByType, data[i].arg)
@@ -460,7 +464,7 @@ function CHC_view.filterSortMenuGetText(textStr, value)
 end
 
 function CHC_view:objTypeFilter(condition)
-    return self.typeFilter == 'all' and true or self.typeFilter == condition
+    return self.typeFilter == 'all' or self.typeFilter == condition
 end
 
 function CHC_view:objCategoryFilter(condition)
@@ -513,8 +517,7 @@ function CHC_view._list:isMouseOverFavorite(x)
 end
 
 function CHC_view._list:prerender()
-    if not self.items then return end
-    if utils.empty(self.items) then return end
+    if not self.items or #self.items == 0 then return end
 
     self.yScroll = self:getYScroll()
     self.mouseX = self:getMouseX()
@@ -532,22 +535,33 @@ function CHC_view._list:prerender()
     end
 
     local ms = getTimestampMs()
+    CHC_view._list.recalcIndexes(self)
     if not self.recalcMs then
         CHC_view._list.recalcItems(self)
+        self.prevItems = #self.items
+        self.prevUncollapsedNum = self.uncollapsedNum or 0
         self.recalcMs = ms
     end
-    if ms - self.recalcMs >= 100 then
+    self:setScrollHeight(self.listHeight or 0)
+
+    if #self.items ~= self.prevItems or self.uncollapsedNum ~= self.prevUncollapsedNum or ms - self.recalcMs >= 1000 then
         CHC_view._list.recalcItems(self)
+        self.prevItems = #self.items
         self.recalcMs = ms
     end
     self:updateTooltip()
+    self:updateSmoothScrolling()
+end
+
+function CHC_view._list:recalcIndexes()
+    self.minJ = floor(-self.yScroll / self.itemheight)
+    self.maxJ = ceil((-self.yScroll + self.height) / self.itemheight)
+    if self.minJ < 1 then self.minJ = 1 end
+    if self.maxJ > #self.items then self.maxJ = #self.items end
 end
 
 function CHC_view._list:recalcItems()
     local y = 0
-    self.minJ = max(1, floor(-self.yScroll / self.itemheight))
-    self.maxJ = min(#self.items, ceil((-self.yScroll + self.height) / self.itemheight))
-    local alt = false
     local indexes = {}
     local data = {
         uncollapsedNum = 0,
@@ -569,7 +583,7 @@ function CHC_view._list:recalcItems()
                     data.hiddenBlock = { num = item.item.sourceNum, state = item.item.blockHiddenState }
                 end
                 y = y + item.height
-                insert(indexes, j)
+                indexes[#indexes + 1] = j
                 data.uncollapsedNum = data.uncollapsedNum + 1
             else
                 if item.item.collapsed or item.item.sourceNum == data.collapsedBlock or
@@ -578,36 +592,23 @@ function CHC_view._list:recalcItems()
                     -- print("Hidden " .. item.text .. "; sourceNum: " .. item.item.sourceNum)
                 else
                     y = y + item.height
-                    insert(indexes, j)
+                    indexes[#indexes + 1] = j
                     data.uncollapsedNum = data.uncollapsedNum + 1
                 end
             end
         else
             y = y + item.height
-            insert(indexes, j)
+            indexes[#indexes + 1] = j
             data.uncollapsedNum = data.uncollapsedNum + 1
         end
-        self.listHeight = y
     end
+    self.listHeight = y
     self.uncollapsedNum = data.uncollapsedNum
-    self:setScrollHeight((y))
 
     self._indexes = indexes
 end
 
 function CHC_view._list:render()
-    local bg = {
-        x = 0,
-        y = -self.yScroll,
-        w = self.width,
-        h = self.height,
-        a = self.backgroundColor.a,
-        r = self.backgroundColor.r,
-        g = self.backgroundColor.g,
-        b = self.backgroundColor.b
-    }
-    self:drawRect(bg.x, bg.y, bg.w, bg.h, bg.a, bg.r, bg.g, bg.b)
-
     local sX = 0
     local sY = 0
     local sX2 = self.width
@@ -626,20 +627,20 @@ function CHC_view._list:render()
     local y
 
     self:clampStencilRectToParent(sX, sY, sX2, sY2)
-    CHC_view._list.recalcItems(self)
     if not self._indexes then return end
     for j = 1, #self._indexes do
         local _ix = self._indexes[j]
         local item = self.items[_ix]
-        if (self._internal and self._internal == "ingredientPanel")
-            or _ix >= self.minJ and _ix <= self.maxJ then
+        if item and (
+                (self._internal and self._internal == "ingredientPanel") or
+                (_ix >= self.minJ and _ix <= self.maxJ)
+            ) then
             CHC_main.common.cacheTex(item.item)
             y = (j - 1) * item.height
             self:doDrawItem(y, item, false)
         end
     end
     self:clearStencilRect()
-    self:updateSmoothScrolling()
 end
 
 --endregion

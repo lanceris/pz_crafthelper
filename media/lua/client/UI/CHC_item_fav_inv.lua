@@ -3,16 +3,19 @@ require 'CHC_main'
 
 local favTexOutline = getTexture('media/textures/CHC_item_favorite_star_outline.png')
 
+local ceil = math.ceil
+
 local function renderdetailsCHC(self, doDragged)
     local y = 0
     local MOUSEX = self:getMouseX()
     local MOUSEY = self:getMouseY()
     local YSCROLL = self:getYScroll()
     local HEIGHT = self:getHeight()
-    for k, v in ipairs(self.itemslist) do
+    for i = 1, #self.itemslist do
+        local v = self.itemslist[i]
         local count = 1
-        for k2, v2 in ipairs(v.items) do
-            local item = v2
+        for j = 1, #v.items do
+            local item = v.items[j]
             if not CHC_main or not CHC_main.items or not CHC_main.common then return end
             if not CHC_menu or not CHC_menu.playerModData then return end
             local chcItem = CHC_main.items[item:getFullType()]
@@ -41,7 +44,7 @@ local function renderdetailsCHC(self, doDragged)
                 end
 
                 local tex = chcItem.texture or CHC_main.common.cacheTex(chcItem)
-                local auxDXY = math.ceil(20 * self.texScale)
+                local auxDXY = ceil(20 * self.texScale)
                 if doIt == true and tex ~= nil and count == 1 then
                     local tx = (13 + auxDXY + xoff)
                     local ty = (y * self.itemHgt) + self.headerHgt + yoff
@@ -57,21 +60,12 @@ local function renderdetailsCHC(self, doDragged)
     end
 end
 
-local old_render_details = ISInventoryPane.renderdetails
-function ISInventoryPane:renderdetails(doDragged)
-    old_render_details(self, doDragged)
-    if CHC_settings.config and CHC_settings.config.show_fav_items_inventory == true then
-        renderdetailsCHC(self, doDragged)
-    end
-end
-
-local old_populateRecipesList = ISCraftingUI.populateRecipesList
-function ISCraftingUI:populateRecipesList()
-    old_populateRecipesList(self)
-    if CHC_menu and CHC_menu.CHC_window and CHC_menu.CHC_window.updateQueue then
-        CHC_menu.CHC_window.updateQueue:push({
-            targetViews = { 'fav_recipes' },
-            actions = { 'needUpdateFavorites', 'needUpdateObjects' }
-        })
+do
+    local old_render_details = ISInventoryPane.renderdetails
+    function ISInventoryPane:renderdetails(doDragged)
+        old_render_details(self, doDragged)
+        if CHC_settings.config and CHC_settings.config.show_fav_items_inventory == true then
+            renderdetailsCHC(self, doDragged)
+        end
     end
 end

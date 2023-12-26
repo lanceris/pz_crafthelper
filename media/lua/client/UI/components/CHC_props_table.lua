@@ -1,10 +1,13 @@
 require 'ISUI/ISPanel'
 
 CHC_props_table = ISPanel:derive('CHC_props_table')
-local insert = table.insert
 local sort = table.sort
 local find = string.find
+local lower = string.lower
+local upper = string.upper
 local sub = string.sub
+local tostring = tostring
+local concat = table.concat
 local utils = require('CHC_utils')
 
 -- region create
@@ -38,7 +41,7 @@ function CHC_props_table:createChildren()
     local props_h = self.height - self.searchRow.height - 4 * self.padY
     self.objList = ISScrollingListBox:new(x, y, self.width - 2 * self.padX, props_h)
     self.objList.backgroundColor.a = 0
-    self.objList.borderColor = {r=0.15,g=0.15,b=0.15,a=0}
+    self.objList.borderColor = { r = 0.15, g = 0.15, b = 0.15, a = 0 }
     self.objList:setFont(self.font)
 
     self.objList.onRightMouseDown = self.onRMBDownObjList
@@ -79,7 +82,7 @@ function CHC_props_table:updateObjects()
         search_state = CHC_main.common.searchFilter(self, props[i], self.searchProcessToken)
 
         if search_state then
-            insert(filteredProps, props[i])
+            filteredProps[#filteredProps + 1] = props[i]
         end
     end
     self:refreshObjList(filteredProps)
@@ -121,11 +124,11 @@ function CHC_props_table:drawProps(y, item, alt)
         self:drawRect(sc.x, sc.y, sc.w, sc.h, sc.a, sc.r, sc.g, sc.b)
     end
 
-    if pinned and pinned[item.item.name:lower()] then
+    if pinned and pinned[lower(item.item.name)] then
         rectP = { r = 1, g = 1, b = 1, a = 0.1 }
         -- textP.a =
     end
-    if blacklisted and blacklisted[item.item.name:lower()] then
+    if blacklisted and blacklisted[lower(item.item.name)] then
         -- rectP = { r = 0.27, g = 0.15, b = 0, a = 0.75 }
         textP = { r = 0.22, g = 0.22, b = 0.22, a = 0.9 }
     end
@@ -141,14 +144,16 @@ function CHC_props_table:drawProps(y, item, alt)
 
     local clipX = self.columns[1].size
     local clipX2 = self.columns[2].size
-    local clipY = math.max(0, y + self:getYScroll())
-    local clipY2 = math.min(self.height, y + self:getYScroll() + self.itemheight)
+    local clipY = y + self:getYScroll()
+    local clipY2 = y + self:getYScroll() + self.itemheight
+    if clipY < 0 then clipY = 0 end
+    if clipY2 > self.height then clipY2 = self.height end
 
     self:clampStencilRectToParent(clipX, clipY, clipX2 - clipX, clipY2 - clipY)
     self:drawText(item.item.name, self.columns[1].size + 5, y, textP.r, textP.g, textP.b, textP.a, self.font)
     self:clearStencilRect()
 
-    self:drawText(string.sub(tostring(item.item.value), 1, 40), self.columns[2].size + 5, y, textP.r, textP.g, textP.b,
+    self:drawText(sub(tostring(item.item.value), 1, 40), self.columns[2].size + 5, y, textP.r, textP.g, textP.b,
         textP.a, self.font)
 
     return y + self.itemheight
@@ -232,10 +237,10 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
 
     local maxTextLength = 1000 --FIXME
     -- region copy submenu
-    local name = context:addOption(getText('IGUI_chc_Copy'), nil, nil)
-    name.iconTexture = getTexture('media/textures/CHC_copy_icon.png')
+    local name_opt = context:addOption(getText('IGUI_chc_Copy'), nil, nil)
+    name_opt.iconTexture = getTexture('media/textures/CHC_copy_icon.png')
     local subMenuName = ISContextMenu:getNew(context)
-    context:addSubMenu(name, subMenuName)
+    context:addSubMenu(name_opt, subMenuName)
 
     subMenuName:addOption(getText('IGUI_CopyNameProps_ctx') .. ' (' .. item.name .. ')', self, chccopy, item.name)
     local value = tostring(item.value)
@@ -291,7 +296,7 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
 
     -- endregion
 
-    local name = tostring(item.name:lower())
+    local name = tostring(lower(item.name))
     if not blacklisted[name] then
         if pinned[name] then
             context:addOption(getText('IGUI_UnpinProps_ctx'), self, pin, name, true)
@@ -309,11 +314,11 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
 
     if isShiftKeyDown() then
         if not utils.empty(pinned) then
-            context:addOption(getText('IGUI_UnpinProps_ctx') .. ' ' .. string.lower(getText('ContextMenu_All')), self,
+            context:addOption(getText('IGUI_UnpinProps_ctx') .. ' ' .. lower(getText('ContextMenu_All')), self,
                 unpinAll)
         end
         if not utils.empty(blacklisted) then
-            context:addOption(getText('IGUI_UnblacklistProps_ctx') .. ' ' .. string.lower(getText('ContextMenu_All')),
+            context:addOption(getText('IGUI_UnblacklistProps_ctx') .. ' ' .. lower(getText('ContextMenu_All')),
                 self,
                 unblacklistAll)
         end
@@ -327,6 +332,7 @@ end
 
 -- endregion
 
+local sortFunc = function(a, b) return upper(a.name) < upper(b.name) end
 function CHC_props_table:refreshObjList(props)
     self.objList:clear()
 
@@ -343,37 +349,52 @@ function CHC_props_table:refreshObjList(props)
     local blacklistedItems = {}
     local usualItems = {}
     for i = 1, #props do
-        if pinned and pinned[props[i].name:lower()] then
-            insert(pinnedItems, props[i])
-        elseif blacklisted and blacklisted[props[i].name:lower()] then
-            insert(blacklistedItems, props[i])
+        local prop = props[i]
+        if pinned and pinned[lower(prop.name)] then
+            pinnedItems[#pinnedItems + 1] = prop
+        elseif blacklisted and blacklisted[lower(prop.name)] then
+            blacklistedItems[#blacklistedItems + 1] = prop
         else
-            insert(usualItems, props[i])
+            usualItems[#usualItems + 1] = prop
         end
     end
 
-    local sortFunc = function(a, b) return a.name:upper() < b.name:upper() end
     sort(pinnedItems, sortFunc)
     sort(usualItems, sortFunc)
     sort(blacklistedItems, sortFunc)
 
     local items = {}
 
-    for i = 1, #pinnedItems do insert(items, pinnedItems[i]) end
-    for i = 1, #usualItems do insert(items, usualItems[i]) end
-    for i = 1, #blacklistedItems do insert(items, blacklistedItems[i]) end
+    for i = 1, #pinnedItems do items[#items + 1] = pinnedItems[i] end
+    for i = 1, #usualItems do items[#items + 1] = usualItems[i] end
+    for i = 1, #blacklistedItems do items[#items + 1] = blacklistedItems[i] end
 
     for i = 1, #items do
         self:processAddObjToObjList(items[i])
     end
     -- TODO: add filter button
-    self.objList:setHeight(2 + math.min(#items, 8) * self.objList.itemheight)
+    local maxItems = #items
+    if maxItems > 8 then maxItems = 8 end
+    self.objList:setHeight(2 + maxItems * self.objList.itemheight)
 end
 
 function CHC_props_table:processAddObjToObjList(prop)
+    local addedItem = self.objList:addItem(name, prop)
+
     local name = prop.name
-    -- if bl[name:lower()] then return end
-    self.objList:addItem(name, prop)
+    if not self.objList.columns or #self.objList.columns < 2 then return end
+    local w = utils.strWidth(self.font, name)
+    local wValue = utils.strWidth(self.font, tostring(prop.value))
+    local tooltip = {}
+    if w + 10 > self.objList.columns[2].size - self.objList.columns[1].size then
+        tooltip[#tooltip + 1] = name
+    end
+    if wValue + 10 > self.objList.width - self.objList.columns[2].size then
+        if #tooltip > 0 then tooltip[#tooltip + 1] = " = " end
+        tooltip[#tooltip + 1] = tostring(prop.value)
+    end
+    if utils.empty(tooltip) then tooltip = nil else tooltip = concat(tooltip) end
+    addedItem.tooltip = tooltip
 end
 
 function CHC_props_table:onTextChange()
@@ -397,8 +418,8 @@ function CHC_props_table:searchProcessToken(token, prop)
 
     if isAllowSpecialSearch and CHC_search_bar:isSpecialCommand(token, { '!', '@' }) then
         isSpecialSearch = true
-        char = token:sub(1, 1)
-        token = string.sub(token, 2)
+        char = sub(token, 1, 1)
+        token = sub(token, 2)
     end
 
     local whatCompare
@@ -421,14 +442,14 @@ function CHC_props_table:searchProcessToken(token, prop)
 
     if isAllowSpecialSearch and char == '!' then
         -- search by name
-        whatCompare = string.lower(prop.name)
+        whatCompare = lower(prop.name)
     end
     if isAllowSpecialSearch and char == '@' then
         -- search by value
-        whatCompare = type(prop.value) == 'number' and prop.value or string.lower(prop.value)
+        whatCompare = type(prop.value) == 'number' and prop.value or lower(prop.value)
     end
     if token and not isSpecialSearch then
-        whatCompare = string.lower(prop.name)
+        whatCompare = lower(prop.name)
     end
     state = utils.compare(whatCompare, token)
     if not token then state = true end
@@ -447,8 +468,8 @@ function CHC_props_table:new(args)
     o.borderColor = { r = 1, g = 1, b = 1, a = 1 }
     o.font = UIFont.Medium
     o.fonthgt = getTextManager():getFontHeight(o.font)
-    o.padY = 5
-    o.padX = 5
+    o.padY = 0
+    o.padX = 0
 
     o.backRef = args.backRef
 

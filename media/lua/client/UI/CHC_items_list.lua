@@ -167,10 +167,10 @@ function CHC_items_list:addToFavorite(selectedIndex, fromKeyboard)
     if not selectedItem then return end
     local parent = self.parent
 
-    local isFav = self.modData.CHC_item_favorites[selectedItem.item.fullType] == true
+    local isFav = CHC_menu.playerModData.CHC_item_favorites[selectedItem.item.fullType] == true
     isFav = not isFav
     selectedItem.item.favorite = isFav
-    self.modData.CHC_item_favorites[selectedItem.item.fullType] = isFav or nil
+    CHC_menu.playerModData.CHC_item_favorites[selectedItem.item.fullType] = isFav or nil
     if not isFav and parent.ui_type == 'fav_items' then
         self:removeItemByIndex(selectedIndex)
     end
