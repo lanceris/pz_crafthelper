@@ -15,11 +15,14 @@ Config files are separate from main mod ("beta_" prefix).
 [*]Textures now loaded on demand (i.e. when shown on UI) instead of at startup
 [*]Item attributes now loaded on demand (i.e when shown on UI/searched by attribute ($))
 [*]Ability to hold button to traverse item/recipe lists (delay is configurable)
-[*]Improved rendering for large lists of items (only part of objects shown are processed, instead of all)
-[*]Reduced mod initialization time by ~4.5-5 times by not loading all textures/attributes on startup
+[*]Reduced lag when rendering large lists by ~70-80%
+[*]Reduced mod initialization time by 4 (vanilla) - 10 (300+ mods) times
+[*]Added attributes for Moveables
+[*]Improved overall performance
 [*]Fixed book teached recipes not showing correctly when game language is not English
 [*]Fixed crash when some textures for vanilla items are missing
 [*]Fixed incorrect icons for moveables
+[*]Fixed inability to search moveables from inventory
 [/list]
 
 [hr][/hr]

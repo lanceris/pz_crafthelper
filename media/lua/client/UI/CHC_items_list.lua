@@ -31,11 +31,8 @@ function CHC_items_list:render()
 end
 
 function CHC_items_list:doDrawItem(y, item, alt)
-    local itemObj = item.item
-    local a = 0.9
-
-    local favoriteStar = nil
-    local favoriteAlpha = a
+    local favoriteStar
+    local favoriteAlpha = 0.9
 
     local itemPadY = self.itemPadY or (item.height - self.fontHgt) / 2
     local clr = {
@@ -52,9 +49,9 @@ function CHC_items_list:doDrawItem(y, item, alt)
     -- region icons
     if self.shouldShowIcons then
         -- CHC_main.common.cacheTex(itemObj)
-        local itemIcon = itemObj.texture
+        local itemIcon = item.item.texture
         if itemIcon then
-            if itemObj.textureMult then
+            if item.item.textureMult then
                 self:drawTextureScaled(itemIcon, 3, clr.y, self.itemheight - 2, self.itemheight - 2, 1)
             else
                 self:drawTextureScaledAspect(itemIcon, 3, clr.y, self.itemheight - 2, self.itemheight - 2, 1)
@@ -77,7 +74,7 @@ function CHC_items_list:doDrawItem(y, item, alt)
             favoriteAlpha = 0.9
         else
             favoriteStar = isFav and self.favorite.star or self.favorite.notChecked
-            favoriteAlpha = isFav and a or 0.3
+            favoriteAlpha = isFav and favoriteAlpha or 0.3
         end
     elseif isFav then
         favoriteStar = self.favorite.star

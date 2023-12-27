@@ -534,17 +534,24 @@ function CHC_view._list:prerender()
         self.fontSize = getTextManager():getFontHeight(self.curFontData.font)
     end
 
-    local ms = getTimestampMs()
     CHC_view._list.recalcIndexes(self)
-    if not self.recalcMs then
+    local ms = getTimestampMs()
+    if not self.recalcMs or not self.recalcScrollMs or not self.minJ then
         CHC_view._list.recalcItems(self)
         self.prevItems = #self.items
         self.prevUncollapsedNum = self.uncollapsedNum or 0
         self.recalcMs = ms
+        self.recalcScrollMs = ms
     end
-    self:setScrollHeight(self.listHeight or 0)
+    local changedItemNum = #self.items ~= self.prevItems
+    local changedUncollapsedNum = self.uncollapsedNum ~= self.prevUncollapsedNum
 
-    if #self.items ~= self.prevItems or self.uncollapsedNum ~= self.prevUncollapsedNum or ms - self.recalcMs >= 1000 then
+    if changedItemNum or changedUncollapsedNum or self.prevItems < 1000 or ms - self.recalcScrollMs >= 500 * (#self.items / 1000) then
+        self:setScrollHeight(self.listHeight or 0)
+        self.recalcScrollMs = ms
+    end
+
+    if changedItemNum or changedUncollapsedNum or self.prevItems < 1000 or ms - self.recalcMs >= 1000 * (#self.items / 1000) then
         CHC_view._list.recalcItems(self)
         self.prevItems = #self.items
         self.recalcMs = ms
@@ -571,6 +578,7 @@ function CHC_view._list:recalcItems()
     for j = 1, #self.items do
         local item = self.items[j]
         item.index = j
+        local cache = false
         if not item.height then item.height = self.itemheight end
 
         -- determine needed indexes
@@ -585,6 +593,7 @@ function CHC_view._list:recalcItems()
                 y = y + item.height
                 indexes[#indexes + 1] = j
                 data.uncollapsedNum = data.uncollapsedNum + 1
+                cache = true
             else
                 if item.item.collapsed or item.item.sourceNum == data.collapsedBlock or
                     (item.item.sourceNum == data.hiddenBlock.num and data.hiddenBlock.state == "un" and item.item.available) or
@@ -594,13 +603,16 @@ function CHC_view._list:recalcItems()
                     y = y + item.height
                     indexes[#indexes + 1] = j
                     data.uncollapsedNum = data.uncollapsedNum + 1
+                    cache = true
                 end
             end
         else
             y = y + item.height
             indexes[#indexes + 1] = j
             data.uncollapsedNum = data.uncollapsedNum + 1
+            cache = true
         end
+        if cache then CHC_main.common.cacheTex(item.item) end
     end
     self.listHeight = y
     self.uncollapsedNum = data.uncollapsedNum
@@ -609,6 +621,7 @@ function CHC_view._list:recalcItems()
 end
 
 function CHC_view._list:render()
+    -- if true then return end
     local sX = 0
     local sY = 0
     local sX2 = self.width
@@ -624,7 +637,6 @@ function CHC_view._list:render()
     if self:isVScrollBarVisible() then
         sX2 = self.vscroll.x + 3 -- +3 because the scrollbar texture is narrower than the scrollbar width
     end
-    local y
 
     self:clampStencilRectToParent(sX, sY, sX2, sY2)
     if not self._indexes then return end
@@ -632,12 +644,10 @@ function CHC_view._list:render()
         local _ix = self._indexes[j]
         local item = self.items[_ix]
         if item and (
-                (self._internal and self._internal == "ingredientPanel") or
-                (_ix >= self.minJ and _ix <= self.maxJ)
+                (_ix >= self.minJ and _ix <= self.maxJ) or
+                (self._internal and self._internal == "ingredientPanel")
             ) then
-            CHC_main.common.cacheTex(item.item)
-            y = (j - 1) * item.height
-            self:doDrawItem(y, item, false)
+            self:doDrawItem((j - 1) * self.itemheight, item, false)
         end
     end
     self:clearStencilRect()

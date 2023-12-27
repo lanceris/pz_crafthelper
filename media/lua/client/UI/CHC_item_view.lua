@@ -209,7 +209,7 @@ function CHC_item_view:searchProcessToken(token, item)
     local isSpecialSearch = false
     local char
 
-    if isAllowSpecialSearch and CHC_item_view_bar:isSpecialCommand(token) then
+    if isAllowSpecialSearch and CHC_search_bar:isSpecialCommand(token) then
         isSpecialSearch = true
         char = sub(token, 1, 1)
         token = sub(token, 2)

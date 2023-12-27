@@ -8,7 +8,7 @@ CHC_main._meta = {
     id = 'CraftHelperContinued_beta',
     workshopId = 3122080147,
     name = 'Craft Helper Continued Beta',
-    version = '1.9b1',
+    version = '1.9b2',
     author = 'lanceris',
     previousAuthors = { 'Peanut', 'ddraigcymraeg', 'b1n0m' },
 }
@@ -33,7 +33,6 @@ CheckMyModTable = CheckMyModTable or {} -- Mod Checker
 CheckMyModTable[CHC_main._meta.id] = CHC_main._meta.workshopId
 local cacheFileName = 'CraftHelperLuaCache.json'
 local loadLua = true
-local overRideVanillaCraftMenu
 
 local showTime = function(start, st)
     print(format('Loaded %s in %s seconds', st, tostring((getTimestampMs() - start) / 1000)))
@@ -409,7 +408,6 @@ CHC_main.loadDatas = function()
     CHC_main.loadAllSkillRecipes()
 
     CHC_main.initPropList()
-    overRideVanillaCraftMenu()
 
     -- if loadLua then CHC_main.saveLuaCache() end
     -- init UI
@@ -1611,10 +1609,10 @@ local function onPlayerDeath(player)
     CHC_menu.forceCloseWindow(true)
 end
 
-overRideVanillaCraftMenu = function()
-    local old_populateRecipesList = ISCraftingUI.populateRecipesList
-    function ISCraftingUI:populateRecipesList()
-        old_populateRecipesList(self)
+do
+    local old_addToFavorite = ISCraftingCategoryUI.addToFavorite
+    function ISCraftingCategoryUI:addToFavorite(fromKeyboard)
+        old_addToFavorite(self, fromKeyboard)
         if CHC_menu and CHC_menu.CHC_window and CHC_menu.CHC_window.updateQueue then
             CHC_menu.CHC_window.updateQueue:push({
                 targetViews = { 'fav_recipes' },

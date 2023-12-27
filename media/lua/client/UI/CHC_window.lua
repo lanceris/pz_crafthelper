@@ -341,6 +341,9 @@ function CHC_window:getItems(favOnly, max)
         if (not showHidden) and (item.hidden == true) then
         elseif (favOnly and isFav) or (not favOnly) then
             newItems[#newItems + 1] = item
+            -- for _ = 1, 10, 1 do
+            --     newItems[#newItems + 1] = item
+            -- end
         end
     end
     if not showHidden and not max and not favOnly then
@@ -361,11 +364,17 @@ function CHC_window:getRecipes(favOnly)
         if (not showHidden) and allrec[i].hidden then
         elseif (favOnly and isFav) or (not favOnly) then
             recipes[#recipes + 1] = allrec[i]
+            -- for _ = 1, 10, 1 do
+            --     recipes[#recipes + 1] = allrec[i]
+            -- end
         end
     end
     for i = 1, #allevorec do
         if (favOnly and modData[allevorec[i].favStr]) or (not favOnly) then
             recipes[#recipes + 1] = allevorec[i]
+            -- for _ = 1, 10, 1 do
+            --     recipes[#recipes + 1] = allevorec[i]
+            -- end
         end
     end
 
