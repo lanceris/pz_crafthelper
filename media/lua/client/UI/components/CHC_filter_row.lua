@@ -16,6 +16,17 @@ end
 function CHC_filter_row:create()
     local x, y, w, h = self.x, self.y, self.width, self.height
 
+    -- region infoButton
+    self.infoButton = ISButton:new(x, 0, 24, 24, nil, self)
+    self.infoButton.borderColor.a = 0
+    self.infoButton.backgroundColor.a = 0
+    self.infoButton:initialise()
+    self.infoButton:setImage(self.infoButtonTex)
+    self.infoButton.updateTooltip = self.updateInfoBtnTooltip
+    self.infoButton:setTooltip(self:createInfoText())
+    x = x + self.infoButton.width
+    -- endregion
+
     -- region order btn
     local foo = self.filterOrderData
     self.filterOrderBtn = ISButton:new(x, 0, foo.width or h, h, foo.title or '', self)
@@ -33,8 +44,8 @@ function CHC_filter_row:create()
     -- region filters btn
     -- self.filtersBtn = ISButton:new(x, 0, foo.width or h, h, foo.title or '', self)
     -- self.filtersBtn:initialise()
-    -- self.filterOrderBtn:setOnClick(self:toggleFiltersUI())
-    -- self.filterOrderBtn.tooltip = foo.defaultTooltip
+    -- self.filtersBtn:setOnClick(self.toggleFiltersUI)
+    -- self.filtersBtn.tooltip = getText("")
     -- self.filterOrderBtn:setImage(foo.defaultIcon)
     -- self.filterOrderBtn.backgroundColor.a = 0
     -- self.filterOrderBtn.borderColor.a = 0
@@ -55,8 +66,7 @@ function CHC_filter_row:create()
 
     -- region selector
     local fsd = self.filterSelectorData
-    local dw = self.filterOrderBtn.width + self.filterTypeBtn.width
-    self.categorySelector = ISComboBox:new(x, 0, w - dw, h)
+    self.categorySelector = ISComboBox:new(x, 0, w - x, h)
     self.categorySelector:initialise()
 
     self.categorySelector.editable = CHC_settings.config.editable_category_selector
@@ -68,11 +78,62 @@ function CHC_filter_row:create()
     self.categorySelector.textColor = { r = 0.95, g = 0.95, b = 0.95, a = 1 }
     -- endregion
 
+    self:addChild(self.infoButton)
     self:addChild(self.filterOrderBtn)
     self:addChild(self.filterTypeBtn)
     self:addChild(self.categorySelector)
 
     self.categorySelector.popup.doDrawItem = self.doDrawItemSelectorPopup
+end
+
+local modifierOptionToKey = {
+    [1] = 'none',
+    [2] = 'CTRL',
+    [3] = 'SHIFT',
+    [4] = 'CTRL + SHIFT'
+}
+
+---@return string text
+function CHC_filter_row:createInfoText()
+    local text = "<H1><LEFT> " .. getText("UI_BottomPanelInfoTitle") .. " <TEXT>\n\n"
+    if not CHC_settings or not CHC_settings.keybinds then return text end
+    local extra_map = {
+        move_up = "recipe_selector_modifier",
+        move_down = "recipe_selector_modifier",
+        move_left = "category_selector_modifier",
+        move_right = "category_selector_modifier",
+        move_tab_left = "tab_selector_modifier",
+        move_tab_right = "tab_selector_modifier",
+        close_tab = "tab_close_selector_modifier"
+    }
+    for name, data in pairs(CHC_settings.keybinds) do
+        local extra_key = modifierOptionToKey[CHC_settings.config[extra_map[name]]]
+        if not extra_key or extra_key == "none" then
+            extra_key = ""
+        else
+            extra_key = extra_key .. " + "
+        end
+        text = text .. " <LEFT> " .. getText("UI_optionscreen_binding_" .. data.name)
+        text = text ..
+            ": \n<RGB:0.3,0.9,0.3><CENTER> " .. extra_key .. Keyboard.getKeyName(data.key) .. " <RGB:0.9,0.9,0.9>\n"
+    end
+    return text
+end
+
+function CHC_filter_row:update()
+    if self.needUpdateInfoTooltip then
+        self.needUpdateInfoTooltip = false
+        self.infoButton:setTooltip(self:createInfoText())
+    end
+end
+
+function CHC_filter_row:updateInfoBtnTooltip()
+    ISButton.updateTooltip(self)
+    if not self.tooltipUI then return end
+    local window = self.parent.backRef
+    self.tooltipUI.maxLineWidth = 600
+    self.tooltipUI:setDesiredPosition(window.x, self:getAbsoluteY() - 300)
+    self.tooltipUI.adjustPositionToAvoidOverlap = CHC_filter_row.adjustPositionToAvoidOverlap
 end
 
 function CHC_filter_row:prerenderSelector()
@@ -145,7 +206,37 @@ function CHC_filter_row:doDrawItemSelectorPopup(y, item, alt)
 end
 
 function CHC_filter_row:onResize()
-    self.categorySelector:setWidth(self.width - self.filterOrderBtn.width - self.filterTypeBtn.width)
+    self.categorySelector:setWidth(self.width - self.categorySelector.x)
+end
+
+function CHC_filter_row:adjustPositionToAvoidOverlap(avoidRect)
+    local myRect = { x = self.x, y = self.y, width = self.width, height = self.height }
+
+    if self.contextMenu and not self.contextMenu.joyfocus and self.contextMenu.currentOptionRect then
+        myRect.y = avoidRect.y
+        local r = self:placeLeft(myRect, avoidRect)
+        if self:overlaps(r, avoidRect) then
+            r = self:placeRight(myRect, avoidRect)
+            if self:overlaps(r, avoidRect) then
+                r = self:placeAbove(myRect, avoidRect)
+            end
+        end
+        self:setX(r.x)
+        self:setY(r.y)
+        return
+    end
+
+    if self:overlaps(myRect, avoidRect) then
+        local r = self:placeLeft(myRect, avoidRect)
+        if self:overlaps(r, avoidRect) then
+            r = self:placeAbove(myRect, avoidRect)
+            if self:overlaps(r, avoidRect) then
+                r = self:placeRight(myRect, avoidRect)
+            end
+        end
+        self:setX(r.x)
+        self:setY(r.y)
+    end
 end
 
 function CHC_filter_row:new(args, filtersData)
@@ -166,5 +257,7 @@ function CHC_filter_row:new(args, filtersData)
     o.filterData = filtersData.filterData
     o.filterTypeData = filtersData.filterTypeData
     o.filterSelectorData = filtersData.filterSelectorData
+
+    o.infoButtonTex = getTexture("media/textures/keybinds_help.png")
     return o
 end

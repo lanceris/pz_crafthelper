@@ -61,7 +61,7 @@ local init_cfg = {
     category_selector_modifier = 1,
     tab_selector_modifier = 1,
     tab_close_selector_modifier = 1,
-    list_font_size = 3, -- large
+    list_font_size = 3, -- medium
     show_icons = true,
     allow_special_search = true,
     show_hidden = false,
@@ -147,6 +147,7 @@ if ModOptions and ModOptions.getInstance then
                 OnApplyInGame = CHC_settings.f.onModOptionsApply
             },
             list_font_size = {
+                getText('UI_optionscreen_NewSmall'),
                 getText('UI_optionscreen_Small'),
                 getText('UI_optionscreen_Medium'),
                 getText('UI_optionscreen_Large'),

@@ -155,6 +155,7 @@ function CHC_recipe_view:onResize()
 end
 
 function CHC_recipe_view:prerender()
+    ISPanel.prerender(self)
     local ms = UIManager.getMillisSinceLastRender()
     if not self.ms then self.ms = 0 end
     self.ms = self.ms + ms

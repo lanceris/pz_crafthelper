@@ -197,7 +197,6 @@ function CHC_recipes_panel:createChildren()
     self.statsList:setAnchorBottom(true)
     self.statsList.maintainHeight = false
     self.statsList:setScrollChildren(true)
-    self.statsList:addScrollBars()
     self.statsList:setVisible(false)
     -- endregion
 
@@ -1386,9 +1385,7 @@ function CHC_recipes_panel:renderListBox()
 end
 
 function CHC_recipes_panel:render()
-    self:clampStencilRectToParent(0, 0, self.width, self.height)
     ISPanel.render(self)
-    self:clearStencilRect()
 
     if not self.selectedObj or not self.selectedObj.recipe then return end
     if self.needUpdateScroll then
@@ -2184,7 +2181,6 @@ function CHC_recipes_panel:updateButtons(obj)
             statsH = statsH - self.addRandomButton.height - self.padY - 2
         end
     end
-
     self.craftOneButton:setVisible(buttonStates.craftOne)
     self.craftAllButton:setVisible(buttonStates.craftAll)
     self.selectSpecificButton:setVisible(buttonStates.evoSpecific)

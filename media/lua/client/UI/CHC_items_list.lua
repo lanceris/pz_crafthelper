@@ -118,24 +118,8 @@ function CHC_items_list:onMouseDownObj(x, y)
 end
 
 function CHC_items_list:onMouseWheel(del)
-    local yScroll = self.smoothScrollTargetY or self.yScroll
-    local topRow = self:rowAt(0, -yScroll)
-    if self.items[topRow] then
-        if not self.smoothScrollTargetY then self.smoothScrollY = self.yScroll end
-        local y = self:topOfItem(topRow)
-        if del < 0 then
-            if yScroll == -y and topRow > 1 then
-                local prev = self:prevVisibleIndex(topRow)
-                y = self:topOfItem(prev)
-            end
-            self.smoothScrollTargetY = -y;
-        else
-            self.smoothScrollTargetY = -(y + self.items[topRow].height);
-        end
-    else
-        self.yScroll = self.yScroll - (del * 18)
-    end
-    return true;
+    CHC_view._list.onMouseWheel(self, del)
+    return true
 end
 
 function CHC_items_list:onMMBDown()

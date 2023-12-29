@@ -20,29 +20,8 @@ end
 function CHC_bottom_panel:create()
     local x, y, w, h = 0, 0, 24, 24
 
-    -- region infoButton
-    self.infoButton = ISButton:new(x, y, w, h, nil, self)
-    self.infoButton.borderColor.a = 0
-    self.infoButton.backgroundColor.a = 0
-    self.infoButton:initialise()
-    self.infoButton:setImage(self.infoButtonTex)
-    self.infoButton.updateTooltip = self.updateInfoBtnTooltip
-    self.infoButton:setTooltip(self:createInfoText())
-    -- endregion
-
-    -- region selector
-    self.categorySelector = ISComboBox:new(self.infoButton.width, 0, 0, 24, self, self.onSelectorChange)
-    self.categorySelector:setWidth(self.width - self.categorySelector.x - 24)
-    self.categorySelector.font = self.font
-    self.categorySelector.onChange = CHC_bottom_panel.onChangePreset
-    self.categorySelector.prerender = self.prerenderSelector
-    self.categorySelector:initialise()
-    self.categorySelector:setEditable(CHC_settings.config.editable_category_selector)
-    -- endregion
-
     -- region btn
-    self.moreButton = ISButton:new(self.categorySelector.x + self.categorySelector.width, 0, 24, 24, nil, self,
-        self.onMoreButtonClick)
+    self.moreButton = ISButton:new(x, y, w, h, nil, self, self.onMoreButtonClick)
     self.moreButton.borderColor.a = 0
     self.moreButton.backgroundColor.a = 0
     self.moreButton:initialise()
@@ -100,58 +79,26 @@ function CHC_bottom_panel:create()
     }
     -- endregion
 
-    self:addChild(self.infoButton)
-    self:addChild(self.categorySelector)
+    -- region selector
+    self.categorySelector = ISComboBox:new(self.moreButton.width, y, w, h, self, self.onSelectorChange)
+    self.categorySelector:initialise()
+    self.categorySelector:instantiate()
+    self.categorySelector.font = self.font
+    self.categorySelector.onChange = CHC_bottom_panel.onChangePreset
+    self.categorySelector.prerender = self.prerenderSelector
+    self.categorySelector:setWidth(30) --self.width - self.categorySelector.x)
+    self.categorySelector:setEditable(CHC_settings.config.editable_category_selector)
+    -- endregion
+
     self:addChild(self.moreButton)
+    self:addChild(self.categorySelector)
 
     self.categorySelector.popup.doDrawItem = self.doDrawItemSelectorPopup
-end
-
-local modifierOptionToKey = {
-    [1] = 'none',
-    [2] = 'CTRL',
-    [3] = 'SHIFT',
-    [4] = 'CTRL + SHIFT'
-}
-
----@return string text
-function CHC_bottom_panel:createInfoText()
-    local text = "<H1><LEFT> " .. getText("UI_BottomPanelInfoTitle") .. " <TEXT>\n\n"
-    if not CHC_settings or not CHC_settings.keybinds then return text end
-    local extra_map = {
-        move_up = "recipe_selector_modifier",
-        move_down = "recipe_selector_modifier",
-        move_left = "category_selector_modifier",
-        move_right = "category_selector_modifier",
-        move_tab_left = "tab_selector_modifier",
-        move_tab_right = "tab_selector_modifier",
-        close_tab = "tab_close_selector_modifier"
-    }
-    for name, data in pairs(CHC_settings.keybinds) do
-        local extra_key = modifierOptionToKey[CHC_settings.config[extra_map[name]]]
-        if not extra_key or extra_key == "none" then
-            extra_key = ""
-        else
-            extra_key = extra_key .. " + "
-        end
-        text = text .. " <LEFT> " .. getText("UI_optionscreen_binding_" .. data.name)
-        text = text ..
-            ": \n<RGB:0.3,0.9,0.3><CENTER> " .. extra_key .. Keyboard.getKeyName(data.key) .. " <RGB:0.9,0.9,0.9>\n"
-    end
-    return text
 end
 
 --endregion
 
 --region update
-function CHC_bottom_panel:updateInfoBtnTooltip()
-    ISButton.updateTooltip(self)
-    if not self.tooltipUI then return end
-    local window = self.parent.parent
-    self.tooltipUI.maxLineWidth = 600
-    self.tooltipUI:setDesiredPosition(window.x, self:getAbsoluteY() - 300)
-    self.tooltipUI.adjustPositionToAvoidOverlap = CHC_bottom_panel.adjustPositionToAvoidOverlap
-end
 
 function CHC_bottom_panel:selectDefaultPreset()
     local opt = self.categorySelector:getOptionText(1)
@@ -188,10 +135,6 @@ function CHC_bottom_panel:update()
             sub.view.needUpdateFavorites = true
             return
         end
-    end
-    if self.needUpdateInfoTooltip then
-        self.needUpdateInfoTooltip = false
-        self.infoButton:setTooltip(self:createInfoText())
     end
 end
 
@@ -351,41 +294,6 @@ function CHC_bottom_panel:onMoreButtonClick(button)
             opt.toolTip = tooltip
         end
         opt.iconTexture = option.icon
-    end
-end
-
-function CHC_bottom_panel:onResize()
-    self.categorySelector:setWidth(self.width - 2 * 24)
-    self.moreButton:setX(self.categorySelector.x + self.categorySelector.width)
-end
-
-function CHC_bottom_panel:adjustPositionToAvoidOverlap(avoidRect)
-    local myRect = { x = self.x, y = self.y, width = self.width, height = self.height }
-
-    if self.contextMenu and not self.contextMenu.joyfocus and self.contextMenu.currentOptionRect then
-        myRect.y = avoidRect.y
-        local r = self:placeRight(myRect, avoidRect)
-        if self:overlaps(r, avoidRect) then
-            r = self:placeLeft(myRect, avoidRect)
-            if self:overlaps(r, avoidRect) then
-                r = self:placeAbove(myRect, avoidRect)
-            end
-        end
-        self:setX(r.x)
-        self:setY(r.y)
-        return
-    end
-
-    if self:overlaps(myRect, avoidRect) then
-        local r = self:placeLeft(myRect, avoidRect)
-        if self:overlaps(r, avoidRect) then
-            r = self:placeAbove(myRect, avoidRect)
-            if self:overlaps(r, avoidRect) then
-                r = self:placeRight(myRect, avoidRect)
-            end
-        end
-        self:setX(r.x)
-        self:setY(r.y)
     end
 end
 
@@ -1108,19 +1016,6 @@ function CHC_bottom_panel:doDrawItemSelectorPopup(y, item, alt)
     return y
 end
 
-function CHC_bottom_panel:renderInfoButtonTooltip()
-    ISToolTip.render(self)
-    local window = self.owner
-    local ownerRect = {
-        x = window:getAbsoluteX(),
-        y = window:getAbsoluteY(),
-        width = window.width,
-        height = window
-            .height
-    }
-    CHC_bottom_panel.adjustPositionToAvoidOverlap(self, ownerRect)
-end
-
 --endregion
 
 function CHC_bottom_panel:new(x, y, w, h, window)
@@ -1133,7 +1028,6 @@ function CHC_bottom_panel:new(x, y, w, h, window)
     o.borderColor = { r = 0, g = 0, b = 0, a = 0 }
     o.backgroundColor = { r = 0, g = 0, b = 0, a = 0 }
     o.defaultPresetName = "Select preset"
-    o.infoButtonTex = getTexture("media/textures/keybinds_help.png")
     o.moreButtonTex = getTexture("media/textures/bottom_more.png")
     o.defaultItemTexName = "media/inventory/Question_On.png"
     o.needUpdatePresets = true

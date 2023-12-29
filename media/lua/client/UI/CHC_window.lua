@@ -25,7 +25,7 @@ function CHC_window:create()
 
     self.tbh = self:titleBarHeight()
     -- region main container (search, favorites and all selected items)
-    self.panel = ISTabPanel:new(1, self.tbh, self.width, self.height - 52)
+    self.panel = ISTabPanel:new(0, self.tbh, self.width, self.height - 52)
 
     self.panel:initialise()
     self.panel:setTabsTransparency(0.4)
@@ -573,8 +573,12 @@ function CHC_window:onResize()
     if not ui.panel or not ui.panel.activeView then return end
     ui.panel:setWidth(self.width)
     ui.panel:setHeight(self.height - 52)
-    ui.bottomPanel:setWidth(self.width / 2)
     ui.bottomPanel:setY(ui.panel.y + ui.panel.height)
+    local asw = ui:getActiveSubView()
+    if asw then
+        ui.bottomPanel:setWidth(asw.view.headers.nameHeader.width - ui.bottomPanel.x)
+    end
+
 
     for _, value in pairs(ui.panel.children) do
         value.maxLength = self.width / #value.viewList - 2
@@ -705,6 +709,8 @@ function CHC_window:onActivateView(target)
         end
         self.bottomPanel.needUpdatePresets = true
         sub.view.needUpdateObjects = true
+        local bottomPanelCS = self.bottomPanel.categorySelector
+        bottomPanelCS:setWidth(sub.view.headers.nameHeader.width - bottomPanelCS.x)
     else
         if self.bottomPanel.categorySelector then
             self.bottomPanel.categorySelector:setVisible(false)
@@ -734,9 +740,11 @@ function CHC_window:onActivateSubView(target)
 
     if sub.view.ui_type == 'fav_recipes' or sub.view.ui_type == 'fav_items' then
         sub.view.needUpdateObjects = true
+        self.bottomPanel.needUpdatePresets = true
+        local bottomPanelCS = self.bottomPanel.categorySelector
+        bottomPanelCS:setWidth(sub.view.headers.nameHeader.width - bottomPanelCS.x)
     end
     self:setInfo(info)
-    self.bottomPanel.needUpdatePresets = true
 end
 
 function CHC_window:onMainTabRightMouseDown(x, y)
@@ -1115,6 +1123,11 @@ function CHC_window:serializeWindowData()
     CHC_settings.config.main_window = main_window
     CHC_settings.config.search = search
     CHC_settings.config.favorites = favorites
+end
+
+function CHC_window:onMouseWheel(del)
+    -- don't zoom in game while cursor over window
+    return false
 end
 
 --endregion

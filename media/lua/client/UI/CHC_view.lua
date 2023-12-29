@@ -402,6 +402,11 @@ function CHC_view:onResizeHeaders()
     self.objList:setWidth(self.headers.nameHeader.width)
     self.objPanel:setX(self.headers.typeHeader.x)
     self.objPanel:setWidth(self.headers.typeHeader.width)
+    local asw, _ = self.backRef:getActiveSubView()
+    if asw.view == self then
+        local bottomPanelCS = self.backRef.bottomPanel.categorySelector
+        bottomPanelCS:setWidth(self.headers.nameHeader.width - bottomPanelCS.x)
+    end
 end
 
 -- endregion
@@ -512,6 +517,53 @@ end
 
 
 --region objlist
+function CHC_view._list:onMouseWheel(del, scrollSpeed)
+    scrollSpeed = scrollSpeed or 18
+    local yScroll = self.smoothScrollTargetY or self.yScroll
+    local topRow = self:rowAt(0, -yScroll)
+    if isShiftKeyDown() then
+        local oldsel = self.selected
+        if del < 0 then
+            self.selected = self.selected - (isCtrlKeyDown() and 10 or 1)
+            -- end
+            if self.selected <= 0 then
+                self.selected = #self.items
+            end
+        else
+            self.selected = self.selected + (isCtrlKeyDown() and 10 or 1)
+            --end
+            if self.selected > #self.items then
+                self.selected = 1
+            end
+        end
+
+        local selectedItem = self.items[self.selected]
+        if selectedItem and oldsel ~= self.selected then
+            self:ensureVisible(self.selected)
+            if self.parent.objPanel then
+                self.parent.objPanel:setObj(selectedItem.item)
+            end
+            return true
+        end
+    end
+    if self.items[topRow] then
+        if not self.smoothScrollTargetY then self.smoothScrollY = self.yScroll end
+        local y = self:topOfItem(topRow)
+        if del < 0 then
+            if yScroll == -y and topRow > 1 then
+                local prev = self:prevVisibleIndex(topRow)
+                y = self:topOfItem(prev)
+            end
+            self.smoothScrollTargetY = -y;
+        else
+            self.smoothScrollTargetY = -(y + self.items[topRow].height);
+        end
+    else
+        self.yScroll = self.yScroll - (del * scrollSpeed)
+    end
+    return true;
+end
+
 function CHC_view._list:isMouseOverFavorite(x)
     return (x >= self.width - 40) and not self:isMouseOverScrollBar()
 end

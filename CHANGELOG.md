@@ -23,6 +23,7 @@
 - Renamed some files for better readability (old ones are kept for a while)
 - Added attributes for Moveables
 - Various (micro-)optimizations
+- Scroll lists by Shift(+Ctrl) + mouse wheel
 
 ### Bugfixes
 

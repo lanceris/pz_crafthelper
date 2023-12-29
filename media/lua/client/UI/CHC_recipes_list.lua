@@ -118,6 +118,11 @@ end
 
 -- region logic
 
+function CHC_recipes_list:onMouseWheel(del)
+    CHC_view._list.onMouseWheel(self, del)
+    return true
+end
+
 function CHC_recipes_list:onMouseDownObj(x, y)
     local row = self:rowAt(x, y)
     if row == -1 then return end

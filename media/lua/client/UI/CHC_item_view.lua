@@ -130,6 +130,10 @@ end
 
 -- region render
 
+function CHC_item_view:render()
+    CHC_view.render(self)
+end
+
 function CHC_item_view:onResize()
     ISPanel.onResize(self)
     CHC_view.onResize(self)
