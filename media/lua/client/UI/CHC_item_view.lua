@@ -114,11 +114,6 @@ function CHC_item_view:update()
             props.searchRow:setTooltip(props.searchRow.origTooltip)
         end
     end
-    -- if self.needUpdateObjSource then
-    --     self.needUpdateObjSource = false
-    --     self.objSource = self.backRef[self.objGetter](self, self.ui_type == 'fav_items')
-    --     self:updateObjects()
-    -- end
     CHC_view.update(self)
 end
 

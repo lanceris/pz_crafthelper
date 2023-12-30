@@ -1,8 +1,8 @@
 CHC_options_ui = ISCollapsableWindow:derive('CHC_options_ui')
-local insert = table.insert
 local sort = table.sort
 local find = string.find
 local sub = string.sub
+local trim = string.trim
 local utils = require('CHC_utils')
 
 
@@ -37,6 +37,24 @@ end
 -- endregion
 
 -- region logic
+
+local filterOperators = {
+    --numeric
+    gt = function(a, b) return a > b end,
+    gte = function(a, b) return a >= b end,
+    lt = function(a, b) return a < b end,
+    lte = function(a, b) return a <= b end,
+    eq = function(a, b) return a == b end,
+    --tables
+    tcontains = function(t, b) return utils.any(t, b) end,
+    tmapcontains = function(t, b) return utils.any(t, b, nil, nil, nil, true) end,
+    --strings
+    scontains = function(a, b) return find(a, b, 1, true) ~= nil end,
+    sstart = function(a, b) return utils.startswith(a, b) end,
+    send = function(a, b) return utils.endswith(a, b) end,
+    sexact = function(a, b) return trim(a) == trim(b) end
+}
+
 -- region event handlers
 
 -- endregion

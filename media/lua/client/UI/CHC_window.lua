@@ -58,7 +58,7 @@ function CHC_window:create()
         end
     end
 
-    self.bottomPanel = CHC_bottom_panel:new(1, self.panel.y + self.panel.height, self.width / 2, 24, self)
+    self.bottomPanel = CHC_bottom_panel:new(1, self.panel.y + self.panel.height, self.width / 2, 24, self, "presets")
     self.bottomPanel:initialise()
     self.bottomPanel:setVisible(true)
     self.bottomPanel:setAnchorLeft(true)
@@ -558,7 +558,8 @@ function CHC_window:close()
     self:serializeWindowData()
     CHC_settings.Save()
     CHC_settings.SavePropsData()
-    CHC_settings.SavePresetsData()
+    CHC_settings.SavePresetsData("presets")
+    -- CHC_settings.SavePresetsData("filters")
 end
 
 -- endregion

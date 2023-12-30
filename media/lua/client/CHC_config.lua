@@ -103,6 +103,11 @@ local applyBlacklist = {
 
 }
 
+local presetStorageToFilename = {
+    presets = 'beta_CHC_presets.lua',
+    filters = 'beta_CHC_filter_presets.lua'
+}
+
 function CHC_settings.f.onModOptionsApply(values)
     if CHC_settings.config.main_window == nil then
         CHC_settings.Load()
@@ -433,11 +438,16 @@ end
 
 local types = { "items", "recipes" }
 
-CHC_settings.SavePresetsData = function()
+CHC_settings.SavePresetsData = function(storageKey, filename, backup_filename)
+    filename = filename or presetStorageToFilename[storageKey]
+    if not filename then
+        error("Could not determine filename to save presets to!")
+    end
+    backup_filename = backup_filename or ("backup_" .. filename)
     local config = copyTable(init_presets)
     for i = 1, #types do
         local _type = types[i]
-        for name, entries in pairs(CHC_settings.presets[_type]) do
+        for name, entries in pairs(CHC_settings[storageKey][_type]) do
             local entry = {
                 name = concat({ byte(name, 1, -1) }, ","),
                 entries = entries,
@@ -446,20 +456,26 @@ CHC_settings.SavePresetsData = function()
         end
     end
 
-    local status = pcall(utils.tableutil.save, presets_name, config)
+    local status = pcall(utils.tableutil.save, filename, config)
     if not status then
         -- config is corrupted, create new
-        utils.tableutil.save(presets_name, init_presets)
+        utils.tableutil.save(filename, init_presets)
     else
-        utils.tableutil.save(presets_backup_name, config)
+        utils.tableutil.save(backup_filename, config)
     end
 end
 
-CHC_settings.LoadPresetsData = function()
-    local status, config = pcall(utils.tableutil.load, presets_name)
+---Load presets data for `storageKey`
+---@param storageKey string key to set data to
+---@param filename? string filename to load data from
+CHC_settings.LoadPresetsData = function(storageKey, filename)
+    filename = filename or presetStorageToFilename[storageKey]
+    if not storageKey then
+        error("Could not determine filename to load presets from!")
+    end
+    local status, config = pcall(utils.tableutil.load, filename)
     if not status or not config then
         config = copyTable(init_presets)
-        CHC_settings.SavePresetsData()
     end
     local cfg = copyTable(init_presets)
     for i = 1, #types do
@@ -473,5 +489,5 @@ CHC_settings.LoadPresetsData = function()
         end
     end
 
-    CHC_settings.presets = cfg
+    CHC_settings[storageKey] = cfg
 end

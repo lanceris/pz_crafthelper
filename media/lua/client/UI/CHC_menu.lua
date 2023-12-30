@@ -42,7 +42,8 @@ CHC_menu.createCraftHelper = function()
     end
     CHC_settings.Load()
     CHC_settings.LoadPropsData()
-    CHC_settings.LoadPresetsData()
+    CHC_settings.LoadPresetsData("presets")
+    -- CHC_settings.LoadPresetsData("filters")
     local options = CHC_settings.config
 
     local args = {

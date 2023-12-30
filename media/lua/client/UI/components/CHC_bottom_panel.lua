@@ -45,12 +45,12 @@ function CHC_bottom_panel:create()
             onclick = self.onMoreBtnRenameClick,
             tooltip = nil
         },
-        compare = {
-            icon = getTexture("media/textures/bottom_panel/compare.png"),
-            title = getText("IGUI_BottomPanelMoreCompare"),
-            onclick = self.onMoreBtnCompareClick,
-            tooltip = getText("IGUI_BottomPanelMoreCompareTooltip"),
-        },
+        -- compare = {
+        --     icon = getTexture("media/textures/bottom_panel/compare.png"),
+        --     title = getText("IGUI_BottomPanelMoreCompare"),
+        --     onclick = self.onMoreBtnCompareClick,
+        --     tooltip = getText("IGUI_BottomPanelMoreCompareTooltip"),
+        -- },
         duplicate = {
             icon = getTexture("media/textures/CHC_copy_icon.png"),
             title = getText("IGUI_BottomPanelMoreDuplicate"),
@@ -107,7 +107,7 @@ end
 
 function CHC_bottom_panel:updatePresets()
     local ui_type = self:getUiType()
-    local presets = CHC_settings.presets[ui_type]
+    local presets = self:getPresetStorage()
     if not presets then return end
     self.categorySelector:clear()
     self.categorySelector:addOption({ text = self.defaultPresetName })
@@ -346,7 +346,8 @@ function CHC_bottom_panel:onChangePreset()
         return
     end
     local ui_type = self:getUiType()
-    local to_load = CHC_settings.presets[ui_type][selected.text]
+    local presetStorage = self:getPresetStorage()
+    local to_load = presetStorage[selected.text]
     if not to_load then return end
 
     local objects = {}
@@ -377,16 +378,16 @@ function CHC_bottom_panel:onChangePreset()
             end
             if utils.empty(valid) then
                 -- remove preset and select default
-                CHC_settings.presets[ui_type][selected.text] = nil
-                CHC_settings.SavePresetsData()
+                presetStorage[selected.text] = nil
+                CHC_settings.SavePresetsData(self.presetStorageKey, self.presetFilename)
                 self:updatePresets()
                 return
             end
-            CHC_settings.presets[ui_type][selected.text] = valid
+            presetStorage[selected.text] = valid
             objects = validObjects
             selected.data.count = #objects
             self:updateTooltipData(selected.tooltip, ui_type, valid, 20)
-            CHC_settings.SavePresetsData()
+            CHC_settings.SavePresetsData(self.presetStorageKey, self.presetFilename)
         end
         -- load preset
         CHC_view.refreshObjList(currentFav.parent, objects)
@@ -496,9 +497,9 @@ end
 
 function CHC_bottom_panel:_savePreset(text)
     local ui_type = self:getUiType()
-    local to_save = CHC_settings.presets[ui_type]
+    local to_save = self:getPresetStorage()
     to_save[text] = self:getCurrentFavoritesFromModData(ui_type)
-    CHC_settings.SavePresetsData()
+    CHC_settings.SavePresetsData(self.presetStorageKey, self.presetFilename)
     self.needUpdatePresets = true
 end
 
@@ -507,7 +508,7 @@ end
 ---@param existing string | table<integer, string> existing preset name OR list of current favorites
 ---@param overwrite boolean? true if `existing` is `string`
 function CHC_bottom_panel:_overwritePreset(text, existing, overwrite)
-    local to_save = CHC_settings.presets[self:getUiType()]
+    local to_save = CHC_settings[self.presetStorageKey][self:getUiType()]
     local to_overwrite
     if overwrite == true then
         to_overwrite = to_save[existing]
@@ -518,13 +519,12 @@ function CHC_bottom_panel:_overwritePreset(text, existing, overwrite)
     if overwrite == true then
         to_save[existing] = nil
     end
-    CHC_settings.SavePresetsData()
+    CHC_settings.SavePresetsData(self.presetStorageKey, self.presetFilename)
     self.needUpdatePresets = true
 end
 
 function CHC_bottom_panel:onMoreBtnSaveClick()
-    local ui_type = self:getUiType()
-    local to_save = CHC_settings.presets[ui_type]
+    local to_save = self:getPresetStorage()
     local selectedPreset = self:getSelectedPreset()
     local currentFav = self:getCurrentFavorites()
 
@@ -561,7 +561,7 @@ function CHC_bottom_panel:onMoreBtnSaveClick()
     end
     -- popup with input and save/cancel buttons
     -- check for overwriting
-    -- on save add to CHC_settings.presets
+    -- on save add to CHC_settings
     -- and save to disk
     local params = { _parent = self.window }
 
@@ -631,10 +631,9 @@ end
 
 function CHC_bottom_panel:onMoreBtnRenameClick()
     -- popup with input (prefilled?) and ok/cancel buttons
-    -- on ok remove old entry and add new one to CHC_settings.presets
+    -- on ok remove old entry and add new one to CHC_settings
     local selectedPreset = self:getSelectedPreset()
-    local ui_type = self:getUiType()
-    local to_save = CHC_settings.presets[ui_type]
+    local to_save = self:getPresetStorage()
 
     ---@param _ any
     ---@param button table
@@ -706,14 +705,14 @@ function CHC_bottom_panel:onMoreBtnCompareClick()
     local a = CHC_main
     local selected = self:getSelectedPreset()
     if not selected then return end
-    local to_load = CHC_settings.presets[self:getUiType()][selected.text]
+    local to_load = CHC_settings[self.presetStorageKey][self:getUiType()][selected.text]
     df:df()
 end
 
 function CHC_bottom_panel:onMoreBtnDuplicateClick()
     local selectedPreset = self:getSelectedPreset()
     local ui_type = self:getUiType()
-    local to_save = CHC_settings.presets[ui_type]
+    local to_save = self:getPresetStorage()
 
     local function onOverwritePreset(_, button, existing, text)
         if button.internal ~= "YES" then return end
@@ -774,7 +773,7 @@ function CHC_bottom_panel:onMoreBtnShareClick()
     local ui_type = self:getUiType()
     local entries = selectedPreset.text == self.defaultPresetName and
         self:getCurrentFavoritesFromModData(ui_type) or
-        copyTable(CHC_settings.presets[ui_type][selectedPreset.text])
+        copyTable(self:getPresetStorage()[selectedPreset.text])
     local to_share = {
         entries = entries,
         type = ui_type,
@@ -811,8 +810,7 @@ function CHC_bottom_panel:onMoreBtnImportClick()
     -- then validate string, if ok - new popup to enter name
     -- if failed - popup "incorrect string"
     -- if only some failed (i.e some mods missing - show how many will be loaded (e.g. 10/12))
-    local ui_type = self:getUiType()
-    local to_save = CHC_settings.presets[ui_type]
+    local to_save = self:getPresetStorage()
 
     local function onOverwritePreset(_, button, name)
         if button.internal ~= "YES" then return end
@@ -947,16 +945,15 @@ end
 
 function CHC_bottom_panel:onMoreBtnDeleteClick()
     -- popup "are you sure?" and ok/cancel
-    -- on ok delete entry from CHC_settings.presets and save
+    -- on ok delete entry from CHC_settings and save
     -- if preset not selected - popup (ok) with msg to select preset
     local selectedPreset = self:getSelectedPreset()
     if not selectedPreset then return end
 
     local function deletePreset(_, button)
         if button.internal ~= "YES" then return end
-        local ui_type = self:getUiType()
-        CHC_settings.presets[ui_type][selectedPreset.text] = nil
-        CHC_settings.SavePresetsData()
+        self:getPresetStorage()[selectedPreset.text] = nil
+        CHC_settings.SavePresetsData(self.presetStorageKey, self.presetFilename)
         self.needUpdatePresets = true
     end
 
@@ -1018,7 +1015,7 @@ end
 
 --endregion
 
-function CHC_bottom_panel:new(x, y, w, h, window)
+function CHC_bottom_panel:new(x, y, w, h, window, presetStorageKey, presetFilename)
     local o = {}
     o = ISPanelJoypad:new(x, y, w, h)
 
@@ -1033,8 +1030,14 @@ function CHC_bottom_panel:new(x, y, w, h, window)
     o.needUpdatePresets = true
     o.needUpdateInfoTooltip = false
     o.window = window
+    o.presetStorageKey = presetStorageKey
+    o.presetFilename = presetFilename
     o.font = UIFont.Small
     return o
+end
+
+function CHC_bottom_panel:getPresetStorage()
+    return CHC_settings[self.presetStorageKey][self:getUiType()]
 end
 
 local function _scheduleTooltipUpdate()

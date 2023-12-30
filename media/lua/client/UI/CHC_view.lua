@@ -674,6 +674,7 @@ end
 
 function CHC_view._list:render()
     -- if true then return end
+    if not self._indexes then return end
     local sX = 0
     local sY = 0
     local sX2 = self.width
@@ -691,7 +692,6 @@ function CHC_view._list:render()
     end
 
     self:clampStencilRectToParent(sX, sY, sX2, sY2)
-    if not self._indexes then return end
     for j = 1, #self._indexes do
         local _ix = self._indexes[j]
         local item = self.items[_ix]
