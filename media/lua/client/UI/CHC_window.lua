@@ -391,8 +391,8 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
     itemPanel.item = itn
     -- endregion
     local usesData = self:getRecipes(false, utils.concat(
-        CHC_main.recipesByItem[itn.fullType],
-        CHC_main.evoRecipesByItem[itn.fullType]
+        CHC_main.recipesByItem[itn.fullType] or {},
+        CHC_main.evoRecipesByItem[itn.fullType] or {}
     ))
 
     self.panel:addView(nameForTab, itemPanel)
@@ -424,8 +424,8 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
     -- region crafting screen
 
     local craftData = self:getRecipes(false, utils.concat(
-        CHC_main.recipesForItem[itn.fullType],
-        CHC_main.evoRecipesForItem[itn.fullType]
+        CHC_main.recipesForItem[itn.fullType] or {},
+        CHC_main.evoRecipesForItem[itn.fullType] or {}
     ))
 
     local craft_screen_init = self.common_screen_data

@@ -26,6 +26,7 @@ Config files are separate from main mod ("beta_" prefix).
 [*]Fixed inability to search moveables from inventory
 [*]Remove all favorites button
 [*]Fixed hidden recipes showing in item views
+[*]Fixed inability to close CHC window via hotkey when its minimized
 [/list]
 
 [hr][/hr]
