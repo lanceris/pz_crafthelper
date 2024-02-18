@@ -24,6 +24,8 @@ Config files are separate from main mod ("beta_" prefix).
 [*]Fixed crash when some textures for vanilla items are missing
 [*]Fixed incorrect icons for moveables
 [*]Fixed inability to search moveables from inventory
+[*]Remove all favorites button
+[*]Fixed hidden recipes showing in item views
 [/list]
 
 [hr][/hr]

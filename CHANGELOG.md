@@ -12,6 +12,7 @@
 - Textures now loaded on demand (i.e. when shown on UI) instead of at startup
 - Item attributes now loaded on demand (i.e when shown on UI/searched by attribute ($))
 - Ability to hold button to traverse item/recipe lists (delay is configurable)
+- Remove all favorites button
 
 ### Improvements
 
@@ -33,6 +34,7 @@
 - Serialize window config only if all views properly saved
 - Config format changed from json to lua
 - Fixed inability to search moveables from inventory (Moveables use ` WorldSprite`` as fulltype -> were not matched to  `CHC_items[fulltype]`)
+- Fixed hidden recipes showing in item views
 
 # 1.8.4 (19.08.2023)
 
