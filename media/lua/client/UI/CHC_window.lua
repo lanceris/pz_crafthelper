@@ -1061,6 +1061,10 @@ function CHC_window:onKeyRepeat(key)
 end
 
 function CHC_window:onKeyPress(key)
+    if key == CHC_settings.keybinds.close_window.key then
+        self:close()
+        return
+    end
     if self.isCollapsed then return end
 
     local ui = self
@@ -1076,10 +1080,7 @@ function CHC_window:onKeyPress(key)
     local rl = subview.objList
 
     -- region close
-    if key == CHC_settings.keybinds.close_window.key then
-        self:close()
-        return
-    end
+
 
     -- active tab
     if key == CHC_settings.keybinds.close_tab.key and self:isModifierKeyDown('closetab') then

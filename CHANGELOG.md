@@ -25,6 +25,7 @@
 - Added attributes for Moveables
 - Various (micro-)optimizations
 - Scroll lists by Shift(+Ctrl) + mouse wheel
+- Config format changed from json to lua
 
 ### Bugfixes
 
@@ -32,9 +33,9 @@
 - Fixed crash when some textures for vanilla items are missing
 - Fixed incorrect icons for moveables
 - Serialize window config only if all views properly saved
-- Config format changed from json to lua
 - Fixed inability to search moveables from inventory (Moveables use ` WorldSprite`` as fulltype -> were not matched to  `CHC_items[fulltype]`)
 - Fixed hidden recipes showing in item views
+- Fixed inability to close CHC window via hotkey when its minimized
 
 # 1.8.4 (19.08.2023)
 
