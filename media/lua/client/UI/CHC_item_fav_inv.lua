@@ -3,6 +3,8 @@ require 'CHC_main'
 
 local ceil = math.ceil
 
+local ceil = math.ceil
+
 local function renderdetailsCHC(self, doDragged)
     local y = 0
     local MOUSEX = self:getMouseX()

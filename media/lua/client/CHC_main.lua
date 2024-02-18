@@ -8,7 +8,7 @@ CHC_main._meta = {
     id = 'CraftHelperContinued_beta',
     workshopId = 3122080147,
     name = 'Craft Helper Continued Beta',
-    version = '1.9b3',
+    version = '1.9b4',
     author = 'lanceris',
     previousAuthors = { 'Peanut', 'ddraigcymraeg', 'b1n0m' },
 }
@@ -33,6 +33,7 @@ CheckMyModTable = CheckMyModTable or {} -- Mod Checker
 CheckMyModTable[CHC_main._meta.id] = CHC_main._meta.workshopId
 local cacheFileName = 'CraftHelperLuaCache.json'
 local loadLua = true
+local overRideVanillaCraftMenu
 
 local showTime = function(start, st)
     print(format('Loaded %s in %s seconds', st, tostring((getTimestampMs() - start) / 1000)))

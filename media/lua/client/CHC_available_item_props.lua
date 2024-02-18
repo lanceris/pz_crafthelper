@@ -366,13 +366,13 @@ CHC_settings.itemPropsByType = {
         { name = "XPBoostMap", path = "item", path2 = "XPBoostMap", type = "list",  retRaw = true }
     },
     Skills = {
-        { name = "id",            path = "item", path2 = "id",        type = "string" },
-        { name = "index",         path = "item", path2 = "index",     type = "number" },
-        { name = "isCustom",      path = "item", path2 = "isCustom",  type = "boolean" },
-        { name = "isPassiv",      path = "item", path2 = "isPassiv",  type = "boolean" },
-        { name = "parent",        path = "item", path2 = "parent",    type = "string" },
-        { name = "xpForLvl",      path = "item", path2 = "xpForLvl",  skip = true },
-        { name = "xpForLvlTotal", path = "item", path2 = "xpForLvl",  skip = true },
+        { name = "id",            path = "item", path2 = "id",       type = "string" },
+        { name = "index",         path = "item", path2 = "index",    type = "number" },
+        { name = "isCustom",      path = "item", path2 = "isCustom", type = "boolean" },
+        { name = "isPassiv",      path = "item", path2 = "isPassiv", type = "boolean" },
+        { name = "parent",        path = "item", path2 = "parent",   type = "string" },
+        { name = "xpForLvl",      path = "item", path2 = "xpForLvl", skip = true },
+        { name = "xpForLvlTotal", path = "item", path2 = "xpForLvl", skip = true },
 
 
     }

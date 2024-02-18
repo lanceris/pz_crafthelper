@@ -29,6 +29,17 @@ function CHC_filter_row:create()
     x = x + self.filtersUIBtn.width
     --endregion
 
+    -- region filters btn
+    -- self.filtersBtn = ISButton:new(x, 0, foo.width or h, h, foo.title or '', self)
+    -- self.filtersBtn:initialise()
+    -- self.filterOrderBtn:setOnClick(self:toggleFiltersUI())
+    -- self.filterOrderBtn.tooltip = foo.defaultTooltip
+    -- self.filterOrderBtn:setImage(foo.defaultIcon)
+    -- self.filterOrderBtn.backgroundColor.a = 0
+    -- self.filterOrderBtn.borderColor.a = 0
+    -- x = x + self.filtersBtn.width
+    -- endregion
+
     -- region type btn
     local fto = self.filterTypeData
     self.filterTypeBtn = ISButton:new(x, 0, fto.width or h, h, fto.title or '', self)
