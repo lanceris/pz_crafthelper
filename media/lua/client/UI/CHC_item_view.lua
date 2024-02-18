@@ -16,7 +16,7 @@ function CHC_item_view:initialise()
         -- .count for each calculated in catSelUpdateOptions
         all = {
             tooltip = self.defaultCategory,
-            icon = getTexture('media/textures/type_filt_all.png')
+            icon = CHC_window.icons.common.type_all
         },
         AlarmClock = {
             tooltip = getText('IGUI_ItemCat_AlarmClock'),
@@ -82,13 +82,12 @@ function CHC_item_view:initialise()
 end
 
 function CHC_item_view:create()
-    local filterRowOrderOnClickArgs = { CHC_item_view.sortByNameAsc, CHC_item_view.sortByNameDesc }
     local mainPanelsData = {
         listCls = CHC_items_list,
         panelCls = CHC_items_panel,
         extra_init_params = { onmiddlemousedown = self.onMMBDownObjList }
     }
-    CHC_view.create(self, filterRowOrderOnClickArgs, mainPanelsData)
+    CHC_view.create(self, mainPanelsData)
     self.onResizeHeaders = CHC_view.onResizeHeaders
     self.objGetter = "getItems"
 
@@ -167,7 +166,7 @@ function CHC_item_view:onRMBDownObjList(x, y, item)
 
     if isRecipes then
         local opt = context:addOption(getText('IGUI_new_tab'), backRef, backRef.addItemView, item.item, true, 2)
-        opt.iconTexture = getTexture("media/textures/CHC_open_new_tab.png")
+        opt.iconTexture = CHC_window.icons.common.new_tab
         CHC_main.common.addTooltipNumRecipes(opt, item)
     end
 end
@@ -184,16 +183,15 @@ function CHC_item_view:onMMBDownObjList()
     end
 end
 
+function CHC_item_view:onRemoveAllFavBtnClick()
+    self.modData.CHC_item_favorites = {}
+    self.needUpdateFavorites = true
+    self.needUpdateLayout = true
+end
+
 -- endregion
 
 -- region sorting logic
-CHC_item_view.sortByNameAsc = function(a, b)
-    return a.text < b.text
-end
-
-CHC_item_view.sortByNameDesc = function(a, b)
-    return a.text > b.text
-end
 
 function CHC_item_view:filterTypeSetTooltip()
     local curtype = self.typeData[self.typeFilter].tooltip
@@ -315,7 +313,6 @@ function CHC_item_view:new(args)
 
     o.objSource = args.objSource
     o.itemSortAsc = args.itemSortAsc
-    o.itemSortFunc = o.itemSortAsc == true and CHC_item_view.sortByNameAsc or CHC_item_view.sortByNameDesc
     o.typeFilter = args.typeFilter
     o.showHidden = args.showHidden
 
@@ -330,6 +327,8 @@ function CHC_item_view:new(args)
     o.needUpdateScroll = false
     o.needUpdateMousePos = false
     o.needUpdateDelayedSearch = false
+    o.needUpdateInfoTooltip = false
+    o.needUpdateLayout = false
 
     o.anchorTop = true
     o.anchorBottom = true
@@ -340,8 +339,7 @@ function CHC_item_view:new(args)
     o.initDone = false
     o.fav_ui_type = 'fav_items'
 
-    o.sortOrderIconAsc = getTexture('media/textures/sort_order_asc.png')
-    o.sortOrderIconDesc = getTexture('media/textures/sort_order_desc.png')
+    o.removeAllFavBtnIcon = CHC_window.icons.item.favorite.remove_all
 
 
     return o

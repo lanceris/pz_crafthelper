@@ -1,8 +1,6 @@
 require 'ISUI/ISInventoryPane'
 require 'CHC_main'
 
-local favTexOutline = getTexture('media/textures/CHC_item_favorite_star_outline.png')
-
 local ceil = math.ceil
 
 local function renderdetailsCHC(self, doDragged)
@@ -45,10 +43,10 @@ local function renderdetailsCHC(self, doDragged)
 
                 local tex = chcItem.texture or CHC_main.common.cacheTex(chcItem)
                 local auxDXY = ceil(20 * self.texScale)
-                if doIt == true and tex ~= nil and count == 1 then
+                if doIt == true and tex ~= nil and count == 1 and CHC_window and CHC_window.icons then
                     local tx = (13 + auxDXY + xoff)
                     local ty = (y * self.itemHgt) + self.headerHgt + yoff
-                    self:drawTexture(favTexOutline, tx, ty, 1, 1, 1, 1)
+                    self:drawTexture(CHC_window.icons.item.favorite.unchecked, tx, ty, 1, 1, 1, 1)
                 end
             end
             y = y + 1

@@ -59,7 +59,7 @@ end
 
 CHC_main.config_apply_funcs.onChangeSelectorModifier = function(inst)
     inst.updateQueue:push({
-        targetViews = { 'bottom_panel' },
+        targetViews = { 'all' },
         actions = { 'needUpdateInfoTooltip' }
     })
 end

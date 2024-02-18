@@ -238,7 +238,7 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
     local maxTextLength = 1000 --FIXME
     -- region copy submenu
     local name_opt = context:addOption(getText('IGUI_chc_Copy'), nil, nil)
-    name_opt.iconTexture = getTexture('media/textures/CHC_copy_icon.png')
+    name_opt.iconTexture = CHC_window.icons.common.copy
     local subMenuName = ISContextMenu:getNew(context)
     context:addSubMenu(name_opt, subMenuName)
 

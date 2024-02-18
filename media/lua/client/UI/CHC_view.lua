@@ -5,29 +5,22 @@ local floor = math.floor
 local ceil = math.ceil
 
 -- region create
-function CHC_view:create(filterRowOrderOnClickArgs, mainPanelsData)
+function CHC_view:create(mainPanelsData)
     -- region draggable headers
     self.headers = CHC_tabs:new(0, 0, self.width, CHC_main.common.heights.headers, { CHC_view.onResizeHeaders, self },
         self.sep_x)
     self.headers:initialise()
     -- endregion
 
+    local filterRowHeight = CHC_main.common.heights.filter_row
     local x = self.headers.x
     local y = self.headers.y + self.headers.height
-    local leftW = self.headers.nameHeader.width
+    local leftW = self.headers.nameHeader.width - filterRowHeight
     local rightX = self.headers.typeHeader.x
     local rightW = self.headers.typeHeader.width
 
     -- region filters UI
     local filterRowData = {
-        filterOrderData = {
-            width = CHC_main.common.heights.filter_row,
-            title = '',
-            onclick = CHC_view.sortByName,
-            onclickargs = filterRowOrderOnClickArgs,
-            defaultTooltip = CHC_view.filterOrderSetTooltip(self),
-            defaultIcon = CHC_view.filterOrderSetIcon(self)
-        },
         filterTypeData = {
             width = CHC_main.common.heights.filter_row,
             title = '',
@@ -43,21 +36,52 @@ function CHC_view:create(filterRowOrderOnClickArgs, mainPanelsData)
     }
 
     self.filterRow = CHC_filter_row:new(
-        { x = x, y = y, w = leftW, h = CHC_main.common.heights.filter_row, backRef = self.backRef }, filterRowData)
+        { x = x, y = y, w = leftW, h = filterRowHeight, backRef = self.backRef }, filterRowData)
     self.filterRow:initialise()
-    local leftY = y + CHC_main.common.heights.filter_row
-    --endregion
 
+    --endregion
+    -- region infoButton
+    self.infoButton = ISButton:new(x, y, filterRowHeight, filterRowHeight, nil, self)
+    self.infoButton.borderColor.a = 0
+    self.infoButton.backgroundColor.a = 0
+    self.infoButton:initialise()
+    self.infoButton:setImage(CHC_window.icons.common.help_tooltip)
+    self.infoButton.updateTooltip = self.updateInfoBtnTooltip
+    self.infoButton:setTooltip(CHC_view.createInfoText(self))
+    -- endregion
+    local leftY = y + CHC_main.common.heights.filter_row
+
+    local searchRowHeight = CHC_main.common.heights.search_row
     -- region search bar
     self.searchRow = CHC_search_bar:new(
-        { x = x, y = leftY, w = leftW, h = CHC_main.common.heights.search_row, backRef = self.backRef },
+        { x = x, y = leftY, w = leftW, h = searchRowHeight, backRef = self.backRef },
         self.searchBarTooltip,
         self.onTextChange, self.searchRowHelpText, self.onCommandEntered)
     self.searchRow:initialise()
     if self.delayedSearch then self.searchRow:setTooltip(self.searchBarDelayedTooltip) end
 
-    leftY = leftY + self.searchRow.height
     -- endregion
+
+    -- region remove all favorites button
+    self.removeAllFavBtn = ISButton:new(self.searchRow.width, leftY, searchRowHeight, searchRowHeight,
+        nil, self, CHC_view.onRemoveAllFavBtnClick)
+    self.removeAllFavBtn.borderColor.a = 0
+    self.removeAllFavBtn.backgroundColor.a = 0
+    local tooltip = table.concat(
+        {
+            getText("ContextMenu_Unfavorite"),
+            getText("ContextMenu_All"):lower(),
+            self.isItemView == true and
+            getText("UI_search_items_tab_name"):lower() or
+            getText("UI_search_recipes_tab_name"):lower(),
+        }, " ")
+    self.removeAllFavBtn:setTooltip(tooltip)
+    self.removeAllFavBtn:initialise()
+    self.removeAllFavBtn:setImage(self.removeAllFavBtnIcon)
+    self.removeAllFavBtn:setVisible(false)
+    -- endregion
+    leftY = leftY + self.searchRow.height
+
 
     -- region recipe list
     local rlh = self.height - self.headers.height - self.filterRow.height - self.searchRow.height
@@ -92,6 +116,8 @@ function CHC_view:create(filterRowOrderOnClickArgs, mainPanelsData)
     self:addChild(self.headers)
     self:addChild(self.filterRow)
     self:addChild(self.searchRow)
+    self:addChild(self.removeAllFavBtn)
+    self:addChild(self.infoButton)
     self:addChild(self.objList)
     self:addChild(self.objPanel)
 end
@@ -131,6 +157,14 @@ function CHC_view:update()
         else
             self.searchRow:setTooltip(self.searchRow.origTooltip)
         end
+    end
+    if self.needUpdateInfoTooltip then
+        self.needUpdateInfoTooltip = false
+        self.infoButton:setTooltip(CHC_view.createInfoText(self))
+    end
+    if self.needUpdateLayout then
+        self.needUpdateLayout = false
+        CHC_window.onActivateViewAdjustPositions(self.backRef, CHC_window.getActiveSubView(self.backRef))
     end
 end
 
@@ -245,8 +279,13 @@ function CHC_view:updateObjects(typeField, categoryField, extraFilters)
     end
     CHC_view.refreshObjList(self, filtered)
 
-    CHC_view.updateTypes(self, typCounts, curType)
-    local delayUpdateObj = CHC_view.updateCategories(self, catCounts, curCat, newCats)
+    if not defCatSelected then
+        CHC_view.updateTypes(self, typCounts, curType)
+    end
+    local delayUpdateObj = false
+    if not defTypeSelected then
+        delayUpdateObj = CHC_view.updateCategories(self, catCounts, curCat, newCats)
+    end
     if delayUpdateObj then
         CHC_view.updateObjects(self, typeField, categoryField)
     end
@@ -336,7 +375,11 @@ function CHC_view:refreshObjList(objects, conditions)
     for i = 1, #objects do
         self:processAddObjToObjList(objects[i], CHC_menu.playerModData)
     end
-    sort(objL.items, self.itemSortFunc)
+    if self.isItemView then
+        sort(objL.items, function(a, b) return a.text < b.text end)
+    else
+        sort(objL.items, function(a, b) return a.item.recipeData.name < b.item.recipeData.name end)
+    end
     -- if not conditions then
     -- else
     --     sort_on_values(objL.items, conditions)
@@ -366,12 +409,86 @@ end
 function CHC_view:handleFavorites(fav_ui_type)
     if self.ui_type == fav_ui_type then
         self.objSource = self.backRef[self.objGetter](self, true)
-        self.needUpdateObjects = true
+        self:updateObjects()
+        CHC_view.updateTabNameWithCount(self)
     else
         self.backRef.updateQueue:push({
             targetViews = { fav_ui_type },
             actions = { 'needUpdateFavorites', 'needUpdateObjects' }
         })
+    end
+end
+
+local modifierOptionToKey = {
+    [1] = 'none',
+    [2] = 'CTRL',
+    [3] = 'SHIFT',
+    [4] = 'CTRL + SHIFT'
+}
+
+---@return string text
+function CHC_view:createInfoText()
+    local text = "<H1><LEFT> " .. getText("UI_BottomPanelInfoTitle") .. " <TEXT>\n\n"
+    if not CHC_settings or not CHC_settings.keybinds then return text end
+    local extra_map = {
+        move_up = "recipe_selector_modifier",
+        move_down = "recipe_selector_modifier",
+        move_left = "category_selector_modifier",
+        move_right = "category_selector_modifier",
+        move_tab_left = "tab_selector_modifier",
+        move_tab_right = "tab_selector_modifier",
+        close_tab = "tab_close_selector_modifier"
+    }
+    for name, data in pairs(CHC_settings.keybinds) do
+        local extra_key = modifierOptionToKey[CHC_settings.config[extra_map[name]]]
+        if not extra_key or extra_key == "none" then
+            extra_key = ""
+        else
+            extra_key = extra_key .. " + "
+        end
+        text = text .. " <LEFT> " .. getText("UI_optionscreen_binding_" .. data.name)
+        text = text ..
+            ": \n<RGB:0.3,0.9,0.3><CENTER> " .. extra_key .. Keyboard.getKeyName(data.key) .. " <RGB:0.9,0.9,0.9>\n"
+    end
+    return text
+end
+
+function CHC_view:updateInfoBtnTooltip()
+    ISButton.updateTooltip(self)
+    if not self.tooltipUI then return end
+    local window = self.parent.backRef
+    self.tooltipUI.maxLineWidth = 600
+    self.tooltipUI:setDesiredPosition(window.x, self:getAbsoluteY() - 300)
+    self.tooltipUI.adjustPositionToAvoidOverlap = CHC_view.adjustPositionToAvoidOverlap
+end
+
+function CHC_view:adjustPositionToAvoidOverlap(avoidRect)
+    local myRect = { x = self.x, y = self.y, width = self.width, height = self.height }
+
+    if self.contextMenu and not self.contextMenu.joyfocus and self.contextMenu.currentOptionRect then
+        myRect.y = avoidRect.y
+        local r = self:placeLeft(myRect, avoidRect)
+        if self:overlaps(r, avoidRect) then
+            r = self:placeRight(myRect, avoidRect)
+            if self:overlaps(r, avoidRect) then
+                r = self:placeAbove(myRect, avoidRect)
+            end
+        end
+        self:setX(r.x)
+        self:setY(r.y)
+        return
+    end
+
+    if self:overlaps(myRect, avoidRect) then
+        local r = self:placeLeft(myRect, avoidRect)
+        if self:overlaps(r, avoidRect) then
+            r = self:placeAbove(myRect, avoidRect)
+            if self:overlaps(r, avoidRect) then
+                r = self:placeRight(myRect, avoidRect)
+            end
+        end
+        self:setX(r.x)
+        self:setY(r.y)
     end
 end
 
@@ -397,8 +514,15 @@ function CHC_view:onResize()
 end
 
 function CHC_view:onResizeHeaders()
-    self.filterRow:setWidth(self.headers.nameHeader.width)
-    self.searchRow:setWidth(self.headers.nameHeader.width)
+    if self.removeAllFavBtn:isVisible() then
+        self.searchRow:setWidth(self.headers.nameHeader.width - self.removeAllFavBtn.width)
+        self.removeAllFavBtn:setX(self.searchRow.width)
+    else
+        self.searchRow:setWidth(self.headers.nameHeader.width)
+    end
+    self.filterRow:setWidth(self.headers.nameHeader.width - self.infoButton.width)
+    self.infoButton:setX(self.filterRow.x + self.filterRow.width)
+
     self.objList:setWidth(self.headers.nameHeader.width)
     self.objPanel:setX(self.headers.typeHeader.x)
     self.objPanel:setWidth(self.headers.typeHeader.width)
@@ -476,27 +600,6 @@ function CHC_view:objCategoryFilter(condition)
     return self.selectedCategory == self.defaultCategory or self.selectedCategory == condition
 end
 
-function CHC_view:filterOrderSetTooltip()
-    local cursort = self.itemSortAsc and getText('IGUI_invpanel_ascending') or getText('IGUI_invpanel_descending')
-    return getText('UI_settings_st_title') .. ' (' .. cursort .. ')'
-end
-
-function CHC_view:filterOrderSetIcon()
-    return self.itemSortAsc and self.sortOrderIconAsc or self.sortOrderIconDesc
-end
-
-function CHC_view:sortByName(cls, ascFunc, descFunc)
-    local self = cls.parent.parent
-    self.itemSortAsc = not self.itemSortAsc
-    self.itemSortFunc = self.itemSortAsc and ascFunc or descFunc
-
-    local newIcon = CHC_view.filterOrderSetIcon(self)
-    local newTooltip = CHC_view.filterOrderSetTooltip(self)
-    self.filterRow.filterOrderBtn:setImage(newIcon)
-    self.filterRow.filterOrderBtn:setTooltip(newTooltip)
-    self.needUpdateObjects = true
-end
-
 function CHC_view:sortByType(_type)
     if _type ~= self.typeFilter then
         self.typeFilter = _type
@@ -510,7 +613,30 @@ end
 function CHC_view:filterTypeSetIcon()
     local entry = self.typeData[self.typeFilter]
     if not entry then return end
+    if not entry.icon and not entry.item.texture then CHC_main.common.cacheTex(entry.item) end
     return entry.item and entry.item.texture or entry.icon
+end
+
+function CHC_view:onRemoveAllFavBtnClick()
+    local function onModalBtnClick(_, button)
+        if button.internal == "YES" then
+            -- calls function from CHC_item/recipe_view
+            self:onRemoveAllFavBtnClick()
+        end
+    end
+    local params = {
+        _parent = self.backRef,
+        type = ISModalDialog,
+        text = string.format("This will unfavorite all %s, are you sure?",
+            CHC_main.common.getCurrentUiTypeLocalized(self.backRef):lower()),
+        yesno = true,
+        onclick = onModalBtnClick,
+    }
+    if self.modalAllFav then
+        self.modalAllFav:destroy()
+        self.modalAllFav = nil
+    end
+    self.modalAllFav = CHC_main.common.addModal(params)
 end
 
 -- endregion
@@ -630,7 +756,6 @@ function CHC_view._list:recalcItems()
     for j = 1, #self.items do
         local item = self.items[j]
         item.index = j
-        local cache = false
         if not item.height then item.height = self.itemheight end
 
         -- determine needed indexes
@@ -645,7 +770,6 @@ function CHC_view._list:recalcItems()
                 y = y + item.height
                 indexes[#indexes + 1] = j
                 data.uncollapsedNum = data.uncollapsedNum + 1
-                cache = true
             else
                 if item.item.collapsed or item.item.sourceNum == data.collapsedBlock or
                     (item.item.sourceNum == data.hiddenBlock.num and data.hiddenBlock.state == "un" and item.item.available) or
@@ -655,16 +779,13 @@ function CHC_view._list:recalcItems()
                     y = y + item.height
                     indexes[#indexes + 1] = j
                     data.uncollapsedNum = data.uncollapsedNum + 1
-                    cache = true
                 end
             end
         else
             y = y + item.height
             indexes[#indexes + 1] = j
             data.uncollapsedNum = data.uncollapsedNum + 1
-            cache = true
         end
-        if cache then CHC_main.common.cacheTex(item.item) end
     end
     self.listHeight = y
     self.uncollapsedNum = data.uncollapsedNum
@@ -695,6 +816,7 @@ function CHC_view._list:render()
     for j = 1, #self._indexes do
         local _ix = self._indexes[j]
         local item = self.items[_ix]
+        if item and not item.item.texture then CHC_main.common.cacheTex(item.item) end
         if item and (
                 (_ix >= self.minJ and _ix <= self.maxJ) or
                 (self._internal and self._internal == "ingredientPanel")

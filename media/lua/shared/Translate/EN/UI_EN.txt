@@ -128,4 +128,6 @@ UI_EN = {
     UI_BottomPanel_onChangePreset_Validation_Title = "Validation Errors"
     UI_BottomPanel_onChangePreset_Validation_LoadAnyway = "Load anyway"
     UI_BottomPanel_onChangePreset_Validation_Remove = "Remove missing"
+
+    UI_FiltersUI_Title = "Filters and sorting rules (%1)"
 }

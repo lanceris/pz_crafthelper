@@ -172,9 +172,9 @@ function CHC_items_list:new(args)
     o.anchorBottom = true
 
     o.favorite = {
-        star = { tex = getTexture('media/textures/CHC_item_favorite_star.png') },
-        checked = { tex = getTexture('media/textures/CHC_item_favorite_star_checked.png') },
-        notChecked = { tex = getTexture('media/textures/CHC_item_favorite_star_outline.png') }
+        star = { tex = CHC_window.icons.item.favorite.default },
+        checked = { tex = CHC_window.icons.item.favorite.checked },
+        notChecked = { tex = CHC_window.icons.item.favorite.unchecked }
     }
     o.favorite.star.height = o.favorite.star.tex:getHeight()
     o.favorite.checked.height = o.favorite.checked.tex:getHeight()

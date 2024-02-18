@@ -208,7 +208,7 @@ function CHC_search_bar:onRightMouseDown()
         clip = sub(clip, 1, 100)
         context = ISContextMenu.get(0, getMouseX() + 10, getMouseY())
         local name = context:addOption(getText('IGUI_chc_Paste') .. ' (' .. clip .. ')', self, chcpaste, clip)
-        name.iconTexture = getTexture('media/textures/CHC_paste_icon.png')
+        name.iconTexture = CHC_window.icons.common.paste
     end
     if s.onRightMouseDownSB then
         s.onRightMouseDownSB(s.parent, context)
@@ -234,7 +234,7 @@ function CHC_search_bar:new(args, searchBarTooltip, onTextChange, searchBtnOnCli
     o.onCommandEnteredSB = onCommandEntered
     -- o.onRightMouseDownSB = onRightMouseDown
     o.searchBarTooltip = searchBarTooltip or sub(getText('IGUI_CraftUI_Name_Filter'), 1, -2)
-    o.searchIcon = getTexture('media/textures/search_icon.png')
+    o.searchIcon = CHC_window.icons.common.search
 
     o.anchorLeft = true
     o.anchorRight = true

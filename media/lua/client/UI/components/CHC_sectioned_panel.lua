@@ -25,8 +25,8 @@ function CHC_section:createChildren()
     self.headerButton.borderColor = self.headerBorderColor
     self.headerButton.render = self.renderButton
     self:addChild(self.headerButton)
-    self.headerButton.treeexpicon = getTexture("media/ui/TreeExpanded.png")
-    self.headerButton.treecolicon = getTexture("media/ui/TreeCollapsed.png")
+    self.headerButton.treeexpicon = CHC_window.icons.common.expanded
+    self.headerButton.treecolicon = CHC_window.icons.common.collapsed
     self.headerButton.iconH = (self.headerButton.height / 2) - (self.headerButton.treeexpicon:getHeight() / 2)
 
     -- if self.panel then

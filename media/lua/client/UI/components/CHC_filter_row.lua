@@ -1,8 +1,10 @@
 require 'ISUI/ISPanel'
 require 'ISUI/ISButton'
 require 'ISUI/ISModalRichText'
+require 'UI/components/CHC_filters_ui'
 
 local derivative = ISPanel
+---@class CHC_filter_row:ISPanel
 CHC_filter_row = derivative:derive('CHC_filter_row')
 
 local utils = require('CHC_utils')
@@ -16,41 +18,16 @@ end
 function CHC_filter_row:create()
     local x, y, w, h = self.x, self.y, self.width, self.height
 
-    -- region infoButton
-    self.infoButton = ISButton:new(x, 0, 24, 24, nil, self)
-    self.infoButton.borderColor.a = 0
-    self.infoButton.backgroundColor.a = 0
-    self.infoButton:initialise()
-    self.infoButton:setImage(self.infoButtonTex)
-    self.infoButton.updateTooltip = self.updateInfoBtnTooltip
-    self.infoButton:setTooltip(self:createInfoText())
-    x = x + self.infoButton.width
-    -- endregion
-
-    -- region order btn
-    local foo = self.filterOrderData
-    self.filterOrderBtn = ISButton:new(x, 0, foo.width or h, h, foo.title or '', self)
-    self.filterOrderBtn:initialise()
-    if not foo.onclickargs then foo.onclickargs = {} end
-    self.filterOrderBtn:setOnClick(foo.onclick, foo.onclickargs[1], foo.onclickargs[2],
-        foo.onclickargs[3], foo.onclickargs[4])
-    self.filterOrderBtn.tooltip = foo.defaultTooltip
-    self.filterOrderBtn:setImage(foo.defaultIcon)
-    self.filterOrderBtn.backgroundColor.a = 0
-    self.filterOrderBtn.borderColor.a = 0
-    x = x + self.filterOrderBtn.width
-    -- endregion
-
-    -- region filters btn
-    -- self.filtersBtn = ISButton:new(x, 0, foo.width or h, h, foo.title or '', self)
-    -- self.filtersBtn:initialise()
-    -- self.filtersBtn:setOnClick(self.toggleFiltersUI)
-    -- self.filtersBtn.tooltip = getText("")
-    -- self.filterOrderBtn:setImage(foo.defaultIcon)
-    -- self.filterOrderBtn.backgroundColor.a = 0
-    -- self.filterOrderBtn.borderColor.a = 0
-    -- x = x + self.filtersBtn.width
-    -- endregion
+    -- region filtersBtn
+    self.filtersUIBtn = ISButton:new(x, 0, h, h, nil, self, self.toggleFiltersUI)
+    self.filtersUIBtn.borderColor.a = 0
+    self.filtersUIBtn.backgroundColor.a = 0
+    self.filtersUIBtn:setTooltip("test")
+    self.filtersUIBtn:initialise()
+    self.filtersUIBtn:setImage(CHC_window.icons.common.filter)
+    self.filtersUIBtn:setVisible(true)
+    x = x + self.filtersUIBtn.width
+    --endregion
 
     -- region type btn
     local fto = self.filterTypeData
@@ -66,7 +43,7 @@ function CHC_filter_row:create()
 
     -- region selector
     local fsd = self.filterSelectorData
-    self.categorySelector = ISComboBox:new(x, 0, w - x, h)
+    self.categorySelector = ISComboBox:new(x, 0, w - x - h, h)
     self.categorySelector:initialise()
 
     self.categorySelector.editable = CHC_settings.config.editable_category_selector
@@ -76,64 +53,13 @@ function CHC_filter_row:create()
     self.categorySelector.tooltip = { defaultTooltip = fsd.defaultTooltip }
     self.categorySelector.prerender = self.prerenderSelector
     self.categorySelector.textColor = { r = 0.95, g = 0.95, b = 0.95, a = 1 }
+    x = x + self.categorySelector.width
     -- endregion
 
-    self:addChild(self.infoButton)
-    self:addChild(self.filterOrderBtn)
+    self:addChild(self.filtersUIBtn)
     self:addChild(self.filterTypeBtn)
     self:addChild(self.categorySelector)
-
     self.categorySelector.popup.doDrawItem = self.doDrawItemSelectorPopup
-end
-
-local modifierOptionToKey = {
-    [1] = 'none',
-    [2] = 'CTRL',
-    [3] = 'SHIFT',
-    [4] = 'CTRL + SHIFT'
-}
-
----@return string text
-function CHC_filter_row:createInfoText()
-    local text = "<H1><LEFT> " .. getText("UI_BottomPanelInfoTitle") .. " <TEXT>\n\n"
-    if not CHC_settings or not CHC_settings.keybinds then return text end
-    local extra_map = {
-        move_up = "recipe_selector_modifier",
-        move_down = "recipe_selector_modifier",
-        move_left = "category_selector_modifier",
-        move_right = "category_selector_modifier",
-        move_tab_left = "tab_selector_modifier",
-        move_tab_right = "tab_selector_modifier",
-        close_tab = "tab_close_selector_modifier"
-    }
-    for name, data in pairs(CHC_settings.keybinds) do
-        local extra_key = modifierOptionToKey[CHC_settings.config[extra_map[name]]]
-        if not extra_key or extra_key == "none" then
-            extra_key = ""
-        else
-            extra_key = extra_key .. " + "
-        end
-        text = text .. " <LEFT> " .. getText("UI_optionscreen_binding_" .. data.name)
-        text = text ..
-            ": \n<RGB:0.3,0.9,0.3><CENTER> " .. extra_key .. Keyboard.getKeyName(data.key) .. " <RGB:0.9,0.9,0.9>\n"
-    end
-    return text
-end
-
-function CHC_filter_row:update()
-    if self.needUpdateInfoTooltip then
-        self.needUpdateInfoTooltip = false
-        self.infoButton:setTooltip(self:createInfoText())
-    end
-end
-
-function CHC_filter_row:updateInfoBtnTooltip()
-    ISButton.updateTooltip(self)
-    if not self.tooltipUI then return end
-    local window = self.parent.backRef
-    self.tooltipUI.maxLineWidth = 600
-    self.tooltipUI:setDesiredPosition(window.x, self:getAbsoluteY() - 300)
-    self.tooltipUI.adjustPositionToAvoidOverlap = CHC_filter_row.adjustPositionToAvoidOverlap
 end
 
 function CHC_filter_row:prerenderSelector()
@@ -209,36 +135,21 @@ function CHC_filter_row:onResize()
     self.categorySelector:setWidth(self.width - self.categorySelector.x)
 end
 
-function CHC_filter_row:adjustPositionToAvoidOverlap(avoidRect)
-    local myRect = { x = self.x, y = self.y, width = self.width, height = self.height }
+-- isMouseButtonDown(4)
 
-    if self.contextMenu and not self.contextMenu.joyfocus and self.contextMenu.currentOptionRect then
-        myRect.y = avoidRect.y
-        local r = self:placeLeft(myRect, avoidRect)
-        if self:overlaps(r, avoidRect) then
-            r = self:placeRight(myRect, avoidRect)
-            if self:overlaps(r, avoidRect) then
-                r = self:placeAbove(myRect, avoidRect)
-            end
-        end
-        self:setX(r.x)
-        self:setY(r.y)
-        return
+function CHC_filter_row:toggleFiltersUI()
+    ---@type CHC_filters_ui
+    local ui = self.backRef.filtersUI
+    if not ui then
+        error("Could not access Filters UI")
     end
-
-    if self:overlaps(myRect, avoidRect) then
-        local r = self:placeLeft(myRect, avoidRect)
-        if self:overlaps(r, avoidRect) then
-            r = self:placeAbove(myRect, avoidRect)
-            if self:overlaps(r, avoidRect) then
-                r = self:placeRight(myRect, avoidRect)
-            end
-        end
-        self:setX(r.x)
-        self:setY(r.y)
-    end
+    ui:toggleUI()
 end
 
+---comment
+---@param args {x:number,y:number,w:number,h:number,backRef:CHC_window}
+---@param filtersData table
+---@return CHC_filter_row
 function CHC_filter_row:new(args, filtersData)
     local x = args.x
     local y = args.y
@@ -257,7 +168,31 @@ function CHC_filter_row:new(args, filtersData)
     o.filterData = filtersData.filterData
     o.filterTypeData = filtersData.filterTypeData
     o.filterSelectorData = filtersData.filterSelectorData
+    o.filtersUI = nil
 
-    o.infoButtonTex = getTexture("media/textures/keybinds_help.png")
+    o.needUpdateInfoTooltip = false
     return o
+end
+
+local function _scheduleTooltipUpdate()
+    if not CHC_menu or not CHC_menu.CHC_window or not CHC_menu.CHC_window.updateQueue then return end
+    CHC_menu.CHC_window.updateQueue:push({
+        targetViews = { 'all' },
+        actions = { 'needUpdateInfoTooltip' }
+    })
+end
+
+do
+    local old_close = MainOptions.close
+    function MainOptions:close()
+        old_close(self)
+        _scheduleTooltipUpdate()
+    end
+
+    local old_load = MainOptions.loadKeys
+    MainOptions.loadKeys = function(...)
+        local result = old_load(...)
+        _scheduleTooltipUpdate()
+        return result
+    end
 end
