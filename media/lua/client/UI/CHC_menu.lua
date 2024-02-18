@@ -42,7 +42,8 @@ CHC_menu.createCraftHelper = function()
     end
     CHC_settings.Load()
     CHC_settings.LoadPropsData()
-    CHC_settings.LoadPresetsData()
+    CHC_settings.LoadPresetsData("presets")
+    -- CHC_settings.LoadPresetsData("filters")
     local options = CHC_settings.config
 
     local args = {
@@ -144,7 +145,7 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
             local opt = context:addOption(getText('IGUI_chc_context_onclick'), itemsUsedInRecipes, CHC_menu
                 .onCraftHelper,
                 player)
-            opt.iconTexture = getTexture('media/textures/CHC_ctx_icon.png')
+            opt.iconTexture = CHC_window.icons.main
             CHC_main.common.addTooltipNumRecipes(opt, item)
         end
     end
@@ -155,9 +156,9 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
         local optName = favStr .. ' (' .. getText('IGUI_chc_context_onclick') .. ')'
         local favOpt = context:addOption(optName, items, CHC_menu.toggleItemFavorite)
         if isFav then
-            favOpt.iconTexture = getTexture('media/textures/CHC_item_favorite_star_outline.png')
+            favOpt.iconTexture = CHC_window.icons.item.favorite.unchecked
         else
-            favOpt.iconTexture = getTexture('media/textures/CHC_item_favorite_star.png')
+            favOpt.iconTexture = CHC_window.icons.item.favorite.default
         end
     end
 
@@ -165,7 +166,7 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
         local findOpt = context:addOption(
             getText('IGUI_find_item') .. ' (' .. getText('IGUI_chc_context_onclick') .. ')', items,
             CHC_menu.onCraftHelper, player, true)
-        findOpt.iconTexture = getTexture('media/textures/search_icon.png')
+        findOpt.iconTexture = CHC_window.icons.common.search
     end
 end
 
@@ -269,6 +270,7 @@ CHC_menu.toggleUI = function(ui)
     else
         utils.chcerror("No UI found", "CHC_menu.toggleUI", nil, false)
     end
+    if ui == CHC_menu.CHC_window and ui.filtersUI then ui.filtersUI:close() end
 end
 
 CHC_menu.toggleItemFavorite = function(items)

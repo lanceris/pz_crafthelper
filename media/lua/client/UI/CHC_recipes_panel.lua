@@ -74,7 +74,7 @@ function CHC_recipes_panel:createChildren()
     self.mainTime.anchorLeft = false
     self.mainTime.anchorRight = true
     self.mainTime:initialise()
-    self.mainTime:setIcon(getTexture('media/textures/CHC_recipe_required_time.png'))
+    self.mainTime:setIcon(CHC_window.icons.recipe.required_time)
     self.mainTime.iconSize = 24
     mainY = mainY + self.mainInfoNameLine.height + self.margin
 
@@ -92,21 +92,21 @@ function CHC_recipes_panel:createChildren()
 
     self.mainCat = ISLabelWithIcon:new(mainX, mainY, fhSmall, nil, mr, mg, mb, ma, mainSecFont, true)
     self.mainCat:initialise()
-    self.mainCat:setIcon(getTexture('media/textures/CHC_recipepanel_category.png'))
+    self.mainCat:setIcon(CHC_window.icons.recipe.category)
     self.mainCat.origTooltip = getText("IGUI_invpanel_Category")
     self.mainCat:setTooltip(self.mainCat.origTooltip)
     mainY = mainY + self.mainCat.height + mainPadY
 
     self.mainRes = ISLabelWithIcon:new(mainX, mainY, fhSmall, nil, mr, mg, mb, ma, mainSecFont, true)
     self.mainRes:initialise()
-    self.mainRes:setIcon(getTexture('media/textures/CHC_recipepanel_output.png'))
+    self.mainRes:setIcon(CHC_window.icons.recipe.result)
     self.mainRes.origTooltip = getText("IGUI_RecipeResult")
     self.mainRes:setTooltip(self.mainRes.origTooltip)
     mainY = mainY + self.mainRes.height + mainPadY
 
     self.mainMod = ISLabelWithIcon:new(mainX, mainY, fhSmall, nil, mr, mg, mb, ma, mainSecFont, true)
     self.mainMod:initialise()
-    self.mainMod:setIcon(getTexture('media/textures/CHC_mod.png'))
+    self.mainMod:setIcon(CHC_window.icons.common.mod)
     self.mainMod:setTooltip(getText("IGUI_mod_chc"))
     mainY = mainY + self.mainMod.height + mainPadY
 
@@ -197,7 +197,6 @@ function CHC_recipes_panel:createChildren()
     self.statsList:setAnchorBottom(true)
     self.statsList.maintainHeight = false
     self.statsList:setScrollChildren(true)
-    self.statsList:addScrollBars()
     self.statsList:setVisible(false)
     -- endregion
 
@@ -1386,9 +1385,7 @@ function CHC_recipes_panel:renderListBox()
 end
 
 function CHC_recipes_panel:render()
-    self:clampStencilRectToParent(0, 0, self.width, self.height)
     ISPanel.render(self)
-    self:clearStencilRect()
 
     if not self.selectedObj or not self.selectedObj.recipe then return end
     if self.needUpdateScroll then
@@ -1596,12 +1593,12 @@ function CHC_recipes_panel:onRMBDownIngrPanel(x, y, item)
     local isRecipes = CHC_main.common.areThereRecipesForItem(item)
 
     local findOpt = context:addOption(getText('IGUI_find_item'), backRef, CHC_menu.onCraftHelperItem, item)
-    findOpt.iconTexture = getTexture("media/textures/search_icon.png")
+    findOpt.iconTexture = CHC_window.icons.common.search
 
     local newTabOption = context:addOption(getText('IGUI_new_tab'), backRef, backRef.addItemView, item.item,
         true, 2)
 
-    newTabOption.iconTexture = getTexture("media/textures/CHC_open_new_tab.png")
+    newTabOption.iconTexture = CHC_window.icons.common.new_tab
 
     if not isRecipes then
         CHC_main.common.setTooltipToCtx(
@@ -2184,7 +2181,6 @@ function CHC_recipes_panel:updateButtons(obj)
             statsH = statsH - self.addRandomButton.height - self.padY - 2
         end
     end
-
     self.craftOneButton:setVisible(buttonStates.craftOne)
     self.craftAllButton:setVisible(buttonStates.craftAll)
     self.selectSpecificButton:setVisible(buttonStates.evoSpecific)
@@ -2258,15 +2254,15 @@ function CHC_recipes_panel:new(args)
 
     o.bh = nil
 
-    o.itemFavoriteStar = getTexture('media/textures/CHC_item_favorite_star.png')
-    o.itemFavCheckedTex = getTexture('media/textures/CHC_item_favorite_star_checked.png')
-    o.itemFavNotCheckedTex = getTexture('media/textures/CHC_item_favorite_star_outline.png')
-    o.treeexpicon = getTexture("media/ui/TreeExpanded.png")
-    o.treecolicon = getTexture("media/ui/TreeCollapsed.png")
-    o.blockAVIcon = getTexture("media/textures/CHC_blockAV.png")
-    o.blockUNIcon = getTexture("media/textures/CHC_blockUN.png")
-    o.blockAllIcon = getTexture("media/textures/type_filt_all.png")
-    o.addEvolvedHoveredTex = getTexture("media/textures/CHC_evolved_add_hovered.png")
-    o.addEvolvedTex = getTexture("media/textures/CHC_evolved_add.png")
+    o.itemFavoriteStar = CHC_window.icons.item.favorite.default
+    o.itemFavCheckedTex = CHC_window.icons.item.favorite.checked
+    o.itemFavNotCheckedTex = CHC_window.icons.item.favorite.unchecked
+    o.treeexpicon = CHC_window.icons.common.expanded
+    o.treecolicon = CHC_window.icons.common.collapsed
+    o.blockAVIcon = CHC_window.icons.recipe.block_valid
+    o.blockUNIcon = CHC_window.icons.recipe.block_invalid
+    o.blockAllIcon = CHC_window.icons.recipe.block_all
+    o.addEvolvedHoveredTex = CHC_window.icons.recipe.evolved.add_hovered
+    o.addEvolvedTex = CHC_window.icons.common.add
     return o;
 end

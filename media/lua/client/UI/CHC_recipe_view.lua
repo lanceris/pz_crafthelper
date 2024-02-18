@@ -45,13 +45,12 @@ end
 
 function CHC_recipe_view:create()
     self:getContainers()
-    local filterRowOrderOnClickArgs = { CHC_recipe_view.sortByNameAsc, CHC_recipe_view.sortByNameDesc }
     local mainPanelsData = {
         listCls = CHC_recipes_list,
         panelCls = CHC_recipes_panel,
         -- extra_init_params = { }
     }
-    CHC_view.create(self, filterRowOrderOnClickArgs, mainPanelsData)
+    CHC_view.create(self, mainPanelsData)
     self.onResizeHeaders = CHC_view.onResizeHeaders
     self.objGetter = "getRecipes"
 
@@ -155,6 +154,7 @@ function CHC_recipe_view:onResize()
 end
 
 function CHC_recipe_view:prerender()
+    ISPanel.prerender(self)
     local ms = UIManager.getMillisSinceLastRender()
     if not self.ms then self.ms = 0 end
     self.ms = self.ms + ms
@@ -209,12 +209,12 @@ function CHC_recipe_view:onRMBDown(x, y, item, showNameInFindCtx)
         ctxText = ctxText .. " (" .. item.displayName .. ")"
     end
     local findOpt = context:addOption(ctxText, backRef, CHC_menu.onCraftHelperItem, item)
-    findOpt.iconTexture = getTexture("media/textures/search_icon.png")
+    findOpt.iconTexture = CHC_window.icons.common.search
 
     local newTabOption = context:addOption(getText('IGUI_new_tab'), backRef, backRef.addItemView, item.item,
         true, 2)
 
-    newTabOption.iconTexture = getTexture("media/textures/CHC_open_new_tab.png")
+    newTabOption.iconTexture = CHC_window.icons.common.new_tab
     local isRecipes = CHC_main.common.areThereRecipesForItem(item)
 
     if not isRecipes then
@@ -239,16 +239,19 @@ function CHC_recipe_view:onRMBDownObjList(x, y, item)
     self.parent.onRMBDown(self, x, y, item, true)
 end
 
+function CHC_recipe_view:onRemoveAllFavBtnClick()
+    for key, value in pairs(self.modData) do
+        if utils.startswith(key, "craftingFavorite:") and value == true then
+            self.modData[key] = nil
+        end
+    end
+    self.needUpdateFavorites = true
+    self.needUpdateLayout = true
+end
+
 -- endregion
 
 -- region sorting logic
-CHC_recipe_view.sortByNameAsc = function(a, b)
-    return a.item.recipeData.name < b.item.recipeData.name
-end
-
-CHC_recipe_view.sortByNameDesc = function(a, b)
-    return a.item.recipeData.name > b.item.recipeData.name
-end
 
 function CHC_recipe_view:filterTypeSetTooltip()
     local curtype = self.typeData[self.typeFilter].tooltip
@@ -452,7 +455,6 @@ function CHC_recipe_view:new(args)
     o.typeFilter = args.typeFilter
     o.showHidden = args.showHidden
     o.sep_x = args.sep_x
-    o.itemSortFunc = o.itemSortAsc == true and CHC_recipe_view.sortByNameAsc or CHC_recipe_view.sortByNameDesc
     o.player = CHC_menu.player
     o.defaultCategory = getText('UI_All')
     o.searchRowHelpText = getText('UI_searchrow_info',
@@ -470,6 +472,8 @@ function CHC_recipe_view:new(args)
     o.needUpdateShowIcons = false
     o.needUpdateDelayedSearch = false
     o.needUpdateRecipeState = false
+    o.needUpdateInfoTooltip = false
+    o.needUpdateLayout = false
 
     o.anchorTop = true
     o.anchorBottom = true
@@ -491,12 +495,11 @@ function CHC_recipe_view:new(args)
     o.player = CHC_menu.player
     o.character = o.player
 
-    o.sortOrderIconAsc = getTexture('media/textures/sort_order_asc.png')
-    o.sortOrderIconDesc = getTexture('media/textures/sort_order_desc.png')
-    o.typeFiltIconAll = getTexture('media/textures/type_filt_all.png')
-    o.typeFiltIconValid = getTexture('media/textures/type_filt_valid.png')
-    o.typeFiltIconKnown = getTexture('media/textures/type_filt_known.png')
-    o.typeFiltIconInvalid = getTexture('media/textures/type_filt_invalid.png')
+    o.typeFiltIconAll = CHC_window.icons.common.type_all
+    o.typeFiltIconValid = CHC_window.icons.recipe.type_valid
+    o.typeFiltIconKnown = CHC_window.icons.recipe.type_known
+    o.typeFiltIconInvalid = CHC_window.icons.recipe.type_invalid
+    o.removeAllFavBtnIcon = CHC_window.icons.recipe.favorite.remove_all
 
     return o
 end

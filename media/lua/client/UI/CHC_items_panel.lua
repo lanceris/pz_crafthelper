@@ -22,7 +22,7 @@ function CHC_items_panel:createChildren()
     -- region general info
     self.mainInfo = ISPanel:new(self.margin, y, self.width - 2 * self.margin, 1)
     self.mainInfo.backgroundColor.a = 0
-    self.mainInfo.borderColor = { r = 1, g = 0.53, b = 0.53, a = 0.2 }
+    self.mainInfo.borderColor = { r = 1, g = 0.53, b = 0.53, a = 0 }
     self.mainInfo:initialise()
     self.mainInfo:setVisible(false)
 
@@ -30,7 +30,7 @@ function CHC_items_panel:createChildren()
     self.mainImg:initialise()
     self.mainImg.backgroundColorMouseOver.a = 0
     self.mainImg.backgroundColor.a = 0
-    self.mainImg.borderColor.a = 0.25
+    self.mainImg.borderColor.a = 0
     self.mainImg.origWI = 60
     self.mainImg.origHI = 60
     self.mainImg.forcedWidthImage = self.mainImg.origWI
@@ -38,7 +38,7 @@ function CHC_items_panel:createChildren()
     self.mainImg.onRightMouseDown = self.onRMBDownItemIcon
 
     local mainPadY = 2
-    local mainX = self.margin + 64 + 3
+    local mainX = self.margin + self.mainImg.width + 8
     local mainY = mainPadY
     local mainPriFont = UIFont.Medium
     local mainSecFont = UIFont.Small
@@ -84,11 +84,11 @@ function CHC_items_panel:createChildren()
     self.statsList = CHC_sectioned_panel:new(stats_args)
     self.statsList:initialise()
     self.statsList:instantiate()
+    self.statsList.borderColor.a = 0
     self.statsList:setAnchorRight(true)
     self.statsList:setAnchorBottom(true)
     self.statsList.maintainHeight = false
-    self.statsList.borderColor.a = 0.25
-    self.statsList:addScrollBars()
+    self.statsList:setScrollChildren(true)
     self.statsList:setVisible(false)
     -- endregion
 

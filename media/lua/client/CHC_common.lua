@@ -1,18 +1,25 @@
-CHC_main.common = {}
+CHC_main.common       = {}
 
-local utils = require('CHC_utils')
-local error = utils.chcerror
-local contains = string.contains
-local type = type
-local trim = string.trim
-local sub = string.sub
+local utils           = require('CHC_utils')
+local error           = utils.chcerror
+local contains        = string.contains
+local type            = type
+local trim            = string.trim
+local sub             = string.sub
 local globalTextLimit = 1000 -- FIXME
+
+local original        = getTexture
+local getTexture      = function(fileName)
+    if fileName == nil then return nil end
+    return original(fileName) or Texture.trygetTexture(fileName)
+end
 
 
 CHC_main.common.fontSizeToInternal = {
-    { font = UIFont.Small,  pad = 4, icon = 10 },
-    { font = UIFont.Medium, pad = 4, icon = 18 },
-    { font = UIFont.Large,  pad = 6, icon = 24 }
+    { font = UIFont.NewSmall, pad = 0, icon = 6 },
+    { font = UIFont.Small,    pad = 4, icon = 10 },
+    { font = UIFont.Medium,   pad = 4, icon = 18 },
+    { font = UIFont.Large,    pad = 6, icon = 24 }
 }
 
 CHC_main.common.heights = {
@@ -308,36 +315,36 @@ function CHC_main.common._getFoodDataTemplate()
         hunger = {
             text = getText("Tooltip_food_Hunger"),
             posGood = false,
-            icon = getTexture("media/textures/evolved_food_data/CHC_hunger.png")
+            icon = CHC_window.icons.recipe.evolved.food_data.hunger
         },
         thirst = {
             text = getText("Tooltip_food_Thirst"),
             posGood = false,
-            icon = getTexture("media/textures/evolved_food_data/CHC_evolved_thirst.png")
+            icon = CHC_window.icons.recipe.evolved.food_data.thirst
         },
         endurance = {
             text = getText("Tooltip_food_Endurance"),
             posGood = true,
-            icon = getTexture("media/textures/evolved_food_data/CHC_endurance.png")
+            icon = CHC_window.icons.recipe.evolved.food_data.endurance
         },
         stress = {
             text = getText("Tooltip_food_Stress"),
             posGood = false,
-            icon = getTexture("media/textures/evolved_food_data/CHC_stress.png")
+            icon = CHC_window.icons.recipe.evolved.food_data.stress
         },
         boredom = {
             text = getText("Tooltip_food_Boredom"),
             posGood = false,
-            icon = getTexture("media/textures/evolved_food_data/CHC_boredom.png")
+            icon = CHC_window.icons.recipe.evolved.food_data.boredom
         },
         unhappy = {
             text = getText("Tooltip_food_Unhappiness"),
             posGood = false,
-            icon = getTexture("media/textures/evolved_food_data/CHC_unhappiness.png")
+            icon = CHC_window.icons.recipe.evolved.food_data.unhappy
         },
         nutr_calories = {
             text = getText("Tooltip_food_Calories"),
-            icon = getTexture("media/textures/evolved_food_data/CHC_calories.png")
+            icon = CHC_window.icons.recipe.evolved.food_data.nutr_calories
         },
         nutr_cal_carbs = {
             text = getText("Tooltip_food_Carbs")
@@ -566,6 +573,44 @@ CHC_main.common.getFavoriteRecipeModDataString = function(recipe)
     return text
 end
 
+function CHC_main.common.addModal(params, onTop)
+    if onTop == nil then onTop = true end
+    local w = params.w or 250
+    local h = params.h or 100
+    local x = params._parent.x + params._parent.width / 2 - w / 2
+    local y = params._parent.y + params._parent.height / 2 - h / 2
+
+    local modal = params.type:new(x, y, w, h, params.text)
+    for key, value in pairs(params) do
+        if not utils.any({ "type", "x", "y", "w", "h", "_parent", "text" }, key) then
+            modal[key] = value
+        end
+    end
+    modal:initialise()
+    modal:addToUIManager()
+    modal:setAlwaysOnTop(onTop)
+    return modal
+end
+
+function CHC_main.common.getCurrentUiType(window)
+    if not window or not window.getActiveSubView then
+        error("Provided window is invalid, please provide an instance of CHC_window")
+    end
+    local subview = window:getActiveSubView()
+    if not subview or not subview.view or subview.view.isItemView == nil then return end
+    return subview.view.isItemView and "items" or "recipes"
+end
+
+function CHC_main.common.getCurrentUiTypeLocalized(window)
+    if not window or not window.getActiveSubView then
+        error("Provided window is invalid, please provide an instance of CHC_window")
+    end
+    local _map = {
+        items = getText("UI_search_items_tab_name"),
+        recipes = getText("UI_search_recipes_tab_name")
+    }
+    return _map[CHC_main.common.getCurrentUiType(window)]
+end
 
 local deafultTexName = "media/inventory/Question_On.png"
 

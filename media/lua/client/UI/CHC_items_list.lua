@@ -31,11 +31,8 @@ function CHC_items_list:render()
 end
 
 function CHC_items_list:doDrawItem(y, item, alt)
-    local itemObj = item.item
-    local a = 0.9
-
-    local favoriteStar = nil
-    local favoriteAlpha = a
+    local favoriteStar
+    local favoriteAlpha = 0.9
 
     local itemPadY = self.itemPadY or (item.height - self.fontHgt) / 2
     local clr = {
@@ -52,9 +49,9 @@ function CHC_items_list:doDrawItem(y, item, alt)
     -- region icons
     if self.shouldShowIcons then
         -- CHC_main.common.cacheTex(itemObj)
-        local itemIcon = itemObj.texture
+        local itemIcon = item.item.texture
         if itemIcon then
-            if itemObj.textureMult then
+            if item.item.textureMult then
                 self:drawTextureScaled(itemIcon, 3, clr.y, self.itemheight - 2, self.itemheight - 2, 1)
             else
                 self:drawTextureScaledAspect(itemIcon, 3, clr.y, self.itemheight - 2, self.itemheight - 2, 1)
@@ -77,7 +74,7 @@ function CHC_items_list:doDrawItem(y, item, alt)
             favoriteAlpha = 0.9
         else
             favoriteStar = isFav and self.favorite.star or self.favorite.notChecked
-            favoriteAlpha = isFav and a or 0.3
+            favoriteAlpha = isFav and favoriteAlpha or 0.3
         end
     elseif isFav then
         favoriteStar = self.favorite.star
@@ -121,24 +118,8 @@ function CHC_items_list:onMouseDownObj(x, y)
 end
 
 function CHC_items_list:onMouseWheel(del)
-    local yScroll = self.smoothScrollTargetY or self.yScroll
-    local topRow = self:rowAt(0, -yScroll)
-    if self.items[topRow] then
-        if not self.smoothScrollTargetY then self.smoothScrollY = self.yScroll end
-        local y = self:topOfItem(topRow)
-        if del < 0 then
-            if yScroll == -y and topRow > 1 then
-                local prev = self:prevVisibleIndex(topRow)
-                y = self:topOfItem(prev)
-            end
-            self.smoothScrollTargetY = -y;
-        else
-            self.smoothScrollTargetY = -(y + self.items[topRow].height);
-        end
-    else
-        self.yScroll = self.yScroll - (del * 18)
-    end
-    return true;
+    CHC_view._list.onMouseWheel(self, del)
+    return true
 end
 
 function CHC_items_list:onMMBDown()
@@ -191,9 +172,9 @@ function CHC_items_list:new(args)
     o.anchorBottom = true
 
     o.favorite = {
-        star = { tex = getTexture('media/textures/CHC_item_favorite_star.png') },
-        checked = { tex = getTexture('media/textures/CHC_item_favorite_star_checked.png') },
-        notChecked = { tex = getTexture('media/textures/CHC_item_favorite_star_outline.png') }
+        star = { tex = CHC_window.icons.item.favorite.default },
+        checked = { tex = CHC_window.icons.item.favorite.checked },
+        notChecked = { tex = CHC_window.icons.item.favorite.unchecked }
     }
     o.favorite.star.height = o.favorite.star.tex:getHeight()
     o.favorite.checked.height = o.favorite.checked.tex:getHeight()

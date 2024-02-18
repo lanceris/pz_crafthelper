@@ -9,6 +9,10 @@ local CHC_section = CHC_sectioned_panel_section
 
 --region section
 
+function CHC_section:initialise()
+    ISPanel.initialise(self)
+end
+
 function CHC_section:createChildren()
     local btnH = utils.strHeight(self.font, self.title) + 2 * self.padY
     if btnH < 24 then btnH = 24 end
@@ -19,7 +23,11 @@ function CHC_section:createChildren()
     self.headerButton.backgroundColor = self.headerBgColor
     self.headerButton.backgroundColorMouseOver = self.headerBgColorMouseOver
     self.headerButton.borderColor = self.headerBorderColor
+    self.headerButton.render = self.renderButton
     self:addChild(self.headerButton)
+    self.headerButton.treeexpicon = CHC_window.icons.common.expanded
+    self.headerButton.treecolicon = CHC_window.icons.common.collapsed
+    self.headerButton.iconH = (self.headerButton.height / 2) - (self.headerButton.treeexpicon:getHeight() / 2)
 
     -- if self.panel then
     self.panel:setY(self.headerButton:getBottom())
@@ -31,6 +39,37 @@ function CHC_section:createChildren()
     self:addChild(self.panel)
     -- end
     self:calculateHeights()
+end
+
+function CHC_section:renderButton()
+    local height = getTextManager():MeasureStringY(self.font, self.title)
+    local x = 24;
+    local tex
+    if self.parent.expanded then
+        tex = self.treeexpicon
+    else
+        tex = self.treecolicon
+    end
+
+    if tex then
+        self:drawTexture(tex, 8, self.iconH, 1, 1, 1, 1)
+    end
+
+    if self.enable then
+        self:drawText(self.title, x, (self.height / 2) - (height / 2) + self.yoffset, self.textColor.r, self.textColor.g,
+            self.textColor.b, self.textColor.a, self.font);
+    elseif self.displayBackground and not self.isJoypad and self.joypadFocused then
+        self:drawText(self.title, x, (self.height / 2) - (height / 2) + self.yoffset, 0, 0, 0, 1, self.font);
+    else
+        self:drawText(self.title, x, (self.height / 2) - (height / 2) + self.yoffset, 0.3, 0.3, 0.3, 1, self.font);
+    end
+    if self.overlayText then
+        self:drawTextRight(self.overlayText, self.width, self.height - 10, 1, 1, 1, 0.5, UIFont.Small);
+    end
+    -- call the onMouseOverFunction
+    if (self.mouseOver and self.onmouseover) then
+        self.onmouseover(self.target, self, x, y);
+    end
 end
 
 function CHC_section:onHeaderClick()
@@ -82,12 +121,11 @@ end
 
 function CHC_section:onResize()
     ISPanel.onResize(self)
-    local parentSBarWid = self.parent.vscroll and self.parent.vscroll.width or 0
-    self:setWidth(self.parent.width - parentSBarWid)
+    self:setWidth(self.parent.width)
     self.headerButton:setWidth(self.width)
     self.panel:setWidth(self.width)
     if self.panel.vscroll then
-        self.panel.vscroll:setX(self.width - 17)
+        self.panel.vscroll:setX(self.width - self.panel.vscroll.width)
     end
 end
 
@@ -125,8 +163,8 @@ function CHC_section:new(x, y, width, height, panel, title, rightMargin, headerW
     else
         o.headerButtonWidth = headerWidth
     end
-    o.headerBgColor = { r = 0.2, g = 0.2, b = 0.2, a = 0.2 }
-    o.headerBgColorMouseOver = { r = 0.25, g = 0.25, b = 0.25, a = 0.4 }
+    o.headerBgColor = { r = 0.35, g = 0.35, b = 0.35, a = 0.35 }
+    o.headerBgColorMouseOver = { r = 0.5, g = 0.5, b = 0.5, a = 0.5 }
     o.headerBorderColor = { r = 1, g = 1, b = 1, a = 0.3 }
     return o
 end
@@ -193,15 +231,20 @@ function CHC_sectioned_panel:prerender()
     if self.maintainHeight then
         self:setHeight(y)
     elseif self:getScrollChildren() then
-        self:setScrollHeight(y)
+        self:setScrollHeight(y + 24)
     end
 
-    self:updateScrollbars()
+    self:setStencilRect(0, 0, self.width, self.height)
 end
 
-function CHC_sectioned_panel:onResize()
-    self:updateScrollbars()
+function CHC_sectioned_panel:render()
+    self:clearStencilRect()
 end
+
+-- function CHC_sectioned_panel:onResize()
+--     local s = self.sections[1]
+--     if not s or not s.panel or not s.panel.objList then return end
+-- end
 
 function CHC_sectioned_panel:onMouseWheel(del)
     for i = 1, #self.sections do

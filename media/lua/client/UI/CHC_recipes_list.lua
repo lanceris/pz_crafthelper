@@ -118,6 +118,11 @@ end
 
 -- region logic
 
+function CHC_recipes_list:onMouseWheel(del)
+    CHC_view._list.onMouseWheel(self, del)
+    return true
+end
+
 function CHC_recipes_list:onMouseDownObj(x, y)
     local row = self:rowAt(x, y)
     if row == -1 then return end
@@ -178,9 +183,9 @@ function CHC_recipes_list:new(args)
     o.backRef = args.backRef
     o.modData = CHC_menu.playerModData
 
-    o.favoriteStar = getTexture('media/textures/CHC_recipe_favorite_star.png')
-    o.favCheckedTex = getTexture('media/textures/CHC_recipe_favorite_star_checked.png')
-    o.favNotCheckedTex = getTexture('media/textures/CHC_recipe_favorite_star_outline.png')
+    o.favoriteStar = CHC_window.icons.recipe.favorite.default
+    o.favCheckedTex = CHC_window.icons.recipe.favorite.checked
+    o.favNotCheckedTex = CHC_window.icons.recipe.favorite.unchecked
     o.mouseX = 0
     o.mouseY = 0
     o.yScroll = 0

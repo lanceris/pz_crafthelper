@@ -22,7 +22,7 @@ function CHC_props_table:createChildren()
     local y = self.padY
 
     -- region search bar row
-    local h = 20
+    local h = 24
 
     self.searchRow = CHC_search_bar:new({
             x = x,
@@ -38,11 +38,11 @@ function CHC_props_table:createChildren()
     self.searchRow.drawBorder = false
     y = y + self.padY + self.searchRow.height
     -- endregion
-    local props_h = self.height - self.searchRow.height - 4 * self.padY
+    local props_h = self.height - self.searchRow.height
     self.objList = ISScrollingListBox:new(x, y, self.width - 2 * self.padX, props_h)
     self.objList.backgroundColor.a = 0
     self.objList.borderColor = { r = 0.15, g = 0.15, b = 0.15, a = 0 }
-    self.objList:setFont(self.font)
+    self.objList:setFont(UIFont.NewSmall) -- TODO configurable
 
     self.objList.onRightMouseDown = self.onRMBDownObjList
     self.objList:initialise()
@@ -55,7 +55,7 @@ function CHC_props_table:createChildren()
     self.objList.vscroll.borderColor.a = 0.3
 
     self.objList:addColumn(getText('IGUI_CopyNameProps_ctx'), 0)
-    self.objList:addColumn(getText('IGUI_CopyValueProps_ctx'), self.width * 0.4)
+    self.objList:addColumn(getText('IGUI_CopyValueProps_ctx'), self.width * 0.5)
 
     -- self:addChild(self.optionsBtn)
     self:addChild(self.searchRow)
@@ -163,7 +163,7 @@ function CHC_props_table:onResize()
     -- ISPanel.onResize(self)
     self.searchRow:setWidth(self.width - self.searchRow.x - 2 * self.padX)
     self.objList:setWidth(self.width - self.objList.x - 2 * self.padX)
-    self.objList.columns[2].size = self.objList.width * 0.4
+    self.objList.columns[2].size = self.objList.width * 0.5
 end
 
 -- endregion
@@ -238,7 +238,7 @@ function CHC_props_table:onRMBDownObjList(x, y, item)
     local maxTextLength = 1000 --FIXME
     -- region copy submenu
     local name_opt = context:addOption(getText('IGUI_chc_Copy'), nil, nil)
-    name_opt.iconTexture = getTexture('media/textures/CHC_copy_icon.png')
+    name_opt.iconTexture = CHC_window.icons.common.copy
     local subMenuName = ISContextMenu:getNew(context)
     context:addSubMenu(name_opt, subMenuName)
 

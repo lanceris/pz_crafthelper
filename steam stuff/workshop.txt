@@ -1,11 +1,11 @@
-version=1.9b1
+version=1.9b4
 id=3122080147
 title=Craft Helper Continued Beta
 tags=Build 41;Interface
 visibility=public
 description=[h1]Craft Helper Beta[/h1]
 description=
-description=This is an beta version of [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2787291513]Craft Helper Continued[/url] to test new features.
+description=This is a beta version of [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2787291513]Craft Helper Continued[/url] to test new features.
 description=Note: this version is incompatible with main version, and might be unstable. Use at your own risk.
 description=Config files are separate from main mod ("beta_" prefix).
 description=
@@ -20,11 +20,15 @@ description=[*]Item favorites now stored in `CHC_item_favorites` table in player
 description=[*]Textures now loaded on demand (i.e. when shown on UI) instead of at startup
 description=[*]Item attributes now loaded on demand (i.e when shown on UI/searched by attribute ($))
 description=[*]Ability to hold button to traverse item/recipe lists (delay is configurable)
-description=[*]Improved rendering for large lists of items (only part of objects shown are processed, instead of all)
-description=[*]Reduced mod initialization time by ~4.5-5 times by not loading all textures/attributes on startup
+description=[*]Scroll lists by Shift(+Ctrl) + mouse wheel
+description=[*]Reduced lag when rendering large lists by ~70-80%
+description=[*]Reduced mod initialization time by 4 - 10 times, depending on amount of mods
+description=[*]Added attributes for Moveables
+description=[*]Improved overall performance
 description=[*]Fixed book teached recipes not showing correctly when game language is not English
 description=[*]Fixed crash when some textures for vanilla items are missing
 description=[*]Fixed incorrect icons for moveables
+description=[*]Fixed inability to search moveables from inventory
 description=[/list]
 description=
 description=[hr][/hr]

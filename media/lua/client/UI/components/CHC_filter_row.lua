@@ -1,8 +1,10 @@
 require 'ISUI/ISPanel'
 require 'ISUI/ISButton'
 require 'ISUI/ISModalRichText'
+require 'UI/components/CHC_filters_ui'
 
 local derivative = ISPanel
+---@class CHC_filter_row:ISPanel
 CHC_filter_row = derivative:derive('CHC_filter_row')
 
 local utils = require('CHC_utils')
@@ -16,19 +18,16 @@ end
 function CHC_filter_row:create()
     local x, y, w, h = self.x, self.y, self.width, self.height
 
-    -- region order btn
-    local foo = self.filterOrderData
-    self.filterOrderBtn = ISButton:new(x, 0, foo.width or h, h, foo.title or '', self)
-    self.filterOrderBtn:initialise()
-    if not foo.onclickargs then foo.onclickargs = {} end
-    self.filterOrderBtn:setOnClick(foo.onclick, foo.onclickargs[1], foo.onclickargs[2],
-        foo.onclickargs[3], foo.onclickargs[4])
-    self.filterOrderBtn.tooltip = foo.defaultTooltip
-    self.filterOrderBtn:setImage(foo.defaultIcon)
-    self.filterOrderBtn.backgroundColor.a = 0
-    self.filterOrderBtn.borderColor.a = 0
-    x = x + self.filterOrderBtn.width
-    -- endregion
+    -- region filtersBtn
+    self.filtersUIBtn = ISButton:new(x, 0, h, h, nil, self, self.toggleFiltersUI)
+    self.filtersUIBtn.borderColor.a = 0
+    self.filtersUIBtn.backgroundColor.a = 0
+    self.filtersUIBtn:setTooltip("test")
+    self.filtersUIBtn:initialise()
+    self.filtersUIBtn:setImage(CHC_window.icons.common.filter)
+    self.filtersUIBtn:setVisible(true)
+    x = x + self.filtersUIBtn.width
+    --endregion
 
     -- region filters btn
     -- self.filtersBtn = ISButton:new(x, 0, foo.width or h, h, foo.title or '', self)
@@ -55,8 +54,7 @@ function CHC_filter_row:create()
 
     -- region selector
     local fsd = self.filterSelectorData
-    local dw = self.filterOrderBtn.width + self.filterTypeBtn.width
-    self.categorySelector = ISComboBox:new(x, 0, w - dw, h)
+    self.categorySelector = ISComboBox:new(x, 0, w - x - h, h)
     self.categorySelector:initialise()
 
     self.categorySelector.editable = CHC_settings.config.editable_category_selector
@@ -66,12 +64,12 @@ function CHC_filter_row:create()
     self.categorySelector.tooltip = { defaultTooltip = fsd.defaultTooltip }
     self.categorySelector.prerender = self.prerenderSelector
     self.categorySelector.textColor = { r = 0.95, g = 0.95, b = 0.95, a = 1 }
+    x = x + self.categorySelector.width
     -- endregion
 
-    self:addChild(self.filterOrderBtn)
+    self:addChild(self.filtersUIBtn)
     self:addChild(self.filterTypeBtn)
     self:addChild(self.categorySelector)
-
     self.categorySelector.popup.doDrawItem = self.doDrawItemSelectorPopup
 end
 
@@ -145,9 +143,24 @@ function CHC_filter_row:doDrawItemSelectorPopup(y, item, alt)
 end
 
 function CHC_filter_row:onResize()
-    self.categorySelector:setWidth(self.width - self.filterOrderBtn.width - self.filterTypeBtn.width)
+    self.categorySelector:setWidth(self.width - self.categorySelector.x)
 end
 
+-- isMouseButtonDown(4)
+
+function CHC_filter_row:toggleFiltersUI()
+    ---@type CHC_filters_ui
+    local ui = self.backRef.filtersUI
+    if not ui then
+        error("Could not access Filters UI")
+    end
+    ui:toggleUI()
+end
+
+---comment
+---@param args {x:number,y:number,w:number,h:number,backRef:CHC_window}
+---@param filtersData table
+---@return CHC_filter_row
 function CHC_filter_row:new(args, filtersData)
     local x = args.x
     local y = args.y
@@ -166,5 +179,31 @@ function CHC_filter_row:new(args, filtersData)
     o.filterData = filtersData.filterData
     o.filterTypeData = filtersData.filterTypeData
     o.filterSelectorData = filtersData.filterSelectorData
+    o.filtersUI = nil
+
+    o.needUpdateInfoTooltip = false
     return o
+end
+
+local function _scheduleTooltipUpdate()
+    if not CHC_menu or not CHC_menu.CHC_window or not CHC_menu.CHC_window.updateQueue then return end
+    CHC_menu.CHC_window.updateQueue:push({
+        targetViews = { 'all' },
+        actions = { 'needUpdateInfoTooltip' }
+    })
+end
+
+do
+    local old_close = MainOptions.close
+    function MainOptions:close()
+        old_close(self)
+        _scheduleTooltipUpdate()
+    end
+
+    local old_load = MainOptions.loadKeys
+    MainOptions.loadKeys = function(...)
+        local result = old_load(...)
+        _scheduleTooltipUpdate()
+        return result
+    end
 end

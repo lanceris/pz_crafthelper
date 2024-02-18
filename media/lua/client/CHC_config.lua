@@ -7,8 +7,6 @@ local utils = require('CHC_utils')
 local dir = utils.configDir
 local config_name = 'beta_craft_helper_config.lua'
 local mappings_name = 'beta_CHC_mappings.json'
-local presets_name = 'beta_CHC_presets.lua'
-local presets_backup_name = 'beta_CHC_presets_backup.lua'
 
 local char = string.char
 local byte = string.byte
@@ -50,7 +48,11 @@ CHC_settings = {
     presets = {
         items = {},
         recipes = {}
-    }
+    },
+    filters = {
+        items = {},
+        recipes = {}
+    },
 }
 
 local init_cfg = {
@@ -61,7 +63,7 @@ local init_cfg = {
     category_selector_modifier = 1,
     tab_selector_modifier = 1,
     tab_close_selector_modifier = 1,
-    list_font_size = 3, -- large
+    list_font_size = 3, -- medium
     show_icons = true,
     allow_special_search = true,
     show_hidden = false,
@@ -101,6 +103,11 @@ local applyBlacklist = {
     search = true,
     favorites = true,
 
+}
+
+local presetStorageToFilename = {
+    presets = 'beta_CHC_presets.lua',
+    filters = 'beta_CHC_filter_presets.lua'
 }
 
 function CHC_settings.f.onModOptionsApply(values)
@@ -147,6 +154,7 @@ if ModOptions and ModOptions.getInstance then
                 OnApplyInGame = CHC_settings.f.onModOptionsApply
             },
             list_font_size = {
+                getText('UI_optionscreen_NewSmall'),
                 getText('UI_optionscreen_Small'),
                 getText('UI_optionscreen_Medium'),
                 getText('UI_optionscreen_Large'),
@@ -432,11 +440,16 @@ end
 
 local types = { "items", "recipes" }
 
-CHC_settings.SavePresetsData = function()
+CHC_settings.SavePresetsData = function(storageKey, filename, backup_filename)
+    filename = filename or presetStorageToFilename[storageKey]
+    if not filename then
+        error("Could not determine filename to save presets to!")
+    end
+    backup_filename = backup_filename or ("backup_" .. filename)
     local config = copyTable(init_presets)
     for i = 1, #types do
         local _type = types[i]
-        for name, entries in pairs(CHC_settings.presets[_type]) do
+        for name, entries in pairs(CHC_settings[storageKey][_type]) do
             local entry = {
                 name = concat({ byte(name, 1, -1) }, ","),
                 entries = entries,
@@ -445,20 +458,26 @@ CHC_settings.SavePresetsData = function()
         end
     end
 
-    local status = pcall(utils.tableutil.save, presets_name, config)
+    local status = pcall(utils.tableutil.save, filename, config)
     if not status then
         -- config is corrupted, create new
-        utils.tableutil.save(presets_name, init_presets)
+        utils.tableutil.save(filename, init_presets)
     else
-        utils.tableutil.save(presets_backup_name, config)
+        utils.tableutil.save(backup_filename, config)
     end
 end
 
-CHC_settings.LoadPresetsData = function()
-    local status, config = pcall(utils.tableutil.load, presets_name)
+---Load presets data for `storageKey`
+---@param storageKey string key to set data to
+---@param filename? string filename to load data from
+CHC_settings.LoadPresetsData = function(storageKey, filename)
+    filename = filename or presetStorageToFilename[storageKey]
+    if not storageKey then
+        error("Could not determine filename to load presets from!")
+    end
+    local status, config = pcall(utils.tableutil.load, filename)
     if not status or not config then
         config = copyTable(init_presets)
-        CHC_settings.SavePresetsData()
     end
     local cfg = copyTable(init_presets)
     for i = 1, #types do
@@ -472,5 +491,5 @@ CHC_settings.LoadPresetsData = function()
         end
     end
 
-    CHC_settings.presets = cfg
+    CHC_settings[storageKey] = cfg
 end

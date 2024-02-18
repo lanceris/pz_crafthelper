@@ -8,7 +8,7 @@ CHC_main._meta = {
     id = 'CraftHelperContinued_beta',
     workshopId = 3122080147,
     name = 'Craft Helper Continued Beta',
-    version = '1.9b1',
+    version = '1.9b4',
     author = 'lanceris',
     previousAuthors = { 'Peanut', 'ddraigcymraeg', 'b1n0m' },
 }
@@ -66,6 +66,7 @@ CHC_main.init = function()
     CHC_main.recipesWithLua = {}
     CHC_main.luaRecipeCache = {}
     CHC_main.notAProcZone = {} -- zones from Distributions.lua without corresponding zones in ProceduralDistributions.lua
+    -- CHC_main.itemPropsList = {}
 end
 
 CHC_main.getItemByFullType = function(itemString)
@@ -334,8 +335,8 @@ CHC_main.getPropItems = function(propName)
     local matchingProps = {}
     local matchingTypes = {}
     local result = {}
-    for i = 1, #CHC_settings.itemPropsList do
-        local prop = CHC_settings.itemPropsList[i]
+    for i = 1, #CHC_main.itemPropsList do
+        local prop = CHC_main.itemPropsList[i]
         if find(prop.name, propName, 1, true) then
             matchingProps[prop.name] = true
             matchingTypes[prop.itemType] = true
@@ -379,44 +380,12 @@ CHC_main.initPropList = function()
     local result = {}
     for itemType, props in pairs(propsData) do
         for i = 1, #props do
-            result[#result + 1] = { name = props[i].name, itemType = itemType }
+            result[#result + 1] = { name = props[i].name, itemType = itemType, type = props[i].type }
         end
     end
-    CHC_settings.itemPropsList = result
+    CHC_main.itemPropsList = result
 end
 -- endregion
-
--- entry point
-CHC_main.loadDatas = function()
-    local now = getTimestampMs()
-    CHC_main.init()
-    CHC_main.CECData = _G['CraftingEnhancedCore']
-
-    CHC_main.loadAllItems()
-    CHC_main.loadAllCECItems()
-    CHC_main.loadAllTraitsItems()
-    CHC_main.loadAllProfessionItems()
-    CHC_main.loadAllSkillItems()
-
-    -- if loadLua then CHC_main.loadLuaCache() end
-    --CHC_main.loadAllDistributions()
-
-    CHC_main.loadAllRecipes()
-    CHC_main.loadAllEvolvedRecipes()
-    CHC_main.loadAllCECRecipes()
-    CHC_main.loadAllTraitsRecipes()
-    CHC_main.loadAllProfessionRecipes()
-    CHC_main.loadAllSkillRecipes()
-
-    CHC_main.initPropList()
-    overRideVanillaCraftMenu()
-
-    -- if loadLua then CHC_main.saveLuaCache() end
-    -- init UI
-    showTime(now, 'all')
-    CHC_menu.init()
-    print("Initialised. Mod version: " .. CHC_main._meta.version)
-end
 
 --region item loading
 
@@ -1568,6 +1537,37 @@ CHC_main.loadAllDistributions = function()
 end
 --endregion
 
+-- entry point
+CHC_main.loadDatas = function()
+    local now = getTimestampMs()
+    CHC_main.init()
+    CHC_main.CECData = _G['CraftingEnhancedCore']
+
+    CHC_main.loadAllItems()
+    CHC_main.loadAllCECItems()
+    CHC_main.loadAllTraitsItems()
+    CHC_main.loadAllProfessionItems()
+    CHC_main.loadAllSkillItems()
+
+    -- if loadLua then CHC_main.loadLuaCache() end
+    --CHC_main.loadAllDistributions()
+
+    CHC_main.loadAllRecipes()
+    CHC_main.loadAllEvolvedRecipes()
+    CHC_main.loadAllCECRecipes()
+    CHC_main.loadAllTraitsRecipes()
+    CHC_main.loadAllProfessionRecipes()
+    CHC_main.loadAllSkillRecipes()
+
+    -- CHC_main.initPropList()
+
+    -- if loadLua then CHC_main.saveLuaCache() end
+    -- init UI
+    showTime(now, 'all')
+    CHC_menu.init()
+    print("Initialised. Mod version: " .. CHC_main._meta.version)
+end
+
 function CHC_main.reloadMod(key)
     if key == Keyboard.KEY_O then
         -- reload all
@@ -1588,7 +1588,35 @@ function CHC_main.reloadMod(key)
         -- local time = getTimeInMillis() - ms
         -- print(format("Took %d ms to process %d items and %d props. Mean per item: %s. Mean per prop: %s",
         --     time, ic, cnt, time / ic, time / cnt))
-        -- CHC_main.initPropList()
+        CHC_main.initPropList()
+        local a = CHC_main
+        local _types = {}
+        local _listOptions = {}
+        for i = 1, #CHC_main.itemPropsList do
+            local prop = CHC_main.itemPropsList[i]
+            if prop.type == "list" then
+                _listOptions[prop.name] = _listOptions[prop.name] or {}
+                for j = 1, #CHC_main.itemsForSearch do
+                    local chcitem = CHC_main.itemsForSearch[j]
+                    if chcitem.category == prop.itemType then
+                        local value = chcitem.item[prop.name] and chcitem.item[prop.name](chcitem.item) or nil
+                        if value then value = rawToStr(value) end
+                        _listOptions[prop.name][#_listOptions[prop.name] + 1] = value
+                        if value then
+                            -- df:df()
+                            -- print(prop.name .. " | " .. #_listOptions[prop.name])
+                        end
+                        -- if value and value:size() > 0 then
+                        --     for k = 0, value:size() do
+                        --         options[value:get(k - 1)] = true
+                        --     end
+                        -- end
+                    end
+                end
+            end
+            _types[prop.type] = (_types[prop.type] or 0) + 1
+        end
+        df:df()
         -- CHC_settings.migrateConfig()
     end
 end
@@ -1611,10 +1639,10 @@ local function onPlayerDeath(player)
     CHC_menu.forceCloseWindow(true)
 end
 
-overRideVanillaCraftMenu = function()
-    local old_populateRecipesList = ISCraftingUI.populateRecipesList
-    function ISCraftingUI:populateRecipesList()
-        old_populateRecipesList(self)
+do
+    local old_addToFavorite = ISCraftingCategoryUI.addToFavorite
+    function ISCraftingCategoryUI:addToFavorite(fromKeyboard)
+        old_addToFavorite(self, fromKeyboard)
         if CHC_menu and CHC_menu.CHC_window and CHC_menu.CHC_window.updateQueue then
             CHC_menu.CHC_window.updateQueue:push({
                 targetViews = { 'fav_recipes' },
