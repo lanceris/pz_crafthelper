@@ -1,5 +1,42 @@
 # CraftHelper updates
 
+# 1.9 (XX.XX.2023)
+
+### New features
+
+- Added French translation (thanks to [Cosmo](https://steamcommunity.com/id/Bulvaik))
+- Keybind to close active tab (None by default)
+- Ability to change window opacity
+- Favorites presets
+- Help tooltip with current keyboard shortcuts
+- Textures now loaded on demand (i.e. when shown on UI) instead of at startup
+- Item attributes now loaded on demand (i.e when shown on UI/searched by attribute ($))
+- Ability to hold button to traverse item/recipe lists (delay is configurable)
+- Remove all favorites button
+
+### Improvements
+
+- Item favorites now stored in `CHC_item_favorites` table in player modData
+- Favorites now syncronized with default crafting window
+- Greatly improved rendering for large lists of items (only part of objects shown are processed, instead of all)
+- Reduced mod initialization time by ~4.5-5 times by not loading all textures/attributes on startup
+- Groundwork for custom filters (wip)
+- Renamed some files for better readability (old ones are kept for a while)
+- Added attributes for Moveables
+- Various (micro-)optimizations
+- Scroll lists by Shift(+Ctrl) + mouse wheel
+- Config format changed from json to lua
+
+### Bugfixes
+
+- Fixed book teached recipes not showing correctly when game language is not English
+- Fixed crash when some textures for vanilla items are missing
+- Fixed incorrect icons for moveables
+- Serialize window config only if all views properly saved
+- Fixed inability to search moveables from inventory (Moveables use ` WorldSprite`` as fulltype -> were not matched to  `CHC_items[fulltype]`)
+- Fixed hidden recipes showing in item views
+- Fixed inability to close CHC window via hotkey when its minimized
+
 # 1.8.4 (19.08.2023)
 
 ### Improvements

@@ -1,7 +1,9 @@
 require 'ISUI/ISInventoryPane'
 require 'CHC_main'
 
-local favTexOutline = getTexture('media/textures/CHC_item_favorite_star_outline.png')
+local ceil = math.ceil
+
+local ceil = math.ceil
 
 local function renderdetailsCHC(self, doDragged)
     local y = 0
@@ -9,13 +11,16 @@ local function renderdetailsCHC(self, doDragged)
     local MOUSEY = self:getMouseY()
     local YSCROLL = self:getYScroll()
     local HEIGHT = self:getHeight()
-    for k, v in ipairs(self.itemslist) do
+    for i = 1, #self.itemslist do
+        local v = self.itemslist[i]
         local count = 1
-        for k2, v2 in ipairs(v.items) do
-            local item = v2
+        for j = 1, #v.items do
+            local item = v.items[j]
+            if not CHC_main or not CHC_main.items or not CHC_main.common then return end
+            if not CHC_menu or not CHC_menu.playerModData then return end
             local chcItem = CHC_main.items[item:getFullType()]
             if not chcItem or not CHC_menu.playerModData then return end
-            local isFav = CHC_menu.playerModData[CHC_main.common.getFavItemModDataStr(item)]
+            local isFav = CHC_menu.playerModData.CHC_item_favorites[CHC_main.common.getFavItemModDataStr(item)]
             if chcItem and isFav then
                 local doIt = true
                 local xoff = 0
@@ -38,12 +43,12 @@ local function renderdetailsCHC(self, doDragged)
                     doIt = false
                 end
 
-                local tex = item:getTex()
-                local auxDXY = math.ceil(20 * self.texScale)
-                if doIt == true and tex ~= nil and count == 1 then
+                local tex = chcItem.texture or CHC_main.common.cacheTex(chcItem)
+                local auxDXY = ceil(20 * self.texScale)
+                if doIt == true and tex ~= nil and count == 1 and CHC_window and CHC_window.icons then
                     local tx = (13 + auxDXY + xoff)
                     local ty = (y * self.itemHgt) + self.headerHgt + yoff
-                    self:drawTexture(favTexOutline, tx, ty, 1, 1, 1, 1)
+                    self:drawTextureScaledAspect(CHC_window.icons.item.favorite.unchecked, tx, ty, 13, 13, 1)
                 end
             end
             y = y + 1
@@ -55,10 +60,12 @@ local function renderdetailsCHC(self, doDragged)
     end
 end
 
-local old_render_details = ISInventoryPane.renderdetails
-function ISInventoryPane:renderdetails(doDragged)
-    old_render_details(self, doDragged)
-    if CHC_settings.config and CHC_settings.config.show_fav_items_inventory == true then
-        pcall(renderdetailsCHC, self, doDragged)
+do
+    local old_render_details = ISInventoryPane.renderdetails
+    function ISInventoryPane:renderdetails(doDragged)
+        old_render_details(self, doDragged)
+        if CHC_settings.config and CHC_settings.config.show_fav_items_inventory == true then
+            renderdetailsCHC(self, doDragged)
+        end
     end
 end

@@ -2,7 +2,7 @@ require "ISUI/ISLabel"
 
 ISLabelWithIcon = ISLabel:derive("ISLabelWithIcon")
 
-local sub = string.sub
+local contains = string.contains
 
 function ISLabelWithIcon:initialise()
     ISLabel.initialise(self)
@@ -32,11 +32,12 @@ function ISLabelWithIcon:setIcon(icon, size)
 end
 
 function ISLabelWithIcon:setWidthToName(minWidth)
+    minWidth = minWidth or 0
     local width = getTextManager():MeasureStringX(self.font, self.name)
     if self.icon then
         width = width + self.iconSize + 3
     end
-    width = math.max(width, minWidth or 0)
+    if width < minWidth then width = minWidth end
 
     if width ~= self.width then
         self:setWidth(width)
@@ -71,7 +72,7 @@ function ISLabelWithIcon:prerender()
 
     -- The above call doesn't handle multi-line text
     local height2 = getTextManager():MeasureStringY(self.font, txt)
-    height = math.max(height, height2)
+    if height2 > height then height = height2 end
 
     local x = 0
     local y = (self.height / 2) - (height / 2)
@@ -116,7 +117,7 @@ function ISLabelWithIcon:updateTooltip()
             self.tooltipUI:setAlwaysOnTop(true)
         end
         if not self.tooltipUI:getIsVisible() then
-            if string.contains(self.tooltip, "\n") then
+            if contains(self.tooltip, "\n") then
                 self.tooltipUI.maxLineWidth = 1000 -- don't wrap the lines
             else
                 self.tooltipUI.maxLineWidth = 300
@@ -176,6 +177,7 @@ function ISLabelWithIcon:new(x, y, height, name, r, g, b, a, font, bLeft, icon)
     if icon then
         width = width + o.iconSize + 3
     end
+    o.backgroundColor.a = 0
     o.width = width
     o.iconR = 1
     o.iconG = 1

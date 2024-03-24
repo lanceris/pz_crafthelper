@@ -4,9 +4,7 @@ local utils = require('CHC_utils')
 
 CHC_items_panel = ISPanel:derive('CHC_items_panel')
 
-local insert = table.insert
 local sort = table.sort
-local sub = string.sub
 
 -- region create
 function CHC_items_panel:initialise()
@@ -23,7 +21,8 @@ function CHC_items_panel:createChildren()
 
     -- region general info
     self.mainInfo = ISPanel:new(self.margin, y, self.width - 2 * self.margin, 1)
-    self.mainInfo.borderColor = { r = 1, g = 0.53, b = 0.53, a = 0.2 }
+    self.mainInfo.backgroundColor.a = 0
+    self.mainInfo.borderColor = { r = 1, g = 0.53, b = 0.53, a = 0 }
     self.mainInfo:initialise()
     self.mainInfo:setVisible(false)
 
@@ -31,6 +30,7 @@ function CHC_items_panel:createChildren()
     self.mainImg:initialise()
     self.mainImg.backgroundColorMouseOver.a = 0
     self.mainImg.backgroundColor.a = 0
+    self.mainImg.borderColor.a = 0
     self.mainImg.origWI = 60
     self.mainImg.origHI = 60
     self.mainImg.forcedWidthImage = self.mainImg.origWI
@@ -38,7 +38,7 @@ function CHC_items_panel:createChildren()
     self.mainImg.onRightMouseDown = self.onRMBDownItemIcon
 
     local mainPadY = 2
-    local mainX = self.margin + 64 + 3
+    local mainX = self.margin + self.mainImg.width + 8
     local mainY = mainPadY
     local mainPriFont = UIFont.Medium
     local mainSecFont = UIFont.Small
@@ -84,18 +84,19 @@ function CHC_items_panel:createChildren()
     self.statsList = CHC_sectioned_panel:new(stats_args)
     self.statsList:initialise()
     self.statsList:instantiate()
+    self.statsList.borderColor.a = 0
     self.statsList:setAnchorRight(true)
     self.statsList:setAnchorBottom(true)
     self.statsList.maintainHeight = false
-    self.statsList:addScrollBars()
+    self.statsList:setScrollChildren(true)
     self.statsList:setVisible(false)
     -- endregion
 
     -- region attributes
     local props_table_args = {
-        x = self.margin,
+        x = 0,
         y = y,
-        w = self.width - 2 * self.margin,
+        w = self.width, -- - 2 * self.margin,
         h = self.height - self.mainInfo.height - self.padY,
         backRef = self.backRef
     }
@@ -133,10 +134,10 @@ function CHC_items_panel:onResize()
     self.statsList:setHeight(self.height - self.mainInfo.height - 4 * self.padY)
 end
 
-function CHC_items_panel:render()
-    ISPanel.render(self)
-    if not self.item then return end
-end
+-- function CHC_items_panel:render()
+--     if not self.item then return end
+--     ISPanel.render(self)
+-- end
 
 -- endregion
 
@@ -162,6 +163,7 @@ function CHC_items_panel:setObj(item)
         self.mainImg.forcedHeightImage = self.mainImg.origHI
         self.itemImgTextureMultApplied = false
     end
+    CHC_main.common.cacheTex(item)
     self.mainImg:setImage(item.texture)
     if self.item.tooltip then
         self.mainImg:setTooltip(getText(self.item.tooltip))
@@ -177,7 +179,6 @@ function CHC_items_panel:setObj(item)
     self.mainDispCat:setName(getText('IGUI_invpanel_Category') .. ': ' .. item.displayCategory)
 
     self.mainMod:setName(getText('IGUI_mod_chc') .. ': ' .. item.modname)
-    -- self.mainWeight:setName(getText('IGUI_invpanel_weight') .. ': ' .. round(item.item:getWeight(), 2))
     local maxY = self.mainMod.y + self.mainMod.height + 2
 
     self.mainInfo:setHeight(math.max(74, maxY))
@@ -260,7 +261,7 @@ function CHC_items_panel:new(args)
     setmetatable(o, self)
     self.__index = self
 
-    -- o.backgroundColor = { r = 1, g = 0, b = 0, a = 1 }
+    o.backgroundColor.a = 0
     -- o:noBackground()
     o.padY = 5
     o.margin = 5

@@ -31,3 +31,7 @@ Contributors will be shown in order of first pull request / commit:
   - Italian translation
 - [Cosmo](https://steamcommunity.com/id/Bulvaik)
   - Ukrainian translation
+- [-Vib](https://crowdin.com/profile/-Vib)
+  - French translation
+- [Zunder](https://steamcommunity.com/profiles/76561197981623248)
+  - French translation
