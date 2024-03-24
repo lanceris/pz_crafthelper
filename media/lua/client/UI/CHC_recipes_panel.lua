@@ -1020,6 +1020,10 @@ function CHC_recipes_panel:updateMainInfo(obj)
             self.mainMod:setName(nil)
         end
         self.mainMod:setVisible(self.mainMod.name ~= nil)
+    else
+        self.mainImg:setImage(nil)
+        self.mainImg:setTooltip(nil)
+        self.mainRes:setName(nil)
     end
 
     local catName = getTextOrNull('IGUI_CraftCategory_' .. recipe.category) or recipe.category
