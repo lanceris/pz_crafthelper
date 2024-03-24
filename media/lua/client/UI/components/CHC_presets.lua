@@ -169,7 +169,7 @@ function CHC_presets:createTooltip(ui_type, objs, limit)
 end
 
 function CHC_presets:updateTooltipData(tooltip, ui_type, objs, limit)
-    tooltip:reset()
+    -- tooltip:reset()
     local handlers = {
         items = CHC_presets.getItemTooltip,
         recipes = CHC_presets.getRecipeTooltip
