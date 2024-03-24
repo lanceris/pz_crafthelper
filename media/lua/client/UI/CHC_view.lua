@@ -135,6 +135,7 @@ function CHC_view:update()
         local fontSize = getTextManager():getFontHeight(self.curFontData.font)
         self.fontSize = fontSize
         self.objList.fontSize = fontSize
+        self:updateObjects()
     end
     if self.needUpdateShowIcons then
         self.needUpdateShowIcons = false
@@ -221,9 +222,6 @@ end
 
 function CHC_view:updateObjects(typeField, categoryField, extraFilters)
     categoryField = categoryField or "displayCategory"
-    if not self.initDone then
-        CHC_view.initTypesAndCategories(self, typeField, categoryField)
-    end
     local objs = self.objSource
     local curType = self.typeFilter
     local defTypeSelected = curType == 'all'
@@ -234,10 +232,13 @@ function CHC_view:updateObjects(typeField, categoryField, extraFilters)
     local defCatSelected = curCat == self.defaultCategory
     local searchBarEmpty = self.searchRow.searchBar:getInternalText() == ''
 
-    if defCatSelected and defTypeSelected and searchBarEmpty then
+    if not self.initDone or (defCatSelected and defTypeSelected and searchBarEmpty) then
+        local skipUpdate = true
+        -- skip updating object only if not running first time
+        if not self.initDone then skipUpdate = false end
         CHC_view.initTypesAndCategories(self, typeField, categoryField)
         CHC_view.refreshObjList(self, objs)
-        return
+        if skipUpdate then return end
     end
 
     local filtered = {}
@@ -825,6 +826,10 @@ function CHC_view._list:render()
         end
     end
     self:clearStencilRect()
+
+    if self.vscroll and self.vscroll.height ~= self.height then
+        self.vscroll:setHeight(self.height)
+    end
 end
 
 --endregion

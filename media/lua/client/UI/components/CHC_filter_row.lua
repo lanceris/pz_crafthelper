@@ -19,10 +19,10 @@ function CHC_filter_row:create()
     local x, y, w, h = self.x, self.y, self.width, self.height
 
     -- region filtersBtn
-    self.filtersUIBtn = ISButton:new(x, 0, h, h, nil, self, self.toggleFiltersUI)
+    self.filtersUIBtn = ISButton:new(x, 0, h, h, nil, self, nil) --self.toggleFiltersUI)
     self.filtersUIBtn.borderColor.a = 0
     self.filtersUIBtn.backgroundColor.a = 0
-    self.filtersUIBtn:setTooltip("test")
+    self.filtersUIBtn:setTooltip("Filters (WIP)")
     self.filtersUIBtn:initialise()
     self.filtersUIBtn:setImage(CHC_window.icons.common.filter)
     self.filtersUIBtn:setVisible(true)

@@ -61,6 +61,10 @@ function CHC_presets:selectDefaultPreset()
 end
 
 function CHC_presets:updatePresets()
+    if self.categorySelector and self.categorySelector.popup and self.categorySelector.popup.doDrawItem ~= self.doDrawItemSelectorPopup then
+        -- hack, for some reason doDrawItem is reassigned to CHC_filter_row.doDrawItemSelectorPopup if CHC is opened via inventory -> RMB on item
+        self.categorySelector.popup.doDrawItem = self.doDrawItemSelectorPopup
+    end
     local ui_type = CHC_main.common.getCurrentUiType(self.window)
     local presets = self:getPresetStorage()
     if not presets then return end
@@ -152,7 +156,7 @@ function CHC_presets:getRecipeTooltip(str)
         entry.texture_name = self.defaultItemTexName
     end
     entry.name = recipe.recipeData.name
-    if resultItem.category == "Moveable" then
+    if resultItem and resultItem.category == "Moveable" then
         entry.texture_multiplier = 2
     else
         entry.texture_multiplier = 1
@@ -169,7 +173,7 @@ function CHC_presets:createTooltip(ui_type, objs, limit)
 end
 
 function CHC_presets:updateTooltipData(tooltip, ui_type, objs, limit)
-    tooltip:reset()
+    -- tooltip:reset()
     local handlers = {
         items = CHC_presets.getItemTooltip,
         recipes = CHC_presets.getRecipeTooltip

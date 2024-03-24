@@ -645,3 +645,34 @@ CHC_main.common.cacheTex = function(item)
     end
     -- print("Cached texture for " .. chcobj.fullType)
 end
+
+---render favorite star
+---@param y number top Y coordinate of star
+---@param item table item data
+---@param textures table table with textures to render
+function CHC_main.common.drawFavoriteStar(self, y, item, textures, isFavorite)
+    local favoriteStar
+    local favoriteAlpha = 0.6
+    local favXPos = self.width - self.itemheight - self.vscroll.width
+    if item.index == self.mouseoverselected then
+        if self.mouseX >= favXPos - 3 and self.mouseX <= favXPos + self.itemheight + 3 then
+            favoriteStar = isFavorite and textures.checked or textures.notChecked
+            -- favoriteAlpha = 0.9
+        else
+            favoriteStar = isFavorite and textures.default or textures.notChecked
+            favoriteAlpha = isFavorite and 0.9 or 0.5
+        end
+    elseif isFavorite then
+        favoriteStar = textures.default
+    end
+    if favoriteStar then
+        -- tex,x,y,w,h,a
+        self:drawTextureScaled(
+            favoriteStar,
+            favXPos,
+            y,
+            item.height,
+            item.height,
+            favoriteAlpha)
+    end
+end

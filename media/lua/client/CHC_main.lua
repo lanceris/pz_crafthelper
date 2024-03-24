@@ -8,7 +8,7 @@ CHC_main._meta = {
     id = 'CraftHelperContinued_beta',
     workshopId = 3122080147,
     name = 'Craft Helper Continued Beta',
-    version = '1.9b4',
+    version = '1.9b5',
     author = 'lanceris',
     previousAuthors = { 'Peanut', 'ddraigcymraeg', 'b1n0m' },
 }
@@ -33,7 +33,6 @@ CheckMyModTable = CheckMyModTable or {} -- Mod Checker
 CheckMyModTable[CHC_main._meta.id] = CHC_main._meta.workshopId
 local cacheFileName = 'CraftHelperLuaCache.json'
 local loadLua = true
-local overRideVanillaCraftMenu
 
 local showTime = function(start, st)
     print(format('Loaded %s in %s seconds', st, tostring((getTimestampMs() - start) / 1000)))
@@ -1576,48 +1575,6 @@ function CHC_main.reloadMod(key)
     if key == Keyboard.KEY_V then
         -- reload UI
         CHC_menu.createCraftHelper()
-    end
-    if key == Keyboard.KEY_C then
-        -- cnt = 0
-        -- local ic = 0
-        -- local ms = getTimeInMillis()
-        -- for _, value in pairs(CHC_main.items) do
-        --     CHC_main.common.getItemProps(value)
-        --     ic = ic + 1
-        -- end
-        -- local time = getTimeInMillis() - ms
-        -- print(format("Took %d ms to process %d items and %d props. Mean per item: %s. Mean per prop: %s",
-        --     time, ic, cnt, time / ic, time / cnt))
-        CHC_main.initPropList()
-        local a = CHC_main
-        local _types = {}
-        local _listOptions = {}
-        for i = 1, #CHC_main.itemPropsList do
-            local prop = CHC_main.itemPropsList[i]
-            if prop.type == "list" then
-                _listOptions[prop.name] = _listOptions[prop.name] or {}
-                for j = 1, #CHC_main.itemsForSearch do
-                    local chcitem = CHC_main.itemsForSearch[j]
-                    if chcitem.category == prop.itemType then
-                        local value = chcitem.item[prop.name] and chcitem.item[prop.name](chcitem.item) or nil
-                        if value then value = rawToStr(value) end
-                        _listOptions[prop.name][#_listOptions[prop.name] + 1] = value
-                        if value then
-                            -- df:df()
-                            -- print(prop.name .. " | " .. #_listOptions[prop.name])
-                        end
-                        -- if value and value:size() > 0 then
-                        --     for k = 0, value:size() do
-                        --         options[value:get(k - 1)] = true
-                        --     end
-                        -- end
-                    end
-                end
-            end
-            _types[prop.type] = (_types[prop.type] or 0) + 1
-        end
-        df:df()
-        -- CHC_settings.migrateConfig()
     end
 end
 

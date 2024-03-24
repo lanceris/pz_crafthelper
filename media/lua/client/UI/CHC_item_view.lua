@@ -323,7 +323,7 @@ function CHC_item_view:new(args)
 
     o.needUpdateObjects = false
     o.needUpdateFavorites = false
-    o.needUpdateFont = false
+    o.needUpdateFont = true
     o.needUpdateScroll = false
     o.needUpdateMousePos = false
     o.needUpdateDelayedSearch = false

@@ -10,6 +10,7 @@ local lower = string.lower
 local sub = string.sub
 local find = string.find
 local tostring = tostring
+local print = utils.chcprint
 
 -- region create
 function CHC_recipe_view:initialise()
@@ -60,6 +61,7 @@ function CHC_recipe_view:create()
 
     self:updateObjects()
     self:updateRecipesState()
+    self:updateObjects()
     self.initDone = true
 end
 
@@ -80,41 +82,30 @@ function CHC_recipe_view:updateObjects()
 end
 
 function CHC_recipe_view:updateRecipeState(recipe)
+    recipe._state = "invalid"
+    recipe.valid = false
+    recipe.known = false
+    recipe.invalid = true
     if recipe.isSynthetic then
         recipe._state = "known"
-        recipe.valid = false
         recipe.known = true
-        recipe.invalid = false
     elseif recipe.isEvolved then
         if CHC_main.common.isEvolvedRecipeValid(recipe, self.containerList) then
             recipe._state = "valid"
             recipe.valid = true
-            recipe.known = false
-            recipe.unknown = false
         else
             recipe._state = "known"
-            recipe.valid = false
             recipe.known = true
-            recipe.unknown = false
         end
     else
         -- if RecipeManager.IsRecipeValid(recipe.recipe, self.player, nil, self.containerList) then
         if CHC_main.common.isRecipeValid(recipe, self.player, self.containerList, self.knownRecipes, self.playerSkills, self.nearbyIsoObjects) then
             recipe._state = "valid"
             recipe.valid = true
-            recipe.known = false
-            recipe.invalid = false
         elseif (not recipe.recipeData.needToBeLearn) or
             (recipe.recipeData.needToBeLearn and self.knownRecipes[recipe.recipeData.originalName]) then
             recipe._state = "known"
-            recipe.valid = false
             recipe.known = true
-            recipe.invalid = false
-        else
-            recipe._state = "invalid"
-            recipe.valid = false
-            recipe.known = false
-            recipe.invalid = true
         end
     end
 end
@@ -128,7 +119,10 @@ function CHC_recipe_view:updateRecipesState()
     else
         recipes = self.objSource
     end
-    if not recipes or utils.empty(recipes) then return end
+    if not recipes or utils.empty(recipes) then
+        print("No recipes to update state")
+        return
+    end
     self.knownRecipes = CHC_main.common.getKnownRecipes(self.player)
     self.playerSkills = CHC_main.common.getPlayerSkills(self.player)
     self.nearbyIsoObjects = CHC_main.common.getNearbyIsoObjectNames(self.player)
@@ -465,7 +459,7 @@ function CHC_recipe_view:new(args)
 
     o.needUpdateFavorites = true
     o.needUpdateObjects = false
-    o.needUpdateFont = false
+    o.needUpdateFont = true
     o.needUpdateScroll = false
     o.needUpdateMousePos = false
     o.needUpdateModRender = false
