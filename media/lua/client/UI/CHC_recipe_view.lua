@@ -60,6 +60,7 @@ function CHC_recipe_view:create()
 
     self:updateObjects()
     self:updateRecipesState()
+    self:updateObjects()
     self.initDone = true
 end
 
@@ -465,7 +466,7 @@ function CHC_recipe_view:new(args)
 
     o.needUpdateFavorites = true
     o.needUpdateObjects = false
-    o.needUpdateFont = false
+    o.needUpdateFont = true
     o.needUpdateScroll = false
     o.needUpdateMousePos = false
     o.needUpdateModRender = false

@@ -1125,28 +1125,16 @@ function CHC_recipes_panel:onResize()
 end
 
 function CHC_recipes_panel:drawFavoriteStar(y, item, parent)
-    local favoriteStar
-    local favoriteAlpha = 0.9
-    local favXPos = self.width - 30
+    local textures = {
+        default = parent.itemFavoriteStar,
+        checked = parent.itemFavCheckedTex,
+        notChecked = parent.itemFavNotCheckedTex,
+    }
     local itemObj = CHC_main.items[item.item.fullType]
-    if not itemObj then return end
-    local isFav = itemObj.favorite
-    if item.index == self.mouseoverselected then
-        local mouseX = self:getMouseX()
-        if mouseX >= favXPos - 5 and mouseX <= favXPos + 16 then
-            favoriteStar = isFav and parent.itemFavCheckedTex or parent.itemFavNotCheckedTex
-            favoriteAlpha = 0.9
-        else
-            favoriteStar = isFav and parent.itemFavoriteStar or parent.itemFavNotCheckedTex
-            favoriteAlpha = isFav and 0.9 or 0.5
-        end
-    elseif isFav then
-        favoriteStar = parent.itemFavoriteStar
-    end
-    if favoriteStar then
-        self:drawTexture(favoriteStar, favXPos,
-            y + (item.height / 2 - favoriteStar:getHeight() / 2),
-            favoriteAlpha, 1, 1, 1)
+    if itemObj then
+        CHC_main.common.drawFavoriteStar(self, y, item, textures, itemObj.favorite)
+    else
+        print("Could not find item " .. item.item.fullType)
     end
 end
 

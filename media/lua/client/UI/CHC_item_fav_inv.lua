@@ -48,7 +48,7 @@ local function renderdetailsCHC(self, doDragged)
                 if doIt == true and tex ~= nil and count == 1 and CHC_window and CHC_window.icons then
                     local tx = (13 + auxDXY + xoff)
                     local ty = (y * self.itemHgt) + self.headerHgt + yoff
-                    self:drawTexture(CHC_window.icons.item.favorite.unchecked, tx, ty, 1, 1, 1, 1)
+                    self:drawTextureScaledAspect(CHC_window.icons.item.favorite.unchecked, tx, ty, 13, 13, 1)
                 end
             end
             y = y + 1

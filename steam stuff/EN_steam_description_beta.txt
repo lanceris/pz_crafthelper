@@ -27,6 +27,9 @@ Config files are separate from main mod ("beta_" prefix).
 [*]Remove all favorites button
 [*]Fixed hidden recipes showing in item views
 [*]Fixed inability to close CHC window via hotkey when its minimized
+[*]Added 4x textures (24px -> 96px)
+[*]Fixed type filter button not clickable in some cases
+[*]Fixed incorrect font size applied on startup
 [/list]
 
 [hr][/hr]

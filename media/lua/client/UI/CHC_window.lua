@@ -18,69 +18,71 @@ local format = string.format
 local lower = string.lower
 local concat = table.concat
 
+local textureDir = 'media/textures/4x/'
+
 CHC_window.icons = {
-    main = getTexture('media/textures/CHC_ctx_icon.png'),
+    main = getTexture(textureDir .. 'CHC_ctx_icon.png'),
     common = {
-        copy = getTexture("media/textures/CHC_copy_icon.png"),
-        paste = getTexture('media/textures/CHC_paste_icon.png'),
-        help_tooltip = getTexture("media/textures/keybinds_help.png"),
-        mod = getTexture('media/textures/CHC_mod.png'),
-        search = getTexture("media/textures/search_icon.png"),
-        new_tab = getTexture("media/textures/CHC_open_new_tab.png"),
-        add = getTexture("media/textures/CHC_evolved_add.png"),
-        type_all = getTexture('media/textures/type_filt_all.png'),
-        filter = getTexture("media/textures/CHC_filter_icon.png"),
-        expanded = getTexture("media/ui/TreeExpanded.png"),
-        collapsed = getTexture("media/ui/TreeCollapsed.png")
+        copy = getTexture(textureDir .. 'CHC_copy_icon.png'),
+        paste = getTexture(textureDir .. 'CHC_paste_icon.png'),
+        help_tooltip = getTexture(textureDir .. 'keybinds_help.png'),
+        mod = getTexture(textureDir .. 'CHC_mod.png'),
+        search = getTexture(textureDir .. 'search_icon.png'),
+        new_tab = getTexture(textureDir .. 'CHC_open_new_tab.png'),
+        add = getTexture(textureDir .. 'CHC_evolved_add.png'),
+        type_all = getTexture(textureDir .. 'type_filt_all.png'),
+        filter = getTexture(textureDir .. 'CHC_filter_icon.png'),
+        expanded = getTexture('media/ui/TreeExpanded.png'),
+        collapsed = getTexture('media/ui/TreeCollapsed.png')
     },
     item = {
         favorite = {
-            default = getTexture('media/textures/CHC_item_favorite_star.png'),
-            checked = getTexture('media/textures/CHC_item_favorite_star_checked.png'),
-            unchecked = getTexture('media/textures/CHC_item_favorite_star_outline.png'),
-            remove_all = getTexture('media/textures/CHC_item_favorite_star_remove_all.png')
+            default = getTexture(textureDir .. 'CHC_item_favorite_star.png'),
+            checked = getTexture(textureDir .. 'CHC_item_favorite_star_checked.png'),
+            unchecked = getTexture(textureDir .. 'CHC_item_favorite_star_outline.png'),
+            remove_all = getTexture(textureDir .. 'CHC_item_favorite_star_remove_all.png')
         },
     },
     recipe = {
         favorite = {
-            default = getTexture('media/textures/CHC_recipe_favorite_star.png'),
-            checked = getTexture('media/textures/CHC_recipe_favorite_star_checked.png'),
-            unchecked = getTexture('media/textures/CHC_recipe_favorite_star_outline.png'),
-            remove_all = getTexture('media/textures/CHC_recipe_favorite_star_remove_all.png')
+            default = getTexture(textureDir .. 'CHC_recipe_favorite_star.png'),
+            checked = getTexture(textureDir .. 'CHC_recipe_favorite_star_checked.png'),
+            unchecked = getTexture(textureDir .. 'CHC_recipe_favorite_star_outline.png'),
+            remove_all = getTexture(textureDir .. 'CHC_recipe_favorite_star_remove_all.png')
         },
-        type_all = getTexture('media/textures/type_filt_all.png'),
-        type_valid = getTexture('media/textures/type_filt_valid.png'),
-        type_known = getTexture('media/textures/type_filt_known.png'),
-        type_invalid = getTexture('media/textures/type_filt_invalid.png'),
-        category = getTexture('media/textures/CHC_recipepanel_category.png'),
-        result = getTexture('media/textures/CHC_recipepanel_output.png'),
-        required_time = getTexture('media/textures/CHC_recipe_required_time.png'),
-        block_valid = getTexture("media/textures/CHC_blockAV.png"),
-        block_invalid = getTexture("media/textures/CHC_blockUN.png"),
-        block_all = getTexture("media/textures/type_filt_all.png"),
+        type_all = getTexture(textureDir .. 'type_filt_all.png'),
+        type_valid = getTexture(textureDir .. 'type_filt_valid.png'),
+        type_known = getTexture(textureDir .. 'type_filt_known.png'),
+        type_invalid = getTexture(textureDir .. 'type_filt_invalid.png'),
+        category = getTexture(textureDir .. 'CHC_recipepanel_category.png'),
+        result = getTexture(textureDir .. 'CHC_recipepanel_output.png'),
+        required_time = getTexture(textureDir .. 'CHC_recipe_required_time.png'),
+        block_valid = getTexture(textureDir .. 'CHC_blockAV.png'),
+        block_invalid = getTexture(textureDir .. 'CHC_blockUN.png'),
+        block_all = getTexture(textureDir .. 'type_filt_all.png'),
         evolved = {
             food_data = {
-                hunger = getTexture("media/textures/evolved_food_data/CHC_hunger.png"),
-                thirst = getTexture("media/textures/evolved_food_data/CHC_evolved_thirst.png"),
-                endurance = getTexture("media/textures/evolved_food_data/CHC_endurance.png"),
-                stress = getTexture("media/textures/evolved_food_data/CHC_stress.png"),
-                boredom = getTexture("media/textures/evolved_food_data/CHC_boredom.png"),
-                unhappy = getTexture("media/textures/evolved_food_data/CHC_unhappiness.png"),
-                nutr_calories = getTexture("media/textures/evolved_food_data/CHC_calories.png"),
+                hunger = getTexture(textureDir .. 'evolved_food_data/CHC_hunger.png'),
+                thirst = getTexture(textureDir .. 'evolved_food_data/CHC_evolved_thirst.png'),
+                endurance = getTexture(textureDir .. 'evolved_food_data/CHC_endurance.png'),
+                stress = getTexture(textureDir .. 'evolved_food_data/CHC_stress.png'),
+                boredom = getTexture(textureDir .. 'evolved_food_data/CHC_boredom.png'),
+                unhappy = getTexture(textureDir .. 'evolved_food_data/CHC_unhappiness.png'),
+                nutr_calories = getTexture(textureDir .. 'evolved_food_data/CHC_calories.png'),
             },
-            add_hovered = getTexture("media/textures/CHC_evolved_add_hovered.png"),
+            add_hovered = getTexture(textureDir .. 'CHC_evolved_add_hovered.png'),
         },
     },
 }
 CHC_window.icons.presets = {
-    save = getTexture("media/textures/bottom_panel/save.png"),
-    apply = getTexture("media/textures/bottom_panel/apply.png"),
-    rename = getTexture("media/textures/bottom_panel/rename.png"),
+    save = getTexture(textureDir .. 'bottom_panel/save.png'),
+    apply = getTexture(textureDir .. 'bottom_panel/apply.png'),
+    rename = getTexture(textureDir .. 'bottom_panel/rename.png'),
     duplicate = CHC_window.icons.common.copy,
-    share = getTexture("media/textures/bottom_panel/share.png"),
-    import = getTexture("media/textures/bottom_panel/import.png"),
-    delete = getTexture("media/textures/bottom_panel/delete.png"),
-    more = getTexture("media/textures/bottom_more.png")
+    share = getTexture(textureDir .. 'bottom_panel/share.png'),
+    import = getTexture(textureDir .. 'bottom_panel/import.png'),
+    delete = getTexture(textureDir .. 'bottom_panel/delete.png'),
+    more = getTexture(textureDir .. 'bottom_more.png')
 }
 
 -- region create

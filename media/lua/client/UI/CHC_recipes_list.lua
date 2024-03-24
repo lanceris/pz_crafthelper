@@ -21,15 +21,12 @@ end
 
 function CHC_recipes_list:doDrawItem(y, item, alt)
     local recipe = item.item
-    local a = 0.9
-    local favoriteStar = nil
-    local favoriteAlpha = a
     local itemPadY = self.itemPadY or (item.height - self.fontSize) / 2
 
     local clr = {
         txt = item.text,
-        x = 15,
-        y = y + itemPadY,
+        x = self.shouldShowIcons and (self.itemheight) or 15,
+        y = y,
         a = 0.9,
         font = self.curFontData.font
     }
@@ -43,15 +40,15 @@ function CHC_recipes_list:doDrawItem(y, item, alt)
                 local texW = self.fontSize
                 if texW > item.height then texW = item.height end
                 texW = texW - 2
-                local texH = texW
-                clr.x = texW + 5
                 if resultItem.textureMult then
-                    self:drawTextureScaled(tex, 3, clr.y, texW, texH, 1)
+                    self:drawTextureScaled(tex, 3, clr.y, self.itemheight, self.itemheight, 1)
                 else
-                    self:drawTextureScaledAspect(tex, 3, clr.y, texW, texH, 1)
+                    self:drawTextureScaledAspect(tex, 3, clr.y, self.itemheight, self.itemheight, 1)
                 end
+                self:drawRect(self.itemheight + 3, clr.y, 1, self.itemheight, 0.1, 1, 1, 1)
             end
         end
+        clr.x = clr.x + 5
     end
     --endregion
 
@@ -75,27 +72,16 @@ function CHC_recipes_list:doDrawItem(y, item, alt)
             clr['r'], clr['g'], clr['b'] = 0.7, 0, 0
         end
     end
-    self:drawText(clr.txt, clr.x, clr.y, clr.r, clr.g, clr.b, clr.a, clr.font)
+    self:drawText(clr.txt, clr.x, clr.y + itemPadY, clr.r, clr.g, clr.b, clr.a, clr.font)
     --endregion
 
     --region favorite handler
-    local favYPos = self.width - 30
-    if item.index == self.mouseoverselected then
-        if self.mouseX >= favYPos - 20 and self.mouseX <= favYPos + 20 then
-            favoriteStar = item.item.favorite and self.favCheckedTex or self.favNotCheckedTex
-            favoriteAlpha = 0.9
-        else
-            favoriteStar = item.item.favorite and self.favoriteStar or self.favNotCheckedTex
-            favoriteAlpha = item.item.favorite and a or 0.3
-        end
-    elseif item.item.favorite then
-        favoriteStar = self.favoriteStar
-    end
-    if favoriteStar then
-        self:drawTexture(favoriteStar, favYPos, y + (item.height / 2 - favoriteStar:getHeight() / 2), favoriteAlpha,
-            1, 1,
-            1);
-    end
+    local textures = {
+        default = self.favoriteStar,
+        checked = self.favCheckedTex,
+        notChecked = self.favNotCheckedTex,
+    }
+    CHC_main.common.drawFavoriteStar(self, y, item, textures, item.item.favorite)
     --endregion
 
     --region filler
