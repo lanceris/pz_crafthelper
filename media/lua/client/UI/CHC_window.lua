@@ -1,14 +1,89 @@
 -- Main window, opened when RMB -> Craft Helper 41 on item
 require 'CHC_config'
-require 'UI/CHC_uses'
-require 'UI/CHC_search'
+require 'UI/CHC_recipe_view'
+require 'UI/CHC_item_view'
+require 'UI/components/CHC_presets'
 
+---@class CHC_window:ISCollapsableWindow
+---@field x number
+---@field y number
+---@field width number
+---@field height number
 CHC_window = ISCollapsableWindowJoypad:derive('CHC_window')
 local utils = require('CHC_utils')
 local error = utils.chcerror
 local print = utils.chcprint
-local insert = table.insert
 local pairs = pairs
+local format = string.format
+local lower = string.lower
+local concat = table.concat
+
+local textureDir = 'media/textures/4x/'
+
+CHC_window.icons = {
+    main = getTexture(textureDir .. 'CHC_ctx_icon.png'),
+    common = {
+        copy = getTexture(textureDir .. 'CHC_copy_icon.png'),
+        paste = getTexture(textureDir .. 'CHC_paste_icon.png'),
+        help_tooltip = getTexture(textureDir .. 'keybinds_help.png'),
+        mod = getTexture(textureDir .. 'CHC_mod.png'),
+        search = getTexture(textureDir .. 'search_icon.png'),
+        new_tab = getTexture(textureDir .. 'CHC_open_new_tab.png'),
+        add = getTexture(textureDir .. 'CHC_evolved_add.png'),
+        type_all = getTexture(textureDir .. 'type_filt_all.png'),
+        filter = getTexture(textureDir .. 'CHC_filter_icon.png'),
+        expanded = getTexture('media/ui/TreeExpanded.png'),
+        collapsed = getTexture('media/ui/TreeCollapsed.png')
+    },
+    item = {
+        favorite = {
+            default = getTexture(textureDir .. 'CHC_item_favorite_star.png'),
+            checked = getTexture(textureDir .. 'CHC_item_favorite_star_checked.png'),
+            unchecked = getTexture(textureDir .. 'CHC_item_favorite_star_outline.png'),
+            remove_all = getTexture(textureDir .. 'CHC_item_favorite_star_remove_all.png')
+        },
+    },
+    recipe = {
+        favorite = {
+            default = getTexture(textureDir .. 'CHC_recipe_favorite_star.png'),
+            checked = getTexture(textureDir .. 'CHC_recipe_favorite_star_checked.png'),
+            unchecked = getTexture(textureDir .. 'CHC_recipe_favorite_star_outline.png'),
+            remove_all = getTexture(textureDir .. 'CHC_recipe_favorite_star_remove_all.png')
+        },
+        type_all = getTexture(textureDir .. 'type_filt_all.png'),
+        type_valid = getTexture(textureDir .. 'type_filt_valid.png'),
+        type_known = getTexture(textureDir .. 'type_filt_known.png'),
+        type_invalid = getTexture(textureDir .. 'type_filt_invalid.png'),
+        category = getTexture(textureDir .. 'CHC_recipepanel_category.png'),
+        result = getTexture(textureDir .. 'CHC_recipepanel_output.png'),
+        required_time = getTexture(textureDir .. 'CHC_recipe_required_time.png'),
+        block_valid = getTexture(textureDir .. 'CHC_blockAV.png'),
+        block_invalid = getTexture(textureDir .. 'CHC_blockUN.png'),
+        block_all = getTexture(textureDir .. 'type_filt_all.png'),
+        evolved = {
+            food_data = {
+                hunger = getTexture(textureDir .. 'evolved_food_data/CHC_hunger.png'),
+                thirst = getTexture(textureDir .. 'evolved_food_data/CHC_evolved_thirst.png'),
+                endurance = getTexture(textureDir .. 'evolved_food_data/CHC_endurance.png'),
+                stress = getTexture(textureDir .. 'evolved_food_data/CHC_stress.png'),
+                boredom = getTexture(textureDir .. 'evolved_food_data/CHC_boredom.png'),
+                unhappy = getTexture(textureDir .. 'evolved_food_data/CHC_unhappiness.png'),
+                nutr_calories = getTexture(textureDir .. 'evolved_food_data/CHC_calories.png'),
+            },
+            add_hovered = getTexture(textureDir .. 'CHC_evolved_add_hovered.png'),
+        },
+    },
+}
+CHC_window.icons.presets = {
+    save = getTexture(textureDir .. 'bottom_panel/save.png'),
+    apply = getTexture(textureDir .. 'bottom_panel/apply.png'),
+    rename = getTexture(textureDir .. 'bottom_panel/rename.png'),
+    duplicate = CHC_window.icons.common.copy,
+    share = getTexture(textureDir .. 'bottom_panel/share.png'),
+    import = getTexture(textureDir .. 'bottom_panel/import.png'),
+    delete = getTexture(textureDir .. 'bottom_panel/delete.png'),
+    more = getTexture(textureDir .. 'bottom_more.png')
+}
 
 -- region create
 
@@ -21,20 +96,19 @@ end
 function CHC_window:create()
     ISCollapsableWindowJoypad.createChildren(self)
 
-    self.tbh = self:titleBarHeight()
-    -- self.controlPanel = ISPanel:new(1, self.tbh, self.width, 24)
-    -- self.controlPanel:initialise()
+    local tbh = self:titleBarHeight()
     -- region main container (search, favorites and all selected items)
-    self.panel = ISTabPanel:new(1, self.tbh, self.width, self.height - 60)
+    self.panel = ISTabPanel:new(0, tbh, self.width, self.height - 52)
 
     self.panel:initialise()
+    self.panel:setTabsTransparency(0.4)
     self.panel:setAnchorRight(true)
     self.panel.onRightMouseDown = self.onMainTabRightMouseDown
     self.panel.onActivateView = CHC_window.onActivateView
     self.panel.target = self
     self.panel:setEqualTabWidth(false)
     -- endregion
-    self.panelY = self.tbh + self.panel.tabHeight
+    self.panelY = tbh + self.panel.tabHeight
     self.common_screen_data = {
         x = 0,
         y = self.panelY + self.panel.tabHeight,
@@ -57,8 +131,89 @@ function CHC_window:create()
         end
     end
 
+    local bottomPanelMoreBtnOptions = {
+        save = {
+            icon = CHC_window.icons.presets.save,
+            title = getText("IGUI_BottomPanelMoreSave"),
+            onclick = self.presets.onMoreBtnSaveClick,
+            tooltip = getText("IGUI_BottomPanelMoreSaveTooltip"),
+        },
+        apply = {
+            icon = CHC_window.icons.presets.apply,
+            title = getText("IGUI_BottomPanelMoreApply"),
+            onclick = self.presets.onMoreBtnApplyClick,
+            tooltip = getText("IGUI_BottomPanelMoreApplyTooltip"),
+        },
+        rename = {
+            icon = CHC_window.icons.presets.rename,
+            title = getText("ContextMenu_RenameBag"),
+            onclick = self.presets.onMoreBtnRenameClick,
+            tooltip = nil
+        },
+        -- compare = {
+        --     icon = getTexture("media/textures/bottom_panel/compare.png"),
+        --     title = getText("IGUI_BottomPanelMoreCompare"),
+        --     onclick = self.onMoreBtnCompareClick,
+        --     tooltip = getText("IGUI_BottomPanelMoreCompareTooltip"),
+        -- },
+        duplicate = {
+            icon = CHC_window.icons.presets.duplicate,
+            title = getText("IGUI_BottomPanelMoreDuplicate"),
+            onclick = self.presets.onMoreBtnDuplicateClick,
+            tooltip = getText("IGUI_BottomPanelMoreDuplicateTooltip")
+        },
+        share = {
+            icon = CHC_window.icons.presets.share,
+            title = getText("IGUI_BottomPanelMoreShare"),
+            onclick = self.presets.onMoreBtnShareClick,
+            tooltip = getText("IGUI_BottomPanelMoreShareTooltip")
+        },
+        import = {
+            icon = CHC_window.icons.presets.import,
+            title = getText("IGUI_BottomPanelMoreImport"),
+            onclick = self.presets.onMoreBtnImportClick,
+            tooltip = getText("IGUI_BottomPanelMoreImportTooltip")
+        },
+        delete = {
+            icon = CHC_window.icons.presets.delete,
+            title = getText("IGUI_BottomPanelMoreDelete"),
+            onclick = self.presets.onMoreBtnDeleteClick,
+            tooltip = getText("IGUI_BottomPanelMoreDeleteTooltip")
+        },
+    }
+
+    self.bottomPanel = CHC_presets:new(1, self.panel.y + self.panel.height, self.width / 2, 24, self,
+        bottomPanelMoreBtnOptions, "presets")
+    self.bottomPanel:initialise()
+    self.bottomPanel:setVisible(true)
+    self.bottomPanel:setAnchorLeft(true)
+    self.bottomPanel:setAnchorTop(true)
+    -- self.bottomPanel:setAnchorRight(true)
+    -- self.bottomPanel:setAnchorBottom(true)
+
+    --region filtersUI
+    local w = 300
+
+    ---@type CHC_filters_ui
+    self.filtersUIItems = CHC_filters_ui:new(self.x - w, self.y, w, self.height, self,
+        getText("UI_search_items_tab_name"))
+    self.filtersUIItems:initialise()
+    self.filtersUIItems:instantiate()
+    self.filtersUIItems:setVisible(false)
+    ---@type CHC_filters_ui
+    self.filtersUIRecipes = CHC_filters_ui:new(self.x - w, self.y, w, self.height, self,
+        getText("UI_search_recipes_tab_name"))
+    self.filtersUIRecipes:initialise()
+    self.filtersUIRecipes:instantiate()
+    self.filtersUIRecipes:setVisible(false)
+
+    self.filtersUI = self.filtersUIItems
+    --endregion
+
+
     -- self:addChild(self.controlPanel)
     self:addChild(self.panel)
+    self:addChild(self.bottomPanel)
 
     self:refresh(self.favViewName)
 end
@@ -76,10 +231,11 @@ function CHC_window:addSearchPanel()
     local recipesUIType = 'search_recipes'
 
     -- region search panel
-    self.searchPanel = ISTabPanel:new(1, self.panelY, self.width, self.height - self.panelY)
+    self.searchPanel = ISTabPanel:new(0, self.panelY, self.width, self.height - self.panelY)
     self.searchPanel.onActivateView = CHC_window.onActivateSubView
     self.searchPanel.target = self
     self.searchPanel:initialise()
+    self.searchPanel:setTabsTransparency(0.4)
     self.searchPanel:setAnchorRight(true)
     self.searchPanel:setAnchorBottom(true)
 
@@ -96,7 +252,7 @@ function CHC_window:addSearchPanel()
         sep_x = math.min(self.width / 2, options.search.items.sep_x)
     }
     for k, v in pairs(items_extra) do items_screen_init[k] = v end
-    self.searchItemsScreen = CHC_search:new(items_screen_init)
+    self.searchItemsScreen = CHC_item_view:new(items_screen_init)
     if itemsData then
         self.searchItemsScreen:initialise()
         local sivn = getText('UI_search_items_tab_name')
@@ -118,7 +274,7 @@ function CHC_window:addSearchPanel()
         sep_x = math.min(self.width / 2, options.search.recipes.sep_x)
     }
     for k, v in pairs(recipes_extra) do recipes_screen_init[k] = v end
-    self.searchRecipesScreen = CHC_uses:new(recipes_screen_init)
+    self.searchRecipesScreen = CHC_recipe_view:new(recipes_screen_init)
 
     if recipesData then
         self.searchRecipesScreen:initialise()
@@ -137,11 +293,12 @@ function CHC_window:addFavoriteScreen()
     local options = self.options
 
     -- region favorites panel
-    self.favPanel = ISTabPanel:new(1, self.panelY, self.width, self.height - self.panelY)
+    self.favPanel = ISTabPanel:new(0, self.panelY, self.width, self.height - self.panelY)
     self.favPanel.tabPadX = self.width / 2 - self.width / 4
     self.favPanel.onActivateView = CHC_window.onActivateSubView
     self.favPanel.target = self
     self.favPanel:initialise()
+    self.favPanel:setTabsTransparency(0.4)
     self.favPanel:setAnchorRight(true)
     self.favPanel:setAnchorBottom(true)
 
@@ -158,7 +315,7 @@ function CHC_window:addFavoriteScreen()
         sep_x = math.min(self.width / 2, options.favorites.items.sep_x)
     }
     for k, v in pairs(items_extra) do items_screen_init[k] = v end
-    self.favItemsScreen = CHC_search:new(items_screen_init)
+    self.favItemsScreen = CHC_item_view:new(items_screen_init)
 
     if itemsData then
         self.favItemsScreen:initialise()
@@ -181,7 +338,7 @@ function CHC_window:addFavoriteScreen()
         sep_x = math.min(self.width / 2, options.favorites.recipes.sep_x)
     }
     for k, v in pairs(recipes_extra) do recipes_screen_init[k] = v end
-    self.favRecipesScreen = CHC_uses:new(recipes_screen_init)
+    self.favRecipesScreen = CHC_recipe_view:new(recipes_screen_init)
 
     if recipesData then
         self.favRecipesScreen:initialise()
@@ -210,7 +367,7 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
     local existingView = self.panel:getView(nameForTab)
     if existingView ~= nil then
         if existingView.item.fullType ~= ifn then -- same displayName, but different items
-            nameForTab = nameForTab .. string.format(' (%s)', ifn)
+            nameForTab = nameForTab .. format(' (%s)', ifn)
         else                                      -- same displayName and same item
             self:refresh(nameForTab, nil, focusOnNew, focusOnTabIdx)
             return
@@ -227,31 +384,19 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
     }
 
     --region item container
-    local itemPanel = ISTabPanel:new(1, self.panelY, self.width, self.height - self.panelY)
+    local itemPanel = ISTabPanel:new(0, self.panelY, self.width, self.height - self.panelY)
 
     itemPanel:initialise()
+    itemPanel:setTabsTransparency(0.4)
     itemPanel:setAnchorRight(true)
     itemPanel:setAnchorBottom(true)
     itemPanel.item = itn
     -- endregion
-    local usesData = {}
-    local usesRec = CHC_main.recipesByItem[itn.fullType]
-    local usesEvoRec = CHC_main.evoRecipesByItem[itn.fullType]
-    if usesRec then
-        for i = 1, #usesRec do insert(usesData, usesRec[i]) end
-    end
-    if usesEvoRec then
-        for i = 1, #usesEvoRec do insert(usesData, usesEvoRec[i]) end
-    end
-    local craftData = {}
-    local craftRec = CHC_main.recipesForItem[itn.fullType]
-    local craftEvoRec = CHC_main.evoRecipesForItem[itn.fullType]
-    if craftRec then
-        for i = 1, #craftRec do insert(craftData, craftRec[i]) end
-    end
-    if craftEvoRec then
-        for i = 1, #craftEvoRec do insert(craftData, craftEvoRec[i]) end
-    end
+    local usesData = self:getRecipes(false, utils.concat(
+        CHC_main.recipesByItem[itn.fullType] or {},
+        CHC_main.evoRecipesByItem[itn.fullType] or {}
+    ))
+
     self.panel:addView(nameForTab, itemPanel)
 
     --region uses screen
@@ -267,7 +412,7 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
         item = itn
     }
     for k, v in pairs(uses_extra) do uses_screen_init[k] = v end
-    local usesScreen = CHC_uses:new(uses_screen_init)
+    local usesScreen = CHC_recipe_view:new(uses_screen_init)
 
     if not utils.empty(usesData) then
         usesScreen:initialise()
@@ -279,6 +424,11 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
     --endregion
 
     -- region crafting screen
+
+    local craftData = self:getRecipes(false, utils.concat(
+        CHC_main.recipesForItem[itn.fullType] or {},
+        CHC_main.evoRecipesForItem[itn.fullType] or {}
+    ))
 
     local craft_screen_init = self.common_screen_data
     local craft_extra = {
@@ -292,7 +442,7 @@ function CHC_window:addItemView(item, focusOnNew, focusOnTabIdx)
         item = itn
     }
     for k, v in pairs(craft_extra) do craft_screen_init[k] = v end
-    local craftScreen = CHC_uses:new(craft_screen_init)
+    local craftScreen = CHC_recipe_view:new(craft_screen_init)
 
     if not utils.empty(craftData) then
         craftScreen:initialise()
@@ -314,6 +464,7 @@ end
 
 function CHC_window:getItems(favOnly, max)
     favOnly = favOnly or false
+    local modData = CHC_menu.playerModData
     local showHidden = CHC_settings.config.show_hidden
     local newItems = {}
     local items = CHC_main.itemsForSearch
@@ -321,66 +472,66 @@ function CHC_window:getItems(favOnly, max)
 
     for i = 1, to do
         local item = items[i]
-        local isFav = item.favorite
+        local isFav = modData.CHC_item_favorites[item.fullType] == true
+        item.favorite = isFav
         if (not showHidden) and (item.hidden == true) then
         elseif (favOnly and isFav) or (not favOnly) then
-            insert(newItems, item)
+            newItems[#newItems + 1] = item
+            -- for _ = 1, 10, 1 do
+            --     newItems[#newItems + 1] = item
+            -- end
         end
     end
     if not showHidden and not max and not favOnly then
-        print(string.format('Removed %d hidden items', #items - #newItems))
+        print(format('Removed %d hidden items', #items - #newItems))
     end
     return newItems
 end
 
-function CHC_window:getRecipes(favOnly)
+function CHC_window:getRecipes(favOnly, recipeList)
+    recipeList = recipeList or
+        utils.concat(CHC_main.allRecipes, CHC_main.allEvoRecipes)
     favOnly = favOnly or false
+    local modData = CHC_menu.playerModData
     local showHidden = CHC_settings.config.show_hidden
     local recipes = {}
-    local allrec = CHC_main.allRecipes or {}
-    local allevorec = CHC_main.allEvoRecipes or {}
-    for i = 1, #allrec do
-        local isFav = allrec[i].favorite
-        if (not showHidden) and allrec[i].hidden then
+    for i = 1, #recipeList do
+        local recipe = recipeList[i]
+        local isFav = modData[recipe.favStr]
+        if (not showHidden) and recipe.hidden then
         elseif (favOnly and isFav) or (not favOnly) then
-            insert(recipes, allrec[i])
-        end
-    end
-    for i = 1, #allevorec do
-        if (favOnly and allevorec[i].favorite) or (not favOnly) then
-            insert(recipes, allevorec[i])
+            recipes[#recipes + 1] = recipe
+            -- for _ = 1, 10, 1 do
+            --     recipes[#recipes + 1] = allrec[i]
+            -- end
         end
     end
 
     if not showHidden and not favOnly then
-        print(string.format('Removed %d hidden recipes in %s', #allrec + #allevorec - #recipes,
+        print(format('Removed %d hidden recipes in %s', #recipeList - #recipes,
             self.ui_type or "CHC_window"))
     end
     return recipes
 end
 
-function CHC_window:updateFavorites(modData)
-    modData = modData or self.modData
+function CHC_window:updateFavorites()
+    local modData = CHC_menu.playerModData
     local showHidden = CHC_settings.config.show_hidden
     local allrec = CHC_main.allRecipes or {}
     local allevorec = CHC_main.allEvoRecipes or {}
     local items = CHC_main.itemsForSearch
-
     for i = 1, #items do
-        local favStr = CHC_main.common.getFavItemModDataStr(items[i])
-        items[i].favorite = modData[favStr] or false
+        items[i].favorite = modData.CHC_item_favorites[items[i].fullType] or false
     end
     for i = 1, #allrec do
         local recipe = allrec[i]
         if (not showHidden) and recipe.hidden then
         else
-            local favStr = CHC_main.common.getFavoriteRecipeModDataString(recipe)
-            recipe.favorite = modData[favStr] or false
+            recipe.favorite = modData[recipe.favStr] == true
         end
     end
     for i = 1, #allevorec do
-        local favStr = CHC_main.common.getFavoriteRecipeModDataString(allevorec[i])
-        allevorec[i].favorite = modData[favStr] or false
+        allevorec[i].favorite = modData[allevorec[i].favStr] == true
     end
 end
 
@@ -397,15 +548,21 @@ function CHC_window:update()
             for _, view in pairs(self.uiTypeToView) do
                 if toProcess.exclude then
                     if not toProcess.exclude[view.originName] then
-                        insert(targetViewObjs, view)
+                        targetViewObjs[#targetViewObjs + 1] = view
                     end
                 else
-                    insert(targetViewObjs, view)
+                    targetViewObjs[#targetViewObjs + 1] = view
                 end
             end
+        elseif toProcess.targetViews[1] == "bottom_panel" then
+            if not self.bottomPanel then return end
+            for i = 1, #toProcess.actions do
+                self.bottomPanel[toProcess.actions[i]] = true
+            end
+            return
         else
             for i = 1, #toProcess.targetViews do
-                insert(targetViewObjs, self.uiTypeToView[toProcess.targetViews[i]])
+                targetViewObjs[#targetViewObjs + 1] = self.uiTypeToView[toProcess.targetViews[i]]
             end
         end
         if utils.empty(targetViewObjs) then return end
@@ -428,7 +585,7 @@ function CHC_window:update()
                     end
                     if viewObject then
                         if data then
-                            viewObject.name = string.format("%s (%s)", targetOriginName, data)
+                            viewObject.name = format("%s (%s)", targetOriginName, data)
                         else
                             viewObject.name = targetOriginName
                         end
@@ -457,6 +614,11 @@ function CHC_window:update()
             val.cur = 0
         end
     end
+    --TODO: refactor
+    local a = (CHC_settings.config.window_opacity - 1) / 10
+    if self.backgroundColor.a ~= a then
+        self.backgroundColor.a = a
+    end
 end
 
 function CHC_window:refresh(viewName, panel, focusOnNew, focusOnTabIdx)
@@ -470,8 +632,8 @@ function CHC_window:refresh(viewName, panel, focusOnNew, focusOnTabIdx)
         return
     end
     local vl = panel.viewList
-    if not vl then
-        error('Could not find viewList', 'CHC_window:refresh')
+    if not vl or not vl[2] then
+        error('Could not find viewList or viewList is wrong (len:' .. tostring(#vl) .. ")", 'CHC_window:refresh')
         return
     end
     if #vl > 2 then
@@ -502,12 +664,15 @@ end
 
 function CHC_window:close()
     -- remove all views except search and favorites
+    local vl = self.panel
+    if not vl.viewList or utils.empty(vl.viewList) then return end
     if CHC_settings.config.close_all_on_exit then
-        local vl = self.panel
-        if vl then
+        if #vl.viewList >= 3 then
             for i = #vl.viewList, 3, -1 do
                 vl:removeView(vl.viewList[i].view)
             end
+        end
+        if #vl.viewList >= 2 then
             vl:activateView(vl.viewList[2].name)
         end
     end
@@ -519,14 +684,11 @@ function CHC_window:close()
     --         setJoypadFocus(CHC_menu.playerNum, nil)
     --     end
     -- end
-    local status, err = pcall(self.serializeWindowData, self)
-    if not status then
-        utils.chcerror(string.format("CHC_window:close - Cannot serialize window data (%s)", err), "CHC_window.close",
-            nil, false)
-    else
-        CHC_settings.Save()
-    end
+    self:serializeWindowData()
+    CHC_settings.Save()
     CHC_settings.SavePropsData()
+    CHC_settings.SavePresetsData("presets")
+    -- CHC_settings.SavePresetsData("filters")
 end
 
 -- endregion
@@ -540,7 +702,16 @@ function CHC_window:onResize()
     local ui = self
     if not ui.panel or not ui.panel.activeView then return end
     ui.panel:setWidth(self.width)
-    ui.panel:setHeight(self.height - 60)
+    ui.panel:setHeight(self.height - 52)
+    ui.bottomPanel:setY(ui.panel.y + ui.panel.height)
+    local asw = ui:getActiveSubView()
+    if asw then
+        ui.bottomPanel:setWidth(asw.view.headers.nameHeader.width - ui.bottomPanel.x)
+    end
+
+    ui.filtersUIItems:setHeight(ui.height)
+    ui.filtersUIRecipes:setHeight(ui.height)
+
 
     for _, value in pairs(ui.panel.children) do
         value.maxLength = self.width / #value.viewList - 2
@@ -566,18 +737,19 @@ end
 -- Common options for RMBDown + init context
 function CHC_window:onRMBDownObjList(x, y, item, isrecipe, context)
     isrecipe = isrecipe and true or false
+    context = context or ISContextMenu.get(0, getMouseX() + 10, getMouseY())
     if not item then
         local row = self:rowAt(x, y)
         if row == -1 then return end
         item = self.items[row].item
-        if not item then return end
+        if not item then return context end
     end
     if isrecipe then
         item = item.recipeData.result
     end
 
     item = CHC_main.items[item.fullType]
-    context = context or ISContextMenu.get(0, getMouseX() + 10, getMouseY())
+    if not item then return context end
 
     local function chccopy(_, param)
         if param then
@@ -587,7 +759,7 @@ function CHC_window:onRMBDownObjList(x, y, item, isrecipe, context)
 
     if isShiftKeyDown() then
         local name = context:addOption(getText('IGUI_chc_Copy') .. ' (' .. item.displayName .. ')', nil, nil)
-        name.iconTexture = getTexture('media/textures/CHC_copy_icon.png')
+        name.iconTexture = CHC_window.icons.copy
         local subMenuName = ISContextMenu:getNew(context)
         context:addSubMenu(name, subMenuName)
         local itemType
@@ -621,10 +793,26 @@ function CHC_window:onRMBDownObjList(x, y, item, isrecipe, context)
                 subMenuName:addOption('2x', self.parent, function() for _ = 1, 2 do pInv:AddItem(item.fullType) end end)
                 subMenuName:addOption('5x', self.parent, function() for _ = 1, 5 do pInv:AddItem(item.fullType) end end)
                 subMenuName:addOption('10x', self.parent, function() for _ = 1, 10 do pInv:AddItem(item.fullType) end end)
+                subMenuName:addOption('50x', self.parent, function() for _ = 1, 50 do pInv:AddItem(item.fullType) end end)
             end
         end
     end
     return context
+end
+
+function CHC_window:handleFiltersUIState(sub)
+    if not self.prevSubViewType then return end
+    local prevType = self.prevSubViewType
+    local curType = self:getViewType(sub.view)
+    if prevType == curType then return end
+    local reopen = self.filtersUI:getIsVisible()
+    self.filtersUI:close()
+    if sub.view.isItemView then
+        self.filtersUI = self.filtersUIItems
+    else
+        self.filtersUI = self.filtersUIRecipes
+    end
+    if reopen then self.filtersUI:toggleUI() end
 end
 
 --region tabs
@@ -640,6 +828,35 @@ function CHC_window:getActiveSubView(ui)
         subview = view.view.activeView
     end
     return subview, view
+end
+
+function CHC_window:onActivateViewAdjustPositions(sub, fromsub)
+    if sub.view.ui_type == 'fav_recipes' or sub.view.ui_type == 'fav_items' then
+        if self.bottomPanel.categorySelector then
+            self.bottomPanel.categorySelector:setVisible(true)
+            self.bottomPanel.moreButton:setVisible(true)
+        end
+        local bottomPanelCS = self.bottomPanel.categorySelector
+        bottomPanelCS:setWidth(sub.view.headers.nameHeader.width - bottomPanelCS.x)
+        if sub.view.objList and #sub.view.objList.items > 0 then
+            sub.view.removeAllFavBtn:setVisible(true)
+            sub.view.searchRow:setWidth(sub.view.headers.nameHeader.width - 24)
+        else
+            sub.view.removeAllFavBtn:setVisible(false)
+            sub.view.searchRow:setWidth(sub.view.headers.nameHeader.width)
+        end
+    else
+        sub.view.removeAllFavBtn:setVisible(false)
+        sub.view.searchRow:setWidth(sub.view.headers.nameHeader.width)
+        if self.bottomPanel.categorySelector then
+            self.bottomPanel.categorySelector:setVisible(false)
+            self.bottomPanel.moreButton:setVisible(false)
+        end
+    end
+end
+
+function CHC_window:getViewType(view)
+    return view.isItemView == true and "items" or "recipes"
 end
 
 function CHC_window:onActivateView(target)
@@ -663,16 +880,14 @@ function CHC_window:onActivateView(target)
         end
     end
 
+    self:onActivateViewAdjustPositions(sub)
     if sub.view.ui_type == 'fav_recipes' or sub.view.ui_type == 'fav_items' then
+        self.bottomPanel.needUpdatePresets = true
         sub.view.needUpdateObjects = true
     end
-    if sub.view.filterRow then
-        local oldval = sub.view.filterRow.categorySelector.editable
-        local newval = CHC_settings.config.editable_category_selector
-        if oldval ~= newval then
-            sub.view.filterRow.categorySelector:setEditable(newval)
-        end
-    end
+
+    self:handleFiltersUIState(sub)
+    self.prevSubViewType = self:getViewType(sub.view)
 end
 
 function CHC_window:onActivateSubView(target)
@@ -687,10 +902,15 @@ function CHC_window:onActivateSubView(target)
         info = self.viewNameToInfoText[top.name] .. self.infotext_common_items
     end
 
-    if sub.view.ui_type == 'fav_recipes' then
+    self:onActivateViewAdjustPositions(sub, true)
+    if sub.view.ui_type == 'fav_recipes' or sub.view.ui_type == 'fav_items' then
+        self.bottomPanel.needUpdatePresets = true
         sub.view.needUpdateObjects = true
     end
     self:setInfo(info)
+
+    self:handleFiltersUIState(sub)
+    self.prevSubViewType = self:getViewType(sub.view)
 end
 
 function CHC_window:onMainTabRightMouseDown(x, y)
@@ -704,7 +924,7 @@ function CHC_window:onMainTabRightMouseDown(x, y)
     local context = ISContextMenu.get(0, getMouseX() - 50, getMouseY() - 105)
     if #self.viewList > 3 then
         context:addOption(getText('IGUI_tab_ctx_close_others'), self, CHC_window.closeOtherTabs, tabIndex)
-        context:addOption(getText('IGUI_CraftUI_Close') .. ' ' .. string.lower(getText('UI_All')),
+        context:addOption(getText('IGUI_CraftUI_Close') .. ' ' .. lower(getText('UI_All')),
             self, CHC_window.closeAllTabs)
     end
     context:addOption(getText('IGUI_CraftUI_Close'), self, CHC_window.closeTab, tabIndex)
@@ -738,12 +958,15 @@ end
 
 function CHC_window:closeTab(tabIndex)
     local vl = self.viewList
+    if not vl then return end
     local clicked = vl[tabIndex]
     local active = self.activeView
 
     self:removeView(clicked.view)
     if clicked == active then
-        local actIdx = math.min(#vl, tabIndex + 1)
+        local actIdx = tabIndex + 1
+        if actIdx > #vl then actIdx = #vl end
+
         if not self:getView(vl[actIdx].name) then
             actIdx = actIdx - 1
         end
@@ -762,6 +985,14 @@ local modifierOptionToKey = {
     [4] = 'control+shift'
 }
 
+local scroll_speed_map = {
+    [1] = 10,
+    [2] = 50,
+    [3] = 100,
+    [4] = 200,
+    [5] = 500
+}
+
 function CHC_window:isModifierKeyDown(_type)
     local modifier
     if _type == 'recipe' then
@@ -770,8 +1001,10 @@ function CHC_window:isModifierKeyDown(_type)
         modifier = modifierOptionToKey[CHC_settings.config.category_selector_modifier]
     elseif _type == 'tab' then
         modifier = modifierOptionToKey[CHC_settings.config.tab_selector_modifier]
+    elseif _type == 'closetab' then
+        modifier = modifierOptionToKey[CHC_settings.config.tab_close_selector_modifier]
     else
-        error('Unknown modifier type', string.format('CHC_window:isModifierKeyDown(%s)', _type))
+        error('Unknown modifier type', format('CHC_window:isModifierKeyDown(%s)', _type))
     end
 
     if not modifier then error('No modifier found!', 'CHC_window:isModifierKeyDown') end
@@ -817,21 +1050,45 @@ function CHC_window:handleListMove(key, rl, subview)
     end
 end
 
-function CHC_window:onKeyRelease(key)
+function CHC_window:onKeyRepeat(key)
+    if self.isCollapsed then return end
+    if not self.keyPressedMS then return end
+    if (getTimestampMs() - self.keyPressedMS >= scroll_speed_map[CHC_settings.config.scroll_speed]) then
+        local subview, _ = self:getActiveSubView()
+        if not subview then return end
+        subview = subview.view
+        local rl = subview.objList
+        self:handleListMove(key, rl, subview)
+        self.keyPressedMS = getTimestampMs()
+    end
+end
+
+function CHC_window:onKeyPress(key)
+    if key == CHC_settings.keybinds.close_window.key then
+        self:close()
+        return
+    end
     if self.isCollapsed then return end
 
     local ui = self
+    local activeViewIx = ui.panel:getActiveViewIndex()
     local subview, view = self:getActiveSubView()
     if not subview or not view then
-        utils.chcerror("Can't determine (sub-)view", "CHC_window:onKeyRelease", nil, false)
+        utils.chcerror("Can't determine (sub-)view", "CHC_window:onKeyPress", nil, false)
         return
     end
+
+    self.keyPressedMS = getTimestampMs()
     subview = subview.view
     local rl = subview.objList
 
     -- region close
-    if key == CHC_settings.keybinds.close_window.key then
-        self:close()
+
+
+    -- active tab
+    if key == CHC_settings.keybinds.close_tab.key and self:isModifierKeyDown('closetab') then
+        if activeViewIx <= 2 then return end -- dont interact with search and favorites
+        self.closeTab(ui.panel, activeViewIx)
         return
     end
     -- endregion
@@ -860,7 +1117,7 @@ function CHC_window:onKeyRelease(key)
         end
     end
 
-    local oldvSel = ui.panel:getActiveViewIndex()
+    local oldvSel = activeViewIx
     local newvSel = oldvSel
     local pTabs = ui.panel.viewList
     if (key == CHC_settings.keybinds.move_tab_left.key) and self:isModifierKeyDown('tab') then
@@ -988,16 +1245,20 @@ end
 
 function CHC_window:serializeWindowData()
     local vl = self.panel
-    CHC_settings.config.main_window = {
+    if not vl or not vl.viewList or type(vl.viewList) ~= "table" then return end
+    local main_window = {
         x = self:getX(),
         y = self:getY(),
         w = self:getWidth(),
-        h = self:getHeight()
+        h = self:getHeight(),
+        a = self.backgroundColor.a
     }
+    if #vl.viewList < 1 then return end
     local sref = vl.viewList[1].view     -- search view
+    if not sref then return end
     local sref_i = sref.viewList[1].view -- search-items subview
     local sref_r = sref.viewList[2].view -- search-recipes subview
-    CHC_settings.config.search = {
+    local search = {
         items = {
             sep_x = sref_i.headers.typeHeader.x,
             filter_asc = sref_i.itemSortAsc == true,
@@ -1009,10 +1270,12 @@ function CHC_window:serializeWindowData()
             filter_type = sref_r.typeFilter
         }
     }
+    if #vl.viewList < 2 then return end
     local fref = vl.viewList[2].view     -- favorites view
+    if not fref then return end
     local fref_i = fref.viewList[1].view -- favorites-items subview
     local fref_r = fref.viewList[2].view -- favorites-recipes subview
-    CHC_settings.config.favorites = {
+    local favorites = {
         items = {
             sep_x = fref_i.headers.typeHeader.x,
             filter_asc = fref_i.itemSortAsc == true,
@@ -1024,7 +1287,555 @@ function CHC_window:serializeWindowData()
             filter_type = fref_r.typeFilter
         }
     }
+    CHC_settings.config.main_window = main_window
+    CHC_settings.config.search = search
+    CHC_settings.config.favorites = favorites
 end
+
+function CHC_window:onMouseWheel(del)
+    -- don't zoom in game while cursor over window
+    return false
+end
+
+function CHC_window:onMouseMove(dx, dy)
+    ISCollapsableWindow.onMouseMove(self, dx, dy)
+    if self.moving then
+        self.filtersUIItems:setPosition()
+        self.filtersUIRecipes:setPosition()
+    end
+end
+
+--region preset buttons handlers
+CHC_window.presets = {}
+
+function CHC_window.presets.handleInvalidInput(text)
+    local minlen = 1
+    local maxlen = 50
+    local len = text:len()
+    local msg
+    local invalid = true
+    if len < minlen then
+        msg = getText("UI_Presets_NameTooShort") .. format(" (%d < %d)", len, minlen)
+    elseif len > maxlen then
+        msg = getText("UI_Presets_NameTooLong") .. format(" (%d > %d)", len, maxlen)
+        -- elseif not text:match("[a-zA-Z0-9_]") or text:match("%W") then
+        --     msg = "Only letters and numbers are allowed!"
+        -- elseif text:sub(1, 1):match("%d") then
+        --     msg = "First character must be letter!"
+    else
+        invalid = false
+    end
+
+    return not invalid, msg
+end
+
+function CHC_window.presets:_savePreset(text)
+    local ui_type = CHC_main.common.getCurrentUiType(self.window)
+    local to_save = self:getPresetStorage()
+    to_save[text] = self:getCurrentFavoritesFromModData(ui_type)
+    CHC_presets.saveData(self)
+    self.needUpdatePresets = true
+end
+
+---Overwrite existing preset
+---@param text string new preset name
+---@param existing string | table<integer, string> existing preset name OR list of current favorites
+---@param overwrite boolean? true if `existing` is `string`
+function CHC_window.presets:_overwritePreset(text, existing, overwrite)
+    local to_save = self:getPresetStorage()
+    local to_overwrite
+    if overwrite == true then
+        to_overwrite = to_save[existing]
+    else
+        to_overwrite = existing
+    end
+    to_save[text] = copyTable(to_overwrite)
+    if overwrite == true then
+        to_save[existing] = nil
+    end
+    CHC_presets.saveData(self)
+    self.needUpdatePresets = true
+end
+
+function CHC_window.presets:onMoreBtnSaveClick()
+    local to_save = self:getPresetStorage()
+    local selectedPreset = self:getSelectedPreset()
+    local currentFav = self:getCurrentFavorites()
+
+    local function onOverwritePreset(_, button, name)
+        if button.internal == "YES" then
+            CHC_window.presets._savePreset(self, name)
+            button.parent.parent:destroy()
+        end
+    end
+
+    local function savePreset(_, button)
+        if button.internal == "OK" then
+            local text = button.parent.entry:getText():trim()
+            local params = {
+                type = ISModalDialog,
+                _parent = self.window,
+                text = getText("UI_Presets_Overwrite"),
+                yesno = true,
+                onclick = onOverwritePreset,
+                param1 = text,
+            }
+            local validInput, msg = CHC_window.presets.handleInvalidInput(text)
+            if not validInput then
+                params.yesno = false
+                params.text = msg
+                CHC_presets.addModal(self, params)
+                return
+            end
+            if to_save[text] then
+                params.parent = button.parent
+                CHC_presets.addModal(self, params)
+            else
+                CHC_window.presets._savePreset(self, text)
+                button.parent.showError = false
+            end
+        elseif button.internal == "CANCEL" then
+            button.parent.showError = false
+        end
+    end
+    -- popup with input and save/cancel buttons
+    -- check for overwriting
+    -- on save add to CHC_settings
+    -- and save to disk
+    local params = { _parent = self.window }
+
+    if not currentFav or #currentFav.items == 0 then
+        params.type = ISModalDialog
+        params.yesno = false
+        params.text = getText("UI_Presets_NoFavorites",
+            CHC_main.common.getCurrentUiTypeLocalized(self):lower())
+    else
+        params.type = ISTextBox
+        params.text = getText("UI_Presets_TextBox_EnterName")
+        params.defaultEntryText = ""
+        params.onclick = savePreset
+        params.showError = true -- to prevent destroying on click
+        params.errorMsg = ""
+        if selectedPreset and selectedPreset.text ~= self.defaultPresetName then
+            params.defaultEntryText = selectedPreset.text
+        end
+    end
+    CHC_presets.addModal(self, params)
+end
+
+function CHC_window.presets:onMoreBtnApplyClick()
+    -- popup "are you sure? this will overwrite existing"
+    -- overwrite existing favorites with preset
+    local selectedPreset = self:getSelectedPreset()
+    local ui_type = CHC_main.common.getCurrentUiType(self.window)
+
+    local function applyPreset(_, button)
+        if button.internal ~= "YES" then return end
+
+        local favorites = self:transformFavoriteObjListToModData(ui_type, true)
+        local modData = CHC_menu.playerModData
+        if ui_type == "items" then
+            modData.CHC_item_favorites = favorites
+        elseif ui_type == "recipes" then
+            for key, value in pairs(modData) do
+                if utils.startswith(key, "craftingFavorite:") and value == true then
+                    modData[key] = nil
+                end
+            end
+            for key, _ in pairs(favorites) do
+                if utils.startswith(key, "craftingFavorite:") then
+                    modData[key] = true
+                end
+            end
+        end
+        local sub = self.window:getActiveSubView()
+        if not sub then return end
+        sub.view.needUpdateFavorites = true
+    end
+
+    local msg = getText("UI_Presets_OverwriteExisting")
+    local yesno = true
+    if not selectedPreset or selectedPreset.text == self.defaultPresetName then
+        yesno = false
+        msg = getText("UI_Presets_NoPresetSelected")
+    end
+    local params = {
+        type = ISModalDialog,
+        _parent = self.window,
+        text = msg,
+        yesno = yesno,
+        onclick = applyPreset
+    }
+    CHC_presets.addModal(self, params)
+end
+
+function CHC_window.presets:onMoreBtnRenameClick()
+    -- popup with input (prefilled?) and ok/cancel buttons
+    -- on ok remove old entry and add new one to CHC_settings
+    local selectedPreset = self:getSelectedPreset()
+    local to_save = self:getPresetStorage()
+
+    ---@param _ any
+    ---@param button table
+    ---@param existing string
+    ---@param new string
+    local function onOverwritePreset(_, button, existing, new)
+        if button.internal == "YES" then
+            CHC_window.presets._overwritePreset(self, new, existing, true)
+            button.parent.parent:destroy()
+        end
+    end
+
+    ---@param _ any
+    ---@param button table
+    ---@param existingName string
+    local function renamePreset(_, button, existingName)
+        if button.internal == "OK" then
+            local text = button.parent.entry:getText():trim()
+            local params = {
+                type = ISModalDialog,
+                _parent = self.window,
+                text = getText("UI_Presets_Overwrite"),
+                yesno = true,
+                onclick = onOverwritePreset,
+                param1 = existingName,
+                param2 = text,
+            }
+            local validInput, msg = CHC_window.presets.handleInvalidInput(text)
+            if not validInput then
+                params.yesno = false
+                params.text = msg
+                CHC_presets.addModal(self, params)
+                return
+            end
+            if existingName == text then
+                button.parent.showError = false
+            elseif to_save[text] then
+                params.parent = button.parent
+                CHC_presets.addModal(self, params)
+            else
+                CHC_window.presets._overwritePreset(self, text, existingName, true)
+                button.parent.showError = false
+            end
+        elseif button.internal == "CANCEL" then
+            button.parent.showError = false
+        end
+    end
+
+    local params = {
+        _parent = self.window,
+    }
+
+    if not selectedPreset or selectedPreset.text == self.defaultPresetName then
+        params.type = ISModalDialog
+        params.yesno = false
+        params.text = getText("UI_Presets_NoPresetSelected")
+    else
+        params.type = ISTextBox
+        params.defaultEntryText = selectedPreset.text
+        params.text = getText("UI_Presets_TextBox_EnterName")
+        params.onclick = renamePreset
+        params.param1 = selectedPreset.text
+        params.showError = true -- to prevent destroying on click
+        params.errorMsg = ""
+    end
+    CHC_presets.addModal(self, params)
+end
+
+function CHC_window.presets:onMoreBtnAppendClick()
+    -- add to existing favorites
+    local to_save = self:getPresetStorage()
+    local selectedPreset = self:getSelectedPreset()
+    local currentFav = self:getCurrentFavorites()
+end
+
+function CHC_window.presets:onMoreBtnCompareClick()
+    -- window with differences between favorites
+    -- aka modcomparer but simpler (no ordering)
+    -- close button
+    local a = CHC_main
+    local selected = self:getSelectedPreset()
+    if not selected then return end
+    local to_load = self:getPresetStorage()
+    df:df()
+end
+
+function CHC_window.presets:onMoreBtnDuplicateClick()
+    local selectedPreset = self:getSelectedPreset()
+    local ui_type = CHC_main.common.getCurrentUiType(self.window)
+    local to_save = self:getPresetStorage()
+
+    local function onOverwritePreset(_, button, existing, text)
+        if button.internal ~= "YES" then return end
+        CHC_window.presets._overwritePreset(self, text, existing, true)
+        button.parent.parent:destroy()
+    end
+
+    local function duplicatePreset(_, button, existingName)
+        if button.internal == "OK" then
+            local text = button.parent.entry:getText():trim()
+            local params = {
+                type = ISModalDialog,
+                _parent = self.window,
+                text = getText("UI_Presets_Overwrite"),
+                yesno = true,
+                onclick = onOverwritePreset,
+                param1 = existingName,
+                param2 = text,
+            }
+            local validInput, msg = CHC_window.presets.handleInvalidInput(text)
+            if not validInput then
+                params.yesno = false
+                params.text = msg
+                CHC_presets.addModal(self, params)
+                return
+            end
+            if to_save[text] then
+                params.parent = button.parent
+                CHC_presets.addModal(self, params)
+            else
+                CHC_window.presets._overwritePreset(self, text, self:transformFavoriteObjListToModData(ui_type))
+                button.parent.showError = false
+            end
+        elseif button.internal == "CANCEL" then
+            button.parent.showError = false
+        end
+    end
+
+    local params = {
+        _parent = self.window,
+    }
+
+    if not selectedPreset or selectedPreset.text == self.defaultPresetName then
+        params.type = ISModalDialog
+        params.yesno = false
+        params.text = getText("UI_Presets_NoPresetSelected")
+        CHC_presets.addModal(self, params)
+        return
+    end
+    params.type = ISTextBox
+    params.defaultEntryText = selectedPreset.text .. " (Copy)"
+    params.text = getText("UI_Presets_TextBox_EnterName")
+    params.onclick = duplicatePreset
+    params.param1 = selectedPreset.text
+    params.showError = true -- to prevent destroying on click
+    params.errorMsg = ""
+    CHC_presets.addModal(self, params)
+end
+
+function CHC_window.presets:onMoreBtnShareClick()
+    local selectedPreset = self:getSelectedPreset()
+    if not selectedPreset then return end
+    local ui_type = CHC_main.common.getCurrentUiType(self.window)
+    local entries = selectedPreset.text == self.defaultPresetName and
+        self:getCurrentFavoritesFromModData(ui_type) or
+        copyTable(self:getPresetStorage()[selectedPreset.text])
+    local to_share = {
+        entries = entries,
+        type = ui_type,
+    }
+    local to_share_str = utils.tableutil.serialize(to_share)
+
+    local function copy(_, button)
+        if button.internal ~= "CANCEL" then return end
+        if to_share_str then
+            Clipboard.setClipboard(tostring(to_share_str))
+        end
+    end
+    local params = {
+        type = ISTextBox,
+        _parent = self.window,
+        width = 250,
+        height = 350,
+        text = getText("UI_Presets_Share_Title"),
+        onclick = copy,
+        defaultEntryText = to_share_str or "",
+    }
+
+    local modal = CHC_presets.addModal(self, params)
+    modal.entry:setMultipleLine(true)
+    modal.entry:setEditable(true)
+    modal.entry:addScrollBars()
+    modal.entry:setHeight(modal.height - modal.yes.height - 40)
+    modal.entry:setY(25)
+    modal.no:setTitle(getText("IGUI_chc_Copy"))
+end
+
+function CHC_window.presets:onMoreBtnImportClick()
+    -- popup with input box where user should paste string
+    -- then validate string, if ok - new popup to enter name
+    -- if failed - popup "incorrect string"
+    -- if only some failed (i.e some mods missing - show how many will be loaded (e.g. 10/12))
+    local to_save = self:getPresetStorage()
+
+    local function onOverwritePreset(_, button, name)
+        if button.internal ~= "YES" then return end
+        CHC_window.presets._savePreset(self, name)
+        button.parent.parent:destroy()
+    end
+
+    local function savePreset(_, button)
+        if button.internal == "OK" then
+            local text = button.parent.entry:getText():trim()
+            local params = {
+                type = ISModalDialog,
+                _parent = self.window,
+                text = getText("UI_Presets_Overwrite"),
+                yesno = true,
+                onclick = onOverwritePreset,
+                param1 = text,
+            }
+            local validInput, msg = CHC_window.presets.handleInvalidInput(text)
+            if not validInput then
+                params.yesno = false
+                params.text = msg
+                CHC_presets.addModal(self, params)
+                return
+            end
+            if to_save[text] then
+                params.parent = button.parent
+                CHC_presets.addModal(self, params)
+            else
+                CHC_window.presets._savePreset(self, text)
+                button.parent.showError = false
+                button.parent.outerParent.showError = false
+            end
+        elseif button.internal == "CANCEL" then
+            button.parent.showError = false
+            button.parent.outerParent.showError = false
+        end
+    end
+
+    local function validate(text)
+        local result = { errors = {}, preset = {} }
+        local fn, _err = loadstring("return " .. tostring(text))
+        if not fn then
+            result.errors[#result.errors + 1] = getText("UI_Presets_Errors_InvalidFormat") .. format(" (%s)", _err)
+            return result
+        end
+        local status, preset = pcall(fn)
+        if not status or not preset then
+            result.errors[#result.errors + 1] = getText("UI_Presets_Errors_InvalidFormat")
+            preset = {}
+        end
+        -- validate preset values
+        local _type = preset.type or ""
+        _type = _type:trim()
+        if _type ~= "items" and _type ~= "recipes" then
+            result.errors[#result.errors + 1] = getText("UI_Presets_Errors_InvalidType")
+            preset.type = "items"
+        end
+
+        if not preset.entries or #preset.entries == 0 then
+            result.errors[#result.errors + 1] = getText("UI_Presets_Errors_InvalidEntries")
+            preset.entries = {}
+        end
+        local valid = {}
+        for i = 1, #preset.entries do
+            local objStr = tostring(preset.entries[i]):trim()
+            local _, _valid, err = CHC_presets.validatePreset(self, i, objStr, preset.type)
+            valid[#valid + 1] = _valid
+            result.errors = utils.concat(result.errors, err)
+        end
+        preset.entries = valid
+        result.preset = preset
+        return result
+    end
+
+    local function onclick(_, button)
+        if button.internal ~= "OK" then
+            button.parent.showError = false
+            return
+        end
+        -- validate and show errors, if any
+        -- if no errors - show popup to enter preset name
+        local text = button.parent.entry:getText():trim()
+        local validation_data = validate(text)
+        local params = {
+            _parent = self.window,
+            outerParent = button.parent.outerParent
+        }
+
+        if not utils.empty(validation_data.errors) then
+            params.type = ISTextBox
+            params.defaultEntryText = concat(validation_data.errors, "\n")
+            params.text = getText("UI_Presets_Errors_Title")
+            params.width = 250
+            params.height = 350
+
+            local modal = CHC_presets.addModal(self, params)
+            modal.no:setVisible(false)
+            modal.yes:setTitle("OK")
+            modal.yes:setX(modal.width / 2 - modal.yes.width / 2)
+            modal.entry:setMultipleLine(true)
+            modal.entry:setEditable(true)
+            modal.entry:addScrollBars()
+            modal.entry:setHeight(modal.height - modal.yes.height - 40)
+            modal.entry:setY(25)
+        else
+            params.type = ISTextBox
+            params.text = getText("UI_Presets_TextBox_EnterName")
+            params.defaultEntryText = ""
+            params.onclick = savePreset
+            params.showError = true
+            params.errorMsg = ""
+            CHC_presets.addModal(self, params)
+        end
+    end
+
+    local params = {
+        type = ISTextBox,
+        _parent = self.window,
+        width = 250,
+        height = 350,
+        onclick = onclick,
+        text = getText("UI_Presets_Import_Title"),
+        defaultEntryText = "",
+        showError = true, -- to prevent destroying on click
+        errorMsg = ""
+    }
+
+    local modal = CHC_presets.addModal(self, params)
+    modal.entry:setMultipleLine(true)
+    modal.entry:setEditable(true)
+    modal.entry:addScrollBars()
+    modal.entry:setHeight(modal.height - modal.yes.height - 40)
+    modal.entry:setY(25)
+    modal.outerParent = modal
+end
+
+function CHC_window.presets:onMoreBtnDeleteClick()
+    -- popup "are you sure?" and ok/cancel
+    -- on ok delete entry from CHC_settings and save
+    -- if preset not selected - popup (ok) with msg to select preset
+    local selectedPreset = self:getSelectedPreset()
+    if not selectedPreset then return end
+
+    local function deletePreset(_, button)
+        if button.internal ~= "YES" then return end
+        self:getPresetStorage()[selectedPreset.text] = nil
+        CHC_presets.saveData(self)
+        self.needUpdatePresets = true
+    end
+
+    local msg = getText("UI_Presets_Delete")
+    local yesno = true
+    if not selectedPreset or selectedPreset.text == self.defaultPresetName then
+        yesno = false
+        msg = getText("UI_Presets_NoPresetSelected")
+    end
+    local params = {
+        type = ISModalDialog,
+        _parent = self.window,
+        text = msg,
+        yesno = yesno,
+        onclick = deletePreset
+    }
+    CHC_presets.addModal(self, params)
+end
+
+--endregion
+--endregion
 
 --endregion
 
@@ -1057,7 +1868,6 @@ function CHC_window:new(args)
 
     o.options = CHC_settings.config
     o.needUpdateFavorites = false
-    o.needUpdateCounts = false
     o.needUpdateObjects = false
     o.updateQueue = utils.Deque:new()
     o.uiTypeToView = {}
@@ -1096,6 +1906,14 @@ function CHC_window:new(args)
     o.updRates = {
         { var = "needUpdateScroll",   rate = 50 }, -- TODO move to settings?
         { var = "needUpdateMousePos", rate = 100 }
+    }
+
+    o.panelSectionStates = {
+        attributes = true,  -- Item Attributes
+        ingredients = true, -- Recipe Ingredients
+        skills = true,      -- Recipe Needed Skills
+        books = true,       -- Recipe Required Books
+        equipment = true,   -- Recipe Equipment
     }
 
     return o

@@ -9,8 +9,8 @@ Szczegółowe informacje o interfejsie można znaleźć pod symbolem ⓘ (info) 
 
 Poza kartą przedmiotów istnieją również dwie wspólne karty:
 [list]
-[*] Pasek wyszukiwania, gdzie możesz znaleźć wszystkie przedmioty i przepisy (mogą występować lagi z dużą ilością innych modów)
-[*] Zakładka Ulubiona, gdzie możesz znaleźć wszystkie ulubione przedmioty i przepisy
+[*] Search tab, where you can find all items and recipes
+[*] Favorite tab, where you can find all your favorite items and recipes
 [/list]
 
 Bezpieczne dodanie/usunięcie z istniejących zapisów
@@ -25,22 +25,25 @@ Mod powinien być kompatybilny z wszystkimi innymi modami i MP
 [*]Pasek wyszukiwania. Wspiera własne reguły (kliknij na magnifier)
 [*]Przyciski do porządkowania listy według nazwy lub typu
 [*]Możliwość przepisów i przedmiotów do ulubionych. Nawet tych, które są jeszcze nieznane!
+[*]Presets for favorite recipes and items.
 [/list]
 
 [hr][/hr]
 [h2]Opcje ([url=https://steamcommunity.com/workshop/filedetails/?id=2169435993]Mod Options[/url] wymagany do zmiany):[/h2]
 [list]
-[*] Możliwość obsługi własnych reguł (domyślnie WŁĄCZONE)
+[*] Enable custom rules for search (by default ON)
 [*] Pokazanie ikon przedmiotów na liście (WŁĄCZONE)
 [*] Pokazanie ukrytych przedmioty/receptury (WYŁĄCZONE)
 [*] Zamknięcie wszystkich kart przy zamknięciu (WYŁĄCZONE)
-[*] Wybierz rozmiar czcionki dla elementów z listy (domyślnie DUŻA)
+[*] Select font size for items in list (Medium)
 [*] Klawisze modyfikujące (Shift, Ctrl) dla niektórych skrótów klawiszowych (wszystkie Brak)
 [*] Pokaż źródło przepisu (Mod) (WŁĄCZONE)
-[*] Włącz edytowalny selektor kategorii (domyślnie WYŁĄCZONY)
-[*] Pokazanie ulubionych przedmiotów w ekwipunku (domyślnie WYŁĄCZONE)
-[*] Opcja menu kontekstowego, aby znaleźć i przełączyć status ulubionych elementów (Shift + Prawy przycisk myszy na przedmiocie)
-[*] Opóźnione wyszukiwanie (Naciśnij Enter, aby wykonać wyszukiwanie) (domyślnie WYŁĄCZONE)
+[*] Show favorite items in inventories (OFF)
+[*] Enable editable category selector (OFF)
+[*] Delayed search (Need to press Enter to perform search) (OFF)
+[*] Behaviour when right-clicking items in inventory (only "Craft Helper" option)
+[*] Window opacity (80%)
+[*] Scroll speed (100 ms)
 [/list]
 Również z "Opcjami modyfikacji" można ustawić dla niektórych czynności skróty klawiszowe (Skróty klawiszowe -> Craft Helper).
 
@@ -49,13 +52,17 @@ Również z "Opcjami modyfikacji" można ustawić dla niektórych czynności skr
 [list]
 [*]Angielski
 [*]Rosyjski
-[*]Hiszpański (częściowo)
+[*]Spanish
 [*]Tajski
 [*]Koreański
 [*]Brazylijski portugalski
 [*]Chiński (tradycyjny)
-[*]Polski
-[*]Niemiecki
+[*]Polish
+[*]German
+[*]Italian
+[*]Ukrainian
+[*]French
+[*]Simplified Chinese
 [/list]
 
 Jeśli chcesz pomóc w przetłumaczeniu, możesz to zrobić na stronie Crowdin:
@@ -69,11 +76,6 @@ Jeśli chcesz pomóc w przetłumaczeniu, możesz to zrobić na stronie Crowdin:
 [list][*][url=https://trello.com/b/KmLQqo32/craft-helper-continued]Trello[/url][/list]
 
 [url=https://github.com/lanceris/pz_crafthelper]Kod źródłowy[/url]
-
-[h2]Jeśli podoba Ci się ten mod, polub go, dodaj do ulubionych i rozważ zakup dla mnie kawy :) [/h2]
-[IMG]https://i.imgur.com/6OBlYju.gif[/IMG]
-[url=https://www.buymeacoffee.com/lanceris][img]https://i.postimg.cc/T20N6mr1/default-yellow.png[/img][/url]
-
 
 [hr][/hr]
 [quote]Mod permission according to TIS policy: [url=https://theindiestone.com/forums/index.php?/topic/2530-mod-permissions/&tab=comments#comment-36478]Ask for permission[/url]

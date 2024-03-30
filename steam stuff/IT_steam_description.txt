@@ -9,8 +9,8 @@ Informazioni dettagliate sull'interfaccia possono essere trovate sotto ⓘ (info
 
 Oltre alla scheda oggetto, ci sono anche due schede comuni:
 [list]
-[*] Scheda di ricerca, dove puoi trovare tutti gli oggetti e le ricette (potrebbe laggare con tante mods)
-[*] Scheda preferita, dove puoi trovare tutti gli oggetti e le ricette preferite
+[*] Search tab, where you can find all items and recipes
+[*] Favorite tab, where you can find all your favorite items and recipes
 [/list]
 
 Sicura da aggiungere/rimuovere per/da salvataggi esistenti
@@ -25,22 +25,25 @@ Dovrebbe essere compatibile con tutte le mods e MP
 [*]Barra di ricerca. Supporta regole personalizzate (clicca sulla lente di ingrandimento)
 [*]Pulsanti per ordinare la lista per nome o tipo
 [*]Possibilità di ricette e oggetti preferiti. Persino quelle sconosciute!
+[*]Presets for favorite recipes and items.
 [/list]
 
 [hr][/hr]
 [h2]Opzioni ([url=https://steamcommunity.com/workshop/filedetails/?id=2169435993]Opzioni Mod[/url] richieste per cambiare):[/h2]
 [list]
-[*] Abilita il supporto alle regole personalizzate (per impostazione predefinita ON)
+[*] Enable custom rules for search (by default ON)
 [*] Mostra le icone degli oggetti nella lista (ON)
 [*] Mostra oggetti/ricette nascosti (OFF)
 [*] Chiudi tutte le schede alla chiusura (OFF)
-[*] Seleziona la dimensione del carattere per gli oggetti nella lista (Large)
+[*] Select font size for items in list (Medium)
 [*] Tasti modificabili (Shift, Ctrl) per alcune combinazioni di tasti (tutte nessuno)
 [*] Mostra l'origine della ricetta (Mod) (ON)
-[*] Abilita il selettore di categoria modificabile (per impostazione predefinita OFF)
-[*] Mostra gli oggetti preferiti negli inventari (per impostazione predefinita OFF)
-[*] Opzione del menu contestuale per trovare e attivare/disattivare lo stato preferito dell'oggetto (Shift + clic destro sull'oggetto)
-[*] Ricerca Rallentata (necessità di premere Invio per eseguire la ricerca) (per impostazione predefinita OFF)
+[*] Show favorite items in inventories (OFF)
+[*] Enable editable category selector (OFF)
+[*] Delayed search (Need to press Enter to perform search) (OFF)
+[*] Behaviour when right-clicking items in inventory (only "Craft Helper" option)
+[*] Window opacity (80%)
+[*] Scroll speed (100 ms)
 [/list]
 Inoltre, con "Mod Options" è possibile impostare le combinazioni di tasti (Key bindings -> Craft Helper) per alcune azioni.
 
@@ -56,6 +59,10 @@ Inoltre, con "Mod Options" è possibile impostare le combinazioni di tasti (Key 
 [*]Cinese Tradizionale
 [*]Polacco
 [*]Tedesco
+[*]Italian
+[*]Ukrainian
+[*]French
+[*]Simplified Chinese
 [/list]
 
 Se desideri contribuire alla traduzione, per favore visita la pagina di Crowdin.
@@ -69,11 +76,6 @@ Se desideri contribuire alla traduzione, per favore visita la pagina di Crowdin.
 [list][*][url=https://trello.com/b/KmLQqo32/craft-helper-continued]Trello[/url][/list]
 
 [url=https://github.com/lanceris/pz_crafthelper]Codice sorgente[/url]
-
-[h2]Se ti piace questa mod, per favore metti mi piace, aggiungilo ai preferiti e considera di supportarmi con un caffè :) [/h2]
-[IMG]https://i.imgur.com/6OBlYju.gif[/IMG]
-[url=https://www.buymeacoffee.com/lanceris][img]https://i.postimg.cc/T20N6mr1/default-yellow.png[/img][/url]
-
 
 [hr][/hr]
 [quote]Mod permission according to TIS policy: [url=https://theindiestone.com/forums/index.php?/topic/2530-mod-permissions/&tab=comments#comment-36478]Ask for permission[/url]

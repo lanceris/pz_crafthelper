@@ -1,18 +1,25 @@
-require 'CHC_main'
+CHC_main.common       = {}
 
-CHC_main.common = {}
-
-local utils = require('CHC_utils')
-local error = utils.chcerror
-local insert = table.insert
-local contains = string.contains
+local utils           = require('CHC_utils')
+local error           = utils.chcerror
+local contains        = string.contains
+local type            = type
+local trim            = string.trim
+local sub             = string.sub
 local globalTextLimit = 1000 -- FIXME
+
+local original        = getTexture
+local getTexture      = function(fileName)
+    if fileName == nil then return nil end
+    return original(fileName) or Texture.trygetTexture(fileName)
+end
 
 
 CHC_main.common.fontSizeToInternal = {
-    { font = UIFont.Small,  pad = 4, icon = 10 },
-    { font = UIFont.Medium, pad = 4, icon = 18 },
-    { font = UIFont.Large,  pad = 6, icon = 24 }
+    { font = UIFont.NewSmall, pad = 0, icon = 6 },
+    { font = UIFont.Small,    pad = 4, icon = 10 },
+    { font = UIFont.Medium,   pad = 4, icon = 18 },
+    { font = UIFont.Large,    pad = 6, icon = 24 }
 }
 
 CHC_main.common.heights = {
@@ -23,10 +30,10 @@ CHC_main.common.heights = {
 
 -- parse tokens from search query, determine search type (single/multi) and query type (and/or), get state based on processTokenFunc
 function CHC_main.common.searchFilter(self, q, processTokenFunc)
-    local stateText = string.trim(self.searchRow.searchBar:getInternalText())
-    if #stateText > globalTextLimit then
-        return true
-    end
+    local stateText = trim(self.searchRow.searchBar:getInternalText())
+    if stateText == '' then return true end
+    if #stateText > globalTextLimit then return true end
+
     local tokens, isMultiSearch, queryType = CHC_search_bar:parseTokens(stateText)
     local tokenStates = {}
     local state = false
@@ -35,7 +42,7 @@ function CHC_main.common.searchFilter(self, q, processTokenFunc)
 
     if isMultiSearch then
         for i = 1, #tokens do
-            insert(tokenStates, processTokenFunc(self, tokens[i], q))
+            tokenStates[#tokenStates + 1] = processTokenFunc(self, tokens[i], q)
         end
         for i = 1, #tokenStates do
             if queryType == 'OR' then
@@ -71,7 +78,7 @@ function CHC_main.common.setTooltipToCtx(option, text, isAvailable, isAdd, maxTe
     local _tooltip
     if isAdd then
         _tooltip = option.toolTip
-        text = string.sub(_tooltip.description, 1, maxTextLength) .. ' ... ' .. '<LINE>' .. text
+        text = sub(_tooltip.description, 1, maxTextLength) .. ' ... ' .. '<LINE>' .. text
     else
         _tooltip = ISToolTip:new()
         _tooltip:initialise()
@@ -107,13 +114,17 @@ end
 
 function CHC_main.common.getItemProps(item)
     local attrs = {}
+    if not item.props then
+        -- print("loading props for " .. item.fullType)
+        item.props, item.propsMap = CHC_main.getItemProps(item.item, item.category)
+    end
     if CHC_settings.config.show_all_props == true then
         attrs = item.props
     elseif item.props then
         for i = 1, #item.props do
             local prop = item.props[i]
             if prop.ignore ~= true then
-                insert(attrs, prop)
+                attrs[#attrs + 1] = prop
             end
         end
     end
@@ -172,7 +183,7 @@ function CHC_main.common.isRecipeValid(recipe, player, containerList, knownRecip
             -- print('lua')
             local luaCanPerformFunc = recipe.recipeData.lua.onCanPerform
             if luaCanPerformFunc then
-                return luaCanPerformFunc(recipe, player, nil)
+                return luaCanPerformFunc(recipe.recipe, player, nil)
             else
                 return false
             end
@@ -280,7 +291,7 @@ function CHC_main.common.getNearbyItems(containerList, fullTypesToCheck)
                         local obj = CHC_main.items[extraItems:get(j)]
                         if obj then
                             extraItemMap[obj.fullType] = true
-                            insert(extraItemObjs, obj)
+                            extraItemObjs[#extraItemObjs + 1] = obj
                         end
                     end
                     result.extraItemsMap = extraItemMap
@@ -292,7 +303,7 @@ function CHC_main.common.getNearbyItems(containerList, fullTypesToCheck)
                         result[k] = v
                     end
                 end
-                insert(items, result)
+                items[#items + 1] = result
             end
         end
     end
@@ -304,36 +315,36 @@ function CHC_main.common._getFoodDataTemplate()
         hunger = {
             text = getText("Tooltip_food_Hunger"),
             posGood = false,
-            icon = getTexture("media/textures/evolved_food_data/CHC_hunger.png")
+            icon = CHC_window.icons.recipe.evolved.food_data.hunger
         },
         thirst = {
             text = getText("Tooltip_food_Thirst"),
             posGood = false,
-            icon = getTexture("media/textures/evolved_food_data/CHC_evolved_thirst.png")
+            icon = CHC_window.icons.recipe.evolved.food_data.thirst
         },
         endurance = {
             text = getText("Tooltip_food_Endurance"),
             posGood = true,
-            icon = getTexture("media/textures/evolved_food_data/CHC_endurance.png")
+            icon = CHC_window.icons.recipe.evolved.food_data.endurance
         },
         stress = {
             text = getText("Tooltip_food_Stress"),
             posGood = false,
-            icon = getTexture("media/textures/evolved_food_data/CHC_stress.png")
+            icon = CHC_window.icons.recipe.evolved.food_data.stress
         },
         boredom = {
             text = getText("Tooltip_food_Boredom"),
             posGood = false,
-            icon = getTexture("media/textures/evolved_food_data/CHC_boredom.png")
+            icon = CHC_window.icons.recipe.evolved.food_data.boredom
         },
         unhappy = {
             text = getText("Tooltip_food_Unhappiness"),
             posGood = false,
-            icon = getTexture("media/textures/evolved_food_data/CHC_unhappiness.png")
+            icon = CHC_window.icons.recipe.evolved.food_data.unhappy
         },
         nutr_calories = {
             text = getText("Tooltip_food_Calories"),
-            icon = getTexture("media/textures/evolved_food_data/CHC_calories.png")
+            icon = CHC_window.icons.recipe.evolved.food_data.nutr_calories
         },
         nutr_cal_carbs = {
             text = getText("Tooltip_food_Carbs")
@@ -381,7 +392,7 @@ function CHC_main.common.getFoodData(item)
             local obj = CHC_main.items[extraSpices:get(j)]
             if obj then
                 extraSpiceMap[obj.fullType] = true
-                insert(extraSpiceObjs, obj)
+                extraSpiceObjs[#extraSpiceObjs + 1] = obj
             end
         end
         result.extraSpicesMap = extraSpiceMap
@@ -396,7 +407,8 @@ function CHC_main.common.getFoodDataSpice(baseItem, item, evoRecipe, cookLvl)
     local var7 = cookLvl / 15 + 1
 
     local hung = baseItem:getHungChange()
-    local var8 = math.abs(use / hung)
+    local var8 = use / hung
+    var8 = var8 < 0 and -var8 or var8
     if var8 > 1 then var8 = 1 end
     local calories = 0 --item:getCalories() * var7 * var8
     local proteins = 0 --item:getProteins() * var7 * var8
@@ -454,7 +466,7 @@ function CHC_main.common.getNearbyIsoObjectNames(player)
                     local obj = o:get(i):getName()
                     if obj then
                         res[2][obj] = true
-                        if math.abs(x) <= 1 and math.abs(y) <= 1 then
+                        if (x >= 0 and x or -x) <= 1 and (y >= 0 and y or -y) <= 1 then
                             res[1][obj] = true
                         end
                     end
@@ -487,7 +499,7 @@ function CHC_main.common.handleTextOverflow(labelObj, limit)
     local newText = text
     local iconW = labelObj.icon and labelObj.iconSize + 3 or 0
     local ma = 100
-    local textLen = round(getTextManager():MeasureStringX(labelObj.font, newText) + 3, 0) + iconW
+    local textLen = round(utils.strWidth(labelObj.font, newText) + 3, 0) + iconW
     limit = round(limit, 0)
 
     if textLen > limit or textLen < limit - 5 then
@@ -495,14 +507,14 @@ function CHC_main.common.handleTextOverflow(labelObj, limit)
             while textLen < limit do
                 if ma < 0 or #newText >= #labelObj.origName then break end
                 newText = labelObj.origName:sub(1, #newText + 1)
-                textLen = getTextManager():MeasureStringX(labelObj.font, newText) + iconW
+                textLen = utils.strWidth(labelObj.font, newText) + iconW
                 ma = ma - 1
             end
         else
             while textLen > limit do
                 if ma < 0 then break end
                 newText = newText:sub(1, #newText - 1)
-                textLen = getTextManager():MeasureStringX(labelObj.font, newText) + iconW
+                textLen = utils.strWidth(labelObj.font, newText) + iconW
                 ma = ma - 1
             end
         end
@@ -540,8 +552,7 @@ CHC_main.common.getFavItemModDataStr = function(item)
     elseif type(item) == 'string' then
         fullType = item
     end
-    local text = 'itemFavoriteCHC:' .. fullType
-    return text
+    return fullType
 end
 
 CHC_main.common.getFavoriteRecipeModDataString = function(recipe)
@@ -560,4 +571,108 @@ CHC_main.common.getFavoriteRecipeModDataString = function(recipe)
         end
     end
     return text
+end
+
+function CHC_main.common.addModal(params, onTop)
+    if onTop == nil then onTop = true end
+    local w = params.w or 250
+    local h = params.h or 100
+    local x = params._parent.x + params._parent.width / 2 - w / 2
+    local y = params._parent.y + params._parent.height / 2 - h / 2
+
+    local modal = params.type:new(x, y, w, h, params.text)
+    for key, value in pairs(params) do
+        if not utils.any({ "type", "x", "y", "w", "h", "_parent", "text" }, key) then
+            modal[key] = value
+        end
+    end
+    modal:initialise()
+    modal:addToUIManager()
+    modal:setAlwaysOnTop(onTop)
+    return modal
+end
+
+function CHC_main.common.getCurrentUiType(window)
+    if not window or not window.getActiveSubView then
+        error("Provided window is invalid, please provide an instance of CHC_window")
+    end
+    local subview = window:getActiveSubView()
+    if not subview or not subview.view or subview.view.isItemView == nil then return end
+    return subview.view.isItemView and "items" or "recipes"
+end
+
+function CHC_main.common.getCurrentUiTypeLocalized(window)
+    if not window or not window.getActiveSubView then
+        error("Provided window is invalid, please provide an instance of CHC_window")
+    end
+    local _map = {
+        items = getText("UI_search_items_tab_name"),
+        recipes = getText("UI_search_recipes_tab_name")
+    }
+    return _map[CHC_main.common.getCurrentUiType(window)]
+end
+
+local deafultTexName = "media/inventory/Question_On.png"
+
+---load texture for item/recipe result
+---@param item any
+CHC_main.common.cacheTex = function(item)
+    local chcobj = item
+    if not chcobj.item then
+        -- its a recipe, need to get texure for recipe result
+        chcobj = item.recipeData and item.recipeData.result
+    end
+    if not chcobj then
+        -- its a recipe ingredient, need to extract item
+        chcobj = item.recipe and item.recipe.recipeData and item.recipe.recipeData.result
+    end
+    if not chcobj then return end
+    if chcobj.texture or chcobj.texture_name == deafultTexName then return end
+    if type(chcobj.item) == "table" then
+        chcobj.texture = nil
+        chcobj.texture_name = nil
+        return
+    end
+    chcobj.texture = chcobj.item:getTex()
+    chcobj.texture_name = chcobj.texture and chcobj.texture:getName() or deafultTexName
+
+    if chcobj.category == "Moveable" then
+        chcobj.texture = chcobj.texture:splitIcon()
+        chcobj.texture_name = chcobj.texture:getName()
+        if not getTexture(chcobj.texture_name) then
+            chcobj.texture_name = nil
+        end
+    end
+    -- print("Cached texture for " .. chcobj.fullType)
+end
+
+---render favorite star
+---@param y number top Y coordinate of star
+---@param item table item data
+---@param textures table table with textures to render
+function CHC_main.common.drawFavoriteStar(self, y, item, textures, isFavorite)
+    local favoriteStar
+    local favoriteAlpha = 0.6
+    local favXPos = self.width - self.itemheight - self.vscroll.width
+    if item.index == self.mouseoverselected then
+        if self.mouseX >= favXPos - 3 and self.mouseX <= favXPos + self.itemheight + 3 then
+            favoriteStar = isFavorite and textures.checked or textures.notChecked
+            -- favoriteAlpha = 0.9
+        else
+            favoriteStar = isFavorite and textures.default or textures.notChecked
+            favoriteAlpha = isFavorite and 0.9 or 0.5
+        end
+    elseif isFavorite then
+        favoriteStar = textures.default
+    end
+    if favoriteStar then
+        -- tex,x,y,w,h,a
+        self:drawTextureScaled(
+            favoriteStar,
+            favXPos,
+            y,
+            item.height,
+            item.height,
+            favoriteAlpha)
+    end
 end

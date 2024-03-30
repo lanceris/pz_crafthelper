@@ -9,8 +9,8 @@ Ausführliche Informationen zur Oberfläche findest Du unter dem ⓘ (Info) Symb
 
 Neben der Registerkarte "Gegenstände" gibt es auch zwei allgemeine Registerkarten:
 [list]
-[*] Registerkarte "Suche", in der du alle Gegenstände und Rezepte finden kannst (kann bei vielen Mods stocken)
-[*] Registerkarte "Favoriten", wo du alle Lieblingsartikel und -rezepte finden kannst
+[*] Search tab, where you can find all items and recipes
+[*] Favorite tab, where you can find all your favorite items and recipes
 [/list]
 
 Sicheres Hinzufügen/Entfernen zu/von vorhandenen Spielständen
@@ -25,22 +25,25 @@ Sollte mit allen Mods und Multiplayer kompatibel sein
 [*]Suchleiste. Unterstützt benutzerdefinierte Regeln (Klick auf Lupe)
 [*]Schaltflächen zur Sortierung der Liste nach Name oder Typ
 [*]Die Möglichkeit, Rezepte und Artikel zu favorisieren. Sogar unbekannte!
+[*]Presets for favorite recipes and items.
 [/list]
 
 [hr][/hr]
 [h2]Optionen ([url=https://steamcommunity.com/workshop/filedetails/?id=2169435993]Mod-Optionen[/url] zum Ändern erforderlich):[/h2]
 [list]
-[*] Unterstützung für benutzerdefinierte Regeln aktivieren (standardmäßig EIN)
+[*] Enable custom rules for search (by default ON)
 [*] Symbole in der Liste anzeigen (AN)
 [*] Versteckte Artikel/Rezepte anzeigen (AUS)
 [*] Alle Tabs beim Schließen schließen (OFF)
-[*] Schriftgröße für Gegenstände in der Liste auswählen (Groß)
+[*] Select font size for items in list (Medium)
 [*] Modifikatortasten (Shift, Ctrl) für einige Tastenkombinationen (alle Keine)
 [*] Rezeptursprung anzeigen (Mod) (ON)
-[*] Aktiviere editierbare Kategorieauswahl (standardmäßig AUS)
-[*] Favoritengegenstände im Inventar anzeigen (standardmäßig AUS)
-[*] Option im Kontextmenü zum Auswählen und Umschalten des Favoritenstatus eines Gegenstands (Umschalt + Rechtsklick auf den Gegenstand)
-[*] Verzögerte Suche ("Eingabe" muss gedrückt werden, um die Suche durchzuführen) (standardmäßig AUS)
+[*] Show favorite items in inventories (OFF)
+[*] Enable editable category selector (OFF)
+[*] Delayed search (Need to press Enter to perform search) (OFF)
+[*] Behaviour when right-clicking items in inventory (only "Craft Helper" option)
+[*] Window opacity (80%)
+[*] Scroll speed (100 ms)
 [/list]
 Außerdem kannst du unter "Mod-Optionen" für einige Aktionen Tastenkombinationen festlegen (Tastenkombinationen -> Craft Helper).
 
@@ -56,6 +59,10 @@ Außerdem kannst du unter "Mod-Optionen" für einige Aktionen Tastenkombinatione
 [*]Traditionelles Chinesisch
 [*]Polnisch
 [*]Deutsch
+[*]Italian
+[*]Ukrainian
+[*]French
+[*]Simplified Chinese
 [/list]
 
 Falls Du bei der Übersetzung helfen möchtest, gehe bitte auf die Crowdin-Seite:
@@ -69,11 +76,6 @@ Falls Du bei der Übersetzung helfen möchtest, gehe bitte auf die Crowdin-Seite
 [list][*][url=https://trello.com/b/KmLQqo32/craft-helper-continued]Trello[/url][/list]
 
 [url=https://github.com/lanceris/pz_crafthelper]Source code[/url]
-
-[h2]Wenn dir dieser Mod gefällt, like, favorisiere ihn bitte und überlege dir, ob du mich mit einem Kaffee unterstützen willst :) [/h2]
-[IMG]https://i.imgur.com/6OBlYju.gif[/IMG]
-[url=https://www.buymeacoffee.com/lanceris][img]https://i.postimg.cc/T20N6mr1/default-yellow.png[/img][/url]
-
 
 [hr][/hr]
 [quote]Mod permission according to TIS policy: [url=https://theindiestone.com/forums/index.php?/topic/2530-mod-permissions/&tab=comments#comment-36478]Ask for permission[/url]

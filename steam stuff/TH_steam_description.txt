@@ -9,8 +9,8 @@ Detailed information about interface can be found under ⓘ (info) symbol next t
 
 Apart from item tab, there is also two common tabs:
 [list]
-[*] Search tab, where you can find all items and recipes (might be laggy with alot of mods)
-[*] Favorite tab, where you can find all favorite items and recipes
+[*] Search tab, where you can find all items and recipes
+[*] Favorite tab, where you can find all your favorite items and recipes
 [/list]
 
 Safe to add/remove to/from existing saves
@@ -25,22 +25,25 @@ Should be compatible with all mods and MP
 [*]Search bar. Supports custom rules (click on magnifier)
 [*]Buttons to order list by name or type
 [*]Ability to favorite recipes and items. Even unknown ones!
+[*]Presets for favorite recipes and items.
 [/list]
 
 [hr][/hr]
 [h2]Options ([url=https://steamcommunity.com/workshop/filedetails/?id=2169435993]Mod Options[/url] required to change):[/h2]
 [list]
-[*] Enable custom rules support (by default ON)
+[*] Enable custom rules for search (by default ON)
 [*] Show icons of items in list (ON)
 [*] Show hidden items/recipes (OFF)
 [*] Close all tabs on close (OFF)
-[*] Select font size for items in list (Large)
+[*] Select font size for items in list (Medium)
 [*] Modifier keys (Shift, Ctrl) for some keybinds (all None)
 [*] Show recipe origin (Mod) (ON)
-[*] Enable editable category selector (by default OFF)
-[*] Show favorite items in inventories (by default OFF)
-[*] Context menu option to find and toggle favorite status of item (Shift + Right click on item)
-[*] Delayed search (Need to press Enter to perform search) (by default OFF)
+[*] Show favorite items in inventories (OFF)
+[*] Enable editable category selector (OFF)
+[*] Delayed search (Need to press Enter to perform search) (OFF)
+[*] Behaviour when right-clicking items in inventory (only "Craft Helper" option)
+[*] Window opacity (80%)
+[*] Scroll speed (100 ms)
 [/list]
 Also, with "Mod Options" you can set keybinds (Key bindings -> Craft Helper) for some actions.
 
@@ -56,6 +59,10 @@ Also, with "Mod Options" you can set keybinds (Key bindings -> Craft Helper) for
 [*]จีนตัวเต็ม
 [*]โปแลนด์
 [*]เยอรมัน
+[*]Italian
+[*]Ukrainian
+[*]French
+[*]Simplified Chinese
 [/list]
 
 If you would like to help with translation, please go to Crowdin page:
@@ -69,11 +76,6 @@ If you would like to help with translation, please go to Crowdin page:
 [list][*][url=https://trello.com/b/KmLQqo32/craft-helper-continued]Trello[/url][/list]
 
 [url=https://github.com/lanceris/pz_crafthelper]ซอร์สโค้ด[/url]
-
-[h2]หากคุณชื่นชอบม็อดนี้ โปรดกดปุ่มไลก์ ชื่นชอบ และพิจารณาช่วยสนับสนุนผมด้วยการเลี้ยงกาแฟสักแก้ว :) [/h2]
-[IMG]https://i.imgur.com/6OBlYju.gif[/IMG]
-[url=https://www.buymeacoffee.com/lanceris][img]https://i.postimg.cc/T20N6mr1/default-yellow.png[/img][/url]
-
 
 [hr][/hr]
 [quote]Mod permission according to TIS policy: [url=https://theindiestone.com/forums/index.php?/topic/2530-mod-permissions/&tab=comments#comment-36478]Ask for permission[/url]

@@ -29,6 +29,9 @@ UI_EN = {
     UI_optionscreen_binding_chc_move_tab_left =             "Select previous tab"
     UI_optionscreen_binding_chc_move_tab_right =            "Select next tab"
     UI_optionscreen_binding_chc_toggle_focus_search_bar =   "Focus search bar"
+    UI_optionscreen_binding_chc_close_tab =                 "Close active tab"
+
+
 
     UI_infotext_search =    "<CENTRE><SIZE:medium> Search Screen <LINE><LINE> "..
                             "<SIZE:small> <LEFT> Here you can find all items and recipes. <LINE><LINE> "
@@ -121,4 +124,27 @@ UI_EN = {
 
     UI_searchrow_info_item_attributes_examples = "!>a,!<c <SPACE><SPACE>: show attributes which name starts from a or b <LINE> "
 
+    UI_InfoTitle = "Hotkeys:"
+
+    UI_FiltersUI_Title = "Filters and sorting rules (%1)"
+
+    UI_Presets_DefaultPreset_Name = "Select preset"
+    UI_Presets_NoPresetSelected = "Please select preset!"
+    UI_Presets_Unfavorite_All = "This will unfavorite all %1, are you sure?"
+    UI_Presets_Delete = "This will delete selected preset, are you sure?"
+    UI_Presets_Overwrite = "This preset already exist. Overwrite?"
+    UI_Presets_OverwriteExisting = "This will overwrite existing favorites, are you sure?"
+    UI_Presets_Import_Title = "Paste preset string here!"
+    UI_Presets_Share_Title = "Share this string!"
+    UI_Presets_TextBox_EnterName = "Enter name:"
+    UI_Presets_NameTooShort = "Name too short!"
+    UI_Presets_NameTooLong = "Name too long!"
+    UI_Presets_NoFavorites = "No favorites found. Please favorite at least one %1 before saving preset."
+    UI_Presets_Errors_Title = "Validation errors:"
+    UI_Presets_Errors_InvalidFormat = "Format invalid, could not load"
+    UI_Presets_Errors_InvalidType = "Preset type missing or invalid"
+    UI_Presets_Errors_InvalidEntries = "Preset entries missing or empty"
+    UI_Presets_Errors_LoadAnyway = "Load anyway"
+    UI_Presets_Errors_RemoveAndLoad = "Remove missing and load"
+    UI_Presets_Errors_MissingRecipe = "Recipe object for %1"
 }

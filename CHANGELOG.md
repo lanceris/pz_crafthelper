@@ -1,5 +1,52 @@
 # CraftHelper updates
 
+# 1.9 (31.03.2024)
+
+### New features
+
+- Favorites presets
+- Ability to change window opacity (80% by default)
+- Keybind to close active tab (None by default)
+- Help tooltip with current keyboard shortcuts
+- Button to remove all favorites
+- Textures now loaded on demand (i.e. when shown on UI) instead of at startup
+- Item attributes now loaded on demand (i.e when shown on UI/searched by attribute ($))
+- Ability to hold button to traverse item/recipe lists (delay is configurable)
+- Scroll lists by Shift(+Ctrl) + mouse wheel
+- 4x textures (24px -> 96px)
+- Smaller font (NewSmall) as an option for "Font size"
+- Extra option under "Context behaviour" (Default + Shift for extra)
+
+### Improvements
+
+- Added French translation (thanks to [-Vib](https://crowdin.com/profile/-Vib), [Zunder](https://steamcommunity.com/profiles/76561197981623248) and [SKAREZ](https://crowdin.com/profile/skarez))
+- Added Simplified Chinese translation (thanks to [Auncer](https://crowdin.com/profile/auncerykl) and [HW Chen](https://crowdin.com/profile/yinddec))
+- Item favorites now stored in `CHC_item_favorites` table in player modData
+- Favorites now syncronized with default crafting window
+- Reduced lag when rendering large lists by ~70-80% (only part of objects shown are processed, instead of all)
+- Reduced mod initialization time by ~4-10 times by not loading all textures/attributes on startup
+- Groundwork for custom filters (wip)
+- Renamed some files for better readability (old ones are kept for a while)
+- Attributes for Moveables
+- Various (micro-)optimizations
+- Various UI/UX fixes/updates
+- Config format changed from json to lua
+- Types for attributes (will be used by filters)
+
+### Bugfixes
+
+- Fixed book teached recipes not showing correctly when game language is not English
+- Fixed crash when some textures for vanilla items are missing
+- Fixed incorrect icons for moveables
+- Fixed serialization failing if not all views properly saved
+- Fixed inability to search moveables from inventory (Moveables use ` WorldSprite`` as fulltype -> were not matched to  `CHC_items[fulltype]`)
+- Fixed hidden recipes showing in item views
+- Fixed inability to close CHC window via hotkey when its minimized
+- Fixed type filter button not clickable in some cases
+- Fixed incorrect font size applied on startup
+- Fixed "Show recipe origin" option not updating instantly
+- Fixed incorrect image/text if recipe has no result
+
 # 1.8.4 (19.08.2023)
 
 ### Improvements

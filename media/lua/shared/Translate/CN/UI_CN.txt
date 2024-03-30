@@ -1,0 +1,106 @@
+UI_CN = {
+    UI_item_uses_tab_name = "用途"
+    UI_item_craft_tab_name = "制作"
+    UI_common_left_col_name = "配方"
+    UI_common_right_col_name = "详细"
+    UI_search_tab_name = "搜索"
+    UI_search_items_tab_name = "物品"
+    UI_search_recipes_tab_name = "配方"
+    UI_recipe_panel_required_book = "必读书籍(之一)"
+    UI_recipe_panel_near_item = "必要制作设备"
+    UI_settings_st_title = "排序"
+    UI_settings_av_title = "可用性"
+    UI_settings_av_valid = "有效"
+    UI_settings_av_known = "已知"
+    UI_settings_av_invalid = "无效"
+    UI_optionscreen_binding_chc_category_title = "合成助手"
+    UI_optionscreen_binding_chc_move_up = "选择上个配方"
+    UI_optionscreen_binding_chc_move_down = "选择下个配方"
+    UI_optionscreen_binding_chc_move_left = "选择上个类型"
+    UI_optionscreen_binding_chc_move_right = "选择下个类型"
+    UI_optionscreen_binding_chc_craft_one = "制作一个"
+    UI_optionscreen_binding_chc_craft_all = "制作全部"
+    UI_optionscreen_binding_chc_favorite_recipe = "收藏的配方"
+    UI_optionscreen_binding_chc_close_window = "关闭「合成助手」窗口"
+    UI_optionscreen_binding_chc_toggle_window = "切换「合成助手」窗口"
+    UI_optionscreen_binding_chc_toggle_uses_craft = "切换用途/制作"
+    UI_optionscreen_binding_chc_move_tab_left = "选择上个标签"
+    UI_optionscreen_binding_chc_move_tab_right = "选择下个标签"
+    UI_optionscreen_binding_chc_toggle_focus_search_bar = "选中搜索栏"
+    UI_infotext_search = "<CENTRE><SIZE:medium> 搜索界面 <LINE><LINE> "..
+                         "<SIZE:small> <LEFT> 您可以在此找到所有的物品与配方 <LINE><LINE> "
+    UI_infotext_favorites = "<CENTRE><SIZE:medium> 收藏界面 <LINE><LINE> "..
+                            "<SIZE:small> <LEFT> 您可以在此找到收藏的物品与配方 <LINE><LINE> "
+    UI_infotext_itemtab = "<CENTRE><SIZE:medium> 物品界面 <LINE>"..
+                          "<SIZE:small> <LEFT> 您可以在此找到有关 '%1' 的详细信息 <LINE> "..
+                          "第一标签 (%2) 显示配方, 其中 '%1' 被用作原材料 <LINE> "..
+                          "第二标签 (%3) 显示配方, 其结果为 '%1' <LINE><LINE> "
+    UI_infotext_common = "<INDENT:0> 左栏(配方)显示带有附加控件的物品/配方列表.第一行是筛选行 <LINE><LINE> "..
+                         "<IMAGECENTRE:media/textures/info_filter_row.png> <LINE>"..
+                         "<INDENT:8>按钮 1 显示当前物品/配方的排序顺序. 单击按钮更改顺序. <LINE>"..
+                         "按钮2允许您选择所需输出类型: <LINE>"..
+                         "<INDENT:16> %1 <LINE>"..
+                         "<INDENT:8> 要素 3 是类别选择，可以在其中指定所需的类别. <LINE><LINE>"..
+                         "在筛选行下有搜索栏, 您可以在其中根据物品/配方名称或特定规则进行搜索, 实际结果取决于您的查询. <LINE>"..
+                         "了解更多关于搜索规则的更多讯息,请点击 <IMAGE:media/textures/search_icon.png> <LINE><LINE>"..
+                         "<INDENT:0> 右栏(详细)显示物品/配方的详细信息: <LINE>"..
+                         "<INDENT:8> %2 <LINE><LINE>"..
+                         "<INDENT:0><SIZE:medium>控制: <SIZE:small><LINE><LINE>"..
+                         "<INDENT:16> - 你可以通过拖动在「配方」和「详细」页面之间的线条来调整它们的大小 <LINE> "..
+                         " - 右键点击物品标签打开快捷选项 <LINE>"..
+                         "%3 <LINE>"..
+                         " - 您可以在'Mod Options(模组配置)' 中为频繁的操作设定热键"
+    UI_infotext_recipe_types = "- <IMAGE:media/textures/type_filt_all.png> <SPACE>(%1): 所有配方 <LINE> "..
+                               "- <IMAGE:media/textures/type_filt_valid.png> (%2): 当前可制作的配方 <LINE> "..
+                               "- <IMAGE:media/textures/type_filt_known.png> (%3): 当前知晓但无法制作的配方(缺少技能/物品) <LINE> "..
+                               "- <IMAGE:media/textures/type_filt_invalid.png> (%4): 未知配方. 从未读的书籍学习它."
+    UI_infotext_item_types = " - 服装 <LINE> - 食物 <LINE> - 武器 <LINE> - ..."
+    UI_infotext_recipe_details = " - 关于配方的类型以及结果物品 <LINE> "..
+                                 " - 所需物品 <LINE>"..
+                                 " - 其他条件 (技能, 书籍, 制作设备以及制作时间)"
+    UI_infotext_item_details = " - 关于物品和配方数量的基本信息 <LINE> "..
+                               " - 物品属性 <LINE> "..
+                               " - 如何修复此物品(如果可能) (半成品) <LINE>"..
+                               " - 在哪里可以找到此物品 (半成品)"
+    UI_infotext_recipe_mouse = " - 左键点击星形图标取消最喜爱的配方 (鼠标移至在配方的图标上方) <LINE> "..
+                               " - 右键点击配方结果图标(详细列)打开快捷选项 <LINE> "..
+                               " - 右键点击'必需物品' (详细列) 打开快捷选项"
+    UI_infotext_item_mouse = " - 中键点击物品(配方列)打开被点击物品的新标签 <LINE>"..
+                             " - 右键点击物品(配方列)打开快捷选项 <LINE>"..
+                             " - 右键点击物品图标(详细列)打开快捷选项 <LINE>"..
+                             " - Shift + 右键点击某些元素(见上文)将显示额外选项"
+    UI_searchrow_info = "<CENTRE><SIZE:medium> 搜索助手 <LINE><LINE> "..
+                        "<LEFT><SIZE:small> 搜索栏支持自定义规则. 每个单独的查询词(word)称之为标记(Token). <LINE>"..
+                        "您可以使用「分隔号」一次搜索多个项目. <LINE>"..
+                        "您可在搜索时于每个标记前方加入特殊符号来指定该标记的搜索规则. <LINE>"..
+                        "您可以在模组 'Mod Options(模组配置)' 中设定热键搜索栏, 而不关注 ESC. <LINE><LINE>"..
+                        "<SIZE:medium> 分隔号: <LINE> <SIZE:small> "..
+                        "<INDENT:8> <SIZE:medium> , <SIZE:small> <SPACE><SPACE>(逗号) - 组合所有查询 (与逻辑), 可用于更具体的筛选 <LINE> "..
+                        "<SIZE:medium> | <SIZE:small> <SPACE><SPACE>(竖线) - 分隔所有查询(或逻辑),可用于搜寻单个多项目查询 <LINE><LINE> "..
+                        "<INDENT:0><SIZE:medium> 特殊符号: <LINE> <SIZE:small> "..
+                        "<INDENT:8>%1"..
+                        "<SIZE:medium> ~ <SIZE:small> <SPACE><SPACE>(波浪号) - 排除符号 (既查找所有非符号项目; 如果要使用,必须在特殊字符之后) <LINE><LINE>"..
+                        "<INDENT:0><SIZE:medium> <LEFT> 范例: <LINE> <SIZE:small> "..
+                        "<INDENT:8>%2<LINE>"..
+                        "<INDENT:0><SIZE:medium> 限制: <LINE> <SIZE:small> "..
+                        "<INDENT:8>- 不可在一次查询中同时使用两种分隔号(','和'|') <LINE> "
+    UI_searchrow_info_recipes_special = "<SIZE:medium> ! <SIZE:small> <SPACE><SPACE>(感叹号) - 依据配方类型查询 <LINE>"..
+                                        "<SIZE:medium> @ <SIZE:small> <SPACE><SPACE>(艾特符) - 依据结果物品的模组名称查询('Project Zomboid'是原版模组) <LINE>"..
+                                        "<SIZE:medium> # <SIZE:small> <SPACE><SPACE>(井号) - 依据配方成分查询 <LINE>"..
+                                        "<SIZE:medium> $ <SIZE:small> <SPACE><SPACE>(美元符号) - 依据结果物品类型查询(显示在物品面板右侧) <LINE>"..
+                                        "<SIZE:medium> % <SIZE:small> <SPACE><SPACE>(百分号) - 依据结果物品的名称查询 <LINE>"..
+                                        "<SIZE:medium> ^ <SIZE:small> <SPACE><SPACE>(插入符) - 依据收藏的配方查询 <LINE>"..
+                                        "<SIZE:medium> & <SIZE:small> <SPACE><SPACE>(与号) - 依据配方的模组名称查询 ('Base' 指原版模组) <LINE>"
+    UI_searchrow_info_items_special = "<SIZE:medium> ! <SIZE:small> <SPACE><SPACE>(感叹号) - 依据物品类型查询 <LINE>"..
+                                      "<SIZE:medium> @ <SIZE:small> <SPACE><SPACE>(艾特符) - 依据物品的模组名称查询('Project Zomboid'是原版模组) <LINE>"..
+                                      "<SIZE:medium> # <SIZE:small> <SPACE><SPACE>(井号) - 依据物品类型查询(显示在物品面板右侧) <LINE>"..
+                                      "<SIZE:medium> $ <SIZE:small> <SPACE><SPACE>(美元符号) - 依据物品属性查询 <LINE>"
+    UI_searchrow_info_item_attributes_special = "<SIZE:medium> ! <SIZE:small> <SPACE><SPACE>(感叹号) - 依据属性的名称查询 <LINE>"..
+                                                "<SIZE:medium> @ <SIZE:small> <SPACE><SPACE>(艾特符) - 依据属性的值查询 <LINE>"
+    UI_searchrow_info_recipes_examples = "#火腿 <SPACE><SPACE>- 显示原料中包含'火腿'的配方 <LINE>"..
+                                         "@hydrocra,!技工,#手锯 <SPACE><SPACE>- 在 '技工' 配方类型中显示来自hydrocra的配方 (或相似), 其中原料包含 '手锯' 的成分 <LINE>"..
+                                         "%plank|!食物 <SPACE><SPACE>- 显示结果为'plank'配方, 或'食物'类型中的配方 <LINE> "
+    UI_searchrow_info_items_examples = "#工具,!~武器 <SPACE><SPACE>: 显示非武器的工具(例如:针,手锯,钳子) <LINE> "..
+                                       "$maxdamage>4,$maxdamage<5 <SPACE><SPACE>- 显示'MaxDamage'属性在4至5之间的物品 <LINE> "
+    UI_searchrow_info_item_attributes_examples = "!>a,!<c <SPACE><SPACE>: 显示名称为 a 或 b 开头的属性 <LINE> "
+}

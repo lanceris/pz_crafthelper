@@ -1,12 +1,15 @@
 local CHC_utils = {}
 
-local lower = string.lower
 local tostring = tostring
+local tonumber = tonumber
+local type = type
+local lower = string.lower
 local format = string.format
 local len = string.len
 local sub = string.sub
-local insert = table.insert
+local rep = string.rep
 local contains = string.contains
+local concat = table.concat
 
 CHC_utils.configDir = "CraftHelperContinued" .. getFileSeparator()
 
@@ -168,7 +171,7 @@ CHC_utils.compare = function(what, to, passAll)
             for i = 1, #what do
                 local wh = lower(tostring(what[i]))
                 if isNegate then
-                    insert(_states, contains(wh, to))
+                    _states[#_states + 1] = contains(wh, to)
                 else
                     if contains(wh, to) then
                         state = true
@@ -269,6 +272,57 @@ function CHC_utils.empty(tab)
     return true
 end
 
+function CHC_utils.concat(t1, t2)
+    local result = {}
+    for i = 1, #t1 do
+        result[i] = t1[i]
+    end
+    local s = #result
+    for i = 1, #t2 do
+        result[s + i] = t2[i]
+    end
+    return result
+end
+
+---measure string width for specified font
+---@param str string
+---@param font UIFont
+---@return number width width in pixels
+function CHC_utils.strWidth(font, str)
+    return getTextManager():MeasureStringX(font, str)
+end
+
+---measure string height for specified font
+---@param str string
+---@param font UIFont
+---@return number height height in pixels
+function CHC_utils.strHeight(font, str)
+    return getTextManager():MeasureStringY(font, str)
+end
+
+---https://stackoverflow.com/a/53038524
+---@param t any
+---@param fnKeep any
+---@return any
+function CHC_utils.remove(t, fnKeep)
+    local j, n = 1, #t;
+
+    for i = 1, n do
+        if (fnKeep(t, i, j)) then
+            -- Move i's kept value to j's position, if it's not already there.
+            if (i ~= j) then
+                t[j] = t[i];
+                t[i] = nil;
+            end
+            j = j + 1; -- Increment position of where we'll place the next kept value.
+        else
+            t[i] = nil;
+        end
+    end
+
+    return t;
+end
+
 CHC_utils.configDir = "CraftHelperContinued" .. getFileSeparator()
 -- CHC_utils.cacheDir = CHC_utils.configDir .. "cache" .. getFileSeparator()
 
@@ -315,5 +369,75 @@ CHC_utils.jsonutil.Save = function(fname, data)
     fileWriterObj:close()
 end
 
+CHC_utils.tableutil = {}
+
+---@param o number|boolean|string|table object to serialize
+---@return string str result string
+CHC_utils.tableutil.serialize = function(o, res, _nested, _comma)
+    res = res or {}
+    _nested = _nested or 0
+    local comma
+    if _comma then
+        comma = ",\n"
+    else
+        comma = ""
+    end
+    if type(o) == "number" then
+        res[#res + 1] = o .. comma
+    elseif type(o) == "boolean" then
+        res[#res + 1] = tostring(o) .. comma
+    elseif type(o) == "string" then
+        res[#res + 1] = format("%q" .. comma, o)
+    elseif type(o) == "table" then
+        res[#res + 1] = "{\n"
+        _nested = _nested + 1
+        local spaces = rep(" ", _nested * 4)
+        for k, v in pairs(o) do
+            if type(k) ~= "string" then
+                res[#res + 1] = spaces .. "["
+                CHC_utils.tableutil.serialize(k, res, _nested, false)
+                res[#res + 1] = "] = "
+            else
+                res[#res + 1] = spaces .. k .. " = "
+            end
+
+            CHC_utils.tableutil.serialize(v, res, _nested, true)
+        end
+        _nested = _nested - 1
+        res[#res + 1] = rep(" ", _nested * 4) .. "}" .. comma
+    else
+        print("cannot serialize a " .. type(o))
+    end
+    return concat(res)
+end
+
+
+
+---comment
+---@param fname string Filename to load data from
+---@return table res Loaded data
+CHC_utils.tableutil.load = function(fname)
+    local res
+    local data = {}
+    local fileReaderObj = getFileReader(fname, true)
+    local line = fileReaderObj:readLine()
+    while line do
+        data[#data + 1] = line
+        line = fileReaderObj:readLine()
+    end
+    fileReaderObj:close()
+    res = loadstring("return " .. concat(data, "\n"))()
+    return res
+end
+
+---comment
+---@param fname string Filename to save data to
+---@param data table Data to save
+CHC_utils.tableutil.save = function(fname, data)
+    if not data then return end
+    local fileWriterObj = getFileWriter(fname, true, false)
+    fileWriterObj:write(CHC_utils.tableutil.serialize(data))
+    fileWriterObj:close()
+end
 
 return CHC_utils

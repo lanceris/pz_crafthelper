@@ -1,9 +1,14 @@
 require 'ISUI/ISPanel'
 require 'ISUI/ISButton'
 require 'ISUI/ISModalRichText'
+require 'UI/components/CHC_filters_ui'
 
 local derivative = ISPanel
+---@class CHC_filter_row:ISPanel
 CHC_filter_row = derivative:derive('CHC_filter_row')
+
+local utils = require('CHC_utils')
+local format = string.format
 
 function CHC_filter_row:initialise()
     derivative.initialise(self)
@@ -13,17 +18,26 @@ end
 function CHC_filter_row:create()
     local x, y, w, h = self.x, self.y, self.width, self.height
 
-    -- region order btn
-    local foo = self.filterOrderData
-    self.filterOrderBtn = ISButton:new(x, 0, foo.width or h, h, foo.title or '', self)
-    self.filterOrderBtn:initialise()
-    if not foo.onclickargs then foo.onclickargs = {} end
-    self.filterOrderBtn:setOnClick(foo.onclick, foo.onclickargs[1], foo.onclickargs[2],
-        foo.onclickargs[3], foo.onclickargs[4])
-    self.filterOrderBtn.tooltip = foo.defaultTooltip
-    self.filterOrderBtn:setImage(foo.defaultIcon)
-    self.filterOrderBtn.borderColor.a = 0
-    x = x + self.filterOrderBtn.width
+    -- region filtersBtn
+    self.filtersUIBtn = ISButton:new(x, 0, h, h, nil, self, nil) --self.toggleFiltersUI)
+    self.filtersUIBtn.borderColor.a = 0
+    self.filtersUIBtn.backgroundColor.a = 0
+    self.filtersUIBtn:setTooltip("Filters (WIP)")
+    self.filtersUIBtn:initialise()
+    self.filtersUIBtn:setImage(CHC_window.icons.common.filter)
+    self.filtersUIBtn:setVisible(true)
+    x = x + self.filtersUIBtn.width
+    --endregion
+
+    -- region filters btn
+    -- self.filtersBtn = ISButton:new(x, 0, foo.width or h, h, foo.title or '', self)
+    -- self.filtersBtn:initialise()
+    -- self.filterOrderBtn:setOnClick(self:toggleFiltersUI())
+    -- self.filterOrderBtn.tooltip = foo.defaultTooltip
+    -- self.filterOrderBtn:setImage(foo.defaultIcon)
+    -- self.filterOrderBtn.backgroundColor.a = 0
+    -- self.filterOrderBtn.borderColor.a = 0
+    -- x = x + self.filtersBtn.width
     -- endregion
 
     -- region type btn
@@ -34,13 +48,13 @@ function CHC_filter_row:create()
     self.filterTypeBtn.tooltip = fto.defaultTooltip
     self.filterTypeBtn:setImage(fto.defaultIcon)
     self.filterTypeBtn.borderColor.a = 0
+    self.filterTypeBtn.backgroundColor.a = 0
     x = x + self.filterTypeBtn.width
     -- endregion
 
     -- region selector
     local fsd = self.filterSelectorData
-    local dw = self.filterOrderBtn.width + self.filterTypeBtn.width
-    self.categorySelector = ISComboBox:new(x, 0, w - dw, h)
+    self.categorySelector = ISComboBox:new(x, 0, w - x - h, h)
     self.categorySelector:initialise()
 
     self.categorySelector.editable = CHC_settings.config.editable_category_selector
@@ -49,32 +63,65 @@ function CHC_filter_row:create()
     self.categorySelector.target = self
     self.categorySelector.tooltip = { defaultTooltip = fsd.defaultTooltip }
     self.categorySelector.prerender = self.prerenderSelector
+    self.categorySelector.textColor = { r = 0.95, g = 0.95, b = 0.95, a = 1 }
+    x = x + self.categorySelector.width
     -- endregion
 
-    self:addChild(self.filterOrderBtn)
+    self:addChild(self.filtersUIBtn)
     self:addChild(self.filterTypeBtn)
     self:addChild(self.categorySelector)
-
     self.categorySelector.popup.doDrawItem = self.doDrawItemSelectorPopup
 end
 
 function CHC_filter_row:prerenderSelector()
-    ISComboBox.prerender(self)
     local selected = self.options[self.selected]
-    if not selected then return end
+    local alpha = self.borderColor.a + 0.2 * self.fade:fraction()
+    if alpha > 1 then alpha = 1 end
+    local bg = self.backgroundColor
+    local bgmo = self.backgroundColorMouseOver
+    local y = (self.height - getTextManager():getFontHeight(self.font)) / 2
+    local tc = { r = 0.6, g = 0.6, b = 0.6, a = 1 }
+
+    if not self.disabled then
+        self.fade:setFadeIn(self.joypadFocused or self:isMouseOver())
+        self.fade:update()
+        tc.r = 1
+        tc.g = 1
+        tc.b = 1
+        self:drawRectBorder(0, 0, self.width, self.height, alpha, self.borderColor.r, self.borderColor.g,
+            self.borderColor.b)
+    end
+
+    if self.expanded then
+        self:drawRect(0, 0, self.width, self.height, bg.a, bg.r, bg.g, bg.b)
+    elseif not self.joypadFocused then
+        self:drawRect(0, 0, self.width, self.height, bgmo.a * 0.5 * self.fade:fraction(), bgmo.r, bgmo.g, bgmo.b);
+    else
+        self:drawRect(0, 0, self.width, self.height, bgmo.a, bgmo.r, bgmo.g, bgmo.b);
+    end
 
     if self:isEditable() and self.editor and self.editor:isReallyVisible() then
-    else
+        -- editor is visible, don't draw text
+    elseif selected then
         local data = self:getOptionData(self.selected)
-        if not data or not data.count or type(data.count) ~= "number" then return end
-        local texX = getTextManager():MeasureStringX(self.font, self:getOptionText(self.selected))
-        local y = (self.height - getTextManager():getFontHeight(self.font)) / 2
         self:clampStencilRectToParent(0, 0, self.width - self.image:getWidthOrig() - 6, self.height)
-        local countStr = ' (' .. data.count .. ')'
-        self:drawText(countStr, texX + 10, y, self.textColor.r, self.textColor.g,
-            self.textColor.b, self.textColor.a, self.font)
+
+        local text = self:getOptionText(self.selected)
+        local tx = 10
+        if data and data.count and type(data.count) == "number" then
+            text = format('%s (%d)', text, data.count)
+            tc = self.textColor
+        end
+        if not self.disabled then
+            tc = self.textColor
+        end
+        self:drawText(text, tx, y, tc.r, tc.g, tc.b, tc.a, self.font)
         self:clearStencilRect()
     end
+
+    self:drawRectBorder(0, 0, self.width, self.height, alpha, 0.5, 0.5, 0.5)
+    self:drawTexture(self.image, self.width - self.image:getWidthOrig() - 3,
+        (self.baseHeight / 2) - (self.image:getHeight() / 2), 1, 1, 1, 1)
 end
 
 function CHC_filter_row:doDrawItemSelectorPopup(y, item, alt)
@@ -86,7 +133,7 @@ function CHC_filter_row:doDrawItemSelectorPopup(y, item, alt)
             return y
         end
     end
-    local texX = getTextManager():MeasureStringX(self.font, self.parentCombo:getOptionText(item.index))
+    local texX = utils.strWidth(self.font, self.parentCombo:getOptionText(item.index))
     local countStr = ' (' .. data.count .. ')'
     self:drawText(countStr, texX + 10, y - item.height + 5,
         self.parentCombo.textColor.r, self.parentCombo.textColor.g,
@@ -96,9 +143,24 @@ function CHC_filter_row:doDrawItemSelectorPopup(y, item, alt)
 end
 
 function CHC_filter_row:onResize()
-    self.categorySelector:setWidth(self.width - self.filterOrderBtn.width - self.filterTypeBtn.width)
+    self.categorySelector:setWidth(self.width - self.categorySelector.x)
 end
 
+-- isMouseButtonDown(4)
+
+function CHC_filter_row:toggleFiltersUI()
+    ---@type CHC_filters_ui
+    local ui = self.backRef.filtersUI
+    if not ui then
+        error("Could not access Filters UI")
+    end
+    ui:toggleUI()
+end
+
+---comment
+---@param args {x:number,y:number,w:number,h:number,backRef:CHC_window}
+---@param filtersData table
+---@return CHC_filter_row
 function CHC_filter_row:new(args, filtersData)
     local x = args.x
     local y = args.y
@@ -110,9 +172,38 @@ function CHC_filter_row:new(args, filtersData)
     setmetatable(o, self)
     self.__index = self
 
+    o.backgroundColor.a = 0
+
     o.backRef = args.backRef
     o.filterOrderData = filtersData.filterOrderData
+    o.filterData = filtersData.filterData
     o.filterTypeData = filtersData.filterTypeData
     o.filterSelectorData = filtersData.filterSelectorData
+    o.filtersUI = nil
+
+    o.needUpdateInfoTooltip = false
     return o
+end
+
+local function _scheduleTooltipUpdate()
+    if not CHC_menu or not CHC_menu.CHC_window or not CHC_menu.CHC_window.updateQueue then return end
+    CHC_menu.CHC_window.updateQueue:push({
+        targetViews = { 'all' },
+        actions = { 'needUpdateInfoTooltip' }
+    })
+end
+
+do
+    local old_close = MainOptions.close
+    function MainOptions:close()
+        old_close(self)
+        _scheduleTooltipUpdate()
+    end
+
+    local old_load = MainOptions.loadKeys
+    MainOptions.loadKeys = function(...)
+        local result = old_load(...)
+        _scheduleTooltipUpdate()
+        return result
+    end
 end

@@ -2,7 +2,7 @@
 
 Thanks to all who contributed to Craft Helper Continued!
 
-Contributors will be shown in order of first pull request / commit:
+Contributors will be shown in order of first pull request / commit / contribution:
 
 - [b1n0m](https://steamcommunity.com/id/b1n0m)
   - Original [Craft Helper](https://steamcommunity.com/sharedfiles/filedetails/?id=2186592938) mod
@@ -31,3 +31,13 @@ Contributors will be shown in order of first pull request / commit:
   - Italian translation
 - [Cosmo](https://steamcommunity.com/id/Bulvaik)
   - Ukrainian translation
+- [-Vib](https://crowdin.com/profile/-Vib)
+  - French translation
+- [Zunder](https://steamcommunity.com/profiles/76561197981623248)
+  - French translation
+- [Auncer](https://crowdin.com/profile/auncerykl)
+  - Simplified Chinese translation
+- [HW Chen](https://crowdin.com/profile/yinddec)
+  - Simplified Chinese translation
+- [SKAREZ](https://crowdin.com/profile/skarez)
+  - French translation
