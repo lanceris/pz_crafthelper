@@ -1314,9 +1314,9 @@ function CHC_window.presets.handleInvalidInput(text)
     local msg
     local invalid = true
     if len < minlen then
-        msg = "Name too short!" .. format(" (%d < %d)", len, minlen)
+        msg = getText("UI_Presets_NameTooShort") .. format(" (%d < %d)", len, minlen)
     elseif len > maxlen then
-        msg = "Name too long!" .. format(" (%d > %d)", len, maxlen)
+        msg = getText("UI_Presets_NameTooLong") .. format(" (%d > %d)", len, maxlen)
         -- elseif not text:match("[a-zA-Z0-9_]") or text:match("%W") then
         --     msg = "Only letters and numbers are allowed!"
         -- elseif text:sub(1, 1):match("%d") then
@@ -1374,7 +1374,7 @@ function CHC_window.presets:onMoreBtnSaveClick()
             local params = {
                 type = ISModalDialog,
                 _parent = self.window,
-                text = "This preset already exist. Overwrite?",
+                text = getText("UI_Presets_Overwrite"),
                 yesno = true,
                 onclick = onOverwritePreset,
                 param1 = text,
@@ -1406,10 +1406,11 @@ function CHC_window.presets:onMoreBtnSaveClick()
     if not currentFav or #currentFav.items == 0 then
         params.type = ISModalDialog
         params.yesno = false
-        params.text = "No favorites found"
+        params.text = getText("UI_Presets_NoFavorites",
+            CHC_main.common.getCurrentUiTypeLocalized(self):lower())
     else
         params.type = ISTextBox
-        params.text = "Enter name:"
+        params.text = getText("UI_Presets_TextBox_EnterName")
         params.defaultEntryText = ""
         params.onclick = savePreset
         params.showError = true -- to prevent destroying on click
@@ -1451,11 +1452,11 @@ function CHC_window.presets:onMoreBtnApplyClick()
         sub.view.needUpdateFavorites = true
     end
 
-    local msg = "This will overwrite existing favorites, are you sure?"
+    local msg = getText("UI_Presets_OverwriteExisting")
     local yesno = true
     if not selectedPreset or selectedPreset.text == self.defaultPresetName then
         yesno = false
-        msg = "Please select preset!"
+        msg = getText("UI_Presets_NoPresetSelected")
     end
     local params = {
         type = ISModalDialog,
@@ -1493,7 +1494,7 @@ function CHC_window.presets:onMoreBtnRenameClick()
             local params = {
                 type = ISModalDialog,
                 _parent = self.window,
-                text = "This preset already exist. Overwrite?",
+                text = getText("UI_Presets_Overwrite"),
                 yesno = true,
                 onclick = onOverwritePreset,
                 param1 = existingName,
@@ -1527,11 +1528,11 @@ function CHC_window.presets:onMoreBtnRenameClick()
     if not selectedPreset or selectedPreset.text == self.defaultPresetName then
         params.type = ISModalDialog
         params.yesno = false
-        params.text = "Please select preset!"
+        params.text = getText("UI_Presets_NoPresetSelected")
     else
         params.type = ISTextBox
         params.defaultEntryText = selectedPreset.text
-        params.text = "Enter new name: "
+        params.text = getText("UI_Presets_TextBox_EnterName")
         params.onclick = renamePreset
         params.param1 = selectedPreset.text
         params.showError = true -- to prevent destroying on click
@@ -1575,7 +1576,7 @@ function CHC_window.presets:onMoreBtnDuplicateClick()
             local params = {
                 type = ISModalDialog,
                 _parent = self.window,
-                text = "This preset already exist. Overwrite?",
+                text = getText("UI_Presets_Overwrite"),
                 yesno = true,
                 onclick = onOverwritePreset,
                 param1 = existingName,
@@ -1607,13 +1608,13 @@ function CHC_window.presets:onMoreBtnDuplicateClick()
     if not selectedPreset or selectedPreset.text == self.defaultPresetName then
         params.type = ISModalDialog
         params.yesno = false
-        params.text = "Please select preset!"
+        params.text = getText("UI_Presets_NoPresetSelected")
         CHC_presets.addModal(self, params)
         return
     end
     params.type = ISTextBox
     params.defaultEntryText = selectedPreset.text .. " (Copy)"
-    params.text = "Enter name: "
+    params.text = getText("UI_Presets_TextBox_EnterName")
     params.onclick = duplicatePreset
     params.param1 = selectedPreset.text
     params.showError = true -- to prevent destroying on click
@@ -1645,7 +1646,7 @@ function CHC_window.presets:onMoreBtnShareClick()
         _parent = self.window,
         width = 250,
         height = 350,
-        text = "Share this string!",
+        text = getText("UI_Presets_Share_Title"),
         onclick = copy,
         defaultEntryText = to_share_str or "",
     }
@@ -1678,7 +1679,7 @@ function CHC_window.presets:onMoreBtnImportClick()
             local params = {
                 type = ISModalDialog,
                 _parent = self.window,
-                text = "This preset already exist. Overwrite?",
+                text = getText("UI_Presets_Overwrite"),
                 yesno = true,
                 onclick = onOverwritePreset,
                 param1 = text,
@@ -1708,24 +1709,24 @@ function CHC_window.presets:onMoreBtnImportClick()
         local result = { errors = {}, preset = {} }
         local fn, _err = loadstring("return " .. tostring(text))
         if not fn then
-            result.errors[#result.errors + 1] = format("Format invalid, could not load (%s)", _err)
+            result.errors[#result.errors + 1] = getText("UI_Presets_Errors_InvalidFormat") .. format(" (%s)", _err)
             return result
         end
         local status, preset = pcall(fn)
         if not status or not preset then
-            result.errors[#result.errors + 1] = "Format invalid, could not load"
+            result.errors[#result.errors + 1] = getText("UI_Presets_Errors_InvalidFormat")
             preset = {}
         end
         -- validate preset values
         local _type = preset.type or ""
         _type = _type:trim()
         if _type ~= "items" and _type ~= "recipes" then
-            result.errors[#result.errors + 1] = "Preset type missing or invalid"
+            result.errors[#result.errors + 1] = getText("UI_Presets_Errors_InvalidType")
             preset.type = "items"
         end
 
         if not preset.entries or #preset.entries == 0 then
-            result.errors[#result.errors + 1] = "Preset entries missing or empty"
+            result.errors[#result.errors + 1] = getText("UI_Presets_Errors_InvalidEntries")
             preset.entries = {}
         end
         local valid = {}
@@ -1757,7 +1758,7 @@ function CHC_window.presets:onMoreBtnImportClick()
         if not utils.empty(validation_data.errors) then
             params.type = ISTextBox
             params.defaultEntryText = concat(validation_data.errors, "\n")
-            params.text = "Validation errors"
+            params.text = getText("UI_Presets_Errors_Title")
             params.width = 250
             params.height = 350
 
@@ -1772,7 +1773,7 @@ function CHC_window.presets:onMoreBtnImportClick()
             modal.entry:setY(25)
         else
             params.type = ISTextBox
-            params.text = "Entry name:"
+            params.text = getText("UI_Presets_TextBox_EnterName")
             params.defaultEntryText = ""
             params.onclick = savePreset
             params.showError = true
@@ -1787,7 +1788,7 @@ function CHC_window.presets:onMoreBtnImportClick()
         width = 250,
         height = 350,
         onclick = onclick,
-        text = "Paste preset here!",
+        text = getText("UI_Presets_Import_Title"),
         defaultEntryText = "",
         showError = true, -- to prevent destroying on click
         errorMsg = ""
@@ -1816,11 +1817,11 @@ function CHC_window.presets:onMoreBtnDeleteClick()
         self.needUpdatePresets = true
     end
 
-    local msg = "This will delete selected preset, are you sure?"
+    local msg = getText("UI_Presets_Delete")
     local yesno = true
     if not selectedPreset or selectedPreset.text == self.defaultPresetName then
         yesno = false
-        msg = "Please select preset!"
+        msg = getText("UI_Presets_NoPresetSelected")
     end
     local params = {
         type = ISModalDialog,

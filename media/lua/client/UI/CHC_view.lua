@@ -429,7 +429,7 @@ local modifierOptionToKey = {
 
 ---@return string text
 function CHC_view:createInfoText()
-    local text = "<H1><LEFT> " .. getText("UI_BottomPanelInfoTitle") .. " <TEXT>\n\n"
+    local text = "<H1><LEFT> " .. getText("UI_InfoTitle") .. " <TEXT>\n\n"
     if not CHC_settings or not CHC_settings.keybinds then return text end
     local extra_map = {
         move_up = "recipe_selector_modifier",
@@ -628,7 +628,7 @@ function CHC_view:onRemoveAllFavBtnClick()
     local params = {
         _parent = self.backRef,
         type = ISModalDialog,
-        text = string.format("This will unfavorite all %s, are you sure?",
+        text = getText("UI_Presets_Unfavorite_All",
             CHC_main.common.getCurrentUiTypeLocalized(self.backRef):lower()),
         yesno = true,
         onclick = onModalBtnClick,
