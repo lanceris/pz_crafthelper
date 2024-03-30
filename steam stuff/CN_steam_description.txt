@@ -1,30 +1,30 @@
-[h1]Craft Helper for build 41.65+[/h1]
+[h1]合成助手build 41.65+[/h1]
 
-This is an updated version of [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2186592938]Craft Helper (41.x) by b1n0m[/url] with additional features and improved UI.
+这是一个更新的版本，具有额外的功能和改进的UI。 [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2186592938]Craft Helper (41.x) by b1n0m[/url]
 
-This mod will add a "Craft Helper" context menu option when right-clicking on any item with associated recipes.
-Selecting that will bring up a UI with list of recipes that this item is part of, as well as ways to craft this item.
-Selecting a recipe will show information about it (required items, skills etc). Result icon and required items are right-clickable.
-Detailed information about interface can be found under ⓘ (info) symbol next to close button.
+这个mod将在右键单击的物品下拉菜单中添加一个“合成助手（Craft Helper）”选项。
+点击后会出现合成助手界面其中列出了该物品所属的配方，以及制作该物品的方法。
+选中一个配方可显示它的相关信息（需要的道具，技能等等）。 结果图标以及所需的物品都可右键点击打开新菜单。
+界面的详细信息可以在“关闭”按钮旁边的ⓘ(信息)符号中找到。
 
-Apart from item tab, there is also two common tabs:
+除了物品选项卡外还有两个常见的选项卡：
 [list]
 [*] Search tab, where you can find all items and recipes
 [*] Favorite tab, where you can find all your favorite items and recipes
 [/list]
 
-Safe to add/remove to/from existing saves
-Should be compatible with all mods and MP
+可以安全地加进/移出现有的存档
+理论上兼容所有的mod和多人游戏
 
 [hr][/hr]
-[h2]Features:[/h2]
+[h2]特性[/h2]
 [list]
-[*]Close window on ESC
-[*]Category selector. Select desired category and filter that huge list of recipes.
-[*]Window position saved to config. No more hassle with resizing/moving!
-[*]Search bar. Supports custom rules (click on magnifier)
-[*]Buttons to order list by name or type
-[*]Ability to favorite recipes and items. Even unknown ones!
+[*]按ESC键关闭窗口
+[*]类别选择器。 选择所需的类别并对庞大的配方列表进行筛选。
+[*]窗口的形态将保存到配置。不再有调整大小/移动的麻烦！
+[*]搜索栏。 支持自定义规则(点击放大镜)
+[*]按名称或类型排序列表的按钮
+[*] 可收藏配方和物品。 哪怕还未知晓！
 [*]Presets for favorite recipes and items.
 [/list]
 
@@ -32,12 +32,12 @@ Should be compatible with all mods and MP
 [h2]Options ([url=https://steamcommunity.com/workshop/filedetails/?id=2169435993]Mod Options[/url] required to change):[/h2]
 [list]
 [*] Enable custom rules for search (by default ON)
-[*] Show icons of items in list (ON)
-[*] Show hidden items/recipes (OFF)
-[*] Close all tabs on close (OFF)
+[*] 显示列表中的物品图标(开)
+[*] 显示隐藏的物品/配方(关)
+[*] 关闭时关闭所有选项卡(关)
 [*] Select font size for items in list (Medium)
-[*] Modifier keys (Shift, Ctrl) for some keybinds (all None)
-[*] Show recipe origin (Mod) (ON)
+[*] 某些键绑定的修改键(Shift, Ctrl)(完全没有)
+[*] 显示配方来源(Mod)(开)
 [*] Show favorite items in inventories (OFF)
 [*] Enable editable category selector (OFF)
 [*] Delayed search (Need to press Enter to perform search) (OFF)
@@ -45,34 +45,34 @@ Should be compatible with all mods and MP
 [*] Window opacity (80%)
 [*] Scroll speed (100 ms)
 [/list]
-Also, with "Mod Options" you can set keybinds (Key bindings -> Craft Helper) for some actions.
+此外您可以在 "模组选项(Mod Options)" 中设置热键(Key bindings -> Craft Helper)
 
 [hr][/hr]
-[h3]Supported languages:[/h3]
+[h3]支持的语言[/h3]
 [list]
-[*]English
-[*]Russian
-[*]Spanish
-[*]Thai
-[*]Korean
-[*]Brazilian Portuguese
-[*]Traditional Chinese
-[*]Polish
-[*]German
-[*]Italian
-[*]Ukrainian
+[*]英文
+[*]俄文
+[*]西班牙文
+[*]泰文
+[*]韩文
+[*]葡萄牙文(巴西)
+[*]繁体中文
+[*]波兰文
+[*]德文
+[*]意大利文
+[*]乌克兰文
 [*]French
 [*]Simplified Chinese
 [/list]
 
-If you would like to help with translation, please go to Crowdin page:
+如果您想协助翻译，请访问Crowdin页面：
 [url=https://crowdin.com/project/craft-helper-continued][img]https://i.postimg.cc/0NPptXbN/localization-at-white-rounded-bordered-1x.png[/img][/url]
 
 
-[h3]Thanks to everyone who made this mod better![/h3]
+[h3]感谢所有让这个mod变得更完善的人![/ h3]
 [list][*][url=https://github.com/lanceris/pz_crafthelper/blob/main/CONTRIBUTORS.md]List of contributors[/url][/list]
 
-[h3]Future plans:[/h3]
+[h3]更新计划[/h3]
 [list][*][url=https://trello.com/b/KmLQqo32/craft-helper-continued]Trello[/url][/list]
 
 [url=https://github.com/lanceris/pz_crafthelper]Source code[/url]

@@ -1,0 +1,94 @@
+[h1]Craft Helper dla wersji 41.65+[/h1]
+
+Zaktualizowana wersja moda [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2186592938]Craft Helper (41.x) autorstwa b1n0m[/url] z dodatkowymi funkcjonalnościami i ulepszonym interfejsem użytkownika.
+
+Ten mod doda opcję menu kontekstowego "Craft Helper" po kliknięciu prawym przyciskiem myszy na dowolny element z powiązanymi przepisami.
+Wybranie tej opcji spowoduje pojawienie się interfejsu użytkownika z listą przepisów, które stanowią część tego przedmiotu, jak również sposobów na wytworzenie tego przedmiotu.
+Wybór przepisu pokaże informacje o nim (wymagane przedmioty, umiejętności itp.). Ikona wyników i wymagane elementy są klikalne prawym przyciskiem myszy.
+Szczegółowe informacje o interfejsie można znaleźć pod symbolem ⓘ (info) obok przycisku zamykania.
+
+Poza kartą przedmiotów istnieją również dwie wspólne karty:
+[list]
+[*] Search tab, where you can find all items and recipes
+[*] Favorite tab, where you can find all your favorite items and recipes
+[/list]
+
+Bezpieczne dodanie/usunięcie z istniejących zapisów
+Mod powinien być kompatybilny z wszystkimi innymi modami i MP
+
+[hr][/hr]
+[h2]Główne funkcje:[/h2]
+[list]
+[*]Zamykanie okna za pomocą ESC
+[*]Możliwość wyboru Kategorii. Wybierz pożądaną kategorię i filtruj całą listę przepisów.
+[*]Pozycja okna zapisana w konfiguracji. Zapomnij o problemach ze zmianą wielkości okna/jego przenoszeniem!
+[*]Pasek wyszukiwania. Wspiera własne reguły (kliknij na magnifier)
+[*]Przyciski do porządkowania listy według nazwy lub typu
+[*]Możliwość przepisów i przedmiotów do ulubionych. Nawet tych, które są jeszcze nieznane!
+[*]Presets for favorite recipes and items.
+[/list]
+
+[hr][/hr]
+[h2]Opcje ([url=https://steamcommunity.com/workshop/filedetails/?id=2169435993]Mod Options[/url] wymagany do zmiany):[/h2]
+[list]
+[*] Enable custom rules for search (by default ON)
+[*] Pokazanie ikon przedmiotów na liście (WŁĄCZONE)
+[*] Pokazanie ukrytych przedmioty/receptury (WYŁĄCZONE)
+[*] Zamknięcie wszystkich kart przy zamknięciu (WYŁĄCZONE)
+[*] Select font size for items in list (Medium)
+[*] Klawisze modyfikujące (Shift, Ctrl) dla niektórych skrótów klawiszowych (wszystkie Brak)
+[*] Pokaż źródło przepisu (Mod) (WŁĄCZONE)
+[*] Show favorite items in inventories (OFF)
+[*] Enable editable category selector (OFF)
+[*] Delayed search (Need to press Enter to perform search) (OFF)
+[*] Behaviour when right-clicking items in inventory (only "Craft Helper" option)
+[*] Window opacity (80%)
+[*] Scroll speed (100 ms)
+[/list]
+Również z "Opcjami modyfikacji" można ustawić dla niektórych czynności skróty klawiszowe (Skróty klawiszowe -> Craft Helper).
+
+[hr][/hr]
+[h3]Obsługiwane języki:[/h3]
+[list]
+[*]Angielski
+[*]Rosyjski
+[*]Spanish
+[*]Tajski
+[*]Koreański
+[*]Brazylijski portugalski
+[*]Chiński (tradycyjny)
+[*]Polish
+[*]German
+[*]Italian
+[*]Ukrainian
+[*]French
+[*]Simplified Chinese
+[/list]
+
+Jeśli chcesz pomóc w przetłumaczeniu, możesz to zrobić na stronie Crowdin:
+[url=https://crowdin.com/project/craft-helper-continued][img]https://i.postimg.cc/0NPptXbN/localization-at-white-rounded-bordered-1x.png[/img][/url]
+
+
+[h3]Dzięki wszystkim, którzy uczynili ten mod lepszy![/h3]
+[list][*][url=https://github.com/lanceris/pz_crafthelper/blob/main/CONTRIBUTORS.md]Lista współtwórców[/url][/list]
+
+[h3]Plany na przyszłość:[/h3]
+[list][*][url=https://trello.com/b/KmLQqo32/craft-helper-continued]Trello[/url][/list]
+
+[url=https://github.com/lanceris/pz_crafthelper]Kod źródłowy[/url]
+
+[hr][/hr]
+[quote]Mod permission according to TIS policy: [url=https://theindiestone.com/forums/index.php?/topic/2530-mod-permissions/&tab=comments#comment-36478]Ask for permission[/url]
+This mod can only be added to and extended with the express permission from the original creator. Having received permission, credit must be given to the original creator, both within the files of the mod and wherever the mod roams online.
+If no permission is received you may not alter the mod, and it must be treated as a mod that is 'On Lockdown'.
+
+This item is not authorized for posting on Steam, except under the Steam account [url=https://steamcommunity.com/id/lanceris]Lanceris[/url], or with the copyright holder explicit permission.
+
+One exception for the above rule is redistribution of this mod (and/or modified versions) as part of the server modpack (collection of multiple mods bundled and configured together as one workshop item).
+Support will NOT be provided for users, while they are using such modpacks.
+
+© 2022 Lanceris
+[/quote]
+
+Workshop ID: 2787291513
+Mod ID: CraftHelperContinued
