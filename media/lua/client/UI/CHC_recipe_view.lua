@@ -71,8 +71,8 @@ end
 
 function CHC_recipe_view:update()
     if self.needUpdateModRender then
-        self.objList.shouldDrawMod = CHC_settings.config.show_recipe_module
         self.needUpdateModRender = false
+        self.shouldDrawMod = CHC_settings.config.show_recipe_module
     end
     CHC_view.update(self)
 end

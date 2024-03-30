@@ -137,8 +137,10 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
         { chc = false, find = false, fav = false },
         { chc = true,  find = false, fav = false },
         { chc = true,  find = true,  fav = true },
+        { chc = true,  find = false, fav = false },
     }
     local ctxOptions = onContextBehaviourToInternal[ctxBehIndex]
+    local isDefaultPlusShift = ctxBehIndex == 4 and isShiftKeyDown()
 
     if ctxOptions.chc then
         if type(itemsUsedInRecipes) == 'table' and #itemsUsedInRecipes > 0 then
@@ -150,7 +152,7 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
         end
     end
 
-    if ctxOptions.fav then
+    if ctxOptions.fav or isDefaultPlusShift then
         local isFav = CHC_menu.playerModData.CHC_item_favorites[CHC_main.common.getFavItemModDataStr(item)] == true
         local favStr = isFav and getText('ContextMenu_Unfavorite') or getText('IGUI_CraftUI_Favorite')
         local optName = favStr .. ' (' .. getText('IGUI_chc_context_onclick') .. ')'
@@ -162,7 +164,7 @@ CHC_menu.doCraftHelperMenu = function(player, context, items)
         end
     end
 
-    if ctxOptions.find then
+    if ctxOptions.find or isDefaultPlusShift then
         local findOpt = context:addOption(
             getText('IGUI_find_item') .. ' (' .. getText('IGUI_chc_context_onclick') .. ')', items,
             CHC_menu.onCraftHelper, player, true)
