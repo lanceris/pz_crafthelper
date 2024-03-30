@@ -372,10 +372,6 @@ function CHC_props_table:refreshObjList(props)
     for i = 1, #items do
         self:processAddObjToObjList(items[i])
     end
-    -- TODO: add filter button
-    local maxItems = #items
-    if maxItems > 8 then maxItems = 8 end
-    self.objList:setHeight(2 + maxItems * self.objList.itemheight)
 end
 
 function CHC_props_table:processAddObjToObjList(prop)

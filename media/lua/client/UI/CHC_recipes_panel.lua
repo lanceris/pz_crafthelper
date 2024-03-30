@@ -581,31 +581,26 @@ function CHC_recipes_panel:setObj(recipe)
         end
     end
 
-    local statsListOpenedSections = self.statsList.expandedSections
     self.statsList:clear()
 
     self:updateButtons(obj)
 
     self:refreshIngredientPanel(obj)
-    self.statsList:addSection(self.ingredientPanel, getText('IGUI_CraftUI_RequiredItems'))
+    self.statsList:addSection(self.ingredientPanel, "ingredients", getText('IGUI_CraftUI_RequiredItems'))
 
     if obj.requiredSkillCount > 0 and not utils.empty(obj.recipe.recipeData.requiredSkills) then
         self:refreshSkillPanel(obj)
-        self.statsList:addSection(self.skillPanel, getText('IGUI_CraftUI_RequiredSkills'))
+        self.statsList:addSection(self.skillPanel, "skills", getText('IGUI_CraftUI_RequiredSkills'))
     end
 
     if (self.manualsEntries and obj.needToBeLearn) or self.freeFromTraits or self.freeFromProfessions then
         self:refreshBooksPanel(obj)
-        self.statsList:addSection(self.booksPanel, getText('UI_recipe_panel_required_book') .. ':')
+        self.statsList:addSection(self.booksPanel, "books", getText('UI_recipe_panel_required_book') .. ':')
     end
 
     if obj.hydrocraftEquipment or obj.cecEquipment or obj.nearItem then
         self:refreshEquipmentPanel(obj)
-        self.statsList:addSection(self.equipmentPanel, getText('UI_recipe_panel_near_item') .. ': ')
-    end
-
-    for section, _ in pairs(statsListOpenedSections) do
-        self.statsList:expandSection(section)
+        self.statsList:addSection(self.equipmentPanel, "equipment", getText('UI_recipe_panel_near_item') .. ':')
     end
 
     self.needUpdateHeight = true
@@ -1402,7 +1397,7 @@ function CHC_recipes_panel:render()
 
     if self.needUpdateHeight then
         self.needUpdateHeight = false
-        self.statsList.sectionMap[getText('IGUI_CraftUI_RequiredItems')]:calculateHeights()
+        self.statsList.sectionMap.ingredients:calculateHeights()
     end
     local selectedItem = self.selectedObj
 

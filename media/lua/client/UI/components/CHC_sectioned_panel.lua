@@ -74,19 +74,19 @@ end
 
 function CHC_section:onHeaderClick()
     self.expanded = not self.expanded
-    if self.expanded then
-        self.parent.expandedSections[self.title] = true
-    else
-        self.parent.expandedSections[self.title] = nil
-    end
+    self.parent.backRef.panelSectionStates[self._id] = self.expanded
     self.panel:setVisible(self.expanded)
     self:calculateHeights()
 end
 
-function CHC_section:calcHeightNonList(panel)
-    local maxItems = #panel.objList.items
-    if maxItems > 9 then maxItems = 9 end
-    return 3 * panel.padY + panel.searchRow.height + maxItems * panel.objList.itemheight
+function CHC_section:calcHeightNonList(panel, maxItems)
+    local numItems = #panel.objList.items
+    if numItems < maxItems then
+        numItems = numItems + 1
+    elseif numItems > maxItems then
+        numItems = maxItems
+    end
+    return 3 * panel.padY + panel.searchRow.height + numItems * panel.objList.itemheight, numItems
 end
 
 function CHC_section:calcHeightList(objList, maxItems)
@@ -104,11 +104,17 @@ function CHC_section:calculateHeights()
 
     if self.expanded then
         local listH
-        if panel.objList then   -- item panels (attributes etc)
-            listH = self:calcHeightNonList(panel)
-        else                    -- recipe panels (ingredients etc)
-            local maxItems = 10 --FIXME allow configuration
-            listH = self:calcHeightList(panel, maxItems)
+        local maxItems = 10   --FIXME allow configuration
+        local numItems
+        if panel.objList then -- item panels (attributes etc)
+            listH, numItems = self:calcHeightNonList(panel, maxItems)
+            if numItems >= maxItems then
+                numItems = numItems - 1
+            end
+            panel.objList:setHeight(panel.objList.itemheight * numItems)
+            panel.objList.vscroll:setHeight(panel.objList.itemheight * numItems)
+        else
+            listH = self:calcHeightList(panel, maxItems) -- recipe panels (ingredients etc)
 
             panel.vscroll:setVisible(#panel.items > maxItems)
             panel:setScrollHeight(listH)
@@ -141,19 +147,21 @@ function CHC_section:render()
     self:clearStencilRect()
 end
 
-function CHC_section:new(x, y, width, height, panel, title, rightMargin, headerWidth)
+function CHC_section:new(x, y, width, height, panel, title, rightMargin, headerWidth, expanded, id)
     local o = {}
     o = ISPanel:new(x, y, width, height)
 
     setmetatable(o, self)
     self.__index = self
+    o._id = id
     o.font = UIFont.Small
     o.padX = 0
     o.padY = 3
     o.panel = panel
     o.title = title and title or '???'
     o.enabled = true
-    o.expanded = true
+    if expanded == nil then expanded = true end
+    o.expanded = expanded
     o.rightMargin = rightMargin
     o.headerWidth = headerWidth
     if headerWidth == 'text' then
@@ -182,13 +190,14 @@ function CHC_sectioned_panel:initialise()
     ISPanel.initialise(self)
 end
 
-function CHC_sectioned_panel:addSection(panel, title)
+function CHC_sectioned_panel:addSection(panel, id, title, expanded)
     local sbarWid = self.vscroll and self.vscroll.width or 0
+    expanded = self.backRef.panelSectionStates[id] == true
     local section = CHC_section:new(0, 0, self.width - sbarWid, 1,
-        panel, title, self.rightMargin, self.headerWidth)
+        panel, title, self.rightMargin, self.headerWidth, expanded, id)
     self:addChild(section)
     self.sections[#self.sections + 1] = section
-    self.sectionMap[title] = section
+    self.sectionMap[id] = section
 end
 
 function CHC_sectioned_panel:clear()
@@ -252,7 +261,11 @@ function CHC_sectioned_panel:onMouseWheel(del)
         if panel:isMouseOver() then
             local vscroll = panel.objList and panel.objList.vscroll or panel.vscroll
             if vscroll and vscroll:isReallyVisible() then
-                if (vscroll.pos > 0 and del == -1) or (vscroll.pos < 1 and del == 1) then
+                if not isShiftKeyDown() and
+                    (
+                        (vscroll.pos > 0 and del == -1) or
+                        (vscroll.pos < 1 and del == 1)
+                    ) then
                     return false
                 end
             end
@@ -276,7 +289,6 @@ function CHC_sectioned_panel:new(args)
     o.backgroundColor.a = 0
     o.sections = {}
     o.sectionMap = {}
-    o.expandedSections = {}
     o.activeSection = nil
     o.maintainHeight = true
     o.padY = 3

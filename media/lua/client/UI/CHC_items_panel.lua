@@ -101,6 +101,7 @@ function CHC_items_panel:createChildren()
         backRef = self.backRef
     }
     self.itemProps = CHC_props_table:new(props_table_args)
+    self.itemProps.onMouseWheel = self.onMouseWheel22
     self.itemProps.borderColor.a = 0
     self.itemProps:instantiate()
     -- endregion
@@ -138,6 +139,15 @@ end
 --     if not self.item then return end
 --     ISPanel.render(self)
 -- end
+
+function CHC_items_panel:onMouseWheel22(del)
+    local isOver = self:isMouseOver()
+    -- print(isOver)
+    if isOver and self:isVScrollBarVisible() then
+        self:setYScroll(self:getYScroll() - (del * 207))
+        return true
+    end
+end
 
 -- endregion
 
@@ -206,21 +216,16 @@ function CHC_items_panel:setObj(item)
     end
     -- endregion
 
-    local statsListOpenedSections = self.statsList.expandedSections
     self.statsList:clear()
     self.statsList:setY(self.mainInfo.y + self.mainInfo:getBottom() + self.padY)
 
     if self.itemProps.propData then
-        self.statsList:addSection(self.itemProps, self.attributeSectionName)
+        self.statsList:addSection(self.itemProps, "attributes", self.attributeSectionName)
     end
     -- self.statsList:addSection(self.itemDistrib, 'Distributions')
     -- self.statsList:addSection(self.itemFixing, 'Fixing')
 
-    for section, _ in pairs(statsListOpenedSections) do
-        self.statsList:expandSection(section)
-    end
-
-    if self.statsList.sectionMap[self.attributeSectionName] then
+    if self.statsList.sectionMap.attributes then
         local list_search_txt = self.parent.searchRow.searchBar:getInternalText()
         if utils.startswith(list_search_txt, '$') then
             -- self.itemProps.searchRow.searchBar:setText(list_search_txt:gsub('%$', ''))

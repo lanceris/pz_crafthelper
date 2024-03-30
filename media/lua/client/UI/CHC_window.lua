@@ -793,6 +793,7 @@ function CHC_window:onRMBDownObjList(x, y, item, isrecipe, context)
                 subMenuName:addOption('2x', self.parent, function() for _ = 1, 2 do pInv:AddItem(item.fullType) end end)
                 subMenuName:addOption('5x', self.parent, function() for _ = 1, 5 do pInv:AddItem(item.fullType) end end)
                 subMenuName:addOption('10x', self.parent, function() for _ = 1, 10 do pInv:AddItem(item.fullType) end end)
+                subMenuName:addOption('50x', self.parent, function() for _ = 1, 50 do pInv:AddItem(item.fullType) end end)
             end
         end
     end
@@ -1905,6 +1906,14 @@ function CHC_window:new(args)
     o.updRates = {
         { var = "needUpdateScroll",   rate = 50 }, -- TODO move to settings?
         { var = "needUpdateMousePos", rate = 100 }
+    }
+
+    o.panelSectionStates = {
+        attributes = true,  -- Item Attributes
+        ingredients = true, -- Recipe Ingredients
+        skills = true,      -- Recipe Needed Skills
+        books = true,       -- Recipe Required Books
+        equipment = true,   -- Recipe Equipment
     }
 
     return o

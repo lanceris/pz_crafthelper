@@ -443,8 +443,11 @@ local function loadOneItem(item, id)
         local teachedRecipes = item:getTeachedRecipes()
         if teachedRecipes ~= nil and teachedRecipes:size() > 0 then
             for j = 0, teachedRecipes:size() - 1 do
-                local itemManuals = CHC_main.itemsManuals[teachedRecipes:get(j)] or {}
-                itemManuals[#itemManuals + 1] = CHC_main.items[toinsert.fullType]
+                local recipe = teachedRecipes:get(j)
+                local ref = CHC_main.itemsManuals[recipe]
+                if not ref then ref = {} end
+                ref[#ref + 1] = CHC_main.items[toinsert.fullType]
+                CHC_main.itemsManuals[recipe] = ref
             end
         end
     end
