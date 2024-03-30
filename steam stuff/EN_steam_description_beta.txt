@@ -30,6 +30,8 @@ Config files are separate from main mod ("beta_" prefix).
 [*]Added 4x textures (24px -> 96px)
 [*]Fixed type filter button not clickable in some cases
 [*]Fixed incorrect font size applied on startup
+[*]Fixed "Show recipe origin" option not updating instantly
+[*]Added extra option under "Context behaviour" (Default + Shift for extra)
 [/list]
 
 [hr][/hr]
@@ -47,6 +49,7 @@ Config files are separate from main mod ("beta_" prefix).
 [*]Italian
 [*]Ukrainian
 [*]French
+[*]Simplified Chinese
 [/list]
 
 If you would like to help with translation, please go to Crowdin page:

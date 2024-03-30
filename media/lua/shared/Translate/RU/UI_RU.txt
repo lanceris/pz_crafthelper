@@ -27,6 +27,7 @@ UI_RU = {
     UI_optionscreen_binding_chc_move_tab_left = "Предыдущая вкладка"
     UI_optionscreen_binding_chc_move_tab_right = "Следующая вкладка"
     UI_optionscreen_binding_chc_toggle_focus_search_bar = "Фокус на строку поиска"
+    UI_optionscreen_binding_chc_close_tab = "Закрыть текущую вкладку"
     UI_infotext_search = "<CENTRE><SIZE:medium> Окно поиска <LINE><LINE> "..
                          "<SIZE:small> <LEFT> Здесь вы можете найти все предметы и рецепты. <LINE><LINE> "
     UI_infotext_favorites = "<CENTRE><SIZE:medium> Окно избранного <LINE><LINE> "..
@@ -103,4 +104,25 @@ UI_RU = {
     UI_searchrow_info_items_examples = "#инстру,!~оруж <SPACE><SPACE>: показать инструменты, которые не явяются оружием (e.g игла, пила, плоскогубцы) <LINE> "..
                                        "$maxdamage>4,$maxdamage<5 <SPACE><SPACE>- показать предметы, у которых атрибут MaxDamage между 4 и 5 <LINE> "
     UI_searchrow_info_item_attributes_examples = "!>а,!<в <SPACE><SPACE>: показать атрибуты, имя которых начинается с а или б <LINE> "
+    UI_InfoTitle = "Горячие клавиши:"
+    UI_FiltersUI_Title = "Фильтры и правила сортировки (%1)"
+    UI_Presets_DefaultPreset_Name = "Выберите шаблон"
+    UI_Presets_NoPresetSelected = "Пожалуйста, выберите шаблон!"
+    UI_Presets_Unfavorite_All = "Это действие удалит все избранные %1, вы уверены?"
+    UI_Presets_Delete = "Выбранный шаблон будет удален, вы уверены?"
+    UI_Presets_Overwrite = "Этот шаблон уже существует. Перезаписать?"
+    UI_Presets_OverwriteExisting = "Это действие перезапишет текущее избранное, вы уверены?"
+    UI_Presets_Import_Title = "Вставьте строку с шаблоном!"
+    UI_Presets_Share_Title = "Поделитесь этой строкой!"
+    UI_Presets_TextBox_EnterName = "Введите название:"
+    UI_Presets_NameTooShort = "Название слишком короткое!"
+    UI_Presets_NameTooLong = "Название слишком длинное!"
+    UI_Presets_NoFavorites = "Избранное не найдено. Пожалуйста добавьте по крайней мере один %1 в избранное перед сохранением шаблона."
+    UI_Presets_Errors_Title = "Ошибки валидации:"
+    UI_Presets_Errors_InvalidFormat = "Неправильный формат, не удалось загрузить"
+    UI_Presets_Errors_InvalidType = "Тип шаблона отсутствует или неверен"
+    UI_Presets_Errors_InvalidEntries = "Элементы шаблона не найдены или шаблон пуст"
+    UI_Presets_Errors_LoadAnyway = "Все равно загрузить"
+    UI_Presets_Errors_RemoveAndLoad = "Удалить недостающее и загрузить"
+    UI_Presets_Errors_MissingRecipe = "Объект рецепта для %1"
 }
