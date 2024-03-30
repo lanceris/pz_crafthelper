@@ -285,14 +285,14 @@ function CHC_presets:validatePreset(i, objStr, ui_type)
             end
             if utils.empty(missingItems) then
                 -- all ingredients are ok but recipe not found (altered order?)
-                missingItems[#missingItems + 1] = format("Recipe object for %s", items[2])
+                missingItems[#missingItems + 1] = getText("UI_Presets_Errors_MissingRecipe", tostring(items[2]))
             end
             missing = missingItems
         else
             missing = { objStr }
         end
         for j = 1, #missing do
-            _errors[#_errors + 1] = format('[%s] = `%s` missing', i, missing[j])
+            _errors[#_errors + 1] = format('[%s] = `%s` %s', i, missing[j], getText("IGUI_Missing"):lower())
         end
     end
     return entry, objStr, _errors
@@ -360,15 +360,15 @@ function CHC_presets:onChangePreset()
             _parent = self.window,
             outerParent = button.parent.outerParent,
             type = ISTextBox,
-            text = getText("UI_BottomPanel_onChangePreset_Validation_Title"),
+            text = getText("UI_Presets_Errors_Title"),
             onclick = handleErrors,
             defaultEntryText = concat(errors, "\n"),
             width = 450,
             height = 450
         }
         local modal = self:addModal(params)
-        modal.yes:setTitle(getText("UI_BottomPanel_onChangePreset_Validation_LoadAnyway"))
-        modal.no:setTitle(getText("UI_BottomPanel_onChangePreset_Validation_Remove"))
+        modal.yes:setTitle(getText("UI_Presets_Errors_LoadAnyway"))
+        modal.no:setTitle(getText("UI_Presets_Errors_RemoveAndLoad"))
         modal.yes:setWidthToTitle()
         modal.no:setWidthToTitle()
         modal.entry:setMultipleLine(true)
@@ -469,7 +469,7 @@ function CHC_presets:new(x, y, w, h, window, moreButtonOptions, presetStorageKey
 
     o.borderColor = { r = 0, g = 0, b = 0, a = 0 }
     o.backgroundColor = { r = 0, g = 0, b = 0, a = 0 }
-    o.defaultPresetName = "Select preset"
+    o.defaultPresetName = getText("UI_Presets_DefaultPreset_Name")
     o.moreButtonTex = CHC_window.icons.presets.more
     o.defaultItemTexName = "media/inventory/Question_On.png"
     o.needUpdatePresets = true

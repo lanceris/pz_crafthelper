@@ -35,7 +35,7 @@ end
 CHC_main.config_apply_funcs.onChangeShowRecipeModule = function(inst)
     inst.updateQueue:push({
         targetViews = { 'all' },
-        actions = { 'needUpdateModRender' },
+        actions = { 'needUpdateModRender', 'needUpdateObjects' },
         exclude = {
             search_items = true,
             fav_items = true
