@@ -7,6 +7,7 @@ local utils = require('CHC_utils')
 local find = string.find
 local sub = string.sub
 local lower = string.lower
+local print = utils.chcprint
 
 -- region create
 function CHC_item_view:initialise()
@@ -265,6 +266,10 @@ function CHC_item_view:searchProcessToken(token, item)
         --     whatCompare = item.fullType
         -- end
     else
+        if not item.displayName then
+            print("Display Name not set for " .. item.fullType)
+            return false
+        end
         whatCompare = lower(item.displayName)
     end
     state = utils.compare(whatCompare, token)

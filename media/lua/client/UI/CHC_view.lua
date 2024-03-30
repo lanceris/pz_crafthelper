@@ -280,13 +280,8 @@ function CHC_view:updateObjects(typeField, categoryField, extraFilters)
     end
     CHC_view.refreshObjList(self, filtered)
 
-    if not defCatSelected then
-        CHC_view.updateTypes(self, typCounts, curType)
-    end
-    local delayUpdateObj = false
-    if not defTypeSelected then
-        delayUpdateObj = CHC_view.updateCategories(self, catCounts, curCat, newCats)
-    end
+    CHC_view.updateTypes(self, typCounts, curType)
+    local delayUpdateObj = CHC_view.updateCategories(self, catCounts, curCat, newCats)
     if delayUpdateObj then
         CHC_view.updateObjects(self, typeField, categoryField)
     end

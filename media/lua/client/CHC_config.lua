@@ -72,7 +72,7 @@ local init_cfg = {
     delayed_search = false,
     inv_context_behaviour = 2,
     window_opacity = 8,
-    scroll_speed = 4,
+    scroll_speed = 3,
     main_window = { x = 100, y = 100, w = 1000, h = 600, a = 0.6 },
     uses = { sep_x = 500, filter_asc = true, filter_type = 'all' },
     craft = { sep_x = 500, filter_asc = true, filter_type = 'all' },
@@ -307,7 +307,7 @@ if ModOptions and ModOptions.getInstance then
                 "500",
                 name = "IGUI_ScrollSpeed",
                 tooltip = "IGUI_ScrollSpeedTooltip",
-                default = 4,
+                default = 3,
                 OnApplyMainMenu = CHC_settings.f.onModOptionsApply,
                 OnApplyInGame = CHC_settings.f.onModOptionsApply
             }
@@ -341,7 +341,7 @@ else
     CHC_settings.config.delayed_search = false
     CHC_settings.config.inv_context_behaviour = 2
     CHC_settings.config.window_opacity = 8
-    CHC_settings.config.scroll_speed = 4
+    CHC_settings.config.scroll_speed = 3
 end
 
 
