@@ -27,7 +27,6 @@ UI_CN = {
     UI_optionscreen_binding_chc_move_tab_left = "选择上个标签"
     UI_optionscreen_binding_chc_move_tab_right = "选择下个标签"
     UI_optionscreen_binding_chc_toggle_focus_search_bar = "选中搜索栏"
-    UI_optionscreen_binding_chc_close_tab = "Close active tab"
     UI_infotext_search = "<CENTRE><SIZE:medium> 搜索界面 <LINE><LINE> "..
                          "<SIZE:small> <LEFT> 您可以在此找到所有的物品与配方 <LINE><LINE> "
     UI_infotext_favorites = "<CENTRE><SIZE:medium> 收藏界面 <LINE><LINE> "..
@@ -104,25 +103,4 @@ UI_CN = {
     UI_searchrow_info_items_examples = "#工具,!~武器 <SPACE><SPACE>: 显示非武器的工具(例如:针,手锯,钳子) <LINE> "..
                                        "$maxdamage>4,$maxdamage<5 <SPACE><SPACE>- 显示'MaxDamage'属性在4至5之间的物品 <LINE> "
     UI_searchrow_info_item_attributes_examples = "!>a,!<c <SPACE><SPACE>: 显示名称为 a 或 b 开头的属性 <LINE> "
-    UI_InfoTitle = "Hotkeys:"
-    UI_FiltersUI_Title = "Filters and sorting rules (%1)"
-    UI_Presets_DefaultPreset_Name = "Select preset"
-    UI_Presets_NoPresetSelected = "Please select preset!"
-    UI_Presets_Unfavorite_All = "This will unfavorite all %1, are you sure?"
-    UI_Presets_Delete = "This will delete selected preset, are you sure?"
-    UI_Presets_Overwrite = "This preset already exist. Overwrite?"
-    UI_Presets_OverwriteExisting = "This will overwrite existing favorites, are you sure?"
-    UI_Presets_Import_Title = "Paste preset string here!"
-    UI_Presets_Share_Title = "Share this string!"
-    UI_Presets_TextBox_EnterName = "Enter name:"
-    UI_Presets_NameTooShort = "Name too short!"
-    UI_Presets_NameTooLong = "Name too long!"
-    UI_Presets_NoFavorites = "No favorites found. Please favorite at least one %1 before saving preset."
-    UI_Presets_Errors_Title = "Validation errors:"
-    UI_Presets_Errors_InvalidFormat = "Format invalid, could not load"
-    UI_Presets_Errors_InvalidType = "Preset type missing or invalid"
-    UI_Presets_Errors_InvalidEntries = "Preset entries missing or empty"
-    UI_Presets_Errors_LoadAnyway = "Load anyway"
-    UI_Presets_Errors_RemoveAndLoad = "Remove missing and load"
-    UI_Presets_Errors_MissingRecipe = "Recipe object for %1"
 }
