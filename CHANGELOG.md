@@ -38,7 +38,7 @@
 - Fixed book teached recipes not showing correctly when game language is not English
 - Fixed crash when some textures for vanilla items are missing
 - Fixed incorrect icons for moveables
-- Serialize window config only if all views properly saved
+- Fixed serialization failing if not all views properly saved
 - Fixed inability to search moveables from inventory (Moveables use ` WorldSprite`` as fulltype -> were not matched to  `CHC_items[fulltype]`)
 - Fixed hidden recipes showing in item views
 - Fixed inability to close CHC window via hotkey when its minimized
