@@ -438,6 +438,7 @@ local function loadOneItem(item, id)
     else
         itemNoModule[#itemNoModule + 1] = toinsert
     end
+    CHC_main.itemsNoModule[toinsert.type] = itemNoModule
 
     if toinsert.category == 'Literature' then
         local teachedRecipes = item:getTeachedRecipes()

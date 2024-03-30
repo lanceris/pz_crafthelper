@@ -139,12 +139,11 @@ function CHC_recipes_list:addToFavorite(selectedIndex, fromKeyboard)
         end
     end
     if not fav_idx then return end
-    local fav_recipes = allr[fav_idx].recipes.items
     local recipe = selectedItem.item
     recipe.favorite = not recipe.favorite
     CHC_menu.playerModData[recipe.favStr] = recipe.favorite
     if recipe.favorite then
-        fav_recipes[#fav_recipes + 1] = selectedItem
+        allr[fav_idx].recipes.items[#allr[fav_idx].recipes.items + 1] = selectedItem
     else
         if parent.ui_type == 'fav_recipes' then
             self:removeItemByIndex(selectedIndex)

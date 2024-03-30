@@ -318,6 +318,9 @@ function CHC_recipes_panel:getSources(recipe)
         local param
         local result
         local displayCount
+        if not item.propsMap then
+            CHC_main.common.getItemProps(item)
+        end
         if item.propsMap then
             if instanceof(item.item, "Food") then
                 param = item.propsMap["HungChange"].value
@@ -2075,6 +2078,9 @@ function CHC_recipes_panel:getValidEvolvedIngredients(typesAvailable)
                     isValidCooked = evoRecipe:needToBeCooked(concreteItem)
                     isInvalidFrozen = concreteItem:getFreezingTime() > 0 and (not evoRecipe:isAllowFrozenItem())
                 end
+                if not item.propsMap then
+                    CHC_main.common.getItemProps(item)
+                end
                 local isSpice = item.propsMap and item.propsMap["Spice"] and
                     tostring(item.propsMap["Spice"].value) == "true"
 
@@ -2086,6 +2092,7 @@ function CHC_recipes_panel:getValidEvolvedIngredients(typesAvailable)
                     else
                         local typeToShow = typesToShow[foodType] or {}
                         typeToShow[#typeToShow + 1] = { item = item, uses = uses }
+                        typesToShow[foodType] = typeToShow
                     end
                 end
             else
