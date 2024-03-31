@@ -1,5 +1,15 @@
 # CraftHelper updates
 
+# 1.9.1 (XX.XX.XXXX)
+
+### Improvements
+
+- Prevent re-caching item texture if already tried to cache (and e.g. texture is not found)
+
+### Bugfixes
+
+- Fixed error when caching texture for Moveable and texture is missing
+
 # 1.9 (31.03.2024)
 
 ### New features

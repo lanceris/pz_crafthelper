@@ -4,6 +4,7 @@ media/lua/client/UI/old
 workshop/
 *.code-workspace
 create_workshop_txt.py
+create_workshop_txt_beta.py
 steam stuff/changelogs
 temp/
 .VSCodeCounter/

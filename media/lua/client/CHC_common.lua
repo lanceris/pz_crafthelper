@@ -627,22 +627,34 @@ CHC_main.common.cacheTex = function(item)
         chcobj = item.recipe and item.recipe.recipeData and item.recipe.recipeData.result
     end
     if not chcobj then return end
-    if chcobj.texture or chcobj.texture_name == deafultTexName then return end
+    if chcobj.texture or
+        chcobj.texture_name == deafultTexName or
+        chcobj.texture_cached == true
+    then
+        return
+    end
     if type(chcobj.item) == "table" then
         chcobj.texture = nil
         chcobj.texture_name = nil
+        chcobj.texture_cached = true
         return
     end
     chcobj.texture = chcobj.item:getTex()
     chcobj.texture_name = chcobj.texture and chcobj.texture:getName() or deafultTexName
 
     if chcobj.category == "Moveable" then
+        if not chcobj.texture then
+            chcobj.texture_cached = true
+            chcobj.texture = nil
+            return
+        end
         chcobj.texture = chcobj.texture:splitIcon()
         chcobj.texture_name = chcobj.texture:getName()
         if not getTexture(chcobj.texture_name) then
             chcobj.texture_name = nil
         end
     end
+    chcobj.texture_cached = true
     -- print("Cached texture for " .. chcobj.fullType)
 end
 
