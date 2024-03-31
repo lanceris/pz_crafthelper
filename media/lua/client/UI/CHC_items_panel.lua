@@ -112,7 +112,7 @@ function CHC_items_panel:createChildren()
     -- endregion
 
     -- region fixing
-    self.itemFixing = CHC_props_table:new(props_table_args)
+    self.itemFixing = CHC_fixing_table:new(props_table_args)
     self.itemFixing:instantiate()
     -- endregion
 
@@ -211,25 +211,41 @@ function CHC_items_panel:setObj(item)
 
     -- region build props table
     self.itemProps.objList:clear()
-    self.itemProps.propData = nil
+    self.itemProps.objData = nil
     local objProps = self:collectItemProps(item)
     if not utils.empty(objProps) then
         for i = 1, #objProps do
             self.itemProps.objList:addItem(objProps[i].name, objProps[i])
         end
-        self.itemProps.propData = objProps
+        self.itemProps.objData = objProps
         self.itemProps.needUpdateObjects = true
+    end
+    -- endregion
+
+    -- region build fixing table
+    self.itemFixing.objList:clear()
+    self.itemFixing.objData = nil
+    local objFixing = self:collectItemFixing(item)
+    if not utils.empty(objFixing) then
+        for i = 1, #objFixing do
+            self.itemFixing.objList:addItem(objFixing[i].name, objFixing[i])
+        end
+        self.itemFixing.numSkillColumns = item.fixesMaxK
+        self.itemFixing.objData = objFixing
+        self.itemFixing.needUpdateObjects = true
     end
     -- endregion
 
     self.statsList:clear()
     self.statsList:setY(self.mainInfo.y + self.mainInfo:getBottom() + self.padY)
 
-    if self.itemProps.propData then
+    if self.itemProps.objData then
         self.statsList:addSection(self.itemProps, "attributes", self.attributeSectionName)
     end
     -- self.statsList:addSection(self.itemDistrib, 'Distributions')
-    -- self.statsList:addSection(self.itemFixing, 'Fixing')
+    if self.itemFixing.objData then
+        self.statsList:addSection(self.itemFixing, 'fixing', self.fixingSectionName)
+    end
 
     if self.statsList.sectionMap.attributes then
         local list_search_txt = self.parent.searchRow.searchBar:getInternalText()
@@ -265,6 +281,14 @@ function CHC_items_panel:collectItemProps(item)
     return objAttrs
 end
 
+function CHC_items_panel:collectItemFixing(item)
+    local objFixing = CHC_main.common.getItemFixers(item)
+    if objFixing then
+        sort(objFixing, function(a, b) return a.name:upper() < b.name:upper() end)
+    end
+    return objFixing
+end
+
 -- endregion
 
 function CHC_items_panel:new(args)
@@ -284,6 +308,7 @@ function CHC_items_panel:new(args)
 
     o.attributeSectionName = getText('IGUI_ItemDetails_Attributes_tab')
     o.needUpdateHeight = false
+    o.fixingSectionName = "Fixing" -- FIXME TODO
 
     return o
 end

@@ -131,6 +131,16 @@ function CHC_main.common.getItemProps(item)
     return attrs
 end
 
+function CHC_main.common.getItemFixers(item)
+    local fixes = {}
+    if not item.item or item.item.fullType then return fixes end
+    if not item.fixes then
+        item.fixes, item.fixesMaxK = CHC_main.getItemFixers(item)
+    end
+    fixes = item.fixes
+    return fixes
+end
+
 function CHC_main.common.isRecipeValid(recipe, player, containerList, knownRecipes, playerSkills, nearbyIsoObjects)
     local function checkSkills()
         for i = 1, #recipe.recipeData.requiredSkills do
