@@ -66,6 +66,8 @@ CHC_main.init = function()
     CHC_main.luaRecipeCache = {}
     CHC_main.notAProcZone = {} -- zones from Distributions.lua without corresponding zones in ProceduralDistributions.lua
     -- CHC_main.itemPropsList = {}
+    CHC_main.fixing = {}
+    CHC_main.fixers = {}
 end
 
 CHC_main.getItemByFullType = function(itemString)
@@ -1413,6 +1415,142 @@ end
 
 --endregion
 
+--region fixing loading
+CHC_main.getItemFixers = function(item)
+    if not item.item then return {} end
+    local fixingList = FixingManager.getFixes(item.item)
+    if not fixingList then return {} end
+    local result = {}
+    local maxK = 0
+    for i = 0, fixingList:size() - 1 do
+        ---@type Fixing
+        local fixing = fixingList:get(i)
+        local fixers = fixing:getFixers()
+        if fixers then
+            for j = 0, fixers:size() - 1 do
+                ---@type Fixer
+                local fixer = fixers:get(j)
+                local obj = {
+                    name = fixer:getFixerName(),
+                    numUses = fixer:getNumberOfUse(),
+                }
+                if CHC_menu.player then
+                    item.item:setHaveBeenRepaired(0)
+                    obj.chanceFail0 = FixingManager.getChanceOfFail(item.item, CHC_menu.player, fixing, fixer)
+                    obj.condRepaired0 = FixingManager.getCondRepaired(item.item, CHC_menu.player, fixing, fixer)
+                    item.item:setHaveBeenRepaired(1)
+                    obj.chanceFail1 = FixingManager.getChanceOfFail(item.item, CHC_menu.player, fixing, fixer)
+                    obj.condRepaired1 = FixingManager.getCondRepaired(item.item, CHC_menu.player, fixing, fixer)
+                    -- item.item:setHaveBeenRepaired(2)
+                    -- obj.chanceFail2 = FixingManager.getChanceOfFail(item.item, CHC_menu.player, fixing, fixer)
+                    -- obj.condRepaired2 = FixingManager.getCondRepaired(item.item, CHC_menu.player, fixing, fixer)
+                    -- item.item:setHaveBeenRepaired(3)
+                    -- obj.chanceFail3 = FixingManager.getChanceOfFail(item.item, CHC_menu.player, fixing, fixer)
+                    -- obj.condRepaired3 = FixingManager.getCondRepaired(item.item, CHC_menu.player, fixing, fixer)
+                    item.item:setHaveBeenRepaired(0)
+                end
+                local requiredSkills = fixer:getFixerSkills()
+                if requiredSkills then
+                    for k = 0, requiredSkills:size() - 1 do
+                        local skill = requiredSkills:get(k)
+                        obj["skillName" .. tostring(k + 1)] = skill:getSkillName()
+                        obj["skillLevel" .. tostring(k + 1)] = skill:getSkillLevel()
+                        if k + 2 > maxK then maxK = k + 2 end
+                    end
+                    -- df:df()
+                end
+                result[#result + 1] = obj
+            end
+        end
+    end
+    return result, maxK
+end
+
+---load one fixing
+---@param fixer Fixing
+---@param id any
+local function loadOneFixer(fixer, id)
+    local fixingName = fixer:getName()
+
+    local obj = {
+        name = fixingName,
+        id = id,
+        conditionModifier = fixer:getConditionModifier(),
+        globalItem = fixer:getGlobalItem(),
+        module = fixer:getModule():getName(),
+        requiredFullTypes = {},
+        fixers = {}
+    }
+    if CHC_main.fixing[fixingName] then
+        error("duplicate fixer")
+    end
+
+    local requiredItems = fixer:getRequiredItem()
+    -- if requiredItems:size() > 1 then
+    --     print("TOO LONG REQUIRED FOR " .. fixerName)
+    -- end
+    for i = 0, requiredItems:size() - 1 do
+        obj.requiredFullTypes[#obj.requiredFullTypes + 1] = requiredItems:get(i)
+    end
+
+    local allFixers = fixer:getFixers()
+    for i = 0, allFixers:size() - 1 do
+        ---@type Fixer
+        local fixerObj = allFixers:get(i)
+        local fixerName = fixerObj:getFixerName()
+        local fixerData = {
+            name = fixerName,
+            numUses = fixerObj:getNumberOfUse(),
+            skills = {}
+        }
+        local fixerSkills = fixerObj:getFixerSkills()
+        if fixerSkills then
+            for j = 0, fixerSkills:size() - 1 do
+                local skill = fixerSkills:get(j)
+                fixerData.skills[#fixerData.skills + 1] = {
+                    name = skill:getSkillName(),
+                    level = skill:getSkillLevel()
+                }
+            end
+        end
+        obj.fixers[#obj.fixers + 1] = fixerData
+        local mappedFixer = CHC_main.fixers[fixerName]
+        if not mappedFixer then
+            mappedFixer = {}
+        end
+        mappedFixer[#mappedFixer + 1] = obj
+        CHC_main.fixers[fixerName] = mappedFixer
+    end
+    CHC_main.fixing[fixingName] = obj
+end
+
+CHC_main.loadAllFixing = function(_max)
+    local allFixing = getScriptManager():getAllFixing(ArrayList.new())
+    local nFixing = 0
+    local nErrors = 0
+    local now = getTimestampMs()
+    local amount = _max or allFixing:size() - 1
+
+    print("Loading fixing...")
+    for i = 0, amount do
+        local entry = allFixing:get(i)
+        local ok, err = pcall(loadOneFixer, entry, i)
+        if not ok then
+            utils.chcerror("Error when loading fixing (" .. tostring(entry:getName()) .. "): " .. tostring(err),
+                nil, nil, false)
+            nErrors = nErrors + 1
+        else
+            nFixing = nFixing + 1
+        end
+    end
+    showTime(now, "All Fixing")
+    print(nFixing .. " fixers loaded.")
+    if nErrors > 0 then
+        print(nErrors .. " fixers with errors skipped.")
+    end
+end
+--endregion
+
 --region misc
 CHC_main.loadAllBooks = function()
     local allItems = getAllItems()
@@ -1562,6 +1700,8 @@ CHC_main.loadDatas = function()
     CHC_main.loadAllProfessionRecipes()
     CHC_main.loadAllSkillRecipes()
 
+    -- CHC_main.loadAllFixing()
+
     -- CHC_main.initPropList()
 
     -- if loadLua then CHC_main.saveLuaCache() end
@@ -1574,11 +1714,19 @@ end
 function CHC_main.reloadMod(key)
     if key == Keyboard.KEY_O then
         -- reload all
-        CHC_main.loadDatas()
+        CHC_main.fixing = {}
+        CHC_main.loadAllFixing()
+        local a = CHC_main.fixing
+        local b = CHC_main.fixers
+        df:df()
     end
     if key == Keyboard.KEY_V then
         -- reload UI
         CHC_menu.createCraftHelper()
+    end
+    if key == Keyboard.KEY_Z then
+        -- reload all
+        CHC_main.loadDatas()
     end
 end
 
