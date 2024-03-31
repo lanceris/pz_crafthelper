@@ -46,6 +46,7 @@
 - Fixed incorrect font size applied on startup
 - Fixed "Show recipe origin" option not updating instantly
 - Fixed incorrect image/text if recipe has no result
+- Fixed render of scroll for item attributes
 
 # 1.8.4 (19.08.2023)
 
