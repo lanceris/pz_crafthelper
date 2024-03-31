@@ -135,10 +135,16 @@ function CHC_items_panel:onResize()
     self.statsList:setHeight(self.height - self.mainInfo.height - 4 * self.padY)
 end
 
--- function CHC_items_panel:render()
---     if not self.item then return end
---     ISPanel.render(self)
--- end
+function CHC_items_panel:render()
+    ISPanel.render(self)
+
+    if self.needUpdateHeight then
+        self.needUpdateHeight = false
+        for i = 1, #self.statsList.sections do
+            self.statsList.sections[i]:calculateHeights()
+        end
+    end
+end
 
 function CHC_items_panel:onMouseWheel22(del)
     local isOver = self:isMouseOver()
@@ -233,6 +239,7 @@ function CHC_items_panel:setObj(item)
         end
     end
 
+    self.needUpdateHeight = true
     if not utils.empty(self.statsList.sections) then
         self.statsList:setVisible(true)
     else
@@ -276,6 +283,7 @@ function CHC_items_panel:new(args)
     o.itemImgTextureMultApplied = false
 
     o.attributeSectionName = getText('IGUI_ItemDetails_Attributes_tab')
+    o.needUpdateHeight = false
 
     return o
 end
