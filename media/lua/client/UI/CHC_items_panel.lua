@@ -225,6 +225,7 @@ function CHC_items_panel:setObj(item)
     -- region build fixing table
     self.itemFixing.objList:clear()
     self.itemFixing.objData = nil
+    self.itemFixing.objList.columns = {}
     local objFixing = self:collectItemFixing(item)
     if not utils.empty(objFixing) then
         for i = 1, #objFixing do
