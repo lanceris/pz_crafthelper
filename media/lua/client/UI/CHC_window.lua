@@ -1909,11 +1909,13 @@ function CHC_window:new(args)
     }
 
     o.panelSectionStates = {
-        attributes = true,  -- Item Attributes
-        ingredients = true, -- Recipe Ingredients
-        skills = true,      -- Recipe Needed Skills
-        books = true,       -- Recipe Required Books
-        equipment = true,   -- Recipe Equipment
+        attributes = true,   -- Item Attributes
+        fixing = true,       -- Item Fixing
+        distribution = true, -- Item Distribution
+        ingredients = true,  -- Recipe Ingredients
+        skills = true,       -- Recipe Needed Skills
+        books = true,        -- Recipe Required Books
+        equipment = true,    -- Recipe Equipment
     }
 
     return o
