@@ -55,9 +55,6 @@ function CHC_fixing_table:createChildren()
     self.objList.vscroll.backgroundColor.a = 0
     self.objList.vscroll.borderColor.a = 0.3
 
-    self.objList:addColumn(getText('IGUI_CopyNameProps_ctx'), 0)
-    self.objList:addColumn("n", self.width * 0.3)
-
     -- self:addChild(self.optionsBtn)
     self:addChild(self.searchRow)
     self:addChild(self.objList)
@@ -68,8 +65,8 @@ end
 -- region update
 function CHC_fixing_table:update()
     if self.needUpdateObjects == true then
-        self:updateObjects()
         self.needUpdateObjects = false
+        self:updateObjects()
     end
 end
 
@@ -80,6 +77,8 @@ function CHC_fixing_table:updateObjects()
 
     local left = self.width * 0.3
     local size = 32
+    self.objList:addColumn(getText('IGUI_CopyNameProps_ctx'), 0)
+    self.objList:addColumn("n", left)
     self.objList:addColumn("f0", left + 1 * size)
     self.objList:addColumn("f1", left + 2 * size)
     self.objList:addColumn("r0", left + 3 * size)
@@ -235,10 +234,7 @@ function CHC_fixing_table:drawItems(y, item, alt)
     self:drawRectBorder(0, (y), self.width, self.itemheight, a, self.borderColor.r, self.borderColor.g,
         self.borderColor.b)
 
-    -- for key, value in pairs(self.columnData) do
-
-    -- end
-
+    if #self.columns < 2 then return y end
     local clipX = self.columns[1].size
     local clipX2 = self.columns[2].size
     local clipY = y + self:getYScroll()
@@ -293,6 +289,7 @@ end
 -- region event handlers
 
 function CHC_fixing_table:onRMBDownObjList(x, y, item)
+    if true then return end
     if not item then
         local row = self:rowAt(x, y)
         if row == -1 then return end
