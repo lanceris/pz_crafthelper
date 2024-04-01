@@ -5,8 +5,8 @@ require 'CHC_config_apply_funcs'
 local utils = require('CHC_utils')
 
 local dir = utils.configDir
-local config_name = 'craft_helper_config.lua'
-local mappings_name = 'CHC_mappings.json'
+local config_name = 'beta_craft_helper_config.lua'
+local mappings_name = 'beta_CHC_mappings.json'
 
 local char = string.char
 local byte = string.byte
@@ -106,8 +106,8 @@ local applyBlacklist = {
 }
 
 local presetStorageToFilename = {
-    presets = 'CHC_presets.lua',
-    filters = 'CHC_filter_presets.lua'
+    presets = 'beta_CHC_presets.lua',
+    filters = 'beta_CHC_filter_presets.lua'
 }
 
 function CHC_settings.f.onModOptionsApply(values)

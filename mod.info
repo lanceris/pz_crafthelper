@@ -1,10 +1,10 @@
-name=Craft Helper Continued
-id=CraftHelperContinued
+name=Craft Helper Continued beta
+id=CraftHelperContinued_beta
 description=Craft Helper for build 41.65+ with additional features and improved UI.
 icon=icon.png
 authors=Lanceris
 
-modversion=1.9
+modversion=1.9.1b1
 versionMin=41.65
 tags=Build 41,Interface
 
